@@ -1,34 +1,29 @@
 # DiscMenu-Builder
 
-Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung auf CD, DVD oder Blu-ray. Eine Disc kann mehrere Spiele enthalten (Collection).
+Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung auf DVD oder Blu-ray. Das Menü wirkt wie ein klassischer Installer, ist aber ein Forwarder: Es startet die originalen Installer und öffnet Extras.
 
-> **Status:** Konzeptphase. Es gibt noch keinen Code, nur Konzept, Ordnerstruktur und ein Beispiel für die `menu.json`.
+> **Status:** Konzeptphase. Es gibt noch keinen Code, nur Konzept, Spezifikation und ein Beispiel.
 
-## Idee
+## Eckpunkte
 
-Große GOG-Sammlungen belegen viel Speicherplatz auf dem Server, obwohl man vieles selten spielt. Die Installer (inklusive DLCs und Extras) sollen deshalb auf Discs wandern, mit einem Menü im Stil der alten CD-Installer.
+- **Eine Rezeptdatei:** Alles steht in der `menu.json`. Für eine neue Disc wird nichts neu programmiert.
+- **Einheitlicher Look, anpassbar:** Layout und Bedienung sind immer gleich, Texte, Cover, Hintergrund und Sounds kommen aus der Rezeptdatei.
+- **Eine oder mehrere Spiele pro Disc:** Bei mehreren Spielen gibt es eine Auswahlseite (Reihenfolge über `index`), bei nur einem Spiel öffnet sich direkt dessen Seite.
+- **Pro Spiel:** Installieren (wahlweise still mit Zielpfad), DLCs/Erweiterungen, Patches (z. B. Sprach- oder Grafikpatches), Extras (Soundtrack, Artbooks, Handbücher). Eigene Tabs (z. B. Mods) sind später geplant.
+- **Langlebig:** Discs werden immer finalisiert und sind unabhängig vom Internet nutzbar. Gibt es ein Update, kommt eine neue Disc.
+- **Plattformen:** Windows 7 und neuer sowie Linux über Wine/Proton.
+- **Zuerst GOG**, später möglicherweise Steam-Backups.
 
-Damit nicht für jede Disc ein Menü neu programmiert werden muss, arbeitet das Projekt mit einem Rezept:
+## Dokumentation
 
-1. Du beschreibst die Disc in einer `menu.json` (Spiele, Cover, Installer, DLCs, Extras).
-2. Der **Builder** liest die `menu.json` und erzeugt daraus eine fertige Menü-EXE.
-3. Die Menü-EXE kommt zusammen mit den Installern auf die Disc.
-
-Weitere Eckpunkte:
-
-- **Zuerst GOG**, später soll dasselbe Menü auch Steam-Backups wiederherstellen können (über einen `provider` pro Spiel).
-- **Multi-Installer:** Mehrere Spiele pro Disc, Reihenfolge über einen `index` pro Spiel.
-- **Patches-Tab:** Ein Ordner `Patches/<Spiel-Index>/<Patch-Index>/` wird zur Laufzeit ausgelesen. So lassen sich später Patches ergänzen, ohne die Menü-EXE neu zu bauen.
-
-## Bestandteile
-
-| Teil | Aufgabe |
+| Datei | Inhalt |
 |---|---|
-| **Builder** (`Menüersteller.exe`) | Liest `menu.json` und Assets im aktuellen Ordner, erzeugt die Menü-EXE |
-| **Player** | Die Menü-EXE selbst: zeigt das Menü, startet Installer, spielt Sounds |
-| **Shared** | Gemeinsamer Code: Config-Modelle, Payload-Format |
-
-Der Builder kompiliert nichts. Er nimmt einen fertig gebauten Player, hängt Config und Bilder als Paket (Payload) an und speichert das Ergebnis als neue EXE. Details stehen in [docs/concept.md](docs/concept.md).
+| [docs/concept.md](docs/concept.md) | Konzept, Ablauf, Menüaufbau, EXE-Aufbau |
+| [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json` |
+| [docs/installer-integration.md](docs/installer-integration.md) | Installer starten, still installieren, Ergebnis auslesen |
+| [docs/platforms-and-tech.md](docs/platforms-and-tech.md) | Windows 7, Wine/Proton, Technikauswahl |
+| [docs/disc-planung.md](docs/disc-planung.md) | Kapazität, Finalisieren, Updates, Langzeitarchivierung |
+| [docs/decisions.md](docs/decisions.md) | Getroffene und offene Entscheidungen |
 
 ## Ordnerstruktur
 
@@ -36,36 +31,36 @@ Der Builder kompiliert nichts. Er nimmt einen fertig gebauten Player, hängt Con
 DiscMenu-Builder/
 ├─ README.md
 ├─ LICENSE
-├─ docs/
-│  ├─ concept.md           Konzept, Ablauf, Architektur, Grenzen
-│  ├─ menu-json-spec.md    Beschreibung aller Felder der menu.json
-│  ├─ patches-spec.md      Patch-Ordner und patch.json
-│  └─ disc-planung.md      Kapazität, Platz für Patches, Mehrfach-Session
+├─ docs/                    Dokumentation (siehe Tabelle oben)
 ├─ examples/
-│  ├─ menu.example.json    Beispiel-Rezept (zwei Spiele)
-│  ├─ Patches/             Beispiel für die Patch-Ordnerstruktur
-│  └─ assets/              Beispiel-Cover, -Sounds (später)
+│  ├─ menu.example.json     Beispiel-Rezept mit zwei Spielen
+│  └─ assets/               Beispiel-Cover und -Sounds (später)
 └─ src/
-   ├─ Builder/             Menüersteller
-   ├─ Player/              Laufzeit-Menü
-   └─ Shared/              Config-Modelle, Payload-Format
+   ├─ Builder/              Menüersteller
+   ├─ Player/               Menü, das auf der Disc liegt
+   └─ Shared/               Config-Modelle, EXE-Paketformat
 ```
 
 ## Roadmap
 
-- [ ] Konzept, `menu.json`- und Patch-Format festlegen (aktueller Stand)
-- [ ] Test mit einer Disc: Mehrfach-Session für spätere Patches
-- [ ] Technik bestätigen (Vorschlag: C# / WPF auf .NET Framework 4.8)
-- [ ] Player: Menü aus Beispiel-Config anzeigen (Hover, Sound, Cover)
-- [ ] Player: Installer starten (interaktiv und still)
-- [ ] Builder: Player + Payload zur fertigen EXE zusammensetzen
-- [ ] DLCs und Extras im Menü
-- [ ] Multi-Installer: mehrere Spiele, Sortierung nach `index`
-- [ ] Patches-Tab: Patches zur Laufzeit einlesen und starten
+- [ ] Konzept und Formate festlegen (aktueller Stand)
+- [ ] Mini-Prototyp zur Technikauswahl, getestet unter Windows 10/11, Windows 7 und Wine
+- [ ] Echte GOG-Installer testen: still installieren, Exit-Code, Registry
+- [ ] Player: Auswahlseite und Spielseite mit Hover, Sound und Cover
+- [ ] Player: Installer starten (normal und still), Zielpfad wählen
+- [ ] Player: DLCs, Patches und Extras mit Gruppen
+- [ ] Builder: Player und Paket zur fertigen EXE zusammensetzen
 - [ ] Fortschrittsanzeige bei stillen Installationen
 - [ ] Automatischer Build über GitHub Actions
-- [ ] Test auf echter Disc inklusive AutoPlay
-- [ ] Später: Steam-Provider (Machbarkeit zuerst prüfen)
+- [ ] Test auf echter Disc inklusive AutoPlay und Linux
+- [ ] Später: eigene Tabs (z. B. Mods)
+- [ ] Später: Steam (Machbarkeit zuerst prüfen)
+
+## Regeln für die Dokumentation
+
+- Jedes Thema steht an genau einer Stelle. Andere Dateien verlinken dorthin.
+- Ändert sich ein Konzept, werden alle betroffenen Dateien im selben Commit angepasst und überholte Dateien gelöscht.
+- Entscheidungen und offene Punkte stehen in [docs/decisions.md](docs/decisions.md).
 
 ## Lizenz
 

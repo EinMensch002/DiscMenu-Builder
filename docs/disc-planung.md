@@ -1,28 +1,34 @@
 # Disc-Planung
 
+## Grundsatz
+
+Discs sollen **Jahrzehnte** halten, unabhängig vom Internet nutzbar sein und sich unter Windows (auch älteren Versionen) und Linux lesen lassen. Deshalb gilt:
+
+- **Jede Disc wird finalisiert.** Offene Discs (Mehrfach-Session) werden nicht von jedem Laufwerk oder Betriebssystem sauber erkannt. Das Risiko ist für ein Archiv zu hoch.
+- **Kein nachträgliches Ergänzen** von Patches oder Dateien auf einer gebrannten Disc.
+- **Updates bedeuten eine neue Disc.** Gibt es später einen wichtigen Patch, wird die Disc in einer neuen Revision komplett neu gebaut und gebrannt (z. B. "Revision 2" auf dem Aufdruck).
+
 ## Kapazität
 
-- BD-R mit einer Schicht: 25 GB laut Hersteller. Windows zeigt rund 23,3 GB an, weil es in GiB rechnet. Planst du mit der Windows-Anzeige, bist du auf der sicheren Seite.
+- BD-R mit einer Schicht: 25 GB laut Hersteller, Windows zeigt rund 23,3 GB an (Rechnung in GiB). Geplant wird mit der Windows-Anzeige.
 - BD-R mit zwei Schichten: 50 GB (Windows: rund 46,6 GB).
-- Pro Disc gilt: Summe aus Spielen, DLCs, Extras, Menü-EXE und reserviertem Patch-Platz muss unter diesem Wert bleiben.
+- Für den Platz zählt alles zusammen: Spiele, DLCs, Extras, Menü-EXE.
+- Mehrere Spiele pro Disc sind vorgesehen (Collections), solange sie zusammen passen.
 
-## Platz für Patches reservieren
+## Dateisystem
 
-Die Idee: Nach dem Brennen von Spielen und Menü bleibt Freiraum (z. B. 8 GB). Dieser Platz soll später für Patches genutzt werden, indem neue Dateien in den Ordner `Patches/` nachgebrannt werden.
+GOG-Installer bestehen oft aus Dateien mit bis zu rund 4 GB. Das reine ISO-9660-Dateisystem kann das nicht, deshalb wird **UDF** genutzt. Welche UDF-Version für Windows 7 und Linux die sicherste ist, wird beim ersten Test-Brennen geprüft. Dabei auch die Länge der Dateipfade beachten (Windows hat Grenzen).
 
-Das geht nur, wenn die Disc **nicht finalisiert** wurde und das Brennprogramm Mehrfach-Sessions unterstützt.
+## Langzeitarchivierung
 
-## Mehrfach-Session und Finalisieren
+- Menü-Rezept (`menu.json` und Assets) im Repo oder auf dem Server aufheben, damit sich Discs später neu bauen lassen.
+- Prüfsummen der Dateien speichern und die Disc nach dem Brennen prüfen.
+- Wichtige Discs doppelt brennen und getrennt lagern.
+- Discs gelegentlich auslesen und prüfen. Die Haltbarkeitsangaben der Hersteller sind keine Garantie.
 
-- Bei einer beschreibbaren Disc (BD-R) werden Daten dauerhaft geschrieben. Gelöschte oder ersetzte Dateien geben **keinen** Platz frei, neue Dateien belegen zusätzlichen Platz.
-- Eine nicht finalisierte Disc ist nicht beschädigt, sie ist nur "offen". Eine finalisierte Disc ist abgeschlossen und kann nicht mehr beschrieben werden.
-- Offene Discs werden nicht von jedem Laufwerk oder Player gelesen. Viele PC-Laufwerke kommen damit zurecht, manche nicht.
-- Jede zusätzliche Session braucht etwas Verwaltungsplatz.
-- Ob Windows Explorer, dein Brennprogramm und dein Laufwerk gemeinsam Mehrfach-Sessions auf BD-R sauber unterstützen, sollte vorab mit einer einzelnen Test-Disc geprüft werden.
+## Test vor der Serienproduktion
 
-## Empfohlene Strategie (zu prüfen)
-
-1. Test mit einer günstigen Disc: Spiel und Menü brennen, offen lassen, später einen Patch in einer zweiten Session ergänzen und auf einem zweiten Rechner lesen.
-2. Funktioniert das, bleibt eine Disc offen, solange Platz für Patches reserviert ist.
-3. Ist der Platz aufgebraucht oder kommen keine Updates mehr, die Disc finalisieren.
-4. Reicht der Platz nicht, den Patch auf eine neue Disc oder einen anderen Speicher legen. Der Player soll dafür später weitere Patch-Quellen lesen können (siehe offene Entscheidungen im Konzept).
+Eine einzelne Test-Disc brennen und prüfen:
+1. Wird sie unter Windows 10/11, Windows 7 (VM oder echtes System) und Linux gelesen?
+2. Funktioniert die AutoPlay-Meldung unter Windows?
+3. Startet das Menü und lassen sich Installer ausführen?

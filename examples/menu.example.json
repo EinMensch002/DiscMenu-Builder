@@ -6,53 +6,47 @@
   "sounds": {
     "click": "assets/click.wav"
   },
-  "patches": {
-    "enabled": true,
-    "folder": "Patches"
-  },
   "games": [
     {
-      "id": "beispiel-spiel-1",
-      "index": 1,
+      "index": 0,
       "name": "Beispiel-Spiel 1",
-      "provider": "gog",
       "cover": "assets/beispiel-spiel-1.png",
       "description": "Kurze Beschreibung des ersten Spiels.",
-      "installer": {
-        "path": "Beispiel-Spiel-1/setup_beispiel_spiel_1.exe",
-        "mode": "silent",
-        "args": ["/NORESTART"],
-        "estimatedSizeMB": 1500
-      },
+      "installer": "Beispiel-Spiel-1/setup_beispiel_spiel_1.exe",
+      "estimatedSizeMB": 1500,
       "dlcs": [
         {
-          "id": "beispiel-spiel-1-dlc-1",
-          "name": "Beispiel-DLC",
-          "cover": "assets/beispiel-dlc.png",
-          "lore": "Kurze Beschreibung des DLCs.",
-          "installer": {
-            "path": "Beispiel-Spiel-1/DLC/setup_beispiel_dlc.exe",
-            "mode": "interactive"
-          }
+          "name": "Beispiel-Erweiterung",
+          "description": "Kurze Beschreibung der Erweiterung.",
+          "cover": "assets/beispiel-erweiterung.png",
+          "installer": "Beispiel-Spiel-1/DLC/setup_beispiel_erweiterung.exe"
+        }
+      ],
+      "patches": [
+        {
+          "name": "Grafikpatch",
+          "group": "Grafik",
+          "description": "Verbessert die Auflösung.",
+          "installer": "Beispiel-Spiel-1/Patches/grafikpatch.exe"
+        },
+        {
+          "name": "Deutscher Sprachpatch",
+          "group": "Sprache",
+          "installer": "Beispiel-Spiel-1/Patches/sprachpatch_de.exe"
         }
       ],
       "extras": [
-        { "name": "Soundtrack", "type": "folder", "path": "Beispiel-Spiel-1/Extras/Soundtrack" },
-        { "name": "Handbuch", "type": "file", "path": "Beispiel-Spiel-1/Extras/manual.pdf" }
+        { "name": "Soundtrack", "group": "Musik", "open": "Beispiel-Spiel-1/Extras/Soundtrack" },
+        { "name": "Artbook", "group": "Artwork", "open": "Beispiel-Spiel-1/Extras/artbook.pdf" },
+        { "name": "Handbuch", "group": "Dokumente", "open": "Beispiel-Spiel-1/Extras/handbuch.pdf" }
       ]
     },
     {
-      "id": "beispiel-spiel-2",
-      "index": 2,
+      "index": 1,
       "name": "Beispiel-Spiel 2",
-      "provider": "gog",
       "cover": "assets/beispiel-spiel-2.png",
       "description": "Kurze Beschreibung des zweiten Spiels.",
-      "installer": {
-        "path": "Beispiel-Spiel-2/setup_beispiel_spiel_2.exe",
-        "mode": "interactive"
-      }
+      "installer": "Beispiel-Spiel-2/setup_beispiel_spiel_2.exe"
     }
-  ],
-  "extras": []
+  ]
 }

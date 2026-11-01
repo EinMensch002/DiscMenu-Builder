@@ -1,73 +1,72 @@
 # Spezifikation der menu.json (Entwurf, Version 1)
 
-Alle Pfade zu **Assets** (Cover, Sounds) sind relativ zur `menu.json` und werden beim Erstellen in die Menü-EXE gepackt.
-Alle Pfade zu **Installern und Extras** sind relativ zum Ordner der fertigen Menü-EXE (Disc-Wurzel) und werden erst beim Benutzen aufgelöst.
+## Pfade
+
+- **Assets** (Cover, Hintergrund, Sounds): relativ zur `menu.json`. Sie werden beim Erstellen in die Menü-EXE gepackt.
+- **Installer und Extras**: relativ zum Ordner der fertigen Menü-EXE (Disc-Wurzel). Sie werden erst beim Benutzen aufgelöst.
+- Schrägstriche `/` als Trennzeichen, keine Laufwerksbuchstaben.
 
 ## Oberste Ebene
 
 | Feld | Typ | Pflicht | Beschreibung |
 |---|---|---|---|
-| `schemaVersion` | Zahl | ja | Version des Formats, aktuell `1` |
-| `title` | Text | ja | Titel des Menüs, z. B. Name der Disc oder Collection |
+| `schemaVersion` | Zahl | ja | Format-Version, aktuell `1` |
+| `title` | Text | ja | Titel des Menüs, z. B. Name der Collection |
 | `output` | Text | nein | Dateiname der erzeugten EXE |
 | `background` | Text | nein | Hintergrundbild (Asset) |
-| `sounds` | Objekt | nein | z. B. `click`, `hover` (Assets) |
-| `patches` | Objekt | nein | Einstellungen zum Patches-Tab, siehe unten |
-| `games` | Liste | ja | Spiele auf der Disc (eins oder mehrere) |
-| `extras` | Liste | nein | Globale Extras (nicht an ein Spiel gebunden) |
+| `sounds` | Objekt | nein | `click`, `hover` (Assets) |
+| `games` | Liste | ja | Spiele auf der Disc (mindestens eins) |
 
-## Patches-Einstellungen (`patches`)
-
-| Feld | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
-| `enabled` | Wahrheitswert | nein | Patches-Tab anzeigen, Standard `true` |
-| `folder` | Text | nein | Ordnername auf der Disc, Standard `Patches` |
+Hat `games` nur einen Eintrag, öffnet der Player direkt die Spielseite. Bei mehreren Einträgen zeigt er die Auswahlseite.
 
 ## Spiel (`games[]`)
 
 | Feld | Typ | Pflicht | Beschreibung |
 |---|---|---|---|
-| `id` | Text | ja | Eindeutige ID, nur Kleinbuchstaben, Zahlen, Bindestrich |
-| `index` | Zahl | ja | Reihenfolge im Menü (0, 1, 2, ...), eindeutig pro Disc. Dient auch als Ordnername unter `Patches/` |
+| `index` | Zahl | ja | Reihenfolge auf der Auswahlseite, beginnt bei 0, eindeutig pro Disc |
 | `name` | Text | ja | Anzeigename |
-| `provider` | Text | nein | Quelle des Spiels, Standard `gog`. Später z. B. `steam` |
 | `cover` | Text | nein | Cover-Bild (Asset) |
 | `description` | Text | nein | Beschreibung / Lore |
-| `installer` | Objekt | ja | siehe unten |
-| `dlcs` | Liste | nein | DLCs zu diesem Spiel |
-| `extras` | Liste | nein | Extras zu diesem Spiel |
+| `installer` | Text | ja | Pfad zum Installer des Spiels |
+| `args` | Liste | nein | Zusätzliche Parameter für die stille Installation |
+| `estimatedSizeMB` | Zahl | nein | Geschätzte installierte Größe, für die Fortschrittsanzeige |
+| `dlcs` | Liste | nein | Einträge für den Bereich DLCs / Erweiterungen |
+| `patches` | Liste | nein | Einträge für den Bereich Patches |
+| `extras` | Liste | nein | Einträge für den Bereich Extras |
+| `provider` | Text | nein | Reserviert, zurzeit nur `gog` (Standard) |
+| `customTabs` | Liste | nein | **Geplant, nicht Teil von Version 1.** Eigene Tabs mit `title` und `items` |
 
-## DLC (`dlcs[]`)
+## Eintrag (in `dlcs`, `patches`, `extras`)
+
+Alle Bereiche nutzen dasselbe Format.
 
 | Feld | Typ | Pflicht | Beschreibung |
 |---|---|---|---|
-| `id` | Text | ja | Eindeutige ID |
 | `name` | Text | ja | Anzeigename |
-| `cover` | Text | nein | DLC-Cover (Asset) |
-| `lore` | Text | nein | Beschreibung / Lore |
-| `installer` | Objekt | ja | siehe unten |
+| `description` | Text | nein | Beschreibung / Lore |
+| `cover` | Text | nein | Bild (Asset) |
+| `group` | Text | nein | Unterkategorie, z. B. "Grafik", "Soundtrack". Einträge mit gleicher Gruppe werden unter einer Überschrift zusammengefasst |
+| `installer` | Text | * | Pfad zu einem Installer oder Patch-Programm |
+| `args` | Liste | nein | Zusätzliche Parameter für die stille Installation (nur mit `installer`) |
+| `open` | Text | * | Datei, Ordner oder Link (`http://`, `https://`), der geöffnet werden soll |
 
-## Installer (`installer`, Provider `gog`)
+\* Genau eines von `installer` oder `open` ist nötig.
 
-| Feld | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
-| `path` | Text | ja | Pfad zur Installer-EXE, relativ zur Disc-Wurzel |
-| `mode` | Text | nein | `interactive` (Standard) oder `silent` |
-| `args` | Liste | nein | Zusätzliche Parameter, z. B. `["/NORESTART"]` |
-| `estimatedSizeMB` | Zahl | nein | Geschätzte installierte Größe für den Fortschrittsbalken |
+## Nicht in der JSON
 
-Für andere Provider (z. B. `steam`) kommen später eigene Felder dazu. Das Format wird dafür nur erweitert, nicht umgebaut.
-
-## Extra (`extras[]`)
-
-| Feld | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
-| `name` | Text | ja | Anzeigename, z. B. "Soundtrack" |
-| `type` | Text | ja | `file`, `folder` oder `link` |
-| `path` | Text | ja | Pfad relativ zur Disc-Wurzel (bei `link` eine URL) |
+Diese Einstellungen trifft man erst im Menü, nicht beim Erstellen:
+- Silent Install (ja/nein)
+- Zielpfad der Installation
 
 ## Regeln, die der Builder prüft
 
-- `id` ist eindeutig, `index` ist eindeutig pro Disc.
+- `index` ist eindeutig pro Disc, Werte sind ganze Zahlen ab 0.
 - Alle Assets existieren.
-- `mode` und `provider` haben gültige Werte.
+- Jeder Eintrag hat genau eines von `installer` oder `open`.
+- `schemaVersion` ist bekannt.
+
+Ob die Installer- und Extra-Dateien auf der Disc vorhanden sind, kann der Builder nur prüfen, wenn der Disc-Ordner angegeben wird (offen, siehe [decisions.md](decisions.md)).
+
+## Beispiel
+
+Siehe [examples/menu.example.json](../examples/menu.example.json).
