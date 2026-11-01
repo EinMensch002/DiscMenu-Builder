@@ -1,0 +1,14 @@
+# Build-Ausgaben
+bin/
+obj/
+dist/
+*.exe
+!examples/**/*.exe
+
+# IDE / OS
+.vs/
+.vscode/
+.idea/
+*.user
+Thumbs.db
+.DS_Store

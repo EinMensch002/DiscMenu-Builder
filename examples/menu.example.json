@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "title": "Beispiel-Disc",
+  "output": "Setup-Menu.exe",
+  "background": "assets/background.png",
+  "sounds": {
+    "click": "assets/click.wav"
+  },
+  "games": [
+    {
+      "id": "beispiel-spiel",
+      "name": "Beispiel-Spiel",
+      "cover": "assets/beispiel-spiel.png",
+      "description": "Kurze Beschreibung des Spiels.",
+      "installer": {
+        "path": "Beispiel-Spiel/setup_beispiel_spiel.exe",
+        "mode": "silent",
+        "args": ["/NORESTART"],
+        "estimatedSizeMB": 1500
+      },
+      "dlcs": [
+        {
+          "id": "beispiel-spiel-dlc-1",
+          "name": "Beispiel-DLC",
+          "cover": "assets/beispiel-dlc.png",
+          "lore": "Kurze Beschreibung des DLCs.",
+          "installer": {
+            "path": "Beispiel-Spiel/DLC/setup_beispiel_dlc.exe",
+            "mode": "interactive"
+          }
+        }
+      ],
+      "extras": [
+        { "name": "Soundtrack", "type": "folder", "path": "Beispiel-Spiel/Extras/Soundtrack" },
+        { "name": "Handbuch", "type": "file", "path": "Beispiel-Spiel/Extras/manual.pdf" }
+      ]
+    }
+  ],
+  "extras": []
+}
