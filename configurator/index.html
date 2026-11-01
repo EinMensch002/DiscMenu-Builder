@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiscMenu-Konfigurator</title>
+<style>
+:root{--bg:#14161a;--panel:#1d2026;--panel2:#252932;--line:#333845;--txt:#e8eaf0;--mut:#9aa1b2;--acc:#4f8cff;--err:#ff6b6b;--warn:#f0b429;--ok:#3ddc97}
+@media (prefers-color-scheme:light){:root{--bg:#f2f4f8;--panel:#fff;--panel2:#eef1f6;--line:#d5dae4;--txt:#1b1f29;--mut:#5b6476;--acc:#2f6fed;--err:#d93a3a;--warn:#b57a00;--ok:#14935f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0}
+header .btns{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.sm{padding:3px 9px;font-size:13px}
+button.danger:hover{border-color:var(--err);color:var(--err)}
+main{display:grid;grid-template-columns:230px minmax(0,1fr) 300px;gap:14px;padding:14px;max-width:1500px;margin:0 auto}
+@media (max-width:1100px){main{grid-template-columns:200px minmax(0,1fr)}#side{grid-column:1/-1}}
+@media (max-width:700px){main{grid-template-columns:1fr}#nav{flex-direction:row;overflow-x:auto}.nv{white-space:nowrap}}
+#nav{display:flex;flex-direction:column;gap:6px;align-self:start}
+.nv{text-align:left;width:100%}
+.nv.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,var(--panel2))}
+.nv.add{border-style:dashed;color:var(--mut)}
+#editor,#side .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+#side{display:flex;flex-direction:column;gap:14px;align-self:start}
+h2{margin:0 0 4px;font-size:18px}
+h3{margin:18px 0 4px;font-size:15px}
+.hint,small{color:var(--mut);font-size:13px}
+.f{display:flex;flex-direction:column;gap:4px;margin:10px 0}
+.lab{font-size:13px;color:var(--mut)}
+input[type=text],input[type=number],input:not([type]),select,textarea{font:inherit;color:var(--txt);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+input:focus,textarea:focus,select:focus{outline:2px solid color-mix(in srgb,var(--acc) 60%,transparent);border-color:var(--acc)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.drop{display:flex;align-items:center;gap:10px;min-height:64px;padding:8px;border:2px dashed var(--line);border-radius:10px;cursor:pointer;background:var(--bg)}
+.drop.over{border-color:var(--acc)}
+.drop img{max-height:56px;max-width:90px;border-radius:6px;object-fit:contain}
+.drop audio{height:32px;max-width:220px}
+.meta{color:var(--mut);font-size:12px}
+.card{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--panel2)}
+.card summary{cursor:pointer;padding:9px 12px;display:flex;gap:8px;align-items:center}
+.card .body{padding:0 12px 12px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:0 8px;color:var(--mut)}
+.issue{margin:4px 0;font-size:13px}
+.issue.error{color:var(--err)}.issue.warn{color:var(--warn)}.ok{color:var(--ok)}
+pre{margin:8px 0 0;max-height:360px;overflow:auto;font:12px/1.4 ui-monospace,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;white-space:pre-wrap;word-break:break-word}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--acc);border-radius:10px;padding:9px 14px;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;white-space:pre-line}
+#toast.on{opacity:1}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:6px 14px 24px}
+</style>
+</head>
+<body>
+<header>
+  <h1>DiscMenu-Konfigurator</h1>
+  <div class="btns">
+    <button id="bNew" type="button">Neu</button>
+    <button id="bImp" type="button">Importieren</button>
+    <button id="bExp" type="button" class="pri">Als ZIP exportieren</button>
+  </div>
+</header>
+<main>
+  <nav id="nav" aria-label="Spiele"></nav>
+  <section id="editor"></section>
+  <aside id="side"></aside>
+</main>
+<footer>Läuft komplett in deinem Browser. Es wird nichts hochgeladen. Der Entwurf wird lokal im Browser zwischengespeichert.</footer>
+<input id="impFile" type="file" accept=".zip,.json" hidden>
+<div id="toast" role="status"></div>
+<script>
+/* === KERN (ohne DOM, wird auch in Tests verwendet) === */
+const CORE = (() => {
+  const UML = {'ä':'ae','ö':'oe','ü':'ue','Ä':'ae','Ö':'oe','Ü':'ue','ß':'ss'};
+  const SECTIONS = ['dlcs','patches','extras'];
+
+  function slug(s){
+    return String(s == null ? '' : s).replace(/[äöüÄÖÜß]/g, c => UML[c]).normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);
+  }
+  function parseArgs(str){ return String(str || '').match(/(?:[^\s"]+|"[^"]*")+/g) || []; }
+  function fromArgs(list){ return Array.isArray(list) ? list.join(' ') : ''; }
+  function isUrl(p){ return /^https?:\/\//i.test(p); }
+  function relPathIssue(p){
+    if (/^[a-zA-Z]:/.test(p) || /^[\\/]/.test(p)) return 'muss relativ zur Disc sein (kein Laufwerk, kein führender Schrägstrich)';
+    if (p.split(/[\\/]/).includes('..')) return 'darf kein ".." enthalten';
+    return null;
+  }
+
+  function newItem(){ return {name:'',description:'',cover:null,group:'',kind:'installer',path:'',args:'',_open:true}; }
+  function newGame(){ return {name:'',cover:null,description:'',installer:'',args:'',estimatedSizeMB:'',dlcs:[],patches:[],extras:[]}; }
+  function newState(){ return {title:'',output:'',background:null,sounds:{click:null,hover:null},games:[newGame()]}; }
+
+  /* --- CRC32 und ZIP (Speichern ohne Kompression, Lesen mit Deflate) --- */
+  let T = null;
+  function crc32(u8){
+    if (!T){ T = new Uint32Array(256); for (let n=0;n<256;n++){ let c=n; for (let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; T[n]=c>>>0; } }
+    let c = 0xFFFFFFFF; for (let i=0;i<u8.length;i++) c = T[(c^u8[i])&255]^(c>>>8);
+    return (c^0xFFFFFFFF)>>>0;
+  }
+  function buildZip(files){
+    const enc = new TextEncoder(), now = new Date();
+    const time = (now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1);
+    const date = ((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+    const es = files.map(f => ({nb: enc.encode(f.name), data: f.data, crc: crc32(f.data)}));
+    let size = 22; for (const e of es) size += 30 + e.nb.length + e.data.length + 46 + e.nb.length;
+    const out = new Uint8Array(size), dv = new DataView(out.buffer); let p = 0; const offs = [];
+    for (const e of es){
+      offs.push(p);
+      dv.setUint32(p,0x04034b50,true); dv.setUint16(p+4,20,true); dv.setUint16(p+6,0x0800,true); dv.setUint16(p+8,0,true);
+      dv.setUint16(p+10,time,true); dv.setUint16(p+12,date,true); dv.setUint32(p+14,e.crc,true);
+      dv.setUint32(p+18,e.data.length,true); dv.setUint32(p+22,e.data.length,true);
+      dv.setUint16(p+26,e.nb.length,true); dv.setUint16(p+28,0,true); p += 30;
+      out.set(e.nb,p); p += e.nb.length; out.set(e.data,p); p += e.data.length;
+    }
+    const cd = p;
+    es.forEach((e,i) => {
+      dv.setUint32(p,0x02014b50,true); dv.setUint16(p+4,20,true); dv.setUint16(p+6,20,true); dv.setUint16(p+8,0x0800,true); dv.setUint16(p+10,0,true);
+      dv.setUint16(p+12,time,true); dv.setUint16(p+14,date,true); dv.setUint32(p+16,e.crc,true);
+      dv.setUint32(p+20,e.data.length,true); dv.setUint32(p+24,e.data.length,true);
+      dv.setUint16(p+28,e.nb.length,true); dv.setUint16(p+30,0,true); dv.setUint16(p+32,0,true); dv.setUint16(p+34,0,true);
+      dv.setUint16(p+36,0,true); dv.setUint32(p+38,0,true); dv.setUint32(p+42,offs[i],true); p += 46;
+      out.set(e.nb,p); p += e.nb.length;
+    });
+    dv.setUint32(p,0x06054b50,true); dv.setUint16(p+4,0,true); dv.setUint16(p+6,0,true);
+    dv.setUint16(p+8,es.length,true); dv.setUint16(p+10,es.length,true);
+    dv.setUint32(p+12,p-cd,true); dv.setUint32(p+16,cd,true); dv.setUint16(p+20,0,true);
+    return out;
+  }
+  async function readZip(buf){
+    const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    let e = -1;
+    for (let i=buf.length-22; i>=Math.max(0,buf.length-22-65535); i--){ if (dv.getUint32(i,true)===0x06054b50){ e=i; break; } }
+    if (e < 0) throw new Error('Das ist keine gültige ZIP-Datei.');
+    const n = dv.getUint16(e+10,true); let p = dv.getUint32(e+16,true);
+    const dec = new TextDecoder(), out = [];
+    for (let i=0;i<n;i++){
+      if (dv.getUint32(p,true) !== 0x02014b50) throw new Error('Die ZIP-Datei ist beschädigt.');
+      const method = dv.getUint16(p+10,true), csize = dv.getUint32(p+20,true);
+      const nl = dv.getUint16(p+28,true), xl = dv.getUint16(p+30,true), cl = dv.getUint16(p+32,true), lo = dv.getUint32(p+42,true);
+      const name = dec.decode(buf.subarray(p+46,p+46+nl)).replace(/\\/g,'/');
+      p += 46 + nl + xl + cl;
+      if (name.endsWith('/')) continue;
+      const start = lo + 30 + dv.getUint16(lo+26,true) + dv.getUint16(lo+28,true);
+      const raw = buf.subarray(start, start+csize);
+      let data;
+      if (method === 0) data = raw.slice();
+      else if (method === 8) data = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+      else throw new Error('Nicht unterstützte ZIP-Kompression bei ' + name);
+      out.push({name, data});
+    }
+    return out;
+  }
+
+  /* --- Prüfung nach der Spezifikation --- */
+  function validate(s){
+    const out = [], E = m => out.push({level:'error',msg:m}), W = m => out.push({level:'warn',msg:m});
+    if (!s.title.trim()) E('Disc-Einstellungen: Titel fehlt.');
+    if (s.output.trim()){
+      if (/[\\/:*?"<>|]/.test(s.output)) E('Disc-Einstellungen: Der EXE-Name enthält ungültige Zeichen.');
+      else if (!/\.exe$/i.test(s.output.trim())) W('Disc-Einstellungen: Der EXE-Name sollte auf .exe enden.');
+    }
+    if (!s.games.length) E('Es wird mindestens ein Spiel benötigt.');
+    const label = {dlcs:'DLC',patches:'Patch',extras:'Extra'};
+    s.games.forEach((g,i) => {
+      const gn = 'Spiel ' + i + ' (' + (g.name.trim() || 'ohne Namen') + ')';
+      if (!g.name.trim()) E(gn + ': Name fehlt.');
+      if (!g.installer.trim()) E(gn + ': Installer-Pfad fehlt.');
+      else { const x = relPathIssue(g.installer.trim()); if (x) E(gn + ': Installer-Pfad ' + x + '.'); }
+      if (String(g.estimatedSizeMB).trim() !== '' && !(Number(g.estimatedSizeMB) > 0)) E(gn + ': Die Größe muss eine Zahl über 0 sein.');
+      SECTIONS.forEach(k => g[k].forEach((it,j) => {
+        const n = gn + ', ' + label[k] + ' ' + (j+1) + ' (' + (it.name.trim() || 'ohne Namen') + ')';
+        if (!it.name.trim()) E(n + ': Name fehlt.');
+        const p = it.path.trim();
+        if (!p) E(n + ': ' + (it.kind === 'installer' ? 'Installer-Pfad' : 'Pfad oder Link') + ' fehlt.');
+        else if (it.kind === 'installer'){ const x = relPathIssue(p); if (x) E(n + ': Installer-Pfad ' + x + '.'); }
+        else if (!isUrl(p)){ const x = relPathIssue(p); if (x) E(n + ': Pfad ' + x + '.'); }
+      }));
+    });
+    return out;
+  }
+
+  /* --- Zustand -> menu.json + Asset-Dateien --- */
+  function buildMenu(s, assets){
+    const used = new Set(), map = new Map(), files = [];
+    const take = (id, dir, base) => {
+      if (!id || !assets.has(id)) return undefined;
+      if (map.has(id)) return map.get(id);
+      const a = assets.get(id), b = slug(base) || 'datei', d = 'assets/' + (dir ? dir + '/' : '');
+      let p = d + b + '.' + a.ext, n = 2;
+      while (used.has(p)) p = d + b + '-' + (n++) + '.' + a.ext;
+      used.add(p); map.set(id,p); files.push({name:p, data:a.data}); return p;
+    };
+    const norm = p => p.trim().replace(/\\/g,'/');
+    const itemOut = (it,g) => {
+      const o = {name: it.name.trim()};
+      if (it.description.trim()) o.description = it.description.trim();
+      const c = take(it.cover,'covers', g.name + ' ' + it.name); if (c) o.cover = c;
+      if (it.group.trim()) o.group = it.group.trim();
+      if (it.kind === 'installer'){ o.installer = norm(it.path); const a = parseArgs(it.args); if (a.length) o.args = a; }
+      else o.open = isUrl(it.path.trim()) ? it.path.trim() : norm(it.path);
+      return o;
+    };
+    const m = {schemaVersion:1, title:s.title.trim()};
+    if (s.output.trim()) m.output = s.output.trim();
+    const bg = take(s.background,'','background'); if (bg) m.background = bg;
+    const snd = {}; for (const k of ['click','hover']){ const p = take(s.sounds[k],'sounds',k); if (p) snd[k] = p; }
+    if (Object.keys(snd).length) m.sounds = snd;
+    m.games = s.games.map((g,i) => {
+      const o = {index:i, name:g.name.trim()};
+      const c = take(g.cover,'covers',g.name); if (c) o.cover = c;
+      if (g.description.trim()) o.description = g.description.trim();
+      o.installer = norm(g.installer);
+      const a = parseArgs(g.args); if (a.length) o.args = a;
+      if (String(g.estimatedSizeMB).trim() !== '') o.estimatedSizeMB = Number(g.estimatedSizeMB);
+      SECTIONS.forEach(k => { if (g[k].length) o[k] = g[k].map(it => itemOut(it,g)); });
+      return o;
+    });
+    return {menu:m, files};
+  }
+
+  /* --- menu.json -> Zustand (Import) --- */
+  function parseMenu(m, getAsset){
+    if (!m || typeof m !== 'object' || Array.isArray(m)) throw new Error('Die menu.json ist kein gültiges Objekt.');
+    const notes = [], s = newState(); s.games = [];
+    if (m.schemaVersion !== 1) notes.push('schemaVersion ' + m.schemaVersion + ' ist unbekannt, es wird Version 1 angenommen.');
+    s.title = String(m.title || ''); s.output = String(m.output || '');
+    const asset = p => { if (!p) return null; const id = getAsset(String(p)); if (!id) notes.push('Datei nicht gefunden: ' + p); return id || null; };
+    s.background = asset(m.background);
+    s.sounds.click = asset(m.sounds && m.sounds.click); s.sounds.hover = asset(m.sounds && m.sounds.hover);
+    const item = it => {
+      const o = newItem(); o._open = false;
+      o.name = String(it.name || ''); o.description = String(it.description || ''); o.group = String(it.group || '');
+      o.cover = asset(it.cover);
+      if (it.installer != null){ o.kind = 'installer'; o.path = String(it.installer); o.args = fromArgs(it.args); }
+      else { o.kind = 'open'; o.path = String(it.open || ''); }
+      return o;
+    };
+    const games = (Array.isArray(m.games) ? m.games.slice() : []).sort((a,b) => (a.index || 0) - (b.index || 0));
+    for (const g of games){
+      const ng = newGame();
+      ng.name = String(g.name || ''); ng.cover = asset(g.cover); ng.description = String(g.description || '');
+      ng.installer = String(g.installer || ''); ng.args = fromArgs(g.args);
+      ng.estimatedSizeMB = g.estimatedSizeMB == null ? '' : String(g.estimatedSizeMB);
+      SECTIONS.forEach(k => { ng[k] = (Array.isArray(g[k]) ? g[k] : []).map(item); });
+      if (g.customTabs) notes.push('"' + ng.name + '": customTabs gehören nicht zu Version 1 und werden nicht übernommen.');
+      if (g.provider && g.provider !== 'gog') notes.push('"' + ng.name + '": provider "' + g.provider + '" wird nicht unterstützt und nicht übernommen.');
+      s.games.push(ng);
+    }
+    if (!s.games.length) s.games.push(newGame());
+    return {state:s, notes};
+  }
+
+  function usedIds(s){
+    const ids = new Set(); const add = id => { if (id) ids.add(id); };
+    add(s.background); add(s.sounds.click); add(s.sounds.hover);
+    s.games.forEach(g => { add(g.cover); SECTIONS.forEach(k => g[k].forEach(it => add(it.cover))); });
+    return ids;
+  }
+  function sane(s){
+    return s && typeof s === 'object' && typeof s.title === 'string' && Array.isArray(s.games) && s.sounds &&
+      s.games.every(g => g && SECTIONS.every(k => Array.isArray(g[k])));
+  }
+  return {slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
+})();
+if (typeof module !== 'undefined') module.exports = CORE;
+
+/* === UI === */
+(() => {
+  if (typeof document === 'undefined') return;
+  const {slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane} = CORE;
+  const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Musik','Artwork','Dokumente','Videos'], dlcs:[]};
+  const MIME = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif',wav:'audio/wav',ogg:'audio/ogg',mp3:'audio/mpeg'};
+  const assets = new Map(); let state = newState(); let sel = 0; let counter = 1;
+  const $ = s => document.querySelector(s);
+
+  function h(tag, props, ...kids){
+    const e = document.createElement(tag); let val;
+    for (const [k,v] of Object.entries(props || {})){
+      if (k === 'class') e.className = v;
+      else if (k === 'value') val = v;
+      else if (k === 'checked') e.checked = !!v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()){ if (kid == null || kid === false) continue; e.append(kid.nodeType ? kid : document.createTextNode(String(kid))); }
+    if (val !== undefined) e.value = val;
+    return e;
+  }
+  const fmt = n => n < 1024 ? n + ' B' : n < 1048576 ? (n/1024).toFixed(0) + ' KB' : (n/1048576).toFixed(1) + ' MB';
+  let toastT; function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 5000); }
+
+  function addAsset(data, ext){ const id = 'a' + (counter++); assets.set(id, {data, ext}); return id; }
+  function assetUrl(id){ const a = assets.get(id); if (!a) return ''; if (!a.url) a.url = URL.createObjectURL(new Blob([a.data], {type: MIME[a.ext] || ''})); return a.url; }
+
+  async function processImage(file, kind){
+    const bmp = await createImageBitmap(file);
+    const max = kind === 'background' ? 1920 : 800, sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * sc)), hh = Math.max(1, Math.round(bmp.height * sc));
+    const c = document.createElement('canvas'); c.width = w; c.height = hh;
+    const ctx = c.getContext('2d');
+    if (kind === 'background'){ ctx.fillStyle = '#000'; ctx.fillRect(0,0,w,hh); }
+    ctx.drawImage(bmp, 0, 0, w, hh);
+    const mime = kind === 'background' ? 'image/jpeg' : 'image/png';
+    const blob = await new Promise(r => c.toBlob(r, mime, 0.88));
+    if (!blob) throw new Error('Das Bild konnte nicht umgewandelt werden.');
+    return {data: new Uint8Array(await blob.arrayBuffer()), ext: kind === 'background' ? 'jpg' : 'png'};
+  }
+
+  /* --- Persistenz (IndexedDB, optional) --- */
+  const DB = {
+    open(){ return new Promise((res,rej) => { const r = indexedDB.open('discmenu-konfigurator',1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+    async get(k){ const db = await this.open(); return new Promise((res,rej) => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+    async set(k,v){ const db = await this.open(); return new Promise((res,rej) => { const t = db.transaction('kv','readwrite'); t.objectStore('kv').put(v,k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); }
+  };
+  async function save(){
+    try {
+      const ids = usedIds(state);
+      await DB.set('draft', {state, counter, assets: [...assets].filter(([id]) => ids.has(id)).map(([id,a]) => [id, {data:a.data, ext:a.ext}])});
+    } catch (e) { /* Zwischenspeichern ist optional */ }
+  }
+  async function restore(){
+    try {
+      const d = await DB.get('draft');
+      if (d && sane(d.state)){
+        state = d.state; counter = d.counter || 1;
+        for (const [id,a] of d.assets) assets.set(id, a);
+        toast('Entwurf aus diesem Browser wiederhergestellt.');
+      }
+    } catch (e) { /* ignorieren */ }
+  }
+
+  /* --- Eingabefelder --- */
+  let tT; function touch(){ clearTimeout(tT); tT = setTimeout(() => { renderNav(); renderSide(); save(); }, 250); }
+  function wrap(label, input, hint){ return h('label', {class:'f'}, h('span',{class:'lab'},label), input, hint ? h('small',{},hint) : null); }
+  function txt(obj, key, o = {}){
+    const el = h(o.multiline ? 'textarea' : 'input', {type: o.multiline ? null : (o.type || 'text'), placeholder: o.ph || '', rows: o.multiline ? 3 : null, list: o.list || null,
+      oninput: () => { obj[key] = el.value; if (o.on) o.on(el.value); touch(); }});
+    el.value = obj[key]; return el;
+  }
+  function fileField(label, obj, key, o){
+    const box = h('div', {class:'drop'});
+    const draw = () => {
+      box.replaceChildren(); const id = obj[key];
+      if (id && assets.has(id)){
+        const a = assets.get(id);
+        box.append(o.kind === 'sound' ? h('audio', {controls:true, src:assetUrl(id)}) : h('img', {src:assetUrl(id), alt:''}),
+          h('span',{class:'meta'}, a.ext.toUpperCase() + ', ' + fmt(a.data.length)),
+          h('button', {type:'button', class:'sm', onclick: () => { obj[key] = null; draw(); touch(); }}, 'Entfernen'));
+      } else box.append(h('span',{class:'hint'}, o.kind === 'sound' ? 'Sound hierher ziehen oder tippen (WAV, OGG, MP3)' : 'Bild hierher ziehen oder tippen'));
+    };
+    const take = async f => {
+      try {
+        if (o.kind === 'sound'){
+          const ext = (f.name.split('.').pop() || '').toLowerCase();
+          if (!['wav','ogg','mp3'].includes(ext)) throw new Error('Nur WAV, OGG oder MP3 werden unterstützt.');
+          obj[key] = addAsset(new Uint8Array(await f.arrayBuffer()), ext);
+          if (f.size > 2097152) toast('Hinweis: Die Datei ist größer als 2 MB und macht die Menü-EXE größer.');
+        } else { const r = await processImage(f, o.kind); obj[key] = addAsset(r.data, r.ext); }
+        draw(); touch();
+      } catch (e) { toast(e.message || 'Die Datei konnte nicht gelesen werden.'); }
+    };
+    const inp = h('input', {type:'file', accept: o.kind === 'sound' ? 'audio/*,.wav,.ogg,.mp3' : 'image/*', hidden:true, onchange: async () => { if (inp.files[0]) await take(inp.files[0]); inp.value = ''; }});
+    box.addEventListener('click', e => { if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'AUDIO') inp.click(); });
+    box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('over'); });
+    box.addEventListener('dragleave', () => box.classList.remove('over'));
+    box.addEventListener('drop', async e => { e.preventDefault(); box.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) await take(f); });
+    draw();
+    return h('div', {class:'f'}, h('span',{class:'lab'},label), box, inp, o.hint ? h('small',{},o.hint) : null);
+  }
+
+  function move(arr, i, d){ const j = i + d; if (j < 0 || j >= arr.length) return false; [arr[i], arr[j]] = [arr[j], arr[i]]; return true; }
+
+  function itemCard(g, key, idx){
+    const it = g[key][idx];
+    const nameSpan = h('span', {}, it.name || '(ohne Namen)');
+    const chip = h('span', {class:'chip'}, it.group); chip.hidden = !it.group;
+    const d = h('details', {class:'card', ontoggle: () => { it._open = d.open; }}, h('summary', {}, nameSpan, chip));
+    if (it._open) d.open = true;
+    const kind = h('select', {value: it.kind, onchange: () => { it.kind = kind.value; renderEditor(); touch(); }},
+      h('option', {value:'installer'}, 'Installer starten'), h('option', {value:'open'}, 'Datei, Ordner oder Link öffnen'));
+    kind.value = it.kind;
+    const body = h('div', {class:'body'},
+      wrap('Name', txt(it,'name',{ph:'z. B. Deutscher Sprachpatch', on: v => { nameSpan.textContent = v || '(ohne Namen)'; }})),
+      wrap('Gruppe (Unterkategorie, optional)', txt(it,'group',{list:'dl-'+key, on: v => { chip.textContent = v; chip.hidden = !v; }})),
+      wrap('Beschreibung (optional)', txt(it,'description',{multiline:true})),
+      fileField('Bild (optional)', it, 'cover', {kind:'cover'}),
+      wrap('Aktion', kind),
+      wrap(it.kind === 'installer' ? 'Installer-Pfad auf der Disc' : 'Pfad auf der Disc oder Link (https://...)', txt(it,'path',{ph: it.kind === 'installer' ? 'Spiel1/Patches/patch.exe' : 'Spiel1/Extras/Soundtrack'})),
+      it.kind === 'installer' ? wrap('Zusätzliche Parameter (optional)', txt(it,'args',{ph:'/NORESTART'}), 'Mit Leerzeichen getrennt. Parameter mit Leerzeichen in Anführungszeichen setzen.') : null,
+      h('div', {class:'row'},
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(g[key],idx,-1)){ renderEditor(); touch(); } }},'↑ Nach oben'),
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(g[key],idx,1)){ renderEditor(); touch(); } }},'↓ Nach unten'),
+        h('button',{type:'button',class:'sm danger',onclick:() => { g[key].splice(idx,1); renderEditor(); touch(); }},'Entfernen')));
+    d.append(body); return d;
+  }
+  function section(g, key, title, hint){
+    return h('div', {}, h('h3', {}, title + ' (' + g[key].length + ')'), h('p',{class:'hint'},hint),
+      h('datalist', {id:'dl-'+key}, GROUPS[key].map(x => h('option',{value:x}))),
+      g[key].map((_,i) => itemCard(g,key,i)),
+      h('button',{type:'button',onclick:() => { g[key].push(newItem()); renderEditor(); touch(); }},'+ Eintrag hinzufügen'));
+  }
+
+  function discForm(){
+    return h('div', {}, h('h2',{},'Disc-Einstellungen'), h('p',{class:'hint'},'Gilt für das ganze Menü.'),
+      wrap('Titel des Menüs', txt(state,'title',{ph:'z. B. Stronghold Collection'})),
+      wrap('Dateiname der Menü-EXE (optional)', txt(state,'output',{ph:'Setup-Menu.exe'})),
+      fileField('Hintergrundbild (optional)', state, 'background', {kind:'background', hint:'Wird auf höchstens 1920 Pixel verkleinert und als JPEG gespeichert.'}),
+      fileField('Klick-Sound (optional)', state.sounds, 'click', {kind:'sound'}),
+      fileField('Hover-Sound (optional)', state.sounds, 'hover', {kind:'sound'}));
+  }
+  function gameForm(g, i){
+    return h('div', {},
+      h('div',{class:'row'}, h('h2',{style:'flex:1'}, 'Spiel ' + i),
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(state.games,i,-1)){ sel = i-1; renderAll(); save(); } }},'↑'),
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(state.games,i,1)){ sel = i+1; renderAll(); save(); } }},'↓'),
+        h('button',{type:'button',class:'sm danger',onclick:() => { if (confirm('Dieses Spiel mit allen Einträgen löschen?')){ state.games.splice(i,1); sel = state.games.length ? Math.min(i, state.games.length-1) : 'disc'; renderAll(); save(); } }},'Löschen')),
+      h('p',{class:'hint'},'Der Index ergibt sich aus der Reihenfolge der Spiele (0, 1, 2 ...).'),
+      wrap('Name', txt(g,'name',{ph:'z. B. Stronghold HD'})),
+      fileField('Cover (optional)', g, 'cover', {kind:'cover', hint:'Wird auf höchstens 800 Pixel verkleinert und als PNG gespeichert.'}),
+      wrap('Beschreibung (optional)', txt(g,'description',{multiline:true})),
+      wrap('Installer-Pfad auf der Disc', txt(g,'installer',{ph:'Stronghold/setup_stronghold.exe'}), 'Relativ zur Disc-Wurzel, mit Schrägstrich.'),
+      wrap('Zusätzliche Parameter für die stille Installation (optional)', txt(g,'args',{ph:'/NORESTART'})),
+      wrap('Geschätzte installierte Größe in MB (optional)', txt(g,'estimatedSizeMB',{type:'number',ph:'1500'}), 'Für die Fortschrittsanzeige bei stiller Installation.'),
+      section(g,'dlcs','DLCs / Erweiterungen','Zusätzliche Installer zum Spiel.'),
+      section(g,'patches','Patches','Z. B. Sprach-, Grafik- oder Sound-Patches. Mit "Gruppe" lassen sie sich unterteilen.'),
+      section(g,'extras','Extras','Soundtrack, Artbooks, Handbücher und mehr. Mit "Gruppe" lassen sie sich unterteilen.'));
+  }
+
+  function renderNav(){
+    $('#nav').replaceChildren(
+      h('button',{type:'button',class:'nv' + (sel==='disc' ? ' on' : ''),onclick:() => { sel = 'disc'; renderAll(); }}, '⚙ Disc-Einstellungen'),
+      ...state.games.map((g,i) => h('button',{type:'button',class:'nv' + (sel===i ? ' on' : ''),onclick:() => { sel = i; renderAll(); }}, h('b',{},String(i)), ' ', g.name || '(ohne Namen)')),
+      h('button',{type:'button',class:'nv add',onclick:() => { state.games.push(newGame()); sel = state.games.length-1; renderAll(); save(); }}, '+ Spiel hinzufügen'));
+  }
+  function renderEditor(){
+    const ed = $('#editor'); ed.replaceChildren();
+    if (sel === 'disc' || !state.games[sel]) { sel = 'disc'; ed.append(discForm()); } else ed.append(gameForm(state.games[sel], sel));
+  }
+  function renderSide(){
+    const issues = validate(state), errs = issues.filter(i => i.level === 'error').length;
+    $('#bExp').disabled = errs > 0;
+    const json = JSON.stringify(buildMenu(state, assets).menu, null, 2);
+    $('#side').replaceChildren(
+      h('div',{class:'box'}, h('h3',{style:'margin-top:0'},'Prüfung'),
+        issues.length ? issues.map(i => h('div',{class:'issue ' + i.level}, (i.level === 'error' ? 'Fehler: ' : 'Hinweis: ') + i.msg)) : h('div',{class:'ok'},'Alles in Ordnung. Das Rezept kann exportiert werden.')),
+      h('details',{class:'box'}, h('summary',{},'Vorschau menu.json'), h('pre',{},json)));
+  }
+  function renderAll(){ renderNav(); renderEditor(); renderSide(); }
+
+  /* --- Export / Import / Neu --- */
+  function download(blob, name){ const a = h('a',{href:URL.createObjectURL(blob),download:name}); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  $('#bExp').addEventListener('click', () => {
+    if (validate(state).some(i => i.level === 'error')){ toast('Bitte zuerst die Fehler beheben.'); return; }
+    const {menu, files} = buildMenu(state, assets);
+    const zip = buildZip([{name:'menu.json', data:new TextEncoder().encode(JSON.stringify(menu,null,2) + '\n')}, ...files]);
+    download(new Blob([zip], {type:'application/zip'}), (slug(state.title) || 'rezept') + '.zip');
+    toast('Rezept exportiert: ' + files.length + ' Datei(en) plus menu.json.');
+  });
+  $('#bNew').addEventListener('click', () => {
+    if (!confirm('Alles verwerfen und neu beginnen?')) return;
+    assets.clear(); state = newState(); sel = 0; renderAll(); save();
+  });
+  $('#bImp').addEventListener('click', () => $('#impFile').click());
+  $('#impFile').addEventListener('change', async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try {
+      let menu, files = [];
+      if (/\.json$/i.test(f.name)) menu = JSON.parse(await f.text());
+      else {
+        files = await readZip(new Uint8Array(await f.arrayBuffer()));
+        const mj = files.find(x => x.name === 'menu.json');
+        if (!mj) throw new Error('In der ZIP fehlt die menu.json im Wurzelverzeichnis.');
+        menu = JSON.parse(new TextDecoder().decode(mj.data));
+      }
+      if (!confirm('Den aktuellen Entwurf durch den Import ersetzen?')) return;
+      assets.clear();
+      const byPath = new Map(files.map(x => [x.name, x.data])), ids = new Map();
+      const getAsset = p => {
+        p = p.replace(/\\/g,'/'); if (ids.has(p)) return ids.get(p);
+        const d = byPath.get(p); if (!d) return null;
+        const id = addAsset(d, (p.split('.').pop() || '').toLowerCase()); ids.set(p,id); return id;
+      };
+      const r = parseMenu(menu, getAsset);
+      state = r.state; sel = 0; renderAll(); save();
+      toast(r.notes.length ? 'Importiert, mit Hinweisen:\n' + r.notes.slice(0,6).join('\n') + (r.notes.length > 6 ? '\n... und ' + (r.notes.length-6) + ' weitere' : '') : 'Rezept importiert.');
+    } catch (err) { toast('Import fehlgeschlagen: ' + (err.message || err)); }
+  });
+
+  restore().then(renderAll);
+  renderAll();
+})();
+</script>
+</body>
+</html>

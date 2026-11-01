@@ -1,53 +1,48 @@
 # Konfigurator
 
-Eine Web-App, in der man das Menü per Maske zusammenstellt, statt die `menu.json` von Hand zu schreiben. Das Ergebnis ist eine ZIP-Datei, die der Builder direkt verarbeiten kann.
+Eine Web-App, in der man das Menü per Maske zusammenstellt, statt die `menu.json` von Hand zu schreiben. Das Ergebnis ist eine ZIP-Datei im Format "Rezept-Paket" (siehe [menu-json-spec.md](menu-json-spec.md)), die der Builder direkt verarbeiten kann.
+
+**Online:** https://einmensch002.github.io/DiscMenu-Builder/
+**Datei:** [configurator/index.html](../configurator/index.html). Es ist eine einzelne, eigenständige Datei. Herunterladen, als `.html` speichern und lokal im Browser öffnen, dann geht es auch ohne Internet.
 
 ## Prinzip
 
-- **Läuft komplett im Browser.** Kein eigenes Backend, nichts wird hochgeladen. Bilder, Sounds und die ZIP werden lokal im Browser verarbeitet.
-- **Zwei Wege zur Nutzung:**
-  1. Online über GitHub Pages.
-  2. Als einzelne HTML-Datei zum Herunterladen, die auch ohne Internet funktioniert (z. B. als Release-Datei).
-- Der Konfigurator erzeugt nur das Rezept. Die Menü-EXE macht weiterhin der Builder.
+- **Läuft komplett im Browser.** Kein Backend, nichts wird hochgeladen. Bilder, Sounds und die ZIP werden lokal verarbeitet.
+- **Keine Abhängigkeiten.** Eine HTML-Datei ohne externe Bibliotheken. ZIP schreiben und lesen sind selbst eingebaut.
+- Der Konfigurator erzeugt nur das Rezept. Die Menü-EXE macht der Builder.
+- Die Veröffentlichung auf GitHub Pages läuft automatisch über `.github/workflows/pages.yml`, sobald sich etwas im Ordner `configurator/` ändert.
 
-Hinweis zu GitHub Pages: Bei einem privaten Repo steht Pages nur mit bezahltem GitHub-Plan zur Verfügung. Mit dem kostenlosen Plan braucht es ein öffentliches Repo (z. B. ein eigenes für den Konfigurator). Die Download-Variante hat diese Einschränkung nicht.
+## Bedienung
 
-## Bedienform
+Links die Liste der Spiele, rechts das Formular zum gewählten Eintrag, ganz rechts die Prüfung und eine Vorschau der `menu.json`. Auf dem Handy stehen die Bereiche untereinander.
 
-Vorschlag: **Formular mit Baumansicht**, nicht Blöcke.
+- **Disc-Einstellungen:** Titel, EXE-Name, Hintergrundbild, Klick- und Hover-Sound.
+- **Spiele:** hinzufügen, löschen, mit den Pfeilen sortieren. Der `index` ergibt sich aus der Reihenfolge (0, 1, 2 ...).
+- **Pro Spiel:** Name, Cover, Beschreibung, Installer-Pfad, Parameter, geschätzte Größe.
+- **Bereiche DLCs, Patches, Extras:** Einträge mit Name, Gruppe (Unterkategorie, mit Vorschlägen), Beschreibung, Bild und Aktion ("Installer starten" oder "Datei, Ordner oder Link öffnen"). Einträge lassen sich sortieren und entfernen.
+- **Bilder** per Drag-and-drop oder Antippen. Beim Hinzufügen werden sie verkleinert und umgewandelt: Cover auf höchstens 800 Pixel als PNG, Hintergrund auf höchstens 1920 Pixel als JPEG. Das hält die Menü-EXE klein. Diese Werte sind vorläufig.
+- **Sounds:** WAV, OGG oder MP3, unverändert übernommen.
+- **Prüfung** nach den Regeln der Spezifikation. Exportieren geht erst, wenn keine Fehler mehr da sind. Hinweise blockieren nicht.
+- **Export** als ZIP. Die Dateinamen der Assets vergibt der Konfigurator selbst aus den Namen, damit die Pfade in der `menu.json` stimmen.
+- **Import** einer vorhandenen ZIP (auch mit Deflate-Kompression) oder `menu.json`. Fehlende Dateien und nicht unterstützte Felder (z. B. `customTabs`) werden als Hinweis gemeldet.
+- **Entwurf:** Der Zwischenstand inklusive Bildern wird im Browser (IndexedDB) gespeichert und beim nächsten Öffnen wiederhergestellt. "Neu" verwirft ihn.
 
-- Links ein Baum: Disc → Spiele → Bereiche (DLCs, Patches, Extras) → Einträge.
-- Rechts das Formular zum gerade gewählten Element mit allen Feldern aus der [Spezifikation](menu-json-spec.md).
-- Bilder und Sounds per Drag-and-drop in die jeweiligen Felder.
+Der Konfigurator schreibt zurzeit nur Version 1 der `menu.json`. Eigene Tabs und `provider` gehören noch nicht dazu.
 
-Warum nicht Blöcke im Sketch-Stil: Die Struktur ist fest (Spiele mit festen Bereichen und Einträgen). Blöcke würden Aufwand bringen, aber kaum Vorteil gegenüber einer Maske. Eine Blockansicht bleibt als spätere Idee offen.
+## Grenzen
 
-## Funktionen
+- Der Browser kann nicht prüfen, ob die angegebenen Pfade auf der Disc existieren. Die Pfade werden von Hand eingetragen.
+- Der gespeicherte Entwurf liegt nur im jeweiligen Browser auf diesem Gerät. Für die Weitergabe oder Sicherung dient der ZIP-Export.
+- Für das Umwandeln der Bilder braucht der Browser Unterstützung für `createImageBitmap` und Canvas (alle aktuellen Browser).
 
-Erste Version:
-- Spiele anlegen, löschen und per Ziehen sortieren. Der `index` ergibt sich aus der Reihenfolge (ab 0).
-- Pro Spiel: Name, Cover, Beschreibung, Installer-Pfad, Größe, und die Bereiche DLCs, Patches, Extras mit Einträgen und Gruppen.
-- Pro Eintrag die Wahl zwischen Installer und "Öffnen".
-- Bilder werden beim Hinzufügen in ein einheitliches Format und eine begrenzte Größe umgewandelt (hält die Menü-EXE klein).
-- Prüfung nach denselben Regeln wie der Builder, mit verständlichen Fehlermeldungen.
-- Export als ZIP.
-- Import einer vorhandenen ZIP oder `menu.json`, um ein Rezept später weiterzubearbeiten.
-- Entwurf im Browser zwischenspeichern.
+## Später
 
-Später:
-- JSON-Ansicht zum direkten Bearbeiten.
+- Optionale Prüfung der Disc-Dateien: Der Nutzer wählt den Disc-Ordner aus, und der Konfigurator prüft die Pfade. Das geht nur in Browsern mit Ordnerzugriff (z. B. Chrome, Edge).
+- Bearbeitbare JSON-Ansicht.
 - Vorschau des Menüs.
-- Eigene Tabs (sobald das Format sie unterstützt).
-- Optionale Prüfung der Disc-Dateien: Der Nutzer wählt den Disc-Ordner aus, und der Konfigurator prüft, ob die Installer-Pfade existieren. Das funktioniert nur in Browsern mit Ordnerzugriff (z. B. Chrome, Edge).
+- Eigene Tabs, sobald das Format sie unterstützt.
+- Gemeinsames JSON Schema für Konfigurator und Builder, damit die Regeln nicht auseinanderlaufen.
 
-## Ausgabe
+## Tests
 
-Das ZIP-Layout steht in der [Spezifikation](menu-json-spec.md) unter "Rezept-Paket". Der Konfigurator vergibt die Dateinamen der Assets selbst, damit die Pfade in der `menu.json` immer stimmen.
-
-## Zusammenspiel mit dem Builder
-
-Der Builder soll das Rezept entweder aus einem Ordner oder direkt aus der ZIP lesen. Da das Paket in der Menü-EXE ohnehin eine ZIP ist, kann die Rezept-ZIP fast unverändert übernommen werden.
-
-## Regeln nur einmal definieren
-
-Die Regeln für die `menu.json` stehen in der Spezifikation. Konfigurator und Builder müssen dieselben Regeln anwenden. Damit sie nicht auseinanderlaufen, soll später ein JSON Schema als gemeinsame Quelle dienen.
+Die Kernlogik (ZIP, Prüfung, Export, Import) lässt sich ohne Browser testen, weil sie in der Datei als eigener Block `CORE` steht.

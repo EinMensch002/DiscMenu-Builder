@@ -6,7 +6,10 @@
 |---|---|
 | Projektname | DiscMenu-Builder |
 | Rezept | `menu.json` (ohne Umlaut) plus Assets, als ZIP: `menu.json` im Root, Assets unter `assets/` |
-| Rezept erstellen | Konfigurator als Web-App im Browser, ohne eigenes Backend |
+| Rezept erstellen | Konfigurator als Web-App im Browser, ohne Backend, als einzelne HTML-Datei (umgesetzt, siehe [configurator.md](configurator.md)) |
+| Hosting Konfigurator | Repo ist öffentlich, Veröffentlichung auf GitHub Pages. Die HTML-Datei lässt sich auch lokal nutzen |
+| Bedienform Konfigurator | Formular mit Spieleliste statt Blöcken |
+| Bildformat (vorläufig) | Cover PNG bis 800 Pixel, Hintergrund JPEG bis 1920 Pixel |
 | Rolle des Menüs | Forwarder: startet Original-Installer und öffnet Extras |
 | Erste Quelle | GOG. Steam später, dafür ist `provider` reserviert |
 | Spiele pro Disc | Eines oder mehrere. Reihenfolge über `index`, beginnend bei 0 |
@@ -23,10 +26,8 @@
 | Thema | Frage |
 |---|---|
 | Technik | Welche Sprache und Bibliothek für Player und Builder? Entscheidung nach dem Mini-Prototyp, siehe [platforms-and-tech.md](platforms-and-tech.md) |
-| Bedienform Konfigurator | Formular mit Baumansicht (Vorschlag) oder Blöcke? Siehe [configurator.md](configurator.md) |
-| Hosting Konfigurator | GitHub Pages (braucht bei privatem Repo einen bezahlten Plan oder ein öffentliches Repo) und/oder Download als HTML-Datei |
 | Builder-Eingabe | Soll der Builder die Rezept-ZIP direkt lesen? (Vorschlag: ja, zusätzlich zum Ordner) |
-| Bildformat | Zielgröße und Format der Cover und Hintergründe, damit die EXE klein bleibt |
+| Bildformat | Passen die vorläufigen Werte (800 und 1920 Pixel) oder sind andere Formate wie WebP besser? Hängt von der Player-Technik ab |
 | 64 Bit | Reicht 64 Bit für Windows 10/11? |
 | Silent-Standard | Soll das Menü einen Standardzielpfad vorschlagen? Soll Silent standardmäßig an oder aus sein? |
 | Fortschritt | Wie genau wird der Fortschritt bei Silent angezeigt? (Zielordnergröße ist nur eine Schätzung) |

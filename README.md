@@ -2,7 +2,8 @@
 
 Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung auf DVD oder Blu-ray. Das Menü wirkt wie ein klassischer Installer, ist aber ein Forwarder: Es startet die originalen Installer und öffnet Extras.
 
-> **Status:** Konzeptphase. Es gibt noch keinen Code, nur Konzept, Spezifikation und ein Beispiel.
+> **Status:** Der **Konfigurator** ist fertig und nutzbar: https://einmensch002.github.io/DiscMenu-Builder/
+> Player und Builder sind noch in der Konzeptphase.
 
 ## Eckpunkte
 
@@ -20,7 +21,7 @@ Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für
 | Datei | Inhalt |
 |---|---|
 | [docs/concept.md](docs/concept.md) | Konzept, Bausteine, Ablauf, Menüaufbau, EXE-Aufbau |
-| [docs/configurator.md](docs/configurator.md) | Konfigurator (Web-App) |
+| [docs/configurator.md](docs/configurator.md) | Konfigurator (Web-App): Bedienung, Grenzen |
 | [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json`, Aufbau der Rezept-ZIP |
 | [docs/installer-integration.md](docs/installer-integration.md) | Installer starten, still installieren, Ergebnis auslesen |
 | [docs/platforms-and-tech.md](docs/platforms-and-tech.md) | Windows 10/11, Wine/Proton, Technikauswahl |
@@ -34,7 +35,8 @@ DiscMenu-Builder/
 ├─ README.md
 ├─ LICENSE
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
-├─ configurator/            Web-App zum Erstellen des Rezepts
+├─ configurator/            Konfigurator: index.html (eine eigenständige Datei)
+├─ .github/workflows/       Veröffentlichung des Konfigurators auf GitHub Pages
 ├─ examples/
 │  ├─ menu.example.json     Beispiel-Rezept mit zwei Spielen
 │  └─ assets/               Beispiel-Cover und -Sounds (später)
@@ -53,7 +55,8 @@ DiscMenu-Builder/
 - [ ] Player: Installer starten (normal und still), Zielpfad wählen
 - [ ] Player: DLCs, Patches und Extras mit Gruppen
 - [ ] Builder: Player und Paket zur fertigen EXE zusammensetzen
-- [ ] Konfigurator: Maske, Bildverarbeitung, ZIP-Export, Import
+- [x] Konfigurator: Maske, Bildverarbeitung, ZIP-Export, Import (Version 1)
+- [ ] Konfigurator: gemeinsames JSON Schema, JSON-Ansicht, Vorschau
 - [ ] Fortschrittsanzeige bei stillen Installationen
 - [ ] Automatischer Build über GitHub Actions
 - [ ] Test auf echter Disc inklusive AutoPlay und Linux
