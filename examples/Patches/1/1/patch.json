@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "name": "Patch 1.1",
+  "version": "1.1.0",
+  "description": "Beispiel-Patch für Beispiel-Spiel 1.",
+  "file": "patch_1_1.exe",
+  "mode": "interactive",
+  "date": "2026-11-01"
+}

@@ -1,39 +1,57 @@
 {
   "schemaVersion": 1,
-  "title": "Beispiel-Disc",
+  "title": "Beispiel-Collection",
   "output": "Setup-Menu.exe",
   "background": "assets/background.png",
   "sounds": {
     "click": "assets/click.wav"
   },
+  "patches": {
+    "enabled": true,
+    "folder": "Patches"
+  },
   "games": [
     {
-      "id": "beispiel-spiel",
-      "name": "Beispiel-Spiel",
-      "cover": "assets/beispiel-spiel.png",
-      "description": "Kurze Beschreibung des Spiels.",
+      "id": "beispiel-spiel-1",
+      "index": 1,
+      "name": "Beispiel-Spiel 1",
+      "provider": "gog",
+      "cover": "assets/beispiel-spiel-1.png",
+      "description": "Kurze Beschreibung des ersten Spiels.",
       "installer": {
-        "path": "Beispiel-Spiel/setup_beispiel_spiel.exe",
+        "path": "Beispiel-Spiel-1/setup_beispiel_spiel_1.exe",
         "mode": "silent",
         "args": ["/NORESTART"],
         "estimatedSizeMB": 1500
       },
       "dlcs": [
         {
-          "id": "beispiel-spiel-dlc-1",
+          "id": "beispiel-spiel-1-dlc-1",
           "name": "Beispiel-DLC",
           "cover": "assets/beispiel-dlc.png",
           "lore": "Kurze Beschreibung des DLCs.",
           "installer": {
-            "path": "Beispiel-Spiel/DLC/setup_beispiel_dlc.exe",
+            "path": "Beispiel-Spiel-1/DLC/setup_beispiel_dlc.exe",
             "mode": "interactive"
           }
         }
       ],
       "extras": [
-        { "name": "Soundtrack", "type": "folder", "path": "Beispiel-Spiel/Extras/Soundtrack" },
-        { "name": "Handbuch", "type": "file", "path": "Beispiel-Spiel/Extras/manual.pdf" }
+        { "name": "Soundtrack", "type": "folder", "path": "Beispiel-Spiel-1/Extras/Soundtrack" },
+        { "name": "Handbuch", "type": "file", "path": "Beispiel-Spiel-1/Extras/manual.pdf" }
       ]
+    },
+    {
+      "id": "beispiel-spiel-2",
+      "index": 2,
+      "name": "Beispiel-Spiel 2",
+      "provider": "gog",
+      "cover": "assets/beispiel-spiel-2.png",
+      "description": "Kurze Beschreibung des zweiten Spiels.",
+      "installer": {
+        "path": "Beispiel-Spiel-2/setup_beispiel_spiel_2.exe",
+        "mode": "interactive"
+      }
     }
   ],
   "extras": []

@@ -1,6 +1,6 @@
 # DiscMenu-Builder
 
-Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung auf CD, DVD oder Blu-ray.
+Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung auf CD, DVD oder Blu-ray. Eine Disc kann mehrere Spiele enthalten (Collection).
 
 > **Status:** Konzeptphase. Es gibt noch keinen Code, nur Konzept, Ordnerstruktur und ein Beispiel für die `menu.json`.
 
@@ -13,6 +13,12 @@ Damit nicht für jede Disc ein Menü neu programmiert werden muss, arbeitet das 
 1. Du beschreibst die Disc in einer `menu.json` (Spiele, Cover, Installer, DLCs, Extras).
 2. Der **Builder** liest die `menu.json` und erzeugt daraus eine fertige Menü-EXE.
 3. Die Menü-EXE kommt zusammen mit den Installern auf die Disc.
+
+Weitere Eckpunkte:
+
+- **Zuerst GOG**, später soll dasselbe Menü auch Steam-Backups wiederherstellen können (über einen `provider` pro Spiel).
+- **Multi-Installer:** Mehrere Spiele pro Disc, Reihenfolge über einen `index` pro Spiel.
+- **Patches-Tab:** Ein Ordner `Patches/<Spiel-Index>/<Patch-Index>/` wird zur Laufzeit ausgelesen. So lassen sich später Patches ergänzen, ohne die Menü-EXE neu zu bauen.
 
 ## Bestandteile
 
@@ -32,9 +38,12 @@ DiscMenu-Builder/
 ├─ LICENSE
 ├─ docs/
 │  ├─ concept.md           Konzept, Ablauf, Architektur, Grenzen
-│  └─ menu-json-spec.md    Beschreibung aller Felder der menu.json
+│  ├─ menu-json-spec.md    Beschreibung aller Felder der menu.json
+│  ├─ patches-spec.md      Patch-Ordner und patch.json
+│  └─ disc-planung.md      Kapazität, Platz für Patches, Mehrfach-Session
 ├─ examples/
-│  ├─ menu.example.json    Beispiel-Rezept
+│  ├─ menu.example.json    Beispiel-Rezept (zwei Spiele)
+│  ├─ Patches/             Beispiel für die Patch-Ordnerstruktur
 │  └─ assets/              Beispiel-Cover, -Sounds (später)
 └─ src/
    ├─ Builder/             Menüersteller
@@ -44,15 +53,19 @@ DiscMenu-Builder/
 
 ## Roadmap
 
-- [ ] Konzept und `menu.json`-Format festlegen (aktueller Stand)
+- [ ] Konzept, `menu.json`- und Patch-Format festlegen (aktueller Stand)
+- [ ] Test mit einer Disc: Mehrfach-Session für spätere Patches
 - [ ] Technik bestätigen (Vorschlag: C# / WPF auf .NET Framework 4.8)
 - [ ] Player: Menü aus Beispiel-Config anzeigen (Hover, Sound, Cover)
 - [ ] Player: Installer starten (interaktiv und still)
 - [ ] Builder: Player + Payload zur fertigen EXE zusammensetzen
 - [ ] DLCs und Extras im Menü
+- [ ] Multi-Installer: mehrere Spiele, Sortierung nach `index`
+- [ ] Patches-Tab: Patches zur Laufzeit einlesen und starten
 - [ ] Fortschrittsanzeige bei stillen Installationen
 - [ ] Automatischer Build über GitHub Actions
 - [ ] Test auf echter Disc inklusive AutoPlay
+- [ ] Später: Steam-Provider (Machbarkeit zuerst prüfen)
 
 ## Lizenz
 
