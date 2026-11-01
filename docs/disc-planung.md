@@ -2,7 +2,7 @@
 
 ## Grundsatz
 
-Discs sollen **Jahrzehnte** halten, unabhängig vom Internet nutzbar sein und sich unter Windows (auch älteren Versionen) und Linux lesen lassen. Deshalb gilt:
+Discs sollen **Jahrzehnte** halten, unabhängig vom Internet nutzbar sein und sich unter Windows 10/11 und Linux lesen lassen. Deshalb gilt:
 
 - **Jede Disc wird finalisiert.** Offene Discs (Mehrfach-Session) werden nicht von jedem Laufwerk oder Betriebssystem sauber erkannt. Das Risiko ist für ein Archiv zu hoch.
 - **Kein nachträgliches Ergänzen** von Patches oder Dateien auf einer gebrannten Disc.
@@ -17,7 +17,7 @@ Discs sollen **Jahrzehnte** halten, unabhängig vom Internet nutzbar sein und si
 
 ## Dateisystem
 
-GOG-Installer bestehen oft aus Dateien mit bis zu rund 4 GB. Das reine ISO-9660-Dateisystem kann das nicht, deshalb wird **UDF** genutzt. Welche UDF-Version für Windows 7 und Linux die sicherste ist, wird beim ersten Test-Brennen geprüft. Dabei auch die Länge der Dateipfade beachten (Windows hat Grenzen).
+GOG-Installer bestehen oft aus Dateien mit bis zu rund 4 GB. Das reine ISO-9660-Dateisystem kann das nicht, deshalb wird **UDF** genutzt. Welche UDF-Version für Windows 10/11 und Linux die sicherste ist, wird beim ersten Test-Brennen geprüft. Dabei auch die Länge der Dateipfade beachten (Windows hat Grenzen).
 
 ## Langzeitarchivierung
 
@@ -29,6 +29,6 @@ GOG-Installer bestehen oft aus Dateien mit bis zu rund 4 GB. Das reine ISO-9660-
 ## Test vor der Serienproduktion
 
 Eine einzelne Test-Disc brennen und prüfen:
-1. Wird sie unter Windows 10/11, Windows 7 (VM oder echtes System) und Linux gelesen?
+1. Wird sie unter Windows 10/11 und Linux gelesen?
 2. Funktioniert die AutoPlay-Meldung unter Windows?
 3. Startet das Menü und lassen sich Installer ausführen?

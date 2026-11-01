@@ -6,22 +6,24 @@ Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für
 
 ## Eckpunkte
 
-- **Eine Rezeptdatei:** Alles steht in der `menu.json`. Für eine neue Disc wird nichts neu programmiert.
+- **Ein Rezept:** Alles steht in der `menu.json` (mit Assets, als ZIP). Für eine neue Disc wird nichts neu programmiert.
+- **Konfigurator:** Eine Web-App ohne Backend, in der man das Rezept per Maske zusammenstellt, statt die JSON zu schreiben.
 - **Einheitlicher Look, anpassbar:** Layout und Bedienung sind immer gleich, Texte, Cover, Hintergrund und Sounds kommen aus der Rezeptdatei.
 - **Eine oder mehrere Spiele pro Disc:** Bei mehreren Spielen gibt es eine Auswahlseite (Reihenfolge über `index`), bei nur einem Spiel öffnet sich direkt dessen Seite.
 - **Pro Spiel:** Installieren (wahlweise still mit Zielpfad), DLCs/Erweiterungen, Patches (z. B. Sprach- oder Grafikpatches), Extras (Soundtrack, Artbooks, Handbücher). Eigene Tabs (z. B. Mods) sind später geplant.
 - **Langlebig:** Discs werden immer finalisiert und sind unabhängig vom Internet nutzbar. Gibt es ein Update, kommt eine neue Disc.
-- **Plattformen:** Windows 7 und neuer sowie Linux über Wine/Proton.
+- **Plattformen:** Windows 10/11 sowie Linux über Wine/Proton.
 - **Zuerst GOG**, später möglicherweise Steam-Backups.
 
 ## Dokumentation
 
 | Datei | Inhalt |
 |---|---|
-| [docs/concept.md](docs/concept.md) | Konzept, Ablauf, Menüaufbau, EXE-Aufbau |
-| [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json` |
+| [docs/concept.md](docs/concept.md) | Konzept, Bausteine, Ablauf, Menüaufbau, EXE-Aufbau |
+| [docs/configurator.md](docs/configurator.md) | Konfigurator (Web-App) |
+| [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json`, Aufbau der Rezept-ZIP |
 | [docs/installer-integration.md](docs/installer-integration.md) | Installer starten, still installieren, Ergebnis auslesen |
-| [docs/platforms-and-tech.md](docs/platforms-and-tech.md) | Windows 7, Wine/Proton, Technikauswahl |
+| [docs/platforms-and-tech.md](docs/platforms-and-tech.md) | Windows 10/11, Wine/Proton, Technikauswahl |
 | [docs/disc-planung.md](docs/disc-planung.md) | Kapazität, Finalisieren, Updates, Langzeitarchivierung |
 | [docs/decisions.md](docs/decisions.md) | Getroffene und offene Entscheidungen |
 
@@ -32,6 +34,7 @@ DiscMenu-Builder/
 ├─ README.md
 ├─ LICENSE
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
+├─ configurator/            Web-App zum Erstellen des Rezepts
 ├─ examples/
 │  ├─ menu.example.json     Beispiel-Rezept mit zwei Spielen
 │  └─ assets/               Beispiel-Cover und -Sounds (später)
@@ -44,12 +47,13 @@ DiscMenu-Builder/
 ## Roadmap
 
 - [ ] Konzept und Formate festlegen (aktueller Stand)
-- [ ] Mini-Prototyp zur Technikauswahl, getestet unter Windows 10/11, Windows 7 und Wine
+- [ ] Mini-Prototyp zur Technikauswahl, getestet unter Windows 10/11 und Wine
 - [ ] Echte GOG-Installer testen: still installieren, Exit-Code, Registry
 - [ ] Player: Auswahlseite und Spielseite mit Hover, Sound und Cover
 - [ ] Player: Installer starten (normal und still), Zielpfad wählen
 - [ ] Player: DLCs, Patches und Extras mit Gruppen
 - [ ] Builder: Player und Paket zur fertigen EXE zusammensetzen
+- [ ] Konfigurator: Maske, Bildverarbeitung, ZIP-Export, Import
 - [ ] Fortschrittsanzeige bei stillen Installationen
 - [ ] Automatischer Build über GitHub Actions
 - [ ] Test auf echter Disc inklusive AutoPlay und Linux

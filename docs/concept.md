@@ -4,17 +4,24 @@
 
 Ein einheitliches, anpassbares Installer-Menü für Spiele-Discs. Es entsteht zuerst für GOG-Spiele und ist so aufgebaut, dass später weitere Quellen (z. B. Steam-Backups) dazukommen können.
 
-Das Menü wird aus einer Rezeptdatei (`menu.json`) erzeugt. Für eine neue Disc muss nichts programmiert oder kompiliert werden. Das Menü ist ein **Forwarder**: Es installiert nichts selbst, sondern startet die originalen Installer und öffnet Extras.
+Das Menü wird aus einem Rezept (`menu.json` mit Assets) erzeugt. Für eine neue Disc muss nichts programmiert oder kompiliert werden. Das Menü ist ein **Forwarder**: Es installiert nichts selbst, sondern startet die originalen Installer und öffnet Extras.
+
+## Bausteine
+
+| Baustein | Aufgabe | Beschreibung |
+|---|---|---|
+| **Konfigurator** | Rezept erstellen | Web-App, erzeugt eine ZIP mit `menu.json` und Assets. Siehe [configurator.md](configurator.md) |
+| **Builder** | Menü-EXE erzeugen | Liest das Rezept und setzt daraus die fertige EXE zusammen |
+| **Player** | Menü anzeigen | Der Teil der EXE, der auf der Disc läuft |
 
 ## Ablauf
 
 ### Beim Erstellen
 
-1. Ordner vorbereiten: `menu.json`, Cover, Sounds und andere Assets.
-2. `Menüersteller.exe` im selben Ordner starten.
-3. Der Builder liest und prüft die `menu.json` (Regeln in [menu-json-spec.md](menu-json-spec.md)) und packt sie mit allen Assets zu einem Paket.
-4. Der Builder kopiert den fertigen Player, hängt das Paket an und speichert das Ergebnis als neue EXE.
-5. Die Menü-EXE kommt zusammen mit Installern und Extras auf die Disc (siehe [disc-planung.md](disc-planung.md)).
+1. Rezept im Konfigurator zusammenstellen und als ZIP exportieren. (Von Hand geht es auch: Ordner mit `menu.json` und `assets/`, Aufbau siehe [menu-json-spec.md](menu-json-spec.md).)
+2. Den Builder mit dem Rezept (ZIP oder Ordner) starten. Er prüft es nach den Regeln der Spezifikation.
+3. Der Builder kopiert den fertigen Player, hängt das Rezept als Paket an und speichert das Ergebnis als neue EXE.
+4. Die Menü-EXE kommt zusammen mit Installern und Extras auf die Disc (siehe [disc-planung.md](disc-planung.md)).
 
 ### Beim Benutzen
 
@@ -63,5 +70,5 @@ Zu Steam ist vorab zu prüfen:
 
 ## Weitere Themen
 
-- Windows 7, Linux, Technikauswahl: [platforms-and-tech.md](platforms-and-tech.md)
+- Plattformen und Technikauswahl: [platforms-and-tech.md](platforms-and-tech.md)
 - Entscheidungen und offene Punkte: [decisions.md](decisions.md)

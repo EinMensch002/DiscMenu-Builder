@@ -2,36 +2,36 @@
 
 ## Anforderungen
 
-- Läuft unter **Windows 7** (mit Service Pack 1) und neuer.
+- Läuft unter **Windows 10 und 11**.
 - Läuft unter **Linux mit Wine oder Proton**.
 - Eine einzelne, kleine EXE ohne Installation, ohne Pflicht zu Administratorrechten.
 - Spürbar verzögerungsfreie Bedienung (Hover, Klick, Sound).
 - Bilder, Hover-Effekte und Sound müssen gut machbar sein.
 
-Die Technik wird danach ausgewählt, nicht umgekehrt.
+Windows 7 ist nicht mehr Ziel. Das erleichtert die Technikauswahl, weil keine veralteten Systemversionen berücksichtigt werden müssen.
 
-## Kandidaten
+Die Technik wird nach diesen Anforderungen ausgewählt, nicht umgekehrt. Das gilt für den **Player** und den **Builder**. Der **Konfigurator** ist eine Web-App und davon unabhängig (siehe [configurator.md](configurator.md)).
 
-| Option | Windows 7 | Wine/Proton | Bewertung |
+## Kandidaten für Player und Builder
+
+| Option | Windows 10/11 | Wine/Proton | Bewertung |
 |---|---|---|---|
-| C# mit WPF (.NET Framework) | .NET muss nachinstalliert werden | WPF läuft in Wine nur lückenhaft | ungeeignet |
-| C# mit WinForms (.NET Framework) | .NET muss nachinstalliert werden | über wine-mono meist möglich, Proton bringt kein .NET mit | möglich, aber unter Linux umständlich |
-| Nativ (C++ oder Rust) mit SDL2 | SDL2 unterstützt Windows 7 | gut | **vorläufig bevorzugt** |
-| Tauri / WebView | WebView2 unterstützt Windows 7 nur in einer alten Version | unklar | bereits verworfen (Input-Lag) |
+| C# mit WPF (.NET Framework) | .NET ist in aktuellen Windows-Versionen vorinstalliert | WPF läuft in Wine nur lückenhaft | ungeeignet |
+| C# mit WinForms (.NET Framework) | ja | über wine-mono meist möglich, Proton bringt kein .NET mit | möglich, aber unter Linux umständlich |
+| Nativ (C++ oder Rust) mit SDL2 | ja | gut | **vorläufig bevorzugt** |
+| Tauri / WebView | ja | unklar | bereits verworfen (Input-Lag) |
 | Godot | ja | gut | bereits verworfen (knapp 200 MB) |
 
-Stand: Das sind Annahmen, die noch nicht geprüft wurden. Besonders die Unterstützung von Windows 7 durch die jeweilige Sprache und Toolchain muss vor der Entscheidung bestätigt werden. Rust stellt die Unterstützung für Windows 7 in neueren Versionen nur noch eingeschränkt bereit.
+Stand: Das sind Annahmen, die noch nicht geprüft wurden. Vor der Entscheidung wird ein Mini-Prototyp gebaut.
 
 ## Mini-Prototyp
-
-Bevor der echte Player entsteht, entsteht ein kleiner Test:
 
 1. Fenster mit Cover-Bild, Hover-Effekt und Klick-Sound.
 2. Einen Prozess starten und auf sein Ende warten.
 3. Registry-Wert lesen.
 4. EXE mit angehängtem Paket lesen.
 
-Getestet wird unter Windows 10/11, Windows 7 (virtuelle Maschine) und Wine. Auf dieser Basis fällt die Entscheidung für Sprache und Bibliothek.
+Getestet wird unter Windows 10/11 und unter Wine. Auf dieser Basis fällt die Entscheidung für Sprache und Bibliothek.
 
 ## Hinweise für Wine/Proton
 

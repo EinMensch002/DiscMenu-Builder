@@ -6,6 +6,27 @@
 - **Installer und Extras**: relativ zum Ordner der fertigen Menü-EXE (Disc-Wurzel). Sie werden erst beim Benutzen aufgelöst.
 - Schrägstriche `/` als Trennzeichen, keine Laufwerksbuchstaben.
 
+## Rezept-Paket (ZIP)
+
+Der Konfigurator liefert (und der Builder liest) ein Rezept als ZIP mit diesem Aufbau:
+
+```
+rezept.zip
+├─ menu.json
+└─ assets/
+   ├─ background.png
+   ├─ sounds/
+   │  └─ click.wav
+   └─ covers/
+      ├─ beispiel-spiel-1.png
+      └─ ...
+```
+
+- `menu.json` liegt im Wurzelverzeichnis der ZIP.
+- Alle Assets liegen unter `assets/`. Die Pfade in der `menu.json` (z. B. `assets/covers/beispiel-spiel-1.png`) sind relativ zur `menu.json`.
+- Statt der ZIP funktioniert auch ein Ordner mit demselben Aufbau.
+- Zielgröße und Format der Bilder sind noch offen (siehe [decisions.md](decisions.md)).
+
 ## Oberste Ebene
 
 | Feld | Typ | Pflicht | Beschreibung |
