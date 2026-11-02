@@ -20,7 +20,8 @@ Links die Liste der Spiele, rechts das Formular zum gewählten Eintrag, ganz rec
 - **Spiele:** hinzufügen, löschen, mit den Pfeilen sortieren. Der `index` ergibt sich aus der Reihenfolge (0, 1, 2 ...).
 - **Pro Spiel:** Name, Cover, Beschreibung, Installer-Pfad, Parameter, geschätzte Größe.
 - **Bereiche DLCs, Patches, Extras:** Einträge mit Name, Gruppe (Unterkategorie, mit Vorschlägen), Beschreibung, Bild und Aktion ("Installer starten" oder "Datei, Ordner oder Link öffnen"). Einträge lassen sich sortieren und entfernen.
-- **Bilder** per Drag-and-drop oder Antippen. Beim Hinzufügen werden sie verkleinert und umgewandelt: Cover auf höchstens 800 Pixel als PNG, Hintergrund auf höchstens 1920 Pixel als JPEG. Das hält die Menü-EXE klein. Diese Werte sind vorläufig.
+- **SteamGridDB:** Spiele und Bilder lassen sich bei SteamGridDB suchen, auch mit deutscher Beschreibung aus dem Steam-Shop. Siehe [steamgriddb.md](steamgriddb.md).
+- **Bilder** per Drag-and-drop, Antippen oder über die SteamGridDB-Suche. Beim Hinzufügen werden sie verkleinert und umgewandelt: Cover auf höchstens 800 Pixel als PNG, Hintergrund auf höchstens 1920 Pixel als JPEG. Das hält die Menü-EXE klein. Diese Werte sind vorläufig.
 - **Sounds:** WAV, OGG oder MP3, unverändert übernommen.
 - **Prüfung** nach den Regeln der Spezifikation. Exportieren geht erst, wenn keine Fehler mehr da sind. Hinweise blockieren nicht.
 - **Export** als ZIP. Die Dateinamen der Assets vergibt der Konfigurator selbst aus den Namen, damit die Pfade in der `menu.json` stimmen.
@@ -34,6 +35,7 @@ Der Konfigurator schreibt zurzeit nur Version 1 der `menu.json`. Eigene Tabs und
 - Der Browser kann nicht prüfen, ob die angegebenen Pfade auf der Disc existieren. Die Pfade werden von Hand eingetragen.
 - Der gespeicherte Entwurf liegt nur im jeweiligen Browser auf diesem Gerät. Für die Weitergabe oder Sicherung dient der ZIP-Export.
 - Für das Umwandeln der Bilder braucht der Browser Unterstützung für `createImageBitmap` und Canvas (alle aktuellen Browser).
+- Die SteamGridDB-Anbindung wurde nur mit nachgebauten Antworten getestet. Ob der Browser Anfragen direkt erlaubt, ist offen, notfalls hilft ein Proxy.
 
 ## Später
 
@@ -45,4 +47,4 @@ Der Konfigurator schreibt zurzeit nur Version 1 der `menu.json`. Eigene Tabs und
 
 ## Tests
 
-Die Kernlogik (ZIP, Prüfung, Export, Import) lässt sich ohne Browser testen, weil sie in der Datei als eigener Block `CORE` steht.
+Die Kernlogik (ZIP, Prüfung, Export, Import, Hilfen für SteamGridDB) lässt sich ohne Browser testen, weil sie in der Datei als eigener Block `CORE` steht.

@@ -22,6 +22,7 @@ Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für
 |---|---|
 | [docs/concept.md](docs/concept.md) | Konzept, Bausteine, Ablauf, Menüaufbau, EXE-Aufbau |
 | [docs/configurator.md](docs/configurator.md) | Konfigurator (Web-App): Bedienung, Grenzen |
+| [docs/steamgriddb.md](docs/steamgriddb.md) | Bilder und Beschreibungen über SteamGridDB, Einrichtung, Proxy |
 | [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json`, Aufbau der Rezept-ZIP |
 | [docs/installer-integration.md](docs/installer-integration.md) | Installer starten, still installieren, Ergebnis auslesen |
 | [docs/platforms-and-tech.md](docs/platforms-and-tech.md) | Windows 10/11, Wine/Proton, Technikauswahl |
@@ -36,6 +37,7 @@ DiscMenu-Builder/
 ├─ LICENSE
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
 ├─ configurator/            Konfigurator: index.html (eine eigenständige Datei)
+├─ tools/cors-proxy/        Optionaler Proxy (Cloudflare Worker) für SteamGridDB
 ├─ .github/workflows/       Veröffentlichung des Konfigurators auf GitHub Pages
 ├─ examples/
 │  ├─ menu.example.json     Beispiel-Rezept mit zwei Spielen
@@ -56,6 +58,8 @@ DiscMenu-Builder/
 - [ ] Player: DLCs, Patches und Extras mit Gruppen
 - [ ] Builder: Player und Paket zur fertigen EXE zusammensetzen
 - [x] Konfigurator: Maske, Bildverarbeitung, ZIP-Export, Import (Version 1)
+- [x] Konfigurator: SteamGridDB-Suche für Spiele, Cover und Hintergründe
+- [ ] SteamGridDB-Anbindung mit echtem Schlüssel prüfen (CORS, Antwortformate)
 - [ ] Konfigurator: gemeinsames JSON Schema, JSON-Ansicht, Vorschau
 - [ ] Fortschrittsanzeige bei stillen Installationen
 - [ ] Automatischer Build über GitHub Actions
