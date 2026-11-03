@@ -13,6 +13,7 @@
 | Bildquelle | SteamGridDB (Suche beim Hinzufügen und pro Bildfeld), siehe [steamgriddb.md](steamgriddb.md). Aus dem Browser nur über einen eigenen Proxy erreichbar |
 | Beschreibungen | Steam-Shop (Deutsch angefragt) und deutsche Wikipedia, englische Texte lassen sich über MyMemory übersetzen |
 | Speichern | Projekte automatisch im Browser, ZIP-Export als Datei. Import legt ein neues Projekt an |
+| Zugangsdaten | API-Schlüssel und Proxy im Browser, per Datei sicherbar, optional mit Passwort verschlüsselt. Nie in ZIP oder Repo |
 | Rolle des Menüs | Forwarder: startet Original-Installer und öffnet Extras |
 | Erste Quelle | GOG. Steam später, dafür ist `provider` reserviert |
 | Spiele pro Disc | Eines oder mehrere. Reihenfolge über `index`, beginnend bei 0 |

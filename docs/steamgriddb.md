@@ -38,6 +38,16 @@ Nicht jedes Spiel hat einen Steam- oder Wikipedia-Eintrag. Gerade bei GOG-Klassi
 
 Der Schlüssel liegt nur im lokalen Speicher des Browsers und wird nie in die ZIP oder `menu.json` geschrieben. Hinweis: Der lokale Speicher gilt pro Adresse. Auf `einmensch002.github.io` können auch andere Seiten desselben GitHub-Kontos darauf zugreifen. Wer das nicht möchte, öffnet den Konfigurator als lokale Datei.
 
+## Einstellungen in einer Datei sichern
+
+Damit Schlüssel und Proxy-Adresse nicht jedes Mal neu eingetragen werden müssen (z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät), gibt es im Dialog **SteamGridDB** den Abschnitt "Einstellungen sichern":
+
+- **In Datei sichern** schreibt `discmenu-einstellungen.json`. Bietet der Browser eine Dateiauswahl an, kann man Ziel und Name wählen, sonst wird die Datei heruntergeladen.
+- **Aus Datei einlesen** füllt die Felder aus der Datei und speichert sie sofort im Browser.
+- **Passwort (optional):** Ist ein Passwort eingetragen, wird die Datei verschlüsselt (AES-256 mit einem aus dem Passwort abgeleiteten Schlüssel, PBKDF2). Zum Einlesen wird dasselbe Passwort gebraucht, ein vergessenes Passwort lässt sich nicht wiederherstellen. Ohne Passwort steht der Schlüssel im Klartext in der Datei.
+
+Die Datei enthält deinen API-Schlüssel. Sie gehört nicht in ein Repo und nicht in eine Rezept-ZIP. Im Repo ist `discmenu-einstellungen*.json` deshalb in der `.gitignore` eingetragen.
+
 ## Proxy (CORS)
 
 Browser erlauben Anfragen an fremde Dienste nur, wenn diese es ausdrücklich erlauben. Bei SteamGridDB und dem Steam-Shop hat die direkte Anfrage aus dem Browser nicht funktioniert (Meldung im Konfigurator). Mit einem kleinen eigenen Proxy läuft die Anbindung. Wikipedia und MyMemory brauchen keinen Proxy.

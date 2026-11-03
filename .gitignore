@@ -12,3 +12,6 @@ dist/
 *.user
 Thumbs.db
 .DS_Store
+
+# Persönliche Einstellungen des Konfigurators (enthalten den API-Schlüssel)
+discmenu-einstellungen*.json

@@ -335,14 +335,46 @@ const CORE = (() => {
     }
     return out;
   }
-  return {looksGerman, chunkText, trimIntro, wikiCandidates, htmlToText, normName, pickSteamMatch, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
+  /* --- Einstellungen sichern (optional mit Passwort verschlüsselt) --- */
+  const b64 = u8 => { let t = ''; for (let i = 0; i < u8.length; i += 0x8000) t += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(t); };
+  const unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+  const subtleOrNull = () => (globalThis.crypto && globalThis.crypto.subtle) || null;
+  async function deriveKey(password, salt, iterations){
+    const base = await subtleOrNull().importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+    return subtleOrNull().deriveKey({name:'PBKDF2', salt, iterations, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+  }
+  async function packSettings(values, password){
+    const plain = {type:'discmenu-settings', version:1, sgdbKey: values.key || '', proxy: values.proxy || ''};
+    if (!password) return JSON.stringify(plain, null, 2) + '\n';
+    if (!subtleOrNull()) throw new Error('Dieser Browser kann hier nicht verschlüsseln. Die Datei lässt sich nur ohne Passwort sichern.');
+    const salt = globalThis.crypto.getRandomValues(new Uint8Array(16)), iv = globalThis.crypto.getRandomValues(new Uint8Array(12)), iterations = 250000;
+    const key = await deriveKey(password, salt, iterations);
+    const data = new Uint8Array(await subtleOrNull().encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(JSON.stringify(plain))));
+    return JSON.stringify({type:'discmenu-settings', version:1, encrypted:true, kdf:'PBKDF2-SHA256', iterations, salt:b64(salt), iv:b64(iv), data:b64(data)}, null, 2) + '\n';
+  }
+  async function unpackSettings(text, password){
+    let j; try { j = JSON.parse(text); } catch (e) { throw new Error('Die Datei ist keine gültige Einstellungsdatei.'); }
+    if (!j || j.type !== 'discmenu-settings') throw new Error('Das ist keine Einstellungsdatei dieses Konfigurators.');
+    let plain = j;
+    if (j.encrypted){
+      if (!password) throw new Error('PASSWORD_NEEDED');
+      if (!subtleOrNull()) throw new Error('Dieser Browser kann hier nicht entschlüsseln.');
+      const it = Number(j.iterations); if (!(it >= 100000 && it <= 2000000)) throw new Error('Die Einstellungsdatei ist beschädigt.');
+      try {
+        const key = await deriveKey(password, unb64(j.salt), it);
+        plain = JSON.parse(new TextDecoder().decode(await subtleOrNull().decrypt({name:'AES-GCM', iv:unb64(j.iv)}, key, unb64(j.data))));
+      } catch (e) { throw new Error('Falsches Passwort oder beschädigte Datei.'); }
+    }
+    return {key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '')};
+  }
+  return {packSettings, unpackSettings, looksGerman, chunkText, trimIntro, wikiCandidates, htmlToText, normName, pickSteamMatch, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
 })();
 if (typeof module !== 'undefined') module.exports = CORE;
 
 /* === UI === */
 (() => {
   if (typeof document === 'undefined') return;
-  const {slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, pickSteamMatch, sortGrids, looksGerman, chunkText, wikiCandidates} = CORE;
+  const {slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, pickSteamMatch, sortGrids, looksGerman, chunkText, wikiCandidates, packSettings, unpackSettings} = CORE;
   const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Musik','Artwork','Dokumente','Videos'], dlcs:[]};
   const MIME = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif',wav:'audio/wav',ogg:'audio/ogg',mp3:'audio/mpeg'};
   const assets = new Map(); let state = newState(); let sel = 0; let counter = 1; let touched = false;
@@ -444,8 +476,19 @@ if (typeof module !== 'undefined') module.exports = CORE;
 
   function openSettings(){
     const key = h('input', {type:'password', autocomplete:'off', placeholder:'API-Schlüssel', value: cfg.key});
+    const pw = h('input', {type:'password', autocomplete:'new-password', placeholder:'Passwort (optional)'});
     const proxy = h('input', {type:'text', placeholder:'https://mein-proxy.example.workers.dev/?url={url}', value: cfg.proxy});
     const msg = h('p', {class:'hint'});
+    const msg2 = h('p', {class:'hint', id:'sgMsg2'});
+    const fin = h('input', {type:'file', accept:'.json,application/json', hidden:true, onchange: async () => {
+      const f = fin.files[0]; fin.value = ''; if (!f) return;
+      try {
+        const v = await unpackSettings(await f.text(), pw.value);
+        if (v.proxy && !v.proxy.includes('{url}')) throw new Error('Die Proxy-Adresse in der Datei enthält keinen Platzhalter {url}.');
+        key.value = v.key; proxy.value = v.proxy; store.set('sgdb-key', v.key); store.set('sgdb-proxy', v.proxy);
+        msg2.textContent = 'Einstellungen eingelesen und gespeichert.';
+      } catch (e) { msg2.textContent = e.message === 'PASSWORD_NEEDED' ? 'Die Datei ist verschlüsselt. Bitte das Passwort eintragen und die Datei erneut einlesen.' : e.message; }
+    }});
     const saveCfg = () => {
       const p = proxy.value.trim();
       if (p && !p.includes('{url}')){ msg.textContent = 'Die Proxy-Adresse muss den Platzhalter {url} enthalten.'; return false; }
@@ -463,7 +506,29 @@ if (typeof module !== 'undefined') module.exports = CORE;
           try { const r = await sgGet('/search/autocomplete/' + encodeURIComponent('Half-Life')); msg.textContent = 'Verbindung in Ordnung (' + r.length + ' Treffer für den Test).'; }
           catch (e) { msg.textContent = e.message; }
         }}, 'Verbindung testen'),
-        h('button', {type:'button', class:'danger', onclick: () => { store.set('sgdb-key',''); store.set('sgdb-proxy',''); key.value = ''; proxy.value = ''; msg.textContent = 'Gespeicherte Werte gelöscht.'; }}, 'Löschen')));
+        h('button', {type:'button', class:'danger', onclick: () => { store.set('sgdb-key',''); store.set('sgdb-proxy',''); key.value = ''; proxy.value = ''; msg.textContent = 'Gespeicherte Werte gelöscht.'; }}, 'Löschen')),
+      h('h3', {}, 'Einstellungen sichern'),
+      h('p', {class:'hint'}, 'Speichert Schlüssel und Proxy-Adresse in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Die Datei enthält deinen Schlüssel: nicht weitergeben und nicht in ein Repo legen. Mit einem Passwort wird sie verschlüsselt.'),
+      wrap('Passwort (optional)', pw, 'Wird beim Sichern zum Verschlüsseln und beim Einlesen zum Entschlüsseln benutzt. Ein vergessenes Passwort lässt sich nicht wiederherstellen.'),
+      h('div', {class:'row'},
+        h('button', {type:'button', onclick: async () => {
+          const vals = {key: key.value.trim(), proxy: proxy.value.trim()};
+          if (!vals.key && !vals.proxy){ msg2.textContent = 'Es gibt noch nichts zu sichern.'; return; }
+          try {
+            const text = await packSettings(vals, pw.value), name = 'discmenu-einstellungen.json'; let where = name;
+            const plainDl = () => download(new Blob([text], {type:'application/json'}), name);
+            if (typeof window.showSaveFilePicker === 'function'){
+              try {
+                const hd = await window.showSaveFilePicker({suggestedName: name, types:[{description:'Einstellungen (JSON)', accept:{'application/json':['.json']}}]});
+                const w = await hd.createWritable(); await w.write(text); await w.close(); where = hd.name;
+              } catch (e) { if (e && e.name === 'AbortError') return; plainDl(); }
+            } else plainDl();
+            msg2.textContent = (pw.value ? 'Verschlüsselte Datei "' : 'Datei "') + where + '" gespeichert.' + (pw.value ? '' : ' Sie ist nicht verschlüsselt, also gut aufbewahren.');
+          } catch (e) { msg2.textContent = e.message; }
+        }}, 'In Datei sichern'),
+        h('button', {type:'button', onclick: () => fin.click()}, 'Aus Datei einlesen')),
+      msg2,
+      fin);
   }
 
   /* --- Suche und Bildauswahl ---

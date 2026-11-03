@@ -20,7 +20,7 @@ Links die Liste der Spiele, rechts das Formular zum gewählten Eintrag, ganz rec
 - **Spiele:** hinzufügen, löschen, mit den Pfeilen sortieren. Der `index` ergibt sich aus der Reihenfolge (0, 1, 2 ...).
 - **Pro Spiel:** Name, Cover, Beschreibung, Installer-Pfad, Parameter, geschätzte Größe.
 - **Bereiche DLCs, Patches, Extras:** Einträge mit Name, Gruppe (Unterkategorie, mit Vorschlägen), Beschreibung, Bild und Aktion ("Installer starten" oder "Datei, Ordner oder Link öffnen"). Einträge lassen sich sortieren und entfernen.
-- **SteamGridDB:** Spiele und Bilder lassen sich bei SteamGridDB suchen. Siehe [steamgriddb.md](steamgriddb.md).
+- **SteamGridDB:** Spiele und Bilder lassen sich bei SteamGridDB suchen. Schlüssel und Proxy lassen sich in einer (optional verschlüsselten) Datei sichern und wieder einlesen. Siehe [steamgriddb.md](steamgriddb.md).
 - **Beschreibungen:** Der Knopf "Beschreibung suchen" holt Texte aus dem Steam-Shop und von der deutschen Wikipedia und kann englische Texte übersetzen. Siehe [steamgriddb.md](steamgriddb.md).
 - **Bilder** per Drag-and-drop, Antippen oder über die SteamGridDB-Suche. Beim Hinzufügen werden sie verkleinert und umgewandelt: Cover auf höchstens 800 Pixel als PNG, Hintergrund auf höchstens 1920 Pixel als JPEG. Das hält die Menü-EXE klein. Diese Werte sind vorläufig.
 - **Sounds:** WAV, OGG oder MP3, unverändert übernommen.
