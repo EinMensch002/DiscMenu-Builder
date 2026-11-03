@@ -1,6 +1,6 @@
 # SteamGridDB, Beschreibungen und Übersetzung
 
-Der Konfigurator kann Spiele und Bilder bei [SteamGridDB](https://www.steamgriddb.com/) suchen und Beschreibungstexte aus dem Steam-Shop und der deutschen Wikipedia holen. Das spart das Heraussuchen von Covern und das Abtippen von Texten.
+Der Konfigurator kann Spiele und Bilder bei [SteamGridDB](https://www.steamgriddb.com/) suchen und Beschreibungstexte aus dem Steam-Shop, von GOG und aus dem Epic Games Store holen. Das spart das Heraussuchen von Covern und das Abtippen von Texten.
 
 ## Was möglich ist
 
@@ -10,26 +10,29 @@ Der Konfigurator kann Spiele und Bilder bei [SteamGridDB](https://www.steamgridd
    - Eine Beschreibung wird gesucht (siehe unten) und lässt sich vor dem Übernehmen ändern.
    - Das Spiel wird mit Name, Cover und Beschreibung angelegt. Ist nur das leere Standard-Spiel vorhanden, wird dieses ersetzt.
 2. **Normal hinzufügen** (Knopf "+ Spiel hinzufügen") und danach bei jedem Bildfeld auf **"Bei SteamGridDB suchen"** klicken. Das geht für das Cover eines Spiels, für Bilder von DLCs, Patches und Extras und für das Hintergrundbild der Disc (dort werden "Heroes" angeboten).
-3. **Beschreibung suchen:** Bei jedem Beschreibungsfeld (Spiele und Einträge) gibt es den Knopf "Beschreibung suchen". Er braucht keinen SteamGridDB-Schlüssel.
+3. **Beschreibung suchen:** Bei jedem Beschreibungsfeld (Spiele und Einträge) gibt es den Knopf "Beschreibung suchen". Er braucht keinen SteamGridDB-Schlüssel, aber den Proxy (siehe unten).
 
 Die gewählten Bilder werden wie selbst hinzugefügte Bilder verkleinert und im Rezept gespeichert. Es werden keine Links gespeichert, die ZIP funktioniert also auch ohne Internet.
 
 ## Beschreibungen
 
-Die Suche sammelt Texte aus zwei Quellen und zeigt deutsche Texte zuerst. Gibt es mehrere Treffer, lässt sich die Quelle in einer Auswahl wechseln. Der Text ist immer bearbeitbar.
+Die Suche fragt drei Quellen gleichzeitig ab und zeigt deutsche Texte zuerst. Pro Quelle gibt es bis zu drei Treffer. Die Reihenfolge richtet sich danach, wie genau der Titel passt (genauer Treffer, Titel beginnt mit dem Suchbegriff, Titel enthält ihn). Die Treffer lassen sich in einer Auswahl wechseln, der Text ist immer bearbeitbar. Unter dem Textfeld stehen Titel und Adresse des Treffers, damit man erkennt, ob es das richtige Spiel ist.
 
-| Quelle | Inhalt | Sprache |
+| Quelle | Inhalt | Hinweise |
 |---|---|---|
-| Steam-Shop | Kurzbeschreibung des Spiels, auf Deutsch angefragt. Gibt es keinen deutschen Text, liefert Steam den englischen. Das Spiel wird über den Namen gefunden (genauer Treffer oder ein eindeutiger Namensanfang, z. B. "Stronghold HD" findet "Stronghold"). Der gefundene Steam-Titel steht in der Quellenangabe. | Deutsch oder Englisch |
-| Deutsche Wikipedia | Einleitung des Artikels zum Spiel, bis zu drei Treffer. Nur Artikel, die wie ein Spiel aussehen. | Deutsch |
+| Steam-Shop | Kurzbeschreibung, auf Deutsch angefragt (gibt es keinen deutschen Text, kommt der englische) | Läuft die Suche über SteamGridDB, wird zuerst die dort hinterlegte Steam-Kennung des Spiels benutzt. |
+| GOG | Beschreibung aus dem GOG-Katalog, auf Deutsch angefragt, auf etwa 700 Zeichen gekürzt | Inoffizielle Schnittstellen, die auch der GOG-Shop selbst nutzt. Sie können sich ändern. Besonders sinnvoll für GOG-Klassiker. |
+| Epic Games Store | Beschreibung der Shop-Seite, auf Deutsch angefragt | Es gibt keine öffentliche Suche. Der Konfigurator rät die Adresse der Shop-Seite aus dem Titel (z. B. "Cyberpunk 2077" wird zu `cyberpunk-2077`). Das klappt nur bei Spielen, deren Adresse so heißt. Inoffiziell. |
+
+Alle drei Quellen brauchen im Browser den Proxy (siehe unten). Die Antwortformate von GOG und Epic stammen aus öffentlichen Beschreibungen inoffizieller Programmbibliotheken und wurden nur mit nachgebauten Antworten getestet. Liefert eine Quelle nichts, steht der Grund unter dem Textfeld.
 
 Die Spracherkennung ist eine einfache Wortprüfung und kann bei sehr kurzen Texten danebenliegen.
 
-**Übersetzen:** Bei englischen Texten erscheint der Knopf "Ins Deutsche übersetzen". Die Übersetzung läuft über den kostenlosen Dienst MyMemory, ohne Schlüssel. Sie ist maschinell und eher einfach, also kurz prüfen. Der Dienst hat ein Tageslimit. Ist es aufgebraucht, kommt eine Meldung, und es klappt später wieder. Der Text wird dafür an MyMemory gesendet.
+**Übersetzen:** Bei englischen Texten erscheint der Knopf "Ins Deutsche übersetzen". Die Übersetzung läuft über den kostenlosen Dienst MyMemory, ohne Schlüssel und ohne Proxy. Sie ist maschinell und eher einfach, also kurz prüfen. Der Dienst hat ein Tageslimit. Ist es aufgebraucht, kommt eine Meldung, und es klappt später wieder. Der Text wird dafür an MyMemory gesendet.
 
-Die Wikipedia-Texte stehen unter der Lizenz CC BY-SA 4.0. Wer Discs veröffentlicht oder weitergibt, sollte die Quelle nennen. Die Adresse des Artikels steht in der Quellenangabe unter dem Textfeld. Steam-Texte gehören dem jeweiligen Rechteinhaber.
+Die Texte gehören den jeweiligen Shops und Rechteinhabern. Wer Discs veröffentlicht oder weitergibt, sollte das beachten.
 
-Nicht jedes Spiel hat einen Steam- oder Wikipedia-Eintrag. Gerade bei GOG-Klassikern bleibt die Suche manchmal leer. Dann bleibt das Feld zum Selbstschreiben.
+Nicht jedes Spiel steht in allen drei Shops. Findet keine Quelle etwas, bleibt das Feld zum Selbstschreiben.
 
 ## Einrichten (SteamGridDB)
 
@@ -50,7 +53,7 @@ Die Datei enthält deinen API-Schlüssel. Sie gehört nicht in ein Repo und nich
 
 ## Proxy (CORS)
 
-Browser erlauben Anfragen an fremde Dienste nur, wenn diese es ausdrücklich erlauben. Bei SteamGridDB und dem Steam-Shop hat die direkte Anfrage aus dem Browser nicht funktioniert (Meldung im Konfigurator). Mit einem kleinen eigenen Proxy läuft die Anbindung. Wikipedia und MyMemory brauchen keinen Proxy.
+Browser erlauben Anfragen an fremde Dienste nur, wenn diese es ausdrücklich erlauben. Bei SteamGridDB und dem Steam-Shop hat die direkte Anfrage aus dem Browser nicht funktioniert (Meldung im Konfigurator). GOG und Epic sind ähnlich. Mit einem kleinen eigenen Proxy läuft die Anbindung. Nur die Übersetzung über MyMemory braucht keinen Proxy.
 
 ### Proxy einrichten (Cloudflare Worker)
 
@@ -59,7 +62,9 @@ Browser erlauben Anfragen an fremde Dienste nur, wenn diese es ausdrücklich erl
 3. Die Adresse des Workers notieren, z. B. `https://name.dein-konto.workers.dev`.
 4. Im Konfigurator unter **SteamGridDB** als Proxy-Adresse eintragen: `https://name.dein-konto.workers.dev/?url={url}`
 
-Der Proxy leitet nur GET-Anfragen an `steamgriddb.com` (mit Unterdomains) und `store.steampowered.com` weiter, ergänzt die CORS-Header und reicht den API-Schlüssel durch. Ändert SteamGridDB seinen Bild-Host, muss die Liste `ALLOWED_HOSTS` angepasst werden. Das Kontingent des kostenlosen Cloudflare-Tarifs reicht für diesen Zweck nach bisherigem Wissen aus, die aktuellen Grenzen stehen bei Cloudflare.
+**Wichtig bei einem schon eingerichteten Proxy:** Für GOG und Epic muss der Worker die erweiterte Host-Liste kennen. Dazu den Code aus `worker.js` neu im Worker einfügen und veröffentlichen. Die Proxy-Adresse im Konfigurator bleibt gleich.
+
+Der Proxy leitet nur GET-Anfragen an `steamgriddb.com` (mit Unterdomains), `store.steampowered.com`, `catalog.gog.com`, `api.gog.com` und `store-content.ak.epicgames.com` weiter, ergänzt die CORS-Header und reicht den API-Schlüssel durch. Ändert SteamGridDB seinen Bild-Host, muss die Liste `ALLOWED_HOSTS` angepasst werden. Das Kontingent des kostenlosen Cloudflare-Tarifs reicht für diesen Zweck nach bisherigem Wissen aus, die aktuellen Grenzen stehen bei Cloudflare.
 
 ### Proxy auf die eigene Seite beschränken (empfohlen)
 
@@ -77,14 +82,16 @@ Bilder werden zuerst direkt geladen und nur bei einem Fehler über den Proxy. Sc
 | Steam-Kennung des Spiels | `GET .../games/id/{id}?platformdata=steam` | ja |
 | Steam-Suche | `GET https://store.steampowered.com/api/storesearch/?term={Titel}&l=german&cc=DE` | ja |
 | Steam-Beschreibung | `GET https://store.steampowered.com/api/appdetails?appids={id}&l=german` | ja |
-| Wikipedia-Beschreibung | `GET https://de.wikipedia.org/w/api.php` (Suche mit Auszug, `origin=*`) | nein |
+| GOG-Suche | `GET https://catalog.gog.com/v1/catalog?query=like:{Titel}&locale=de-DE&countryCode=DE&currencyCode=EUR&productType=in:game,pack,dlc` | ja |
+| GOG-Beschreibung | `GET https://api.gog.com/products/{id}?expand=description&locale=de-DE` | ja |
+| Epic-Beschreibung | `GET https://store-content.ak.epicgames.com/api/de/content/products/{Adresse}` | ja |
 | Übersetzung | `GET https://api.mymemory.translated.net/get?langpair=en|de&q={Text}` | nein |
 
 Die Anmeldung bei SteamGridDB erfolgt mit `Authorization: Bearer {Schlüssel}`.
 
 ## Ideen für später
 
-- Beschreibungen aus dem GOG-Katalog (oft auf Deutsch vorhanden) als weitere Quelle. Dafür müssen Adressen und Antwortformate zuerst geprüft werden, und der Proxy braucht die GOG-Hosts in `ALLOWED_HOSTS`.
+- Epic-Suche mit echter Suchabfrage statt Adressraten (die Suchschnittstelle ist nicht öffentlich dokumentiert und ändert sich).
 - Bessere Übersetzung, z. B. mit DeepL (eigener Schlüssel, läuft über den Proxy).
 
 ## Hinweise

@@ -11,7 +11,7 @@
 | Bedienform Konfigurator | Formular mit Spieleliste statt Blöcken |
 | Bildformat (vorläufig) | Cover PNG bis 800 Pixel, Hintergrund JPEG bis 1920 Pixel |
 | Bildquelle | SteamGridDB (Suche beim Hinzufügen und pro Bildfeld), siehe [steamgriddb.md](steamgriddb.md). Aus dem Browser nur über einen eigenen Proxy erreichbar |
-| Beschreibungen | Steam-Shop (Deutsch angefragt) und deutsche Wikipedia, englische Texte lassen sich über MyMemory übersetzen |
+| Beschreibungen | Steam-Shop, GOG und Epic Games Store (jeweils auf Deutsch angefragt), englische Texte lassen sich über MyMemory übersetzen. Alle drei brauchen den Proxy |
 | Speichern | Projekte automatisch im Browser, ZIP-Export als Datei. Import legt ein neues Projekt an |
 | Zugangsdaten | API-Schlüssel und Proxy im Browser, per Datei sicherbar, optional mit Passwort verschlüsselt. Nie in ZIP oder Repo |
 | Rolle des Menüs | Forwarder: startet Original-Installer und öffnet Extras |
@@ -31,7 +31,7 @@
 |---|---|
 | Technik | Welche Sprache und Bibliothek für Player und Builder? Entscheidung nach dem Mini-Prototyp, siehe [platforms-and-tech.md](platforms-and-tech.md) |
 | Builder-Eingabe | Soll der Builder die Rezept-ZIP direkt lesen? (Vorschlag: ja, zusätzlich zum Ordner) |
-| GOG-Beschreibungen | Als weitere Quelle für deutsche Beschreibungen ergänzen? Adressen und Antwortformate müssen zuerst geprüft werden |
+| GOG- und Epic-Beschreibungen | Funktionieren die inoffiziellen Schnittstellen mit echten Anfragen (Antwortformate, CORS über den Proxy)? Epic wird über die geratene Shop-Adresse gefunden, das ist nur eine Notlösung |
 | Übersetzung | Reicht MyMemory (kostenlos, einfach) oder soll es DeepL mit eigenem Schlüssel sein? |
 | Bildformat | Passen die vorläufigen Werte (800 und 1920 Pixel) oder sind andere Formate wie WebP besser? Hängt von der Player-Technik ab |
 | 64 Bit | Reicht 64 Bit für Windows 10/11? |

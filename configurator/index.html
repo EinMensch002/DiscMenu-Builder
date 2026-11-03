@@ -287,11 +287,23 @@ const CORE = (() => {
       }).replace(/\n{3,}/g,'\n\n').trim();
   }
   function normName(s){ return String(s || '').toLowerCase().replace(/[^a-z0-9äöüß]+/g,''); }
-  function pickSteamMatch(name, items){
-    const n = normName(name), list = (items || []).filter(i => i && i.name);
-    const exact = list.find(i => normName(i.name) === n); if (exact) return String(exact.id);
-    const near = list.filter(i => { const m = normName(i.name); return m && n && (n.startsWith(m) || m.startsWith(n)); });
-    return near.length === 1 ? String(near[0].id) : null;
+  function rankByName(query, items, nameOf, max){
+    const n = normName(query); if (!n) return [];
+    const score = nm => { const m = normName(nm); if (!m) return 0; if (m === n) return 4; if (m.startsWith(n)) return 3; if (n.startsWith(m)) return 2; if (m.includes(n)) return 1; return 0; };
+    return (items || []).map((it,i) => ({it, s: score(nameOf(it)), i})).filter(x => x.s > 0)
+      .sort((a,b) => (b.s - a.s) || (a.i - b.i)).slice(0, max || 3).map(x => x.it);
+  }
+  function mdToText(t){
+    return htmlToText(String(t || '').replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/^#{1,6}\s*/gm,'').replace(/(\*\*|__)/g,''));
+  }
+  function epicText(j){
+    const pages = j && Array.isArray(j.pages) ? j.pages : [];
+    for (const p of pages){
+      const a = p && p.data && p.data.about; if (!a) continue;
+      const t = a.shortDescription || a.description;
+      if (t && String(t).trim()) return {title: String(a.title || p._title || j._title || ''), text: mdToText(t)};
+    }
+    return null;
   }
   function sortGrids(list){
     return (list || []).slice().sort((a,b) => ((b.language === 'de') - (a.language === 'de')) || ((b.score || 0) - (a.score || 0)));
@@ -320,19 +332,6 @@ const CORE = (() => {
   function trimIntro(t, max){
     let out = ''; for (const p of String(t).split(/\n+/).filter(Boolean)){ if ((out + p).length > max && out) break; out += (out ? '\n' : '') + p; }
     if (out.length > max){ const cut = out.lastIndexOf('. ', max); out = cut > 200 ? out.slice(0, cut + 1) : out.slice(0, max).trim() + '…'; }
-    return out;
-  }
-  function wikiCandidates(j, max){
-    const pages = j && j.query && j.query.pages ? Object.values(j.query.pages) : [];
-    pages.sort((a,b) => (a.index || 99) - (b.index || 99));
-    const out = [];
-    for (const p of pages){
-      const raw = String(p.extract || '').trim(); if (!raw) continue;
-      if (/\(Begriffsklärung\)/i.test(p.title || '') || /^[\s\S]{0,80}(steht für|bezeichnet folgende)/.test(raw)) continue;
-      if (!/spiel|game|rollenspiel|strategie|shooter|adventure|simulation/i.test(raw)) continue;
-      out.push({title: p.title, text: trimIntro(raw, 700), url: p.fullurl || ''});
-      if (out.length >= (max || 3)) break;
-    }
     return out;
   }
   /* --- Einstellungen sichern (optional mit Passwort verschlüsselt) --- */
@@ -367,14 +366,14 @@ const CORE = (() => {
     }
     return {key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '')};
   }
-  return {packSettings, unpackSettings, looksGerman, chunkText, trimIntro, wikiCandidates, htmlToText, normName, pickSteamMatch, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
+  return {packSettings, unpackSettings, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
 })();
 if (typeof module !== 'undefined') module.exports = CORE;
 
 /* === UI === */
 (() => {
   if (typeof document === 'undefined') return;
-  const {slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, pickSteamMatch, sortGrids, looksGerman, chunkText, wikiCandidates, packSettings, unpackSettings} = CORE;
+  const {slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText, packSettings, unpackSettings} = CORE;
   const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Musik','Artwork','Dokumente','Videos'], dlcs:[]};
   const MIME = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif',wav:'audio/wav',ogg:'audio/ogg',mp3:'audio/mpeg'};
   const assets = new Map(); let state = newState(); let sel = 0; let counter = 1; let touched = false;
@@ -448,24 +447,6 @@ if (typeof module !== 'undefined') module.exports = CORE;
     if (!r.ok) throw new Error('Das Bild konnte nicht geladen werden (Fehler ' + r.status + ').');
     return await r.blob();
   }
-  async function steamDescription(game){
-    let appId = null;
-    if (game.id) try {
-      const gd = await sgGet('/games/id/' + game.id, {platformdata: 'steam'});
-      const st = gd && gd.external_platform_data && gd.external_platform_data.steam;
-      if (Array.isArray(st) && st[0] && st[0].id) appId = String(st[0].id);
-    } catch (e) { /* weiter mit Steam-Suche */ }
-    if (!appId){
-      const r = await net('https://store.steampowered.com/api/storesearch/?l=german&cc=DE&term=' + encodeURIComponent(game.name));
-      const j = await r.json(); appId = pickSteamMatch(game.name, j.items);
-    }
-    if (!appId) return null;
-    const r2 = await net('https://store.steampowered.com/api/appdetails?l=german&appids=' + appId);
-    const j2 = await r2.json(); const d = j2 && j2[appId] && j2[appId].data;
-    const text = d ? htmlToText(d.short_description || '') : '';
-    return text ? {text, name: d.name || ''} : null;
-  }
-
   /* --- Dialog --- */
   const dlg = $('#dlg');
   function openDlg(title, ...nodes){
@@ -612,17 +593,59 @@ if (typeof module !== 'undefined') module.exports = CORE;
   }
 
   /* --- Beschreibungen: Quellen, Übersetzung, Dialog --- */
-  async function wikiDescriptions(name){
-    const q = new URLSearchParams({action:'query', format:'json', origin:'*', generator:'search', gsrsearch: name + ' Videospiel', gsrlimit:'5',
-      prop:'extracts|info', exintro:'1', explaintext:'1', exlimit:'max', inprop:'url', redirects:'1'});
-    let r; try { r = await fetch('https://de.wikipedia.org/w/api.php?' + q.toString()); } catch (e) { throw new Error('Wikipedia ist nicht erreichbar.'); }
-    if (!r.ok) throw new Error('Wikipedia hat mit Fehler ' + r.status + ' geantwortet.');
-    return wikiCandidates(await r.json(), 3);
+  /* Quellen für Beschreibungen: Steam-Shop, GOG und Epic Games Store (alle drei brauchen meist den Proxy) */
+  async function steamDescriptions(name, game){
+    const ids = [];
+    if (game && game.id) try {
+      const gd = await sgGet('/games/id/' + game.id, {platformdata: 'steam'});
+      const st = gd && gd.external_platform_data && gd.external_platform_data.steam;
+      if (Array.isArray(st) && st[0] && st[0].id) ids.push(String(st[0].id));
+    } catch (e) { /* weiter mit der Steam-Suche */ }
+    const r = await net('https://store.steampowered.com/api/storesearch/?l=german&cc=DE&term=' + encodeURIComponent(name));
+    const j = await r.json();
+    for (const it of rankByName(name, j.items, i => i.name, 3)){ const id = String(it.id); if (!ids.includes(id)) ids.push(id); }
+    const out = await Promise.all(ids.slice(0,3).map(async id => {
+      const r2 = await net('https://store.steampowered.com/api/appdetails?l=german&appids=' + id);
+      const j2 = await r2.json(); const d = j2 && j2[id] && j2[id].data;
+      const text = d ? htmlToText(d.short_description || '') : '';
+      return text ? {label: 'Steam-Shop: ' + (d.name || id), lang: looksGerman(text) ? 'de' : 'en', text, url: 'https://store.steampowered.com/app/' + id} : null;
+    }));
+    return out.filter(Boolean);
+  }
+  async function gogDescriptions(name){
+    const q = new URLSearchParams({limit:'10', query:'like:' + name, order:'desc:score', productType:'in:game,pack,dlc', page:'1', countryCode:'DE', locale:'de-DE', currencyCode:'EUR'});
+    const r = await net('https://catalog.gog.com/v1/catalog?' + q.toString());
+    if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.');
+    const j = await r.json();
+    const list = (Array.isArray(j.products) ? j.products : []).map(p => ({id: String(p.id || p.productId || ''), title: String(p.title || p.name || ''), slug: p.slug || ''})).filter(p => p.id && p.title);
+    const out = await Promise.all(rankByName(name, list, p => p.title, 3).map(async p => {
+      const r2 = await net('https://api.gog.com/products/' + encodeURIComponent(p.id) + '?expand=description&locale=de-DE');
+      if (!r2.ok) return null;
+      const d = (await r2.json()).description; if (!d) return null;
+      const text = CORE.trimIntro(htmlToText(d.full || d.lead || ''), 700);
+      return text ? {label: 'GOG: ' + p.title, lang: looksGerman(text) ? 'de' : 'en', text, url: p.slug ? 'https://www.gog.com/game/' + p.slug : ''} : null;
+    }));
+    return out.filter(Boolean);
+  }
+  async function epicDescriptions(name){
+    const base = slug(name), out = [];
+    for (const sg of [...new Set([base, base.replace(/^the-/, '')])].filter(Boolean)){
+      const r = await net('https://store-content.ak.epicgames.com/api/de/content/products/' + encodeURIComponent(sg));
+      if (!r.ok) continue;
+      const t = epicText(await r.json()); if (!t) continue;
+      const text = CORE.trimIntro(t.text, 700);
+      out.push({label: 'Epic Games Store: ' + (t.title || sg), lang: looksGerman(text) ? 'de' : 'en', text, url: 'https://store.epicgames.com/de/p/' + sg});
+    }
+    return out;
   }
   async function findDescriptions(name, game){
+    const sources = [['Steam', () => steamDescriptions(name, game)], ['GOG', () => gogDescriptions(name)], ['Epic', () => epicDescriptions(name)]];
+    const res = await Promise.allSettled(sources.map(([, fn]) => fn()));
     const items = [], errors = [];
-    try { const t = await steamDescription(game || {name}); if (t) items.push({label:'Steam-Shop' + (t.name ? ': ' + t.name : ''), lang: looksGerman(t.text) ? 'de' : 'en', text:t.text}); } catch (e) { errors.push('Steam: ' + e.message); }
-    try { for (const c of await wikiDescriptions(name)) items.push({label:'Wikipedia: ' + c.title, lang:'de', text:c.text, url:c.url}); } catch (e) { errors.push(e.message); }
+    res.forEach((r, i) => {
+      if (r.status === 'fulfilled') items.push(...r.value);
+      else { const m = sources[i][0] + ': ' + (r.reason && r.reason.message || r.reason); if (!errors.includes(m)) errors.push(m); }
+    });
     items.sort((a,b) => (b.lang === 'de') - (a.lang === 'de'));
     return {items, errors};
   }

@@ -7,6 +7,9 @@
 const ALLOWED_HOSTS = [
   /^([a-z0-9-]+\.)*steamgriddb\.com$/,
   /^store\.steampowered\.com$/,
+  /^catalog\.gog\.com$/,
+  /^api\.gog\.com$/,
+  /^store-content(-ipv4)?\.ak\.epicgames\.com$/,
 ];
 
 const isAllowed = (host) => ALLOWED_HOSTS.some((re) => re.test(host));
