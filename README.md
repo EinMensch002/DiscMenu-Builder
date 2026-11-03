@@ -22,7 +22,7 @@ Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für
 |---|---|
 | [docs/concept.md](docs/concept.md) | Konzept, Bausteine, Ablauf, Menüaufbau, EXE-Aufbau |
 | [docs/configurator.md](docs/configurator.md) | Konfigurator (Web-App): Bedienung, Grenzen |
-| [docs/steamgriddb.md](docs/steamgriddb.md) | Bilder und Beschreibungen über SteamGridDB, Einrichtung, Proxy |
+| [docs/steamgriddb.md](docs/steamgriddb.md) | Bilder, Beschreibungen und Übersetzung, Einrichtung, Proxy |
 | [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json`, Aufbau der Rezept-ZIP |
 | [docs/installer-integration.md](docs/installer-integration.md) | Installer starten, still installieren, Ergebnis auslesen |
 | [docs/platforms-and-tech.md](docs/platforms-and-tech.md) | Windows 10/11, Wine/Proton, Technikauswahl |
@@ -59,7 +59,8 @@ DiscMenu-Builder/
 - [ ] Builder: Player und Paket zur fertigen EXE zusammensetzen
 - [x] Konfigurator: Maske, Bildverarbeitung, ZIP-Export, Import (Version 1)
 - [x] Konfigurator: SteamGridDB-Suche für Spiele, Cover und Hintergründe
-- [ ] SteamGridDB-Anbindung mit echtem Schlüssel prüfen (CORS, Antwortformate)
+- [x] SteamGridDB-Anbindung mit echtem Schlüssel geprüft (läuft über eigenen Proxy)
+- [x] Konfigurator: Projekte im Browser, Beschreibungssuche, Übersetzung
 - [ ] Konfigurator: gemeinsames JSON Schema, JSON-Ansicht, Vorschau
 - [ ] Fortschrittsanzeige bei stillen Installationen
 - [ ] Automatischer Build über GitHub Actions

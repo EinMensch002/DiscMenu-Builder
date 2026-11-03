@@ -10,7 +10,9 @@
 | Hosting Konfigurator | Repo ist öffentlich, Veröffentlichung auf GitHub Pages. Die HTML-Datei lässt sich auch lokal nutzen |
 | Bedienform Konfigurator | Formular mit Spieleliste statt Blöcken |
 | Bildformat (vorläufig) | Cover PNG bis 800 Pixel, Hintergrund JPEG bis 1920 Pixel |
-| Bildquelle | SteamGridDB (Suche beim Hinzufügen und pro Bildfeld), Beschreibung aus dem Steam-Shop auf Deutsch, siehe [steamgriddb.md](steamgriddb.md) |
+| Bildquelle | SteamGridDB (Suche beim Hinzufügen und pro Bildfeld), siehe [steamgriddb.md](steamgriddb.md). Aus dem Browser nur über einen eigenen Proxy erreichbar |
+| Beschreibungen | Steam-Shop (Deutsch angefragt) und deutsche Wikipedia, englische Texte lassen sich über MyMemory übersetzen |
+| Speichern | Projekte automatisch im Browser, ZIP-Export als Datei. Import legt ein neues Projekt an |
 | Rolle des Menüs | Forwarder: startet Original-Installer und öffnet Extras |
 | Erste Quelle | GOG. Steam später, dafür ist `provider` reserviert |
 | Spiele pro Disc | Eines oder mehrere. Reihenfolge über `index`, beginnend bei 0 |
@@ -28,7 +30,8 @@
 |---|---|
 | Technik | Welche Sprache und Bibliothek für Player und Builder? Entscheidung nach dem Mini-Prototyp, siehe [platforms-and-tech.md](platforms-and-tech.md) |
 | Builder-Eingabe | Soll der Builder die Rezept-ZIP direkt lesen? (Vorschlag: ja, zusätzlich zum Ordner) |
-| SteamGridDB und CORS | Erlauben SteamGridDB und der Steam-Shop Anfragen direkt aus dem Browser? Mit echtem Schlüssel prüfen, sonst Proxy nötig |
+| GOG-Beschreibungen | Als weitere Quelle für deutsche Beschreibungen ergänzen? Adressen und Antwortformate müssen zuerst geprüft werden |
+| Übersetzung | Reicht MyMemory (kostenlos, einfach) oder soll es DeepL mit eigenem Schlüssel sein? |
 | Bildformat | Passen die vorläufigen Werte (800 und 1920 Pixel) oder sind andere Formate wie WebP besser? Hängt von der Player-Technik ab |
 | 64 Bit | Reicht 64 Bit für Windows 10/11? |
 | Silent-Standard | Soll das Menü einen Standardzielpfad vorschlagen? Soll Silent standardmäßig an oder aus sein? |

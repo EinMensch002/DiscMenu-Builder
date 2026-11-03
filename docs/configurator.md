@@ -20,22 +20,36 @@ Links die Liste der Spiele, rechts das Formular zum gewählten Eintrag, ganz rec
 - **Spiele:** hinzufügen, löschen, mit den Pfeilen sortieren. Der `index` ergibt sich aus der Reihenfolge (0, 1, 2 ...).
 - **Pro Spiel:** Name, Cover, Beschreibung, Installer-Pfad, Parameter, geschätzte Größe.
 - **Bereiche DLCs, Patches, Extras:** Einträge mit Name, Gruppe (Unterkategorie, mit Vorschlägen), Beschreibung, Bild und Aktion ("Installer starten" oder "Datei, Ordner oder Link öffnen"). Einträge lassen sich sortieren und entfernen.
-- **SteamGridDB:** Spiele und Bilder lassen sich bei SteamGridDB suchen, auch mit deutscher Beschreibung aus dem Steam-Shop. Siehe [steamgriddb.md](steamgriddb.md).
+- **SteamGridDB:** Spiele und Bilder lassen sich bei SteamGridDB suchen. Siehe [steamgriddb.md](steamgriddb.md).
+- **Beschreibungen:** Der Knopf "Beschreibung suchen" holt Texte aus dem Steam-Shop und von der deutschen Wikipedia und kann englische Texte übersetzen. Siehe [steamgriddb.md](steamgriddb.md).
 - **Bilder** per Drag-and-drop, Antippen oder über die SteamGridDB-Suche. Beim Hinzufügen werden sie verkleinert und umgewandelt: Cover auf höchstens 800 Pixel als PNG, Hintergrund auf höchstens 1920 Pixel als JPEG. Das hält die Menü-EXE klein. Diese Werte sind vorläufig.
 - **Sounds:** WAV, OGG oder MP3, unverändert übernommen.
 - **Prüfung** nach den Regeln der Spezifikation. Exportieren geht erst, wenn keine Fehler mehr da sind. Hinweise blockieren nicht.
-- **Export** als ZIP. Die Dateinamen der Assets vergibt der Konfigurator selbst aus den Namen, damit die Pfade in der `menu.json` stimmen.
-- **Import** einer vorhandenen ZIP (auch mit Deflate-Kompression) oder `menu.json`. Fehlende Dateien und nicht unterstützte Felder (z. B. `customTabs`) werden als Hinweis gemeldet.
-- **Entwurf:** Der Zwischenstand inklusive Bildern wird im Browser (IndexedDB) gespeichert und beim nächsten Öffnen wiederhergestellt. "Neu" verwirft ihn.
 
-Der Konfigurator schreibt zurzeit nur Version 1 der `menu.json`. Eigene Tabs und `provider` gehören noch nicht dazu.
+## Projekte, Speichern, Export und Import
+
+**Projekte** liegen im Browser (IndexedDB) und werden bei jeder Änderung automatisch gespeichert, inklusive aller Bilder und Sounds. Der Knopf "Speichern" speichert sofort und bestätigt es. Unter "Projekte" gibt es die Liste aller Projekte mit Öffnen und Löschen sowie "Neues Projekt". Man kann also mehrere Discs parallel und über Tage hinweg bearbeiten, ohne ZIP-Dateien anzulegen. Beim nächsten Öffnen der Seite ist das zuletzt geöffnete Projekt wieder da.
+
+Projekte gelten nur für diesen Browser auf diesem Gerät. Löscht man die Website-Daten des Browsers, sind sie weg. Eine Sicherung ist der ZIP-Export.
+
+**Import** einer ZIP (auch mit Deflate-Kompression) oder `menu.json` legt immer ein **neues Projekt** an. Alle Dateien werden dabei vollständig in den Browser gelesen. Die Original-ZIP wird danach nicht mehr gebraucht und lässt sich löschen oder verschieben. Fehlende Dateien und nicht unterstützte Felder (z. B. `customTabs`) werden als Hinweis gemeldet.
+
+**Export** erzeugt die ZIP komplett neu aus dem Projekt. Bilder und Sounds bleiben dabei unverändert (Bytes identisch), Dateinamen ergeben sich aus den Namen im Projekt. Import und erneuter Export einer unveränderten ZIP liefern dieselbe `menu.json` und dieselben Dateien.
+
+Wie die Datei gespeichert wird, hängt vom Browser ab:
+
+| Browser | Verhalten |
+|---|---|
+| Chrome, Edge am Computer | Beim Export fragt der Konfigurator: in die bekannte Datei **überschreiben**, **speichern unter** oder normal herunterladen. Die Verknüpfung zur Datei wird beim Projekt gemerkt. Beim Import über den Dateidialog wird die ZIP direkt als Ziel verknüpft. |
+| Chrome auf Android, Firefox, Safari | Der Browser lässt Webseiten keine vorhandenen Dateien überschreiben. Jeder Export wird neu heruntergeladen, wiederholte Exporte heißen dann z. B. `name(1).zip`. Deshalb am besten erst exportieren, wenn das Projekt fertig ist. Bis dahin bleibt alles unter "Projekte". |
+
+Die Dateiauswahl mit Überschreiben ist bisher nur mit nachgebauten Browserfunktionen getestet, nicht in einem echten Chrome oder Edge.
 
 ## Grenzen
 
 - Der Browser kann nicht prüfen, ob die angegebenen Pfade auf der Disc existieren. Die Pfade werden von Hand eingetragen.
-- Der gespeicherte Entwurf liegt nur im jeweiligen Browser auf diesem Gerät. Für die Weitergabe oder Sicherung dient der ZIP-Export.
 - Für das Umwandeln der Bilder braucht der Browser Unterstützung für `createImageBitmap` und Canvas (alle aktuellen Browser).
-- Die SteamGridDB-Anbindung wurde nur mit nachgebauten Antworten getestet. Ob der Browser Anfragen direkt erlaubt, ist offen, notfalls hilft ein Proxy.
+- Ist der Speicher des Browsers gesperrt oder voll, zeigt die Kopfzeile "Speichern im Browser nicht möglich". Dann bleibt nur der ZIP-Export.
 
 ## Später
 
@@ -47,4 +61,4 @@ Der Konfigurator schreibt zurzeit nur Version 1 der `menu.json`. Eigene Tabs und
 
 ## Tests
 
-Die Kernlogik (ZIP, Prüfung, Export, Import, Hilfen für SteamGridDB) lässt sich ohne Browser testen, weil sie in der Datei als eigener Block `CORE` steht.
+Die Kernlogik (ZIP, Prüfung, Export, Import, Hilfen für Suche und Beschreibung) steht in der Datei als eigener Block `CORE` und lässt sich ohne Browser testen. Die Oberfläche wurde mit einem simulierten Browser (jsdom) und nachgebauten Antworten der Dienste durchgespielt. Automatische Tests liegen noch nicht im Repo.
