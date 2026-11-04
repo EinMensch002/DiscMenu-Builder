@@ -61,6 +61,7 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 .gal button.sel{border-color:var(--ok);outline:2px solid var(--ok)}
 .gal small{font-size:11px}
 .sgbtn{align-self:flex-start}
+a{color:var(--acc)}
 footer{text-align:center;color:var(--mut);font-size:12px;padding:6px 14px 24px}
 </style>
 </head>
@@ -80,7 +81,11 @@ footer{text-align:center;color:var(--mut);font-size:12px;padding:6px 14px 24px}
   <section id="editor"></section>
   <aside id="side"></aside>
 </main>
-<footer>Läuft komplett in deinem Browser. Es wird nichts hochgeladen. Der Entwurf wird lokal im Browser zwischengespeichert.</footer>
+<footer>Läuft komplett in deinem Browser. Es wird nichts hochgeladen. Der Entwurf wird lokal im Browser zwischengespeichert.<br>
+<a href="https://github.com/EinMensch002/DiscMenu-Builder/blob/main/docs/configurator.md" target="_blank" rel="noopener noreferrer">Anleitung</a> ·
+<a href="https://github.com/EinMensch002/DiscMenu-Builder/blob/main/docs/steamgriddb.md" target="_blank" rel="noopener noreferrer">SteamGridDB, Beschreibungen und Proxy</a> ·
+<a href="https://github.com/EinMensch002/DiscMenu-Builder" target="_blank" rel="noopener noreferrer">Quellcode</a> ·
+<a href="https://www.steamgriddb.com/" target="_blank" rel="noopener noreferrer">SteamGridDB</a></footer>
 <input id="impFile" type="file" accept=".zip,.json" hidden>
 <dialog id="dlg"><div class="dh"><h2 id="dlgTitle"></h2><button type="button" class="sm" id="dlgX">Schließen</button></div><div id="dlgBody"></div></dialog>
 <div id="toast" role="status"></div>
@@ -447,6 +452,14 @@ if (typeof module !== 'undefined') module.exports = CORE;
     if (!r.ok) throw new Error('Das Bild konnte nicht geladen werden (Fehler ' + r.status + ').');
     return await r.blob();
   }
+  /* --- Links zu Anleitung und Diensten --- */
+  const REPO = 'https://github.com/EinMensch002/DiscMenu-Builder';
+  const LINKS = {sgdb: 'https://www.steamgriddb.com/', sgdbKey: 'https://www.steamgriddb.com/profile/preferences/api',
+    cf: 'https://dash.cloudflare.com/', worker: REPO + '/blob/main/tools/cors-proxy/worker.js'};
+  const ext = (text, url) => h('a', {href: url, target: '_blank', rel: 'noopener noreferrer'}, text + ' ↗');
+  const docLink = (text, file, anchor) => ext(text, REPO + '/blob/main/docs/' + file + (anchor ? '#' + anchor : ''));
+  function showMsg(el, text){ el.textContent = text; if (/CORS|Proxy/i.test(text)) el.append(' ', docLink('Anleitung zum Proxy', 'steamgriddb.md', 'proxy-cors')); }
+
   /* --- Dialog --- */
   const dlg = $('#dlg');
   function openDlg(title, ...nodes){
@@ -476,20 +489,22 @@ if (typeof module !== 'undefined') module.exports = CORE;
       store.set('sgdb-key', key.value.trim()); store.set('sgdb-proxy', p); return true;
     };
     openDlg('SteamGridDB-Einstellungen',
-      h('p', {class:'hint'}, 'Den API-Schlüssel gibt es kostenlos im SteamGridDB-Profil unter Einstellungen (steamgriddb.com/profile/preferences). Er wird nur in diesem Browser gespeichert und nie in die ZIP geschrieben.'),
+      h('p', {class:'hint'}, 'Den API-Schlüssel gibt es kostenlos im SteamGridDB-Profil. Er wird nur in diesem Browser gespeichert und nie in die ZIP geschrieben.'),
+      h('p', {class:'hint'}, ext('Schlüssel bei SteamGridDB erzeugen', LINKS.sgdbKey), ' · ', ext('SteamGridDB', LINKS.sgdb), ' · ', docLink('Anleitung', 'steamgriddb.md', 'einrichten-steamgriddb')),
       wrap('API-Schlüssel', key),
-      wrap('Proxy-Adresse (optional)', proxy, 'Nur nötig, wenn der Browser Anfragen direkt blockiert (CORS). {url} wird durch die Zieladresse ersetzt. Anleitung: docs/steamgriddb.md'),
+      wrap('Proxy-Adresse (optional)', proxy, 'Nur nötig, wenn der Browser Anfragen direkt blockiert (CORS). {url} wird durch die Zieladresse ersetzt.'),
+      h('p', {class:'hint'}, 'Proxy einrichten: ', docLink('Anleitung', 'steamgriddb.md', 'proxy-einrichten-cloudflare-worker'), ' · ', ext('Cloudflare öffnen', LINKS.cf), ' · ', ext('Worker-Code', LINKS.worker), ' · ', docLink('Proxy absichern', 'steamgriddb.md', 'proxy-auf-die-eigene-seite-beschränken-empfohlen')),
       msg,
       h('div', {class:'row'},
         h('button', {type:'button', class:'pri', onclick: () => { if (saveCfg()){ closeDlg(); toast('SteamGridDB-Einstellungen gespeichert.'); } }}, 'Speichern'),
         h('button', {type:'button', onclick: async () => {
           if (!saveCfg()) return; msg.textContent = 'Teste die Verbindung ...';
           try { const r = await sgGet('/search/autocomplete/' + encodeURIComponent('Half-Life')); msg.textContent = 'Verbindung in Ordnung (' + r.length + ' Treffer für den Test).'; }
-          catch (e) { msg.textContent = e.message; }
+          catch (e) { showMsg(msg, e.message); }
         }}, 'Verbindung testen'),
         h('button', {type:'button', class:'danger', onclick: () => { store.set('sgdb-key',''); store.set('sgdb-proxy',''); key.value = ''; proxy.value = ''; msg.textContent = 'Gespeicherte Werte gelöscht.'; }}, 'Löschen')),
       h('h3', {}, 'Einstellungen sichern'),
-      h('p', {class:'hint'}, 'Speichert Schlüssel und Proxy-Adresse in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Die Datei enthält deinen Schlüssel: nicht weitergeben und nicht in ein Repo legen. Mit einem Passwort wird sie verschlüsselt.'),
+      h('p', {class:'hint'}, 'Speichert Schlüssel und Proxy-Adresse in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Die Datei enthält deinen Schlüssel: nicht weitergeben und nicht in ein Repo legen. Mit einem Passwort wird sie verschlüsselt.', ' ', docLink('Mehr dazu', 'steamgriddb.md', 'einstellungen-in-einer-datei-sichern')),
       wrap('Passwort (optional)', pw, 'Wird beim Sichern zum Verschlüsseln und beim Einlesen zum Entschlüsseln benutzt. Ein vergessenes Passwort lässt sich nicht wiederherstellen.'),
       h('div', {class:'row'},
         h('button', {type:'button', onclick: async () => {
@@ -529,10 +544,11 @@ if (typeof module !== 'undefined') module.exports = CORE;
             const y = typeof g.release_date === 'number' ? new Date(g.release_date * 1000).getFullYear() : 0;
             return h('button', {type:'button', onclick: () => stepGallery(g)}, g.name + (g.verified ? ' ✓' : '') + (y > 1970 ? ' · ' + y : ''));
           }));
-        } catch (e) { msg.textContent = e.message; }
+        } catch (e) { showMsg(msg, e.message); }
       };
       input.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); go(); } });
-      openDlg(o.title || 'Bei SteamGridDB suchen', h('div', {class:'row'}, input, h('button', {type:'button', class:'pri', onclick: go}, 'Suchen')), msg, list);
+      openDlg(o.title || 'Bei SteamGridDB suchen', h('div', {class:'row'}, input, h('button', {type:'button', class:'pri', onclick: go}, 'Suchen')), msg, list,
+        h('p', {class:'hint'}, ext('SteamGridDB', LINKS.sgdb), ' · ', docLink('Anleitung', 'steamgriddb.md', 'was-möglich-ist')));
       if (o.term && cfg.key) go();
     };
 
@@ -551,7 +567,7 @@ if (typeof module !== 'undefined') module.exports = CORE;
           if (useImage && chosen) image = await processImage(await fetchImage(chosen.url), o.type === 'heroes' ? 'background' : 'cover');
           await o.onDone({game, image, description: desc ? desc.value() : ''});
           closeDlg();
-        } catch (e) { msg.textContent = e.message; okBtn.disabled = false; }
+        } catch (e) { showMsg(msg, e.message); okBtn.disabled = false; }
       };
       okBtn.addEventListener('click', () => { if (!chosen && !o.allowNoImage){ msg.textContent = 'Bitte zuerst ein Bild auswählen.'; return; } finish(true); });
       const load = async () => {
@@ -566,7 +582,7 @@ if (typeof module !== 'undefined') module.exports = CORE;
               h('small', {}, (it.width && it.height ? it.width + '×' + it.height : '') + (it.language ? ' · ' + it.language : '') + (it.style ? ' · ' + it.style : '')));
             return b;
           }));
-        } catch (e) { msg.textContent = e.message; }
+        } catch (e) { showMsg(msg, e.message); }
       };
       openDlg(game.name,
         h('div', {class:'row'}, h('button', {type:'button', class:'sm', onclick: stepSearch}, '← Andere Suche'), fmtSel),
@@ -678,14 +694,14 @@ if (typeof module !== 'undefined') module.exports = CORE;
     const chk = o.withCheck ? h('input', {type:'checkbox', checked:true}) : null;
     function refresh(){ tr.hidden = !ta.value.trim() || looksGerman(ta.value); }
     function note(it){ info.textContent = 'Quelle: ' + it.label + (it.lang === 'de' ? ' (Deutsch)' : ' (Englisch, lässt sich übersetzen)') + (it.url ? ' · ' + it.url : ''); }
-    const node = h('div', {class:'f'}, chk ? h('label', {class:'row'}, chk, 'Beschreibung übernehmen') : null, sel, ta, h('div', {class:'row'}, tr), info);
+    const node = h('div', {class:'f'}, chk ? h('label', {class:'row'}, chk, 'Beschreibung übernehmen') : null, sel, ta, h('div', {class:'row'}, tr), info, h('small', {}, docLink('Hilfe zur Beschreibungssuche', 'steamgriddb.md', 'beschreibungen')));
     return {node, value: () => (chk && !chk.checked) ? '' : ta.value.trim(),
       async load(){
         info.textContent = 'Beschreibung wird gesucht ...'; sel.hidden = true; items = [];
         const r = await findDescriptions(o.name(), o.game);
         items = r.items; sel.replaceChildren(...items.map(i => h('option', {}, i.label + (i.lang === 'de' ? '' : ' (Englisch)')))); sel.hidden = items.length < 2;
         if (items.length){ sel.selectedIndex = 0; ta.value = items[0].text; note(items[0]); }
-        else { if (chk) chk.checked = false; info.textContent = 'Keine Beschreibung gefunden.' + (r.errors.length ? ' ' + r.errors.join(' ') : ''); }
+        else { if (chk) chk.checked = false; showMsg(info, 'Keine Beschreibung gefunden.' + (r.errors.length ? ' ' + r.errors.join(' ') : '')); }
         refresh();
       }};
   }

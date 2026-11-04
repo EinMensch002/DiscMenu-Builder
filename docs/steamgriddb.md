@@ -36,8 +36,8 @@ Nicht jedes Spiel steht in allen drei Shops. Findet keine Quelle etwas, bleibt d
 
 ## Einrichten (SteamGridDB)
 
-1. Kostenloses Konto bei SteamGridDB anlegen und im Profil unter Einstellungen einen API-Schlüssel erzeugen.
-2. Im Konfigurator oben auf **SteamGridDB** klicken, den Schlüssel eintragen und mit **Verbindung testen** prüfen.
+1. Kostenloses Konto bei [SteamGridDB](https://www.steamgriddb.com/) anlegen und auf der Seite [API-Schlüssel](https://www.steamgriddb.com/profile/preferences/api) im Profil einen Schlüssel erzeugen.
+2. Im [Konfigurator](https://einmensch002.github.io/DiscMenu-Builder/) oben auf **SteamGridDB** klicken, den Schlüssel eintragen und mit **Verbindung testen** prüfen.
 
 Der Schlüssel liegt nur im lokalen Speicher des Browsers und wird nie in die ZIP oder `menu.json` geschrieben. Hinweis: Der lokale Speicher gilt pro Adresse. Auf `einmensch002.github.io` können auch andere Seiten desselben GitHub-Kontos darauf zugreifen. Wer das nicht möchte, öffnet den Konfigurator als lokale Datei.
 
@@ -57,8 +57,8 @@ Browser erlauben Anfragen an fremde Dienste nur, wenn diese es ausdrücklich erl
 
 ### Proxy einrichten (Cloudflare Worker)
 
-1. Kostenloses Konto bei Cloudflare anlegen.
-2. Unter "Workers & Pages" einen neuen Worker erstellen und den Code aus [tools/cors-proxy/worker.js](../tools/cors-proxy/worker.js) einfügen. Veröffentlichen.
+1. Kostenloses Konto bei [Cloudflare](https://dash.cloudflare.com/sign-up) anlegen.
+2. Im [Cloudflare-Dashboard](https://dash.cloudflare.com/) unter "Workers & Pages" einen neuen Worker erstellen und den Code aus [tools/cors-proxy/worker.js](../tools/cors-proxy/worker.js) einfügen (ganzen Inhalt kopieren, den Beispielcode ersetzen). Veröffentlichen.
 3. Die Adresse des Workers notieren, z. B. `https://name.dein-konto.workers.dev`.
 4. Im Konfigurator unter **SteamGridDB** als Proxy-Adresse eintragen: `https://name.dein-konto.workers.dev/?url={url}`
 
