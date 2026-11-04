@@ -641,11 +641,12 @@ if (typeof module !== 'undefined') module.exports = CORE;
   async function findDescriptions(name, game){
     const sources = [['Steam', () => steamDescriptions(name, game)], ['GOG', () => gogDescriptions(name)], ['Epic', () => epicDescriptions(name)]];
     const res = await Promise.allSettled(sources.map(([, fn]) => fn()));
-    const items = [], errors = [];
+    const items = [], failed = new Map();
     res.forEach((r, i) => {
       if (r.status === 'fulfilled') items.push(...r.value);
-      else { const m = sources[i][0] + ': ' + (r.reason && r.reason.message || r.reason); if (!errors.includes(m)) errors.push(m); }
+      else { const m = String((r.reason && r.reason.message) || r.reason); failed.set(m, (failed.get(m) || []).concat(sources[i][0])); }
     });
+    const errors = [...failed].map(([m, names]) => names.join(', ') + ': ' + m);   // gleiche Meldung nur einmal zeigen
     items.sort((a,b) => (b.lang === 'de') - (a.lang === 'de'));
     return {items, errors};
   }
