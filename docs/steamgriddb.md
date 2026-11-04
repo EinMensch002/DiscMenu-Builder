@@ -58,11 +58,19 @@ Browser erlauben Anfragen an fremde Dienste nur, wenn diese es ausdrücklich erl
 ### Proxy einrichten (Cloudflare Worker)
 
 1. Kostenloses Konto bei [Cloudflare](https://dash.cloudflare.com/sign-up) anlegen.
-2. Im [Cloudflare-Dashboard](https://dash.cloudflare.com/) unter "Workers & Pages" einen neuen Worker erstellen und den Code aus [tools/cors-proxy/worker.js](../tools/cors-proxy/worker.js) einfügen (ganzen Inhalt kopieren, den Beispielcode ersetzen). Veröffentlichen.
-3. Die Adresse des Workers notieren, z. B. `https://name.dein-konto.workers.dev`.
-4. Im Konfigurator unter **SteamGridDB** als Proxy-Adresse eintragen: `https://name.dein-konto.workers.dev/?url={url}`
+2. Im [Cloudflare-Dashboard](https://dash.cloudflare.com/) den Bereich **Workers & Pages** öffnen und einen neuen Worker erstellen (Knopf **Create application** bzw. **Anwendung erstellen**).
+3. Als Startpunkt **Mit Hello World beginnen** (englisch: *Start with Hello World!*) wählen. Das legt einen Worker mit einem kleinen Beispielcode an, den wir gleich ersetzen.
+   **Nicht** die anderen Möglichkeiten wählen: weder ein Repository importieren (damit würde der Worker mit Git und einem Repo verbunden) noch eine Vorlage verwenden. Beides ist für den Proxy nicht nötig und führt nur zu Verwirrung.
+4. Dem Worker einen Namen geben, z. B. `discmenu-proxy`, und auf **Deploy** (Bereitstellen) klicken. Der Beispielcode wird damit zum ersten Mal veröffentlicht.
+5. Danach auf **Edit code** (Code bearbeiten) klicken. Im Editor den gesamten Beispielcode löschen.
+6. Die Datei [tools/cors-proxy/worker.js](../tools/cors-proxy/worker.js) auf GitHub öffnen und den **ganzen** Inhalt kopieren (am einfachsten mit dem Kopieren-Knopf oben rechts über dem Code). Im Editor von Cloudflare einfügen und wieder auf **Deploy** klicken.
+7. Die Adresse des Workers notieren, z. B. `https://discmenu-proxy.dein-konto.workers.dev`.
+8. Im Konfigurator unter **SteamGridDB** als Proxy-Adresse eintragen: `https://discmenu-proxy.dein-konto.workers.dev/?url={url}`. Das `{url}` am Ende muss genau so mitgeschrieben werden.
+9. Mit **Verbindung testen** prüfen, ob es klappt.
 
-**Wichtig bei einem schon eingerichteten Proxy:** Für GOG und Epic muss der Worker die erweiterte Host-Liste kennen. Dazu den Code aus `worker.js` neu im Worker einfügen und veröffentlichen. Die Proxy-Adresse im Konfigurator bleibt gleich.
+Die Oberfläche von Cloudflare ändert sich gelegentlich, die Bezeichnungen können daher leicht abweichen. Die Schritte bleiben aber gleich.
+
+**Wichtig bei einem schon eingerichteten Proxy:** Für GOG und Epic muss der Worker die erweiterte Host-Liste kennen. Dazu im Cloudflare-Dashboard den Worker öffnen, auf **Edit code** klicken, den alten Code durch den ganzen Inhalt von `worker.js` ersetzen (siehe Schritt 6) und **Deploy** klicken. Die Proxy-Adresse im Konfigurator bleibt gleich.
 
 Der Proxy leitet nur GET-Anfragen an `steamgriddb.com` (mit Unterdomains), `store.steampowered.com`, `catalog.gog.com`, `api.gog.com` und `store-content.ak.epicgames.com` weiter, ergänzt die CORS-Header und reicht den API-Schlüssel durch. Ändert SteamGridDB seinen Bild-Host, muss die Liste `ALLOWED_HOSTS` angepasst werden. Das Kontingent des kostenlosen Cloudflare-Tarifs reicht für diesen Zweck nach bisherigem Wissen aus, die aktuellen Grenzen stehen bei Cloudflare.
 
