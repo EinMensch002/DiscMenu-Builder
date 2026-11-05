@@ -170,6 +170,9 @@ type UI struct {
 	paste     string
 	enter     bool
 	now       time.Time
+
+	// Nur für Entwicklung (-script): Die Bedienelemente mit dieser ID gelten in diesem Bild als geklickt.
+	force string
 }
 
 func newUI(f *Fonts) *UI {
@@ -221,6 +224,15 @@ func (u *UI) pushClip(r image.Rectangle) {
 	u.clip, u.clipOn = r, true
 }
 func (u *UI) popClip() { u.clipOn = false }
+
+// hit sagt, ob ein Bedienelement getroffen ist, per Maus oder per Skript.
+func (u *UI) hit(id string, r image.Rectangle) (hover, click bool) {
+	if u.inputOn && u.force != "" && u.force == id {
+		return true, true
+	}
+	h := u.mouseIn(r)
+	return h, h && u.pressed
+}
 
 func (u *UI) mouseIn(r image.Rectangle) bool {
 	if !u.inputOn {
@@ -359,12 +371,13 @@ func brighten(c color.RGBA, n int) color.RGBA {
 // Button zeichnet einen Knopf. onClick == nil sperrt ihn.
 func (u *UI) Button(id string, r image.Rectangle, label string, st btnStyle, onClick func()) {
 	enabled := onClick != nil
-	hov := enabled && u.mouseIn(r)
+	hov, clk := u.hit(id, r)
+	hov = hov && enabled
 	fill := st.fill
 	if hov {
 		fill = st.hover
 		u.hoverID, u.pointer = id, true
-		if u.pressed {
+		if clk {
 			u.pending = onClick
 		}
 	}
@@ -382,10 +395,11 @@ func (u *UI) Button(id string, r image.Rectangle, label string, st btnStyle, onC
 // Check zeichnet ein Kontrollkästchen mit Beschriftung.
 func (u *UI) Check(id string, r image.Rectangle, label string, on bool, accent color.RGBA, enabled bool, toggle func()) {
 	box := image.Rect(r.Min.X, r.Min.Y+(r.Dy()-24)/2, r.Min.X+24, r.Min.Y+(r.Dy()-24)/2+24)
-	hov := enabled && u.mouseIn(r)
+	hov, clk := u.hit(id, r)
+	hov = hov && enabled
 	if hov {
 		u.hoverID, u.pointer = id, true
-		if u.pressed {
+		if clk {
 			u.pending = toggle
 		}
 	}

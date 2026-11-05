@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/color"
@@ -48,9 +49,12 @@ type App struct {
 	msg     *message
 	install *InstallState
 	quit    bool
+	events  chan func() // Ergebnisse aus Hintergrund-Threads, werden im Update ausgeführt
 
 	frames     int
 	lastScreen *ebiten.Image
+	shotNow    string
+	script     []scriptStep
 	shotTo     string // Pfad für einen Screenshot (Prüfung der Oberfläche), danach Beenden
 	W, H       int
 	started    time.Time
@@ -62,7 +66,7 @@ func newApp(r *shared.Recipe, discRoot string) (*App, error) {
 		return nil, err
 	}
 	a := &App{recipe: r, menu: r.Menu, discRoot: discRoot, runner: newRunner(), detector: newDetector(),
-		sounds: newSounds(), ui: newUI(f), imgs: map[string]*ebiten.Image{}, targets: map[int]string{}, tab: "game", started: time.Now()}
+		sounds: newSounds(), ui: newUI(f), imgs: map[string]*ebiten.Image{}, targets: map[int]string{}, events: make(chan func(), 16), tab: "game", started: time.Now()}
 	if r.Menu.Sounds != nil {
 		for name, file := range map[string]string{"click": r.Menu.Sounds.Click, "hover": r.Menu.Sounds.Hover} {
 			if file == "" {
@@ -89,7 +93,7 @@ func (a *App) image(p string) *ebiten.Image {
 	}
 	var out *ebiten.Image
 	if raw, err := fs.ReadFile(a.recipe.Assets, p); err == nil {
-		if im, _, err := image.Decode(strings.NewReader(string(raw))); err == nil {
+		if im, _, err := image.Decode(bytes.NewReader(raw)); err == nil {
 			out = ebiten.NewImageFromImage(im)
 		}
 	}
@@ -129,6 +133,8 @@ func (a *App) Update() error {
 			return ebiten.Termination
 		}
 	}
+	a.drainEvents()
+	a.runScript()
 	a.ui.readInput()
 	a.build()
 	a.applyAudioAndCursor()
@@ -136,6 +142,17 @@ func (a *App) Update() error {
 		return a.saveShot()
 	}
 	return nil
+}
+
+func (a *App) drainEvents() {
+	for {
+		select {
+		case f := <-a.events:
+			f()
+		default:
+			return
+		}
+	}
 }
 
 func (a *App) installing() bool { return a.install != nil && !a.install.Snapshot().Done }
@@ -157,6 +174,10 @@ func (a *App) Draw(screen *ebiten.Image) {
 	screen.Fill(colBg)
 	a.ui.draw(screen)
 	a.lastScreen = screen
+	if a.shotNow != "" {
+		_ = a.writeShot(a.shotNow)
+		a.shotNow = ""
+	}
 }
 
 // build setzt die aktuelle Seite zusammen und führt danach einen Klick aus.
@@ -235,10 +256,11 @@ func (a *App) gameTile(i int, g *shared.Game, r image.Rectangle) {
 	prov := ProviderFor(g.ProviderID())
 	br := prov.Brand()
 	hit := image.Rect(r.Min.X-8, r.Min.Y-8, r.Max.X+8, r.Max.Y+70)
-	hov := u.mouseIn(hit)
+	id := fmt.Sprintf("tile%d", i)
+	hov, clk := u.hit(id, hit)
 	if hov {
-		u.hoverID, u.pointer = fmt.Sprintf("tile%d", i), true
-		if u.pressed {
+		u.hoverID, u.pointer = id, true
+		if clk {
 			idx := i
 			u.pending = func() { a.openGame(idx) }
 		}
@@ -402,12 +424,12 @@ func (a *App) browseTarget() {
 	idx := a.cur
 	go func() {
 		p, err := browseFolder("Zielordner für die Installation wählen")
-		if err != nil {
-			a.msg = &message{"Ordner wählen", err.Error()}
-			return
-		}
-		if p != "" {
-			a.targets[idx] = p
+		a.events <- func() {
+			if err != nil {
+				a.msg = &message{"Ordner wählen", err.Error()}
+			} else if p != "" {
+				a.targets[idx] = p
+			}
 		}
 	}()
 }
@@ -637,6 +659,13 @@ func progressFor(i InstallInfo) float64 {
 // --- Screenshot (nur zur Prüfung der Oberfläche) ---
 
 func (a *App) saveShot() error {
+	if err := a.writeShot(a.shotTo); err != nil {
+		return err
+	}
+	return ebiten.Termination
+}
+
+func (a *App) writeShot(to string) error {
 	if a.lastScreen == nil {
 		return nil
 	}
@@ -644,13 +673,52 @@ func (a *App) saveShot() error {
 	pix := make([]byte, 4*b.Dx()*b.Dy())
 	a.lastScreen.ReadPixels(pix)
 	img := &image.RGBA{Pix: pix, Stride: 4 * b.Dx(), Rect: image.Rect(0, 0, b.Dx(), b.Dy())}
-	f, err := os.Create(a.shotTo)
+	f, err := os.Create(to)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	if err := encodePNG(f, img); err != nil {
-		return err
+	return encodePNG(f, img)
+}
+
+// scriptStep ist ein Schritt für -script (nur Entwicklung und Tests der Oberfläche).
+type scriptStep struct {
+	frame     int
+	kind, arg string
+}
+
+// parseScript liest "30:click:silent,90:shot:/tmp/a.png,100:quit".
+func parseScript(s string) []scriptStep {
+	var out []scriptStep
+	for _, part := range strings.Split(s, ",") {
+		f := strings.SplitN(strings.TrimSpace(part), ":", 3)
+		if len(f) < 2 {
+			continue
+		}
+		n := 0
+		fmt.Sscanf(f[0], "%d", &n)
+		st := scriptStep{frame: n, kind: f[1]}
+		if len(f) == 3 {
+			st.arg = f[2]
+		}
+		out = append(out, st)
 	}
-	return ebiten.Termination
+	return out
+}
+
+func (a *App) runScript() {
+	a.ui.force = ""
+	for _, st := range a.script {
+		if st.frame != a.frames {
+			continue
+		}
+		switch st.kind {
+		case "click":
+			a.ui.force = st.arg
+		case "shot":
+			a.shotNow = st.arg
+		case "quit":
+			a.quit = true
+		}
+	}
 }

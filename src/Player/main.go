@@ -25,6 +25,7 @@ func main() {
 		selftest   = flag.Bool("selftest", false, "Paket lesen und prüfen, Ergebnis ausgeben, kein Fenster öffnen")
 		showVer    = flag.Bool("version", false, "Version ausgeben")
 		scene      = flag.String("scene", "", "Entwicklung: Startansicht, z. B. game:0:patches")
+		script     = flag.String("script", "", "Entwicklung: Schritte wie 30:click:silent,90:shot:a.png,120:quit")
 		shot       = flag.String("shot", "", "Entwicklung: Screenshot speichern und beenden")
 		size       = flag.String("size", "1280x720", "Fenstergröße")
 	)
@@ -73,6 +74,7 @@ func main() {
 	}
 	applyScene(app, *scene)
 	app.shotTo = *shot
+	app.script = parseScript(*script)
 
 	w, h := 1280, 720
 	if parts := strings.SplitN(*size, "x", 2); len(parts) == 2 {

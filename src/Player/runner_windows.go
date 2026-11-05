@@ -74,6 +74,12 @@ type winRunner struct{}
 func newRunner() Runner { return winRunner{} }
 
 func (winRunner) Run(exe, cmdline, dir string, hidden bool) (int, error) {
+	// ShellExecuteEx braucht auf dem aufrufenden Thread initialisiertes COM.
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	if err := windows.CoInitializeEx(0, windows.COINIT_APARTMENTTHREADED|windows.COINIT_DISABLE_OLE1DDE); err == nil {
+		defer windows.CoUninitialize()
+	}
 	show := int32(swShowNormal)
 	if hidden {
 		show = swHide
@@ -110,6 +116,11 @@ func (winRunner) Run(exe, cmdline, dir string, hidden bool) (int, error) {
 
 // openTarget öffnet eine Datei, einen Ordner oder einen Link mit dem Standardprogramm.
 func openTarget(target string) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	if err := windows.CoInitializeEx(0, windows.COINIT_APARTMENTTHREADED|windows.COINIT_DISABLE_OLE1DDE); err == nil {
+		defer windows.CoUninitialize()
+	}
 	verb, _ := windows.UTF16PtrFromString("open")
 	file, err := windows.UTF16PtrFromString(target)
 	if err != nil {

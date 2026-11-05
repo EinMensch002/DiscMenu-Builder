@@ -46,8 +46,8 @@ DiscMenu-Builder/
 ├─ tools/cors-proxy/        Optionaler Proxy (Cloudflare Worker) für SteamGridDB
 ├─ .github/workflows/       Veröffentlichung des Konfigurators auf GitHub Pages
 ├─ examples/
-│  ├─ menu.example.json     Beispiel-Rezept mit zwei Spielen
-│  └─ assets/               Beispiel-Cover und -Sounds (später)
+│  ├─ menu.example.json     Beispiel-Rezept mit drei Spielen (GOG, Epic, Steam)
+│  └─ assets/               Beispiel-Cover, -Hintergrund und -Klick-Sound (erzeugt mit tools/mkdemo)
 └─ src/
    ├─ Builder/              Menüersteller (Kommandozeile, Drag-and-drop)
    ├─ Player/               Menü, das auf der Disc liegt
