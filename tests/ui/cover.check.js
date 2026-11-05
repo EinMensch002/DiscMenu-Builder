@@ -75,8 +75,44 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   assert.match(await page.locator('[data-img=front] .spec').textContent(), /129\.5 × 183 mm/);
   await page.check('[data-k=caseType][value=normal]');
 
+  // Die Rückseite bleibt stabil: Weder das Ausblenden des GOG-Galaxy-Felds noch der USK hinten verschiebt etwas
+  const layout = () => page.evaluate(() => {
+    const o = document.querySelector('#cover').getBoundingClientRect();
+    const r = (sel) => { const b = document.querySelector(sel).getBoundingClientRect(); return [sel, Math.round((b.left - o.left) * 10) / 10, Math.round((b.top - o.top) * 10) / 10]; };
+    return ['#feats', '#specs', '#specs li', '#discLogo', '#copy', '#spineTitle', '#frontUsk'].map(r);
+  });
+  await page.check('[data-k=galaxy]'); await page.check('[data-k=uskBack]');
+  await page.waitForTimeout(150);
+  const base = await layout();
+  await page.uncheck('[data-k=galaxy]'); await page.waitForTimeout(150);
+  assert.deepEqual(await layout(), base, 'Ohne Galaxy-Feld darf sich nichts verschieben');
+  await page.uncheck('[data-k=uskBack]'); await page.waitForTimeout(150);
+  assert.deepEqual(await layout(), base, 'Ohne USK auf der Rückseite darf sich nichts verschieben');
+  await page.fill('[data-k=other]', ''); await page.waitForTimeout(150);          // eine Zeile weniger: die übrigen bleiben oben stehen
+  const fewer = await layout();
+  assert.deepEqual(fewer.find((x) => x[0] === '#specs li'), base.find((x) => x[0] === '#specs li'));
+  assert.deepEqual(fewer.find((x) => x[0] === '#feats'), base.find((x) => x[0] === '#feats'));
+  await page.check('[data-k=galaxy]'); await page.check('[data-k=uskBack]');
+
+  // Stil "Modern": Streifen oben, Überschrift der Systemanforderungen, alles bleibt auf dem Blatt
+  await page.selectOption('[data-k=theme]', 'modern');
+  await page.waitForFunction(() => document.querySelector('#cover').classList.contains('theme-modern'));
+  assert.equal(await page.locator('.gog-bar').isVisible(), true);
+  assert.equal(await page.locator('.gog-corner').isVisible(), false);
+  assert.equal(await page.locator('#reqTitle').textContent(), 'SYSTEMANFORDERUNGEN');
+  assert.equal(await page.locator('#frontTag').textContent(), 'PC · DRM-FREI');
+  assert.equal(await page.locator('#spineFoot').isVisible(), true);
+  await page.selectOption('[data-k=lang]', 'en');
+  await page.waitForFunction(() => document.querySelector('#frontTag').textContent === 'PC · DRM-FREE');
+  await page.selectOption('[data-k=lang]', 'de');
+  const spec = await page.evaluate(() => { const p = document.querySelector('.panel-back').getBoundingClientRect(), s = document.querySelector('#specs').getBoundingClientRect(); return s.bottom <= p.bottom + 0.5; });
+  assert.ok(spec, 'Die Systemanforderungen müssen im Modern-Stil in das Feld passen');
+  await page.selectOption('[data-k=theme]', 'classic');
+  await page.waitForFunction(() => !document.querySelector('#cover').classList.contains('theme-modern'));
+
   // Einstellungen bleiben nach dem Neuladen, Bilder nicht
   await page.waitForTimeout(200); await page.reload();
+  assert.equal(await page.inputValue('[data-k=theme]'), 'classic');
   assert.equal(await page.inputValue('[data-k=title]'), 'Sehr langer Spieltitel: Die Rückkehr der Titel & Co. <b>');
   assert.equal(await page.locator('[data-img=front]').getAttribute('class'), 'drop');
 

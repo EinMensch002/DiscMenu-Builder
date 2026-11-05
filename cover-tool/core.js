@@ -26,6 +26,7 @@
   /* --- Texte --- */
   const LABELS = {
     de: {
+      reqTitle: 'SYSTEMANFORDERUNGEN', tag: 'PC · DRM-FREI',
       features: 'Spielfunktionen:', featuresNote: 'Einige Funktionen erfordern GOG Galaxy',
       os: 'Läuft auf', cpu: 'Prozessor', ram: 'Arbeitsspeicher', gpu: 'Grafik', dx: 'DirectX', space: 'Speicherplatz', other: 'Sonstiges',
       ramUnit: 'RAM', spaceUnit: 'freier Speicherplatz', bit64: '64-Bit',
@@ -33,6 +34,7 @@
       feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', controller_support: 'Controller Support', achievements: 'Erfolge', cloud_saves: 'Cloud Saves', leaderboards: 'Bestenlisten' },
     },
     en: {
+      reqTitle: 'SYSTEM REQUIREMENTS', tag: 'PC · DRM-FREE',
       features: 'Game Features:', featuresNote: 'Some features require GOG Galaxy',
       os: 'Works on', cpu: 'Processor', ram: 'Memory', gpu: 'Graphics', dx: 'DirectX', space: 'Storage', other: 'Other',
       ramUnit: 'RAM', spaceUnit: 'available space', bit64: '64-bit',
@@ -43,6 +45,7 @@
   const FEATURE_ORDER = ['single_player', 'co_op', 'multi_player', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards'];
   const WIN_VERSIONS = ['XP', 'Vista', '7', '8', '10', '11'];
   const USK_VALUES = ['0', '6', '12', '16', '18'];
+  const THEMES = { classic: 'Klassisch (GOG-Original)', modern: 'Modern (Konsolen-Stil)' };
   const DISCS = { cd: 'cd.png', dvd: 'dvd.png', bluray: 'blu-ray.png' };
 
   /* 0,5 -> "500 MB", 4 -> "4 GB", "4,5" -> "4.5 GB" */
@@ -108,7 +111,7 @@
   /* --- Standardwerte und Speichern --- */
   function defaultState() {
     return {
-      caseType: 'normal', disc: 'dvd', lang: 'de', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
+      caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'classic', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       usk: '0', uskBack: true, galaxy: true, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
       features: ['single_player'],
       os: { win: ['10', '11'], mac: false, linux: false, x64: true },
@@ -133,6 +136,7 @@
     if (!CASES[out.caseType]) out.caseType = 'normal';
     if (!DISCS[out.disc]) out.disc = 'dvd';
     if (!LABELS[out.lang]) out.lang = 'de';
+    if (!THEMES[out.theme]) out.theme = 'classic';
     if (out.usk !== 'none' && !USK_VALUES.includes(out.usk)) out.usk = '0';
     return out;
   }
@@ -155,7 +159,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { PAPER, CASES, BACK, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, defaultState, mergeState, fitSize };
+  const api = { PAPER, CASES, BACK, THEMES, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

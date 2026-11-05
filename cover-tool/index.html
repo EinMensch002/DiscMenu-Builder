@@ -139,9 +139,11 @@
 
     <details class="sec" open>
       <summary>Darstellung und Druck</summary>
+      <label class="f"><span class="lab">Stil</span>
+        <select data-k="theme"><option value="classic">Klassisch (GOG-Original)</option><option value="modern">Modern (Konsolen-Stil)</option></select></label>
       <label class="f"><span class="lab">GOG-Logo auf dem Rücken</span>
         <select data-k="spineLogo"><option value="fixed">Feste Größe (6 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
-      <label class="chk"><input type="checkbox" data-k="galaxy"> GOG-Galaxy-Feld auf der Rückseite</label>
+      <label class="chk"><input type="checkbox" data-k="galaxy"> GOG-Galaxy-Feld auf der Rückseite (der Platz bleibt reserviert)</label>
       <label class="chk"><input type="checkbox" data-k="cropMarks"> Schnittmarken an den Ecken</label>
       <label class="chk"><input type="checkbox" data-k="foldLines"> Falzlinien am Rücken (gestrichelt)</label>
       <p class="hint">Drucken: A4 quer, Skalierung 100 %, Ränder „Keine“, Hintergrundgrafiken aktivieren.</p>
@@ -168,7 +170,7 @@
                   <div class="galaxy" id="galaxy">
                     <i class="ring"></i><b id="gxTitle"></b><span id="gxText"></span><em id="gxJoin"></em><small id="gxUrl"></small>
                   </div>
-                  <ul class="specs" id="specs"></ul>
+                  <div class="speccol"><h4 id="reqTitle"></h4><ul class="specs" id="specs"></ul></div>
                   <div class="rightcol">
                     <div class="logos"><img id="backPub" alt=""><img id="discLogo" alt=""></div>
                     <img id="backUsk" class="usk-back" alt="">
@@ -179,13 +181,15 @@
             </section>
 
             <section class="spine" id="spine">
-              <img class="spine-logo" id="spineLogo" src="assets/images/gog_logo.png" alt="GOG">
+              <div class="spine-head"><img class="spine-logo" id="spineLogo" src="assets/images/gog_logo.png" alt="GOG"></div>
               <div class="spine-box" id="spineBox"><span class="spine-title" id="spineTitle"></span></div>
+              <div class="spine-foot" id="spineFoot">PC</div>
             </section>
 
             <section class="front" id="front">
               <span class="ph">Frontcover</span>
               <div class="gog-corner"><img src="assets/images/gog_logo.png" alt="GOG"></div>
+              <div class="gog-bar"><img src="assets/images/gog_logo.png" alt="GOG"><b id="frontTag"></b></div>
               <img class="usk" id="frontUsk" alt="">
               <img class="front-pub" id="frontPub" alt="">
             </section>

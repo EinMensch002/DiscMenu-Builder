@@ -65,6 +65,7 @@ test('Beschriftungen gibt es in beiden Sprachen vollständig', () => {
   assert.equal(keys(C.LABELS.de), keys(C.LABELS.en));
   assert.equal(keys(C.LABELS.de.feat), keys(C.LABELS.en.feat));
   assert.equal(keys(C.LABELS.de.galaxy), keys(C.LABELS.en.galaxy));
+  assert.ok(C.LABELS.de.reqTitle && C.LABELS.en.reqTitle && C.LABELS.de.tag && C.LABELS.en.tag);
   for (const f of C.FEATURE_ORDER) assert.ok(C.LABELS.de.feat[f], f);
 });
 
@@ -77,6 +78,9 @@ test('Gespeicherte Einstellungen: kaputte oder alte Daten stören nicht', () => 
   assert.equal(m.disc, 'bluray');
   assert.equal(m.usk, '0');
   assert.equal(m.lang, 'de');
+  assert.equal(m.theme, 'classic');
+  assert.equal(C.mergeState({ theme: 'modern' }).theme, 'modern');
+  assert.equal(C.mergeState({ theme: 'bunt' }).theme, 'classic');
   assert.equal(m.title, '');
   assert.deepEqual(m.features, ['co_op']);
   assert.deepEqual(m.os.win, ['7']);

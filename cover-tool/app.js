@@ -147,6 +147,7 @@
       n.style.setProperty('--w', c.w + 'mm'); n.style.setProperty('--h', c.h + 'mm');
       n.style.setProperty('--back', c.back + 'mm'); n.style.setProperty('--spine', c.spine + 'mm'); n.style.setProperty('--front', c.front + 'mm');
     }
+    cover.classList.toggle('theme-modern', state.theme === 'modern');
     wrap.classList.toggle('marks', state.cropMarks);
     wrap.classList.toggle('fold', state.foldLines);
 
@@ -178,7 +179,8 @@
       const item = el('div', 'feat'), img = el('img'); img.src = 'assets/images/features/' + k + '.png'; img.alt = '';
       item.append(img, el('span', '', L.feat[k])); return item;
     }));
-    $('#galaxy').hidden = !state.galaxy;
+    $('#galaxy').classList.toggle('off', !state.galaxy);
+    $('#reqTitle').textContent = L.reqTitle; $('#frontTag').textContent = L.tag;
     $('#gxTitle').textContent = L.galaxy.title; $('#gxText').textContent = L.galaxy.text;
     $('#gxJoin').textContent = L.galaxy.join; $('#gxUrl').textContent = L.galaxy.url;
     $('#copy').textContent = state.copyright.trim();

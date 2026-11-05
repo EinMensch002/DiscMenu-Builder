@@ -16,11 +16,24 @@ Links die Einstellungen, rechts die Vorschau in Originalproportionen, die sich b
 | Texte | Spieletitel für den Rücken und der Copyright-Text |
 | Spielfunktionen | Single-Player, Co-op, Multi-Player, Controller, Erfolge, Cloud Saves, Bestenlisten |
 | Systemanforderungen | Windows-Versionen (XP bis 11), macOS, Linux, Prozessor und Grafikkarte (Auswahl oder eigener Text), Arbeitsspeicher, Speicherplatz, DirectX, Sonstiges |
-| Darstellung und Druck | Größe des GOG-Logos auf dem Rücken, GOG-Galaxy-Feld, Schnittmarken, Falzlinien |
+| Darstellung und Druck | Stil (Klassisch oder Modern), Größe des GOG-Logos auf dem Rücken, GOG-Galaxy-Feld, Schnittmarken, Falzlinien |
 
 Der Barcode der echten GOG-Hüllen fehlt bewusst. Statt PEGI oder ESRB wird die **USK**-Kennzeichnung verwendet (vorne 35 × 35 mm mit 3 mm Abstand, hinten kleiner).
 
 Einstellungen werden im Browser gemerkt (ohne Bilder). "Zurücksetzen" löscht sie.
+
+## Stile
+
+| Stil | Aussehen |
+|---|---|
+| **Klassisch** (Standard) | Wie die GOG-Originalhüllen: lila Logo-Ecke oben links auf der Vorderseite, grüner Streifen mit Spielfunktionen, helles Feld mit den Angaben, lila Rücken |
+| **Modern** (Konsolen-Stil) | Angelehnt an Hüllen von PlayStation, Switch und Xbox: lila Streifen über die ganze Breite oben auf der Vorderseite mit GOG-Logo und "PC · DRM-FREI", dunkler Rücken mit Kopf und Fuß in GOG-Lila, dunkles Feld mit klar gerahmter Überschrift "Systemanforderungen" |
+
+Beim Stil "Modern" überdeckt der Streifen die obersten 11 mm der Vorderseite, das Motiv sollte dort nichts Wichtiges zeigen.
+
+## Feste Plätze
+
+Die Rückseite hat feste Plätze: links das GOG-Galaxy-Feld, in der Mitte die Angaben, rechts Logos, USK und Copyright. Schaltet man das Galaxy-Feld oder die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein Test.
 
 ## Drucken
 
