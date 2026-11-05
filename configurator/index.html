@@ -1177,7 +1177,6 @@ if (typeof module !== 'undefined') module.exports = CORE;
         ic ? icon(ic, color) : null, h('span', {class:'lb'}, label), o.tag ? h('span', {class:'tg'}, o.tag) : null);
       if (o.disabled) b.disabled = true;
       b.addEventListener('mouseenter', () => { if (!b.disabled) play('hover'); if (o.focus !== undefined){ S.focus = o.focus; fillLeft(); } });
-      b.addEventListener('mouseleave', () => { if (o.focus !== undefined){ S.focus = null; fillLeft(); } });
       return b;
     };
     const rule = () => h('div', {class:'rule'});
@@ -1186,11 +1185,13 @@ if (typeof module !== 'undefined') module.exports = CORE;
     function fillLeft(){
       if (!leftEl) return;
       const gm = state.games[S.cur] || state.games[0], f = S.focus;
+      if (leftEl.lastFocus === f && leftEl.firstChild) return;
+      leftEl.lastFocus = f;
       let name, cov, desc, hint = '';
       if (S.page === 'select'){
         if (f){ name = f.name || '(ohne Namen)'; cov = f.cover; desc = f.description.trim(); }
         else { name = state.title.trim() || '(ohne Titel)'; cov = null; desc = ''; hint = 'Fahre über ein Spiel, um Bild und Beschreibung zu sehen. Ein Klick öffnet es.'; }
-      } else if (f){ name = f.name || '(ohne Namen)'; cov = f.cover && assets.has(f.cover) ? f.cover : gm.cover; desc = f.description.trim(); hint = desc ? '' : 'Gehört zu: ' + (gm.name || '(ohne Namen)'); }
+      } else if (f){ name = f.name || '(ohne Namen)'; cov = f.cover && assets.has(f.cover) ? f.cover : gm.cover; desc = f.description.trim(); hint = ''; }
       else { name = gm.name || '(ohne Namen)'; cov = gm.cover; desc = gm.description.trim(); hint = desc ? '' : 'Keine Beschreibung.'; }
       const box = h('div', {class:'cbox'}, cov && assets.has(cov) ? h('img', {src:assetUrl(cov), alt:''}) : (S.page === 'select' && !f ? name : name));
       leftEl.replaceChildren(box, h('div', {class:'lname'}, S.page === 'select' && !f ? 'Wähle ein Spiel' : name), h('div', {class:'ldesc' + (desc ? '' : ' mut')}, desc || hint));
@@ -1218,7 +1219,6 @@ if (typeof module !== 'undefined') module.exports = CORE;
     const quit = () => { say('"Beenden" gedrückt: Das Menü würde sich schließen.', true); toast('Simulation: Das Menü würde sich jetzt schließen.'); };
 
     function pageSelect(){
-      S.focus = null;
       const list = state.games.map((gm,i) => cbtn(gm.name || '(ohne Namen)', 'arrow', P(gm).accent, () => { S.cur = i; S.cat = null; S.page = 'game'; S.focus = null; say('Spiel geöffnet: ' + (gm.name || '(ohne Namen)')); draw(); }, {focus: gm, tag: P(gm).name}));
       return windowShell(state.title.trim() || '(ohne Titel)', '#5b8cff', null, list, h('div', {}, rule(), cbtn('Beenden', 'x', '#d03a2f', quit)));
     }
