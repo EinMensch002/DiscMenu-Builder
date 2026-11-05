@@ -50,23 +50,42 @@ DiscMenu-Builder/
 
 ## Roadmap
 
-- [ ] Konzept und Formate festlegen (aktueller Stand)
-- [ ] Mini-Prototyp zur Technikauswahl, getestet unter Windows 10/11 und Wine
-- [ ] Echte GOG-Installer testen: still installieren, Exit-Code, Registry
+Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit Tests oder im Browser geprüft ist.
+
+### Konfigurator (Web-App, live)
+
+- [x] Maske mit Spieleliste, Bereichen (DLCs, Patches, Extras) und Gruppen
+- [x] Bildverarbeitung (Verkleinern, Umwandeln), Sounds
+- [x] ZIP-Export und Import (Import legt ein neues Projekt an)
+- [x] Projekte im Browser, automatisches Speichern, Speichern mit Dateiauswahl
+- [x] SteamGridDB: Spiele suchen, Cover und Hintergründe wählen, Schlüssel und Proxy sichern (optional verschlüsselt)
+- [x] Beschreibungssuche bei Steam, GOG und Epic Games, Übersetzung ins Deutsche (MyMemory)
+- [x] Proxy (Cloudflare Worker) mit Herkunftsbeschränkung, Anleitung mit Hilfe-Links
+- [x] Überarbeitetes Design, helle und dunkle Ansicht
+- [x] Veröffentlichung auf GitHub Pages über GitHub Actions
+- [ ] GOG- und Epic-Beschreibungen mit echten Anfragen prüfen (bisher nur nachgebaute Antworten)
+- [ ] Mit echten Diensten prüfen: Chrome am Computer (Dateiauswahl, Überschreiben), Android-Chrome
+- [ ] Gemeinsames JSON Schema für Konfigurator und Builder
+- [ ] JSON-Ansicht zum direkten Bearbeiten, Vorschau des Menüs
+- [ ] Automatische Tests im Repo (Kernlogik und Worker laufen aktuell nur lokal)
+- [ ] Optional: Prüfung der Disc-Dateien über Ordnerzugriff
+
+### Builder und Player (Konzept, noch kein Code)
+
+- [ ] Technik festlegen: Mini-Prototyp unter Windows 10/11 und Wine (siehe [docs/platforms-and-tech.md](docs/platforms-and-tech.md))
+- [ ] Echte GOG-Installer testen: still installieren, Exit-Code, Log, Registry
+- [ ] Builder: Rezept (ZIP oder Ordner) lesen, prüfen und Player mit Paket zur Menü-EXE zusammensetzen
 - [ ] Player: Auswahlseite und Spielseite mit Hover, Sound und Cover
-- [ ] Player: Installer starten (normal und still), Zielpfad wählen
+- [ ] Player: Installation normal und still, Zielpfad wählen, Fortschrittsanzeige
 - [ ] Player: DLCs, Patches und Extras mit Gruppen
-- [ ] Builder: Player und Paket zur fertigen EXE zusammensetzen
-- [x] Konfigurator: Maske, Bildverarbeitung, ZIP-Export, Import (Version 1)
-- [x] Konfigurator: SteamGridDB-Suche für Spiele, Cover und Hintergründe
-- [x] SteamGridDB-Anbindung mit echtem Schlüssel geprüft (läuft über eigenen Proxy)
-- [x] Konfigurator: Projekte im Browser, Beschreibungssuche, Übersetzung
-- [ ] Konfigurator: gemeinsames JSON Schema, JSON-Ansicht, Vorschau
-- [ ] Fortschrittsanzeige bei stillen Installationen
-- [ ] Automatischer Build über GitHub Actions
-- [ ] Test auf echter Disc inklusive AutoPlay und Linux
-- [ ] Später: eigene Tabs (z. B. Mods)
-- [ ] Später: Steam (Machbarkeit zuerst prüfen)
+- [ ] Test auf echter Disc inklusive AutoPlay, Windows 10/11 und Linux (Wine/Proton)
+
+### Später
+
+- [ ] Eigene Tabs (z. B. Mods)
+- [ ] Bessere Übersetzung (z. B. DeepL mit eigenem Schlüssel)
+- [ ] GOG-Katalog als Beschreibungsquelle mit deutschen Texten
+- [ ] Steam-Provider: Backups wiederherstellen (Machbarkeit zuerst prüfen)
 
 ## Regeln für die Dokumentation
 
