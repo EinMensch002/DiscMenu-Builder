@@ -56,7 +56,7 @@ Hat `games` nur einen Eintrag, öffnet der Player direkt die Spielseite. Bei meh
 | `dlcs` | Liste | nein | Einträge für den Bereich DLCs / Erweiterungen |
 | `patches` | Liste | nein | Einträge für den Bereich Patches |
 | `extras` | Liste | nein | Einträge für den Bereich Extras |
-| `provider` | Text | nein | Reserviert, zurzeit nur `gog` (Standard) |
+| `provider` | Text | nein | Quelle des Spiels: `gog` (Standard), `epic` oder `steam`. Bestimmt Abzeichen, Farbe und Installationsweg im Player (siehe [player-und-builder.md](player-und-builder.md)) |
 | `customTabs` | Liste | nein | **Geplant, nicht Teil von Version 1.** Eigene Tabs mit `title` und `items` |
 
 ## Eintrag (in `dlcs`, `patches`, `extras`)
@@ -87,6 +87,7 @@ Diese Einstellungen trifft man erst im Menü, nicht beim Erstellen:
 - Alle Assets existieren.
 - Jeder Eintrag hat genau eines von `installer` oder `open`.
 - `schemaVersion` ist bekannt.
+- `provider` ist `gog`, `epic` oder `steam` (bei `steam` gibt es einen Hinweis, dass die Wiederherstellung noch fehlt).
 
 Ob die Installer- und Extra-Dateien auf der Disc vorhanden sind, kann der Builder nur prüfen, wenn der Disc-Ordner angegeben wird (offen, siehe [decisions.md](decisions.md)).
 

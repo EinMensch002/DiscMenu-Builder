@@ -89,7 +89,7 @@ test('Export -> Import ergibt denselben Zustand (Rundreise)', () => {
 
 test('parseMenu: sortiert nach index, meldet fehlende Dateien und unbekannte Felder', () => {
   const m = { schemaVersion: 2, title: 'T', background: 'assets/fehlt.png', games: [
-    { index: 1, name: 'B', installer: 'b.exe', provider: 'steam' },
+    { index: 1, name: 'B', installer: 'b.exe', provider: 'origin' },
     { index: 0, name: 'A', installer: 'a.exe', customTabs: [{}] } ] };
   const r = C.parseMenu(m, () => null);
   assert.deepEqual(r.state.games.map(g => g.name), ['A', 'B']);
@@ -97,7 +97,7 @@ test('parseMenu: sortiert nach index, meldet fehlende Dateien und unbekannte Fel
   assert.match(notes, /schemaVersion 2/);
   assert.match(notes, /Datei nicht gefunden/);
   assert.match(notes, /customTabs/);
-  assert.match(notes, /provider "steam"/);
+  assert.match(notes, /provider "origin"/);
   assert.throws(() => C.parseMenu([], () => null), /kein gültiges Objekt/);
 });
 
@@ -148,4 +148,21 @@ test('Disc-Prüfung: ungewöhnliche Endung ist nur ein Hinweis', async () => {
   const s = sampleState(); s.games[0].installer = 'Spiel1/setup.bin';
   const r = await C.checkDisc(s, async () => 'file');
   assert.deepEqual(r.issues.map(i => i.level), ['warn']);
+});
+
+test('Anbieter: gog ist Standard und wird nicht geschrieben, epic und steam bleiben erhalten', () => {
+  const s = sampleState();
+  s.games.push(Object.assign(C.newGame(), { name: 'E', installer: 'e/s.exe', provider: 'epic' }));
+  s.games.push(Object.assign(C.newGame(), { name: 'S', installer: 's/s.exe', provider: 'steam' }));
+  const { menu } = C.buildMenu(s, new Map());
+  assert.equal(menu.games[0].provider, undefined);
+  assert.equal(menu.games[1].provider, 'epic');
+  assert.equal(menu.games[2].provider, 'steam');
+  const r = C.parseMenu(JSON.parse(JSON.stringify(menu)), () => null);
+  assert.deepEqual(r.state.games.map(g => g.provider), ['gog', 'epic', 'steam']);
+  assert.deepEqual(r.notes, []);
+  assert.ok(C.validate(s).some(i => i.level === 'warn' && /Steam/.test(i.msg)));
+  const bad = C.parseMenu({ schemaVersion: 1, title: 'T', games: [{ index: 0, name: 'X', installer: 'x', provider: 'origin' }] }, () => null);
+  assert.equal(bad.state.games[0].provider, 'gog');
+  assert.match(bad.notes.join(), /origin/);
 });

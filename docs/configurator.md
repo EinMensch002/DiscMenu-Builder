@@ -18,7 +18,7 @@ Links die Liste der Spiele, rechts das Formular zum gewählten Eintrag, ganz rec
 
 - **Disc-Einstellungen:** Titel, EXE-Name, Hintergrundbild, Klick- und Hover-Sound.
 - **Spiele:** hinzufügen, löschen, mit den Pfeilen sortieren. Der `index` ergibt sich aus der Reihenfolge (0, 1, 2 ...).
-- **Pro Spiel:** Name, Cover, Beschreibung, Installer-Pfad, Parameter, geschätzte Größe.
+- **Pro Spiel:** Name, Quelle (GOG, Epic Games oder Steam, mit Abzeichen in Liste und Vorschau), Cover, Beschreibung, Installer-Pfad, Parameter, geschätzte Größe.
 - **Bereiche DLCs, Patches, Extras:** Einträge mit Name, Gruppe (Unterkategorie, mit Vorschlägen), Beschreibung, Bild und Aktion ("Installer starten" oder "Datei, Ordner oder Link öffnen"). Einträge lassen sich sortieren und entfernen.
 - **Hilfe-Links:** In den Dialogen für SteamGridDB, Proxy und Beschreibungen führen Links zu den passenden Abschnitten dieser Anleitung, zu SteamGridDB (API-Schlüssel) und zu Cloudflare (Proxy). Fehlermeldungen zu CORS oder zum Proxy enthalten einen Link zur Anleitung.
 - **SteamGridDB:** Spiele und Bilder lassen sich bei SteamGridDB suchen. Schlüssel und Proxy lassen sich in einer (optional verschlüsselten) Datei sichern und wieder einlesen. Siehe [steamgriddb.md](steamgriddb.md).

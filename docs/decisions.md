@@ -16,6 +16,10 @@
 | Zugangsdaten | API-Schlüssel und Proxy im Browser, per Datei sicherbar, optional mit Passwort verschlüsselt. Nie in ZIP oder Repo |
 | Format-Beschreibung | Gemeinsames JSON Schema in `schema/menu.schema.json`, wird in den Tests gegen Beispiel und Export geprüft |
 | Disc-Prüfung | Im Konfigurator über Ordnerzugriff (Chrome, Edge), nur lesend, ohne Beachtung der Groß-/Kleinschreibung |
+| Technik Player/Builder | Go mit Ebitengine, 64 Bit, eine EXE, bauen ohne C-Compiler (siehe [platforms-and-tech.md](platforms-and-tech.md)) |
+| Anbieter | `provider` ist `gog` (Standard), `epic` oder `steam`. Jeder hat Abzeichen und Farbe im Menü, nur Text ohne Logos. GOG: Inno-Parameter. Epic: normal, still nur mit eigenen `args`. Steam: nur Anzeige, bis die Wiederherstellung geprüft ist |
+| Silent-Standard | Aus. Bei Aktivierung schlägt das Menü `C:\GOG Games\<Name>` vor |
+| Bildformat Player | PNG, JPEG und WebP werden gelesen |
 | Rolle des Menüs | Forwarder: startet Original-Installer und öffnet Extras |
 | Erste Quelle | GOG. Steam später, dafür ist `provider` reserviert |
 | Spiele pro Disc | Eines oder mehrere. Reihenfolge über `index`, beginnend bei 0 |
@@ -31,13 +35,10 @@
 
 | Thema | Frage |
 |---|---|
-| Technik | Welche Sprache und Bibliothek für Player und Builder? Entscheidung nach dem Mini-Prototyp, siehe [platforms-and-tech.md](platforms-and-tech.md) |
-| Builder-Eingabe | Soll der Builder die Rezept-ZIP direkt lesen? (Vorschlag: ja, zusätzlich zum Ordner) |
 | GOG- und Epic-Beschreibungen | Funktionieren die inoffiziellen Schnittstellen mit echten Anfragen (Antwortformate, CORS über den Proxy)? Epic wird über die geratene Shop-Adresse gefunden, das ist nur eine Notlösung |
 | Übersetzung | Reicht MyMemory (kostenlos, einfach) oder soll es DeepL mit eigenem Schlüssel sein? |
 | Bildformat | Passen die vorläufigen Werte (800 und 1920 Pixel) oder sind andere Formate wie WebP besser? Hängt von der Player-Technik ab |
-| 64 Bit | Reicht 64 Bit für Windows 10/11? |
-| Silent-Standard | Soll das Menü einen Standardzielpfad vorschlagen? Soll Silent standardmäßig an oder aus sein? |
+| 32 Bit | Der Player ist nur 64 Bit. Wird 32-Bit-Windows gebraucht? (Windows 10/11 gibt es fast nur noch in 64 Bit) |
 | Fortschritt | Wie genau wird der Fortschritt bei Silent angezeigt? (Zielordnergröße ist nur eine Schätzung) |
 | Installer ohne Inno | Wie viele GOG-Installer sind keine Inno-Installer und laufen nur im Modus Normal? |
 | Disc-Prüfung im Builder | Soll auch der Builder die Disc-Dateien prüfen, wenn der Disc-Ordner angegeben wird? (Im Konfigurator gibt es die Prüfung bereits) |

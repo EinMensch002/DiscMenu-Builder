@@ -36,17 +36,11 @@ func run(args []string, in io.Reader, out, errOut io.Writer) int {
 		return 2
 	}
 	code := build(fs, *player, *output, *disc, *check, in, out, errOut)
-	if *pause || (fs.NArg() == 1 && os.Getenv("DISCMENU_NO_PAUSE") == "" && isDragAndDrop(fs.Arg(0), *check)) {
+	if *pause || (os.Getenv("DISCMENU_NO_PAUSE") == "" && ownsConsole()) {
 		fmt.Fprint(out, "\nEnter drücken zum Beenden ...")
 		bufio.NewReader(in).ReadString('\n')
 	}
 	return code
-}
-
-// isDragAndDrop: Wer nur den Rezeptpfad übergibt und kein Terminal-Programm ist, bekommt am Ende eine Pause,
-// damit das Fenster nach einem Drag-and-drop nicht sofort verschwindet.
-func isDragAndDrop(recipe string, check bool) bool {
-	return !check && os.Getenv("TERM") == "" && os.Getenv("PROMPT") == "" && os.Getenv("SHELL") == "" && recipe != ""
 }
 
 func build(fs *flag.FlagSet, playerPath, outPath, disc string, checkOnly bool, in io.Reader, out, errOut io.Writer) int {

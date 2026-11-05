@@ -127,6 +127,7 @@ footer{text-align:center;color:var(--mut);font-size:12px;padding:8px 14px 28px;l
 const CORE = (() => {
   const UML = {'ä':'ae','ö':'oe','ü':'ue','Ä':'ae','Ö':'oe','Ü':'ue','ß':'ss'};
   const SECTIONS = ['dlcs','patches','extras'];
+  const PROVIDERS = {gog:{name:'GOG',color:'#9e4ebe',note:''}, epic:{name:'Epic Games',color:'#8d93a5',note:'Epic hat keine einheitlichen Offline-Installer. Der Player startet sie normal, still nur mit eigenen Parametern.'}, steam:{name:'Steam',color:'#66c0f4',note:'Steam-Backups kann der Player noch nicht wiederherstellen. Der Eintrag wird nur angezeigt, Extras lassen sich öffnen.'}};
 
   function slug(s){
     return String(s == null ? '' : s).replace(/[äöüÄÖÜß]/g, c => UML[c]).normalize('NFKD')
@@ -142,7 +143,7 @@ const CORE = (() => {
   }
 
   function newItem(){ return {name:'',description:'',cover:null,group:'',kind:'installer',path:'',args:'',_open:true}; }
-  function newGame(){ return {name:'',cover:null,description:'',installer:'',args:'',estimatedSizeMB:'',dlcs:[],patches:[],extras:[]}; }
+  function newGame(){ return {name:'',provider:'gog',cover:null,description:'',installer:'',args:'',estimatedSizeMB:'',dlcs:[],patches:[],extras:[]}; }
   function newState(){ return {title:'',output:'',background:null,sounds:{click:null,hover:null},games:[newGame()]}; }
 
   /* --- CRC32 und ZIP (Speichern ohne Kompression, Lesen mit Deflate) --- */
@@ -221,6 +222,7 @@ const CORE = (() => {
       if (!g.name.trim()) E(gn + ': Name fehlt.');
       if (!g.installer.trim()) E(gn + ': Installer-Pfad fehlt.');
       else { const x = relPathIssue(g.installer.trim()); if (x) E(gn + ': Installer-Pfad ' + x + '.'); }
+      if (g.provider === 'steam') W(gn + ': ' + PROVIDERS.steam.note);
       if (String(g.estimatedSizeMB).trim() !== '' && !(Number(g.estimatedSizeMB) > 0)) E(gn + ': Die Größe muss eine Zahl über 0 sein.');
       SECTIONS.forEach(k => g[k].forEach((it,j) => {
         const n = gn + ', ' + label[k] + ' ' + (j+1) + ' (' + (it.name.trim() || 'ohne Namen') + ')';
@@ -265,6 +267,7 @@ const CORE = (() => {
       const c = take(g.cover,'covers',g.name); if (c) o.cover = c;
       if (g.description.trim()) o.description = g.description.trim();
       o.installer = norm(g.installer);
+      if (g.provider && g.provider !== 'gog' && PROVIDERS[g.provider]) o.provider = g.provider;
       const a = parseArgs(g.args); if (a.length) o.args = a;
       if (String(g.estimatedSizeMB).trim() !== '') o.estimatedSizeMB = Number(g.estimatedSizeMB);
       SECTIONS.forEach(k => { if (g[k].length) o[k] = g[k].map(it => itemOut(it,g)); });
@@ -298,7 +301,7 @@ const CORE = (() => {
       ng.estimatedSizeMB = g.estimatedSizeMB == null ? '' : String(g.estimatedSizeMB);
       SECTIONS.forEach(k => { ng[k] = (Array.isArray(g[k]) ? g[k] : []).map(item); });
       if (g.customTabs) notes.push('"' + ng.name + '": customTabs gehören nicht zu Version 1 und werden nicht übernommen.');
-      if (g.provider && g.provider !== 'gog') notes.push('"' + ng.name + '": provider "' + g.provider + '" wird nicht unterstützt und nicht übernommen.');
+      if (g.provider){ if (PROVIDERS[g.provider]) ng.provider = g.provider; else notes.push('"' + ng.name + '": provider "' + g.provider + '" ist unbekannt, es wird gog angenommen.'); }
       s.games.push(ng);
     }
     if (!s.games.length) s.games.push(newGame());
@@ -313,7 +316,7 @@ const CORE = (() => {
   }
   function sane(s){
     return s && typeof s === 'object' && typeof s.title === 'string' && Array.isArray(s.games) && s.sounds &&
-      s.games.every(g => g && SECTIONS.every(k => Array.isArray(g[k])));
+      s.games.every(g => g && SECTIONS.every(k => Array.isArray(g[k])) && (!g.provider || PROVIDERS[g.provider]));
   }
   /* --- Disc-Dateien prüfen (exists(pfad) liefert 'file', 'dir' oder null) --- */
   function discRefs(s){
@@ -430,14 +433,14 @@ const CORE = (() => {
     }
     return {key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '')};
   }
-  return {discRefs, checkDisc, packSettings, unpackSettings, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
+  return {PROVIDERS, discRefs, checkDisc, packSettings, unpackSettings, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
 })();
 if (typeof module !== 'undefined') module.exports = CORE;
 
 /* === UI === */
 (() => {
   if (typeof document === 'undefined') return;
-  const {checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText, packSettings, unpackSettings} = CORE;
+  const {PROVIDERS, checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText, packSettings, unpackSettings} = CORE;
   const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Musik','Artwork','Dokumente','Videos'], dlcs:[]};
   const MIME = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif',wav:'audio/wav',ogg:'audio/ogg',mp3:'audio/mpeg'};
   const assets = new Map(); let state = newState(); let sel = 0; let counter = 1; let touched = false;
@@ -935,6 +938,11 @@ if (typeof module !== 'undefined') module.exports = CORE;
       fileField('Klick-Sound (optional)', state.sounds, 'click', {kind:'sound'}),
       fileField('Hover-Sound (optional)', state.sounds, 'hover', {kind:'sound'}));
   }
+  function providerSelect(g){
+    const sel = h('select', {onchange: () => { g.provider = sel.value; renderEditor(); renderNav(); touch(); }},
+      Object.entries(PROVIDERS).map(([id, p]) => h('option', {value:id}, p.name)));
+    sel.value = g.provider || 'gog'; return sel;
+  }
   function gameForm(g, i){
     return h('div', {},
       h('div',{class:'row'}, h('h2',{style:'flex:1'}, 'Spiel ' + i),
@@ -943,6 +951,7 @@ if (typeof module !== 'undefined') module.exports = CORE;
         h('button',{type:'button',class:'sm danger',onclick:() => { if (confirm('Dieses Spiel mit allen Einträgen löschen?')){ state.games.splice(i,1); sel = state.games.length ? Math.min(i, state.games.length-1) : 'disc'; renderAll(); save(); } }},'Löschen')),
       h('p',{class:'hint'},'Der Index ergibt sich aus der Reihenfolge der Spiele (0, 1, 2 ...).'),
       wrap('Name', txt(g,'name',{ph:'z. B. Stronghold HD'})),
+      wrap('Quelle des Spiels', providerSelect(g), PROVIDERS[g.provider || 'gog'].note || 'Bestimmt Abzeichen, Farbe und Installationsweg im Menü.'),
       fileField('Cover (optional)', g, 'cover', {kind:'cover', term: () => g.name, hint:'Wird auf höchstens 800 Pixel verkleinert und als PNG gespeichert.'}),
       wrap('Beschreibung (optional)', txt(g,'description',{multiline:true})),
       descBtn(g, () => g.name),
@@ -954,10 +963,11 @@ if (typeof module !== 'undefined') module.exports = CORE;
       section(g,'extras','Extras','Soundtrack, Artbooks, Handbücher und mehr. Mit "Gruppe" lassen sie sich unterteilen.'));
   }
 
+  function providerChip(g){ const p = PROVIDERS[g.provider || 'gog']; return h('span', {class:'chip', style:'margin-left:6px;color:' + p.color + ';border-color:' + p.color}, p.name); }
   function renderNav(){
     $('#nav').replaceChildren(
       h('button',{type:'button',class:'nv' + (sel==='disc' ? ' on' : ''),onclick:() => { sel = 'disc'; renderAll(); }}, '⚙ Disc-Einstellungen'),
-      ...state.games.map((g,i) => h('button',{type:'button',class:'nv' + (sel===i ? ' on' : ''),onclick:() => { sel = i; renderAll(); }}, h('b',{},String(i)), ' ', g.name || '(ohne Namen)')),
+      ...state.games.map((g,i) => h('button',{type:'button',class:'nv' + (sel===i ? ' on' : ''),onclick:() => { sel = i; renderAll(); }}, h('b',{},String(i)), ' ', g.name || '(ohne Namen)', providerChip(g))),
       h('button',{type:'button',class:'nv add',onclick:() => { state.games.push(newGame()); sel = state.games.length-1; renderAll(); save(); }}, '+ Spiel hinzufügen'),
       h('button',{type:'button',class:'nv add',onclick:addGameViaSgdb}, '🔎 Spiel über SteamGridDB hinzufügen'));
   }
@@ -1042,7 +1052,7 @@ if (typeof module !== 'undefined') module.exports = CORE;
       const ov = h('div', {class:'ov'}); box.replaceChildren(ov);
       if (cur === null){
         ov.append(h('h2', {}, state.title.trim() || '(ohne Titel)'), h('p', {class:'hint'}, 'Spiel auswählen'),
-          h('div', {class:'grid'}, state.games.map((g,i) => { const b = btn('', () => { cur = i; tab = 'game'; draw(); }, 'tile'); b.append(cover(g.cover, g.name), h('span', {}, g.name || '(ohne Namen)')); return b; })));
+          h('div', {class:'grid'}, state.games.map((g,i) => { const b = btn('', () => { cur = i; tab = 'game'; draw(); }, 'tile'); b.append(cover(g.cover, g.name), h('span', {}, g.name || '(ohne Namen)'), providerChip(g)); return b; })));
         return;
       }
       const g = state.games[cur];
@@ -1055,7 +1065,7 @@ if (typeof module !== 'undefined') module.exports = CORE;
       else content = h('div', {}, [...grouped(g[tab])].map(([k, list]) => h('div', {}, k ? h('div', {class:'gh'}, k) : null, list.map(item))));
       ov.append(h('div', {class:'row'}, state.games.length > 1 ? btn('← Alle Spiele', () => { cur = null; draw(); }, 'sm') : null, h('span', {class:'hint'}, state.title.trim() || '(ohne Titel)')),
         h('div', {class:'game'}, h('div', {class:'cv'}, cover(g.cover, g.name)),
-          h('div', {}, h('h2', {}, g.name || '(ohne Namen)'), h('div', {class:'tabs'}, tabs.map(([k,l]) => btn(l, () => { tab = k; draw(); }, tab === k ? 'on' : ''))), content)));
+          h('div', {}, h('h2', {}, g.name || '(ohne Namen)', ' ', providerChip(g)), h('div', {class:'tabs'}, tabs.map(([k,l]) => btn(l, () => { tab = k; draw(); }, tab === k ? 'on' : ''))), content)));
     }
     draw();
     dlg.classList.add('wide'); dlg.addEventListener('close', () => dlg.classList.remove('wide'), {once:true});

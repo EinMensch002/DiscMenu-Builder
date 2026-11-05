@@ -21,6 +21,10 @@ const { chromium } = require('playwright');
   await page.fill('#editor input >> nth=0', 'Spiel Zwei');
   await page.locator('#editor input[placeholder*="setup_stronghold"]').fill('Zwei/setup.exe');
 
+  // Anbieter wählen
+  await page.locator('#editor select').first().selectOption('epic');
+  assert.match(await page.locator('#nav').textContent(), /Epic Games/);
+
   // JSON bearbeiten
   await page.click('#bJson');
   const ta = page.locator('textarea.code');

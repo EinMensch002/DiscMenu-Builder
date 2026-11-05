@@ -3,6 +3,7 @@ package shared
 import (
 	"bytes"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -168,5 +169,38 @@ func TestBuildPayloadFromFolder(t *testing.T) {
 	}
 	if !back.Exists("assets/c.png") || back.Exists("assets/unbenutzt.png") {
 		t.Fatal("nur verwendete Assets gehören ins Paket")
+	}
+}
+
+// Ein vom Konfigurator erzeugtes Rezept muss vom Go-Teil streng gelesen und als gültig erkannt werden.
+func TestKonfiguratorExportLoads(t *testing.T) {
+	node, err := exec.LookPath("node")
+	if err != nil {
+		t.Skip("node nicht installiert")
+	}
+	out := filepath.Join(t.TempDir(), "export.zip")
+	cmd := exec.Command(node, filepath.Join("..", "..", "tests", "export-fixture.js"), out)
+	if b, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("Export: %v %s", err, b)
+	}
+	r, err := LoadRecipe(out, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := Validate(r.Menu, r.Exists); HasErrors(got) {
+		t.Fatalf("Export des Konfigurators ist laut Go ungültig: %v", got)
+	}
+	g := r.Menu.Games
+	if g[0].Name != "Größen-Spiel" || g[0].Description != "Umlaute: äöüß" || g[0].EstimatedSizeMB != 1500 {
+		t.Fatalf("Spiel 0: %+v", g[0])
+	}
+	if g[0].Installer != "Spiel1/setup.exe" || len(g[0].Args) != 2 || g[0].Args[1] != `"/X=a b"` {
+		t.Fatalf("Installer und Parameter: %+v", g[0])
+	}
+	if g[1].ProviderID() != ProviderEpic || g[2].ProviderID() != ProviderSteam || g[0].ProviderID() != ProviderGOG {
+		t.Fatal("Anbieter")
+	}
+	if _, err := BuildPayload(r); err != nil {
+		t.Fatal(err)
 	}
 }
