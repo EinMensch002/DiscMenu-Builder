@@ -1,20 +1,42 @@
 # DiscMenu-Builder
 
-Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung auf DVD oder Blu-ray. Das Menü wirkt wie ein klassischer Installer, ist aber ein Forwarder: Es startet die originalen Installer und öffnet Extras.
+Werkzeuge für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung auf DVD oder Blu-ray. Das Projekt hat zwei Seiten:
 
-> **Status:** Der **Konfigurator** ist fertig und nutzbar: https://einmensch002.github.io/DiscMenu-Builder/
-> **Builder** und **Player** sind gebaut (Go, eine EXE ohne Installation), aber noch nicht auf echtem Windows und Wine/Proton geprüft. Anleitung: [docs/player-und-builder.md](docs/player-und-builder.md)
+- **Das Menü auf der Disc:** Aus einer einzigen `menu.json` entsteht ein einheitliches Installer-Menü (EXE). Es wirkt wie ein klassischer Installer, ist aber ein Forwarder: Es startet die originalen Installer und öffnet Extras.
+- **Die Hülle drumherum:** Das **Cover-Tool** erzeugt druckfertige Hüllen (Vorderseite, Rücken, Rückseite mit Systemanforderungen) im GOG-Stil.
+
+> **Status und Links**
+>
+> | Werkzeug | Stand | Aufrufen |
+> |---|---|---|
+> | **Menü-Konfigurator** | fertig und nutzbar | https://einmensch002.github.io/DiscMenu-Builder/ |
+> | **Cover-Tool** (Hüllen zum Ausdrucken) | fertig und nutzbar, Ausdruck mit echtem Drucker noch zu prüfen | https://einmensch002.github.io/DiscMenu-Builder/cover/ |
+> | **Builder** und **Player** (die Menü-EXE) | gebaut (Go, eine EXE ohne Installation), noch nicht auf echtem Windows und Wine/Proton geprüft | [Anleitung](docs/player-und-builder.md) |
+>
+> Beide Web-Apps laufen komplett im Browser, nichts wird hochgeladen, und verlinken sich gegenseitig.
+
+## Die Werkzeuge im Überblick
+
+| Werkzeug | Aufgabe | Dokumentation |
+|---|---|---|
+| **Konfigurator** (`configurator/`) | Das Rezept (`menu.json` mit Bildern und Sounds) per Maske zusammenstellen, mit Vorschau und Installations-Simulation. Exportiert eine ZIP | [docs/configurator.md](docs/configurator.md) |
+| **Builder** (`src/Builder`) | Aus dem Rezept und dem Player die fertige Menü-EXE zusammensetzen und das Rezept prüfen | [docs/player-und-builder.md](docs/player-und-builder.md) |
+| **Player** (`src/Player`) | Das Menü selbst, das auf der Disc liegt (Windows 10/11, Linux über Wine/Proton) | [docs/player-und-builder.md](docs/player-und-builder.md) |
+| **Cover-Tool** (`cover-tool/`) | Druckfertige Hüllen: Cover, Rücken und Rückseite mit Systemanforderungen, Spielfunktionen und USK, A4 quer mit Schnittmarken | [docs/cover-tool.md](docs/cover-tool.md) |
+
+Der übliche Ablauf für eine Disc: Rezept im **Konfigurator** erstellen, mit dem **Builder** die Menü-EXE erzeugen, Disc brennen und mit dem **Cover-Tool** die Hülle drucken.
 
 ## Eckpunkte
 
 - **Ein Rezept:** Alles steht in der `menu.json` (mit Assets, als ZIP). Für eine neue Disc wird nichts neu programmiert.
 - **Konfigurator:** Eine Web-App ohne Backend, in der man das Rezept per Maske zusammenstellt, statt die JSON zu schreiben.
+- **Cover-Tool:** Eine zweite Web-App für die Hülle der Disc. Sie druckt Cover, Rücken und Rückseite mit Systemanforderungen im GOG-Stil (Stil Klassisch oder Modern, Deutsch oder Englisch, USK-Kennzeichnung, ohne Barcode).
 - **Einheitlicher Look, anpassbar:** Layout und Bedienung sind immer gleich, Texte, Cover, Hintergrund und Sounds kommen aus der Rezeptdatei.
 - **Eine oder mehrere Spiele pro Disc:** Bei mehreren Spielen gibt es eine Auswahlseite (Reihenfolge über `index`), bei nur einem Spiel öffnet sich direkt dessen Seite.
 - **Pro Spiel:** Installieren (wahlweise still mit Zielpfad), DLCs/Erweiterungen, Patches (z. B. Sprach- oder Grafikpatches), Extras (Soundtrack, Artbooks, Handbücher). Eigene Tabs (z. B. Mods) sind später geplant.
 - **Langlebig:** Discs werden immer finalisiert und sind unabhängig vom Internet nutzbar. Gibt es ein Update, kommt eine neue Disc.
 - **Plattformen:** Windows 10/11 sowie Linux über Wine/Proton.
-- **Zuerst GOG**, später möglicherweise Steam-Backups.
+- **Zuerst GOG**, daneben Epic Games. Steam ist vorbereitet (Anzeige), später möglicherweise mit Backups und Steam-Daten.
 
 ## Dokumentation
 
@@ -22,7 +44,7 @@ Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für
 |---|---|
 | [docs/concept.md](docs/concept.md) | Konzept, Bausteine, Ablauf, Menüaufbau, EXE-Aufbau |
 | [docs/player-und-builder.md](docs/player-und-builder.md) | Builder und Player: Bauen, Benutzen, Windows 11, Wine/Proton, Anbieter-Look |
-| [docs/cover-tool.md](docs/cover-tool.md) | Cover-Tool: Hüllen und Booklets zum Ausdrucken |
+| [docs/cover-tool.md](docs/cover-tool.md) | Cover-Tool: Bedienung, Maße, Stile, Drucken, Grenzen, Geplantes |
 | [docs/configurator.md](docs/configurator.md) | Konfigurator (Web-App): Bedienung, Grenzen |
 | [docs/steamgriddb.md](docs/steamgriddb.md) | Bilder, Beschreibungen und Übersetzung, Einrichtung, Proxy |
 | [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json`, Aufbau der Rezept-ZIP |
@@ -41,12 +63,12 @@ DiscMenu-Builder/
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
 ├─ configurator/            Konfigurator: index.html (eine eigenständige Datei)
 ├─ go.mod, scripts/build.sh Go-Projekt und Build-Skript für die Windows-EXEs
-├─ cover-tool/              Cover-Tool: druckfertige Hüllen (Web-App, eigene Seite unter /cover/)
+├─ cover-tool/              Cover-Tool: druckfertige Hüllen (Web-App, Seite unter /cover/)
 ├─ schema/                  JSON Schema der menu.json
 ├─ tests/                   Automatische Tests
 ├─ tools/mkdemo/            Erzeugt die Beispiel-Assets
 ├─ tools/cors-proxy/        Optionaler Proxy (Cloudflare Worker) für SteamGridDB
-├─ .github/workflows/       Veröffentlichung des Konfigurators auf GitHub Pages
+├─ .github/workflows/       Tests, Windows-Build und Veröffentlichung von Konfigurator und Cover-Tool auf GitHub Pages
 ├─ examples/
 │  ├─ menu.example.json     Beispiel-Rezept mit drei Spielen (GOG, Epic, Steam)
 │  └─ assets/               Beispiel-Cover, -Hintergrund und -Klick-Sound (erzeugt mit tools/mkdemo)
@@ -78,14 +100,20 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Automatische Tests im Repo (Kernlogik, Schema, Worker, Oberfläche) mit CI
 - [x] Prüfung der Disc-Dateien über Ordnerzugriff (Chrome, Edge)
 
-### Cover-Tool (Web-App, im Repo, Seite unter /cover/)
+### Cover-Tool (Web-App, live unter /cover/)
 
-- [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, GOG-Galaxy-Feld, deutsch oder englisch
-- [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzlinien
-- [x] Rückseite mit festen Plätzen (nichts verschiebt sich beim Ausblenden von Galaxy-Feld oder USK), zweiter Stil "Modern" (Konsolen-Stil)
-- [x] Tests im Repo (Logik und Druck)
+- [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, GOG-Galaxy-Feld, Deutsch oder Englisch
+- [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzlinien (Test im Browser)
+- [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden von Galaxy-Feld oder USK
+- [x] Zweiter Stil "Modern" (Konsolen-Stil) neben dem klassischen GOG-Stil
+- [x] Bilder werden auf Druckgröße verkleinert, Hinweis zur Schärfe (dpi)
+- [x] Tests im Repo (Logik, Druck, feste Plätze, beide Stile) und Veröffentlichung unter `/cover/`
 - [ ] Mit echtem Drucker und echter Hülle prüfen (Maße, Schnittmarken)
-- [ ] Optional: Titel, Anbieter und Cover direkt aus der `menu.json` übernehmen
+- [ ] **SteamGridDB** anbinden: Cover, Hintergründe und Logos suchen und direkt als Front, Rückseite und Publisher-Logo übernehmen (gleiche Einrichtung mit Schlüssel und Proxy wie im Konfigurator)
+- [ ] **Steam und SteamDB**: Systemanforderungen und Spielfunktionen automatisch einlesen (Machbarkeit und Proxy zuerst prüfen)
+- [ ] Titel, Anbieter und Cover aus der `menu.json` oder Rezept-ZIP übernehmen
+- [ ] Stile passend zum Anbieter (Epic Games, Steam) wie die Abzeichen im Menü
+- [ ] Weitere Hüllenformate (z. B. Blu-ray-Hülle), PDF-Export
 
 ### Builder und Player (gebaut, Praxistest steht aus)
 
@@ -106,6 +134,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 ### Später
 
 - [ ] Eigene Tabs (z. B. Mods)
+- [ ] Gemeinsame Einstellungen (SteamGridDB-Schlüssel, Proxy) für Konfigurator und Cover-Tool, damit man sie nur einmal einrichten muss
 - [ ] Bessere Übersetzung (z. B. DeepL mit eigenem Schlüssel)
 - [ ] GOG-Katalog als Beschreibungsquelle mit deutschen Texten
 - [ ] Steam-Provider: Backups wiederherstellen (Machbarkeit zuerst prüfen)
