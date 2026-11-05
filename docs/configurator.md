@@ -10,7 +10,7 @@ Eine Web-App, in der man das Menü per Maske zusammenstellt, statt die `menu.jso
 - **Läuft komplett im Browser.** Kein Backend, nichts wird hochgeladen. Bilder, Sounds und die ZIP werden lokal verarbeitet.
 - **Keine Abhängigkeiten.** Eine HTML-Datei ohne externe Bibliotheken. ZIP schreiben und lesen sind selbst eingebaut.
 - Der Konfigurator erzeugt nur das Rezept. Die Menü-EXE macht der Builder.
-- Die Veröffentlichung auf GitHub Pages läuft automatisch über `.github/workflows/pages.yml`, sobald sich etwas im Ordner `configurator/` ändert.
+- Die Veröffentlichung auf GitHub Pages läuft automatisch über `.github/workflows/pages.yml`, sobald sich etwas im Ordner `configurator/` oder `cover-tool/` ändert. Der Konfigurator liegt in der Wurzel der Seite, das [Cover-Tool](cover-tool.md) unter `/cover/`. Beide verlinken sich gegenseitig.
 
 ## Bedienung
 

@@ -46,3 +46,4 @@
 | Eigene Tabs | Genaues Format von `customTabs` (Version 2 des Formats?) |
 | Mehrsprachigkeit | Soll das Menü mehrere Sprachen unterstützen? |
 | Steam | Lässt sich die Wiederherstellung eines Backups auslösen? Zuerst prüfen |
+| Cover-Tool: Steam und SteamGridDB | Lassen sich Bilder (SteamGridDB) sowie Anforderungen und Funktionen (Steam-Shop, SteamDB) im Cover-Tool über den Proxy abrufen, und wie werden Schlüssel und Proxy mit dem Konfigurator geteilt? Siehe [cover-tool.md](cover-tool.md) |
