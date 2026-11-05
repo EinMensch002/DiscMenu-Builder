@@ -2,7 +2,7 @@
 
 ## Ziel
 
-Ein einheitliches, anpassbares Installer-Menü für Spiele-Discs. Es entsteht zuerst für GOG-Spiele und ist so aufgebaut, dass später weitere Quellen (z. B. Steam-Backups) dazukommen können.
+Ein einheitliches, anpassbares Installer-Menü für Spiele-Discs. Es entsteht zuerst für GOG-Spiele, kennt aber auch Epic-Games-Spiele und ist für Steam-Backups vorbereitet.
 
 Das Menü wird aus einem Rezept (`menu.json` mit Assets) erzeugt. Für eine neue Disc muss nichts programmiert oder kompiliert werden. Das Menü ist ein **Forwarder**: Es installiert nichts selbst, sondern startet die originalen Installer und öffnet Extras.
 
@@ -59,9 +59,15 @@ Gemeint sind feste Patches, die zum Brennzeitpunkt schon bekannt sind, z. B. ein
 
 Nachträgliches Ergänzen von Patches auf einer bereits gebrannten Disc ist bewusst nicht vorgesehen. Gründe stehen in [disc-planung.md](disc-planung.md).
 
-## Provider (Zukunft: Steam)
+## Anbieter (Provider)
 
-Jedes Spiel hat einen reservierten `provider` (zurzeit nur `gog`). Der Player kapselt die Installation hinter einer Schnittstelle, ein Provider pro Quelle. So kann später ein `steam`-Provider ergänzt werden, ohne das Menü umzubauen.
+Jedes Spiel hat einen `provider`: `gog` (Standard), `epic` oder `steam`. Der Player kapselt die Unterschiede hinter einer Schnittstelle (`src/Player/providers.go`) und zeigt jeden Anbieter anders an: Abzeichen mit dem Namen und eine eigene Akzentfarbe (GOG violett, Epic silbern, Steam blau). Es werden nur Text und Farbe benutzt, keine Logos oder Marken-Grafiken.
+
+| Anbieter | Installation | Stand |
+|---|---|---|
+| `gog` | Inno-Setup-Installer, still mit `/VERYSILENT` und Zielordner | umgesetzt, noch nicht an echten Installern geprüft |
+| `epic` | Epic hat keine einheitlichen Offline-Installer. Der Installer startet normal, still nur mit eigenen `args` | umgesetzt |
+| `steam` | Soll später Backups wiederherstellen | nur Anzeige, Installieren ist gesperrt |
 
 Zu Steam ist vorab zu prüfen:
 - Die Wiederherstellung eines Steam-Backups ist eine Funktion des Steam-Clients. Ob sie sich von außen auslösen lässt, ist offen.

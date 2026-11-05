@@ -1,0 +1,80 @@
+name: Tests und Build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: Konfigurator (Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  go:
+    name: Builder und Player (Go)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      # Ebitengine braucht unter Linux diese Bibliotheken, um die Tests zu übersetzen.
+      - run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxxf86vm-dev libasound2-dev
+      - run: gofmt -l src tools | tee /dev/stderr | (! read)
+      - run: go vet ./...
+      - run: GOOS=windows go vet ./...
+      - run: go test ./...
+
+  windows:
+    name: Windows-Build
+    runs-on: ubuntu-latest
+    needs: [go]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: scripts/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DiscMenu-Windows
+          path: dist/
+
+  # Rauchtest unter Wine: Der Builder erzeugt eine Menü-EXE, der Player liest und prüft sie (-selftest, ohne Fenster).
+  # Noch nicht an einem echten Lauf bestätigt, deshalb ohne Auswirkung auf das Gesamtergebnis.
+  wine:
+    name: Wine-Rauchtest
+    runs-on: ubuntu-latest
+    needs: [windows]
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: DiscMenu-Windows
+          path: dist
+      - run: sudo apt-get update && sudo apt-get install -y wine64
+      - env:
+          WINEDEBUG: -all
+          WINEDLLOVERRIDES: mscoree,mshtml=d
+          WINEPREFIX: ${{ runner.temp }}/wine
+        run: |
+          mkdir work && cp -r examples/assets work/assets && cp examples/menu.example.json work/menu.json
+          wine dist/Builder.exe -player dist/Player.exe -o work/Menue.exe work
+          wine work/Menue.exe -version
+          wine work/Menue.exe -selftest | tee selftest.txt
+          grep -q "3 Spiel" selftest.txt

@@ -28,6 +28,16 @@ GOG-Windows-Installer sind in der Regel Inno-Setup-Installer. Relevante Paramete
 
 Zusätzliche Parameter pro Eintrag stehen im Feld `args` der `menu.json`. Nicht jeder ältere GOG-Installer ist ein Inno-Installer. Diese Fälle laufen im Modus Normal.
 
+## Umsetzung im Player
+
+- Der Installer wird über `ShellExecuteEx` gestartet (nicht `CreateProcess`). Dadurch erscheint die Rechteabfrage (UAC), wenn der Installer Administratorrechte verlangt. Das Menü wartet auf das Prozessende und liest den Exit-Code.
+- **GOG still:** `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="<Ziel>" /LOG="<Datei>"`, danach die `args` des Eintrags.
+- **Normal:** keine zusätzlichen Parameter. `args` gelten nur für still.
+- **Epic still:** nur die `args` des Eintrags, ohne Zielordner. Ohne `args` läuft der Installer normal.
+- Fehlerfall: Exit-Code und das Ende des Protokolls werden angezeigt, bei Code 5 oder 740 der Hinweis auf fehlende Administratorrechte.
+- Fortschritt (nur still, mit `estimatedSizeMB`): Größe des Zielordners im Verhältnis zur Schätzung, höchstens 99 %, der Balken geht nie zurück.
+- Der erkannte Installationsordner (GOG-Registry) wird für spätere DLCs und Patches desselben Spiels als Zielordner vorgeschlagen.
+
 ## Ergebnis auslesen
 
 Ordner zu prüfen ist unzuverlässig, weil das Spiel auf einer anderen Platte liegen kann und kleine Pakete (z. B. Redistributables) unter Windows landen. Besser sind diese Quellen:

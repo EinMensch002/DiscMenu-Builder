@@ -12,26 +12,22 @@ Windows 7 ist nicht mehr Ziel. Das erleichtert die Technikauswahl, weil keine ve
 
 Die Technik wird nach diesen Anforderungen ausgewählt, nicht umgekehrt. Das gilt für den **Player** und den **Builder**. Der **Konfigurator** ist eine Web-App und davon unabhängig (siehe [configurator.md](configurator.md)).
 
-## Kandidaten für Player und Builder
+## Entscheidung: Go mit Ebitengine
 
-| Option | Windows 10/11 | Wine/Proton | Bewertung |
-|---|---|---|---|
-| C# mit WPF (.NET Framework) | .NET ist in aktuellen Windows-Versionen vorinstalliert | WPF läuft in Wine nur lückenhaft | ungeeignet |
-| C# mit WinForms (.NET Framework) | ja | über wine-mono meist möglich, Proton bringt kein .NET mit | möglich, aber unter Linux umständlich |
-| Nativ (C++ oder Rust) mit SDL2 | ja | gut | **vorläufig bevorzugt** |
-| Tauri / WebView | ja | unklar | bereits verworfen (Input-Lag) |
-| Godot | ja | gut | bereits verworfen (knapp 200 MB) |
+Player und Builder sind in **Go** geschrieben, der Player zeichnet mit **Ebitengine** (2D, reines Go).
 
-Stand: Das sind Annahmen, die noch nicht geprüft wurden. Vor der Entscheidung wird ein Mini-Prototyp gebaut.
+| Punkt | Begründung |
+|---|---|
+| Eine EXE | Statisch gebunden, keine Laufzeit nötig (kein .NET, kein Visual C++). Etwa 14 MB für den Player |
+| Kein C-Compiler | Ebitengine nutzt unter Windows DirectX 11 (oder OpenGL) ohne cgo. Die EXEs lassen sich von Linux aus bauen: `scripts/build.sh` |
+| Wine/Proton | Direct3D 11 wird von Wine (wined3d) und Proton (DXVK) bereitgestellt. Bei Problemen lässt sich mit `-graphics opengl` umschalten |
+| Bedienung | Hover, Klick-Sound und Bilder ohne Verzögerung, kein WebView |
+| Windows-Funktionen | Rechteabfrage (UAC), Ordnerdialog, Registry und Zwischenablage über `golang.org/x/sys/windows` |
+| Audio | Direkt über `oto`. Fehlt das Audiogerät (z. B. in Wine), bleibt das Menü stumm, statt abzustürzen |
 
-## Mini-Prototyp
+Verworfen: WPF und WinForms (Wine/Proton bringen kein .NET mit), Tauri/WebView (Eingabeverzögerung), Godot (knapp 200 MB).
 
-1. Fenster mit Cover-Bild, Hover-Effekt und Klick-Sound.
-2. Einen Prozess starten und auf sein Ende warten.
-3. Registry-Wert lesen.
-4. EXE mit angehängtem Paket lesen.
-
-Getestet wird unter Windows 10/11 und unter Wine. Auf dieser Basis fällt die Entscheidung für Sprache und Bibliothek.
+Der geplante Mini-Prototyp ist damit nicht mehr nötig, der Player selbst ist der Prototyp. Offen ist der **Praxistest** unter echtem Windows 10/11 und unter Wine/Proton (siehe [manuelle-pruefung.md](manuelle-pruefung.md)).
 
 ## Hinweise für Wine/Proton
 
@@ -41,4 +37,4 @@ Getestet wird unter Windows 10/11 und unter Wine. Auf dieser Basis fällt die En
 
 ## Automatische Builds und Tests
 
-Builds laufen über GitHub Actions. Denkbar ist ein einfacher Test unter Wine auf einem Linux-Runner, der prüft, ob die EXE startet und das Paket liest.
+Builds laufen über GitHub Actions (`.github/workflows/tests.yml`): Go-Tests, Windows-Build als Download (Artefakt `DiscMenu-Windows`) und ein Rauchtest unter Wine. Der Test baut mit dem Builder eine Menü-EXE und lässt den Player sie mit `-selftest` lesen und prüfen, ohne Fenster. Der Wine-Job ist noch nicht an einem echten Lauf bestätigt und beeinflusst das Gesamtergebnis nicht.

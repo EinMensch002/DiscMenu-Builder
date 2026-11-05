@@ -36,17 +36,50 @@
         }
       ],
       "extras": [
-        { "name": "Soundtrack", "group": "Musik", "open": "Beispiel-Spiel-1/Extras/Soundtrack" },
-        { "name": "Artbook", "group": "Artwork", "open": "Beispiel-Spiel-1/Extras/artbook.pdf" },
-        { "name": "Handbuch", "group": "Dokumente", "open": "Beispiel-Spiel-1/Extras/handbuch.pdf" }
+        {
+          "name": "Soundtrack",
+          "group": "Musik",
+          "open": "Beispiel-Spiel-1/Extras/Soundtrack"
+        },
+        {
+          "name": "Artbook",
+          "group": "Artwork",
+          "open": "Beispiel-Spiel-1/Extras/artbook.pdf"
+        },
+        {
+          "name": "Handbuch",
+          "group": "Dokumente",
+          "open": "Beispiel-Spiel-1/Extras/handbuch.pdf"
+        }
+      ],
+      "provider": "gog",
+      "args": [
+        "/LANG=german"
       ]
     },
     {
       "index": 1,
       "name": "Beispiel-Spiel 2",
       "cover": "assets/beispiel-spiel-2.png",
-      "description": "Kurze Beschreibung des zweiten Spiels.",
-      "installer": "Beispiel-Spiel-2/setup_beispiel_spiel_2.exe"
+      "description": "Kurze Beschreibung des zweiten Spiels. Epic-Installer laufen normal, still nur mit eigenen Parametern.",
+      "installer": "Beispiel-Spiel-2/setup_beispiel_spiel_2.exe",
+      "provider": "epic",
+      "estimatedSizeMB": 800
+    },
+    {
+      "index": 2,
+      "name": "Beispiel-Spiel 3",
+      "cover": "assets/beispiel-spiel-3.png",
+      "provider": "steam",
+      "description": "Platzhalter für ein späteres Steam-Backup. Der Player zeigt den Eintrag schon an.",
+      "installer": "Beispiel-Spiel-3/steam-backup.exe",
+      "extras": [
+        {
+          "name": "Handbuch",
+          "group": "Dokumente",
+          "open": "Beispiel-Spiel-3/Extras/handbuch.pdf"
+        }
+      ]
     }
   ]
 }

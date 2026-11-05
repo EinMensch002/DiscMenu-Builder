@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/EinMensch002/DiscMenu-Builder/main/schema/menu.schema.json",
+  "title": "DiscMenu menu.json (Version 1)",
+  "description": "Gemeinsame Beschreibung der menu.json für Konfigurator und Builder. Siehe docs/menu-json-spec.md.",
+  "type": "object",
+  "required": ["schemaVersion", "title", "games"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "output": { "type": "string", "pattern": "^[^\\\\/:*?\"<>|]+$" },
+    "background": { "$ref": "#/$defs/assetPath" },
+    "sounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "click": { "$ref": "#/$defs/assetPath" },
+        "hover": { "$ref": "#/$defs/assetPath" }
+      }
+    },
+    "games": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/game" } }
+  },
+  "$defs": {
+    "assetPath": {
+      "type": "string",
+      "description": "Relativ zur menu.json, mit Schrägstrich, im Ordner assets/.",
+      "pattern": "^assets/[^\\\\:]+$",
+      "not": { "pattern": "(^|/)\\.\\.(/|$)" }
+    },
+    "discPath": {
+      "type": "string",
+      "description": "Relativ zur Disc-Wurzel: kein Laufwerk, kein führender Schrägstrich, kein \"..\".",
+      "minLength": 1,
+      "pattern": "^[^\\\\/:][^:]*$",
+      "not": { "pattern": "(^|[\\\\/])\\.\\.([\\\\/]|$)" }
+    },
+    "args": { "type": "array", "items": { "type": "string" } },
+    "game": {
+      "type": "object",
+      "required": ["index", "name", "installer"],
+      "additionalProperties": false,
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "name": { "type": "string", "minLength": 1 },
+        "cover": { "$ref": "#/$defs/assetPath" },
+        "description": { "type": "string" },
+        "installer": { "$ref": "#/$defs/discPath" },
+        "args": { "$ref": "#/$defs/args" },
+        "estimatedSizeMB": { "type": "number", "exclusiveMinimum": 0 },
+        "provider": { "enum": ["gog", "epic", "steam"], "description": "Quelle des Spiels. Standard: gog." },
+        "dlcs": { "type": "array", "items": { "$ref": "#/$defs/entry" } },
+        "patches": { "type": "array", "items": { "$ref": "#/$defs/entry" } },
+        "extras": { "type": "array", "items": { "$ref": "#/$defs/entry" } }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "cover": { "$ref": "#/$defs/assetPath" },
+        "group": { "type": "string" },
+        "installer": { "$ref": "#/$defs/discPath" },
+        "args": { "$ref": "#/$defs/args" },
+        "open": {
+          "description": "Pfad auf der Disc oder ein Link (http/https).",
+          "anyOf": [ { "$ref": "#/$defs/discPath" }, { "type": "string", "pattern": "^https?://\\S+$" } ]
+        }
+      },
+      "oneOf": [
+        { "required": ["installer"], "not": { "required": ["open"] } },
+        { "required": ["open"], "not": { "anyOf": [ { "required": ["installer"] }, { "required": ["args"] } ] } }
+      ]
+    }
+  }
+}
