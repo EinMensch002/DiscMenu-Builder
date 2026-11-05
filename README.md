@@ -85,6 +85,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Player: DLCs, Patches und Extras mit Gruppen
 - [x] Anbieter `gog`, `epic`, `steam` mit eigenem Abzeichen und eigener Farbe (Steam noch ohne Wiederherstellung)
 - [x] Tests im Repo und CI mit Windows-Build und Wine-Rauchtest
+- [ ] Player an das neue Installer-Layout der Web-Vorschau angleichen (Fenster mit Titelleiste, links Bild und Beschreibung, rechts Knöpfe, Bild folgt dem Mauszeiger)
 - [ ] Praxistest unter Windows 10/11: Start, UAC, Ordnerdialog, Zwischenablage ([Checkliste](docs/manuelle-pruefung.md))
 - [ ] Praxistest unter Wine und Proton: Start, Grafik (DirectX oder OpenGL), Installer ([Checkliste](docs/manuelle-pruefung.md))
 - [ ] Echte GOG-Installer testen: still installieren, Exit-Code, Log, Registry

@@ -34,6 +34,8 @@ Der Builder bricht bei Fehlern ab und erzeugt dann keine Datei. Hinweise (z. B. 
 
 ## Bedienung des Menüs
 
+> **Hinweis:** Das Layout wurde in der Web-Vorschau des Konfigurators überarbeitet (klassischer Installer: links Bild und Beschreibung, rechts Knöpfe, das Bild folgt dem Mauszeiger). Der Go-Player hat noch das frühere Layout mit Reitern und wird danach angeglichen (siehe Roadmap).
+
 - **Auswahlseite** bei mehreren Spielen, sonst direkt die Spielseite. Mausrad scrollt, Esc geht zurück.
 - **Spielseite:** Reiter Spiel, DLCs, Patches und Extras (nur wenn es Einträge gibt), Gruppen als Überschriften.
 - **Stille Installation:** Häkchen, dann Zielordner eintippern, einfügen (Strg+V) oder über "Durchsuchen ..." wählen. Vorschlag: `C:\GOG Games\<Name>`. Der Installer läuft ohne eigenes Fenster, ein Balken zeigt den Fortschritt (geschätzt aus `estimatedSizeMB`).
