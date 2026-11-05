@@ -1,0 +1,258 @@
+/* Cover-Tool: Oberfläche. Die Logik für Maße und Texte steht in core.js. */
+(function () {
+  'use strict';
+  const C = window.CoverCore;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const STORE = 'discmenu-cover:v1';
+
+  let state = load();
+  const images = {};      // key -> { url, w, h, name, svg }
+  let dirty = false;
+
+  /* ---------- Speichern (nur Einstellungen, keine Bilder) ---------- */
+  function load() {
+    try { return C.mergeState(JSON.parse(localStorage.getItem(STORE))); } catch (e) { return C.defaultState(); }
+  }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* Speicher gesperrt: egal */ } }
+
+  /* ---------- Zugriff auf verschachtelte Werte ("cpu.intel.pre") ---------- */
+  const walk = (path) => path.split('.');
+  function get(path) { return walk(path).reduce((o, k) => (o == null ? o : o[k]), state); }
+  function set(path, value) {
+    const keys = walk(path), last = keys.pop();
+    keys.reduce((o, k) => o[k], state)[last] = value;
+  }
+
+  /* ---------- Eingabeelemente und Zustand verbinden ---------- */
+  function readControl(el) {
+    const k = el.dataset.k;
+    if (el.type === 'radio') { if (el.checked) set(k, el.value); }
+    else if (el.type === 'checkbox' && 'list' in el.dataset) {
+      const list = new Set(get(k));
+      el.checked ? list.add(el.value) : list.delete(el.value);
+      set(k, [...list]);
+    } else if (el.type === 'checkbox') set(k, el.checked);
+    else if (el.tagName === 'BUTTON') set(k, get(k) === el.dataset.v ? '' : el.dataset.v);
+    else set(k, el.value);
+  }
+  function writeControl(el) {
+    const k = el.dataset.k, v = get(k);
+    if (el.type === 'radio') el.checked = v === el.value;
+    else if (el.type === 'checkbox' && 'list' in el.dataset) el.checked = v.includes(el.value);
+    else if (el.type === 'checkbox') el.checked = !!v;
+    else if (el.tagName === 'BUTTON') el.classList.toggle('on', v === el.dataset.v);
+    else if (document.activeElement !== el) el.value = v;   // beim Tippen nichts überschreiben
+  }
+  function syncControls() {
+    $$('[data-k]').forEach(writeControl);
+    $$('[data-enable]').forEach((el) => el.classList.toggle('on', !!get(el.dataset.enable)));
+  }
+  function bindControls() {
+    $('#form').addEventListener('input', onChange);
+    $('#form').addEventListener('change', onChange);
+    $('#form').addEventListener('click', (e) => { const b = e.target.closest('button[data-k]'); if (b) onChange({ target: b }); });
+  }
+  function onChange(e) {
+    const el = e.target;
+    if (!el.dataset || !el.dataset.k) return;
+    readControl(el);
+    syncControls();
+    changed();
+  }
+
+  /* Änderungen höchstens einmal pro Bild zeichnen (flüssig auch bei schnellem Tippen) */
+  function changed() {
+    if (dirty) return;
+    dirty = true;
+    requestAnimationFrame(() => { dirty = false; render(); save(); });
+  }
+
+  /* ---------- Bilder: auf Druckgröße verkleinern, als Datei-Adresse statt als Base64-Text halten ---------- */
+  const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900 };
+
+  async function loadImage(key, file) {
+    let result;
+    if (file.type === 'image/svg+xml') {
+      result = { url: URL.createObjectURL(file), w: 0, h: 0, svg: true };
+    } else {
+      const bmp = await createImageBitmap(file);
+      const size = C.fitSize(bmp.width, bmp.height, MAX_EDGE[key]);
+      const cv = document.createElement('canvas');
+      cv.width = size.w; cv.height = size.h;
+      const ctx = cv.getContext('2d');
+      const png = key === 'publisher';              // Logos behalten ihre Transparenz
+      if (!png) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size.w, size.h); }
+      ctx.drawImage(bmp, 0, 0, size.w, size.h);
+      const blob = await new Promise((res) => cv.toBlob(res, png ? 'image/png' : 'image/jpeg', 0.92));
+      result = { url: URL.createObjectURL(blob), w: size.w, h: size.h, srcW: bmp.width, srcH: bmp.height };
+      bmp.close();
+    }
+    result.name = file.name;
+    clearImage(key);
+    images[key] = result;
+    renderDrops();
+    changed();
+  }
+  function clearImage(key) {
+    if (images[key]) { URL.revokeObjectURL(images[key].url); delete images[key]; }
+  }
+  /* Wie scharf wird das Bild gedruckt? Das Bild füllt die Fläche (zuschneiden), also entscheidet die knappere Seite. */
+  function dpiOf(key, img) {
+    const spec = C.imageSpecs(state.caseType)[key];
+    if (!spec || !img.w) return 0;
+    const mmPerPx = Math.max(spec.w / img.w, spec.h / img.h);
+    return Math.round(25.4 / mmPerPx);
+  }
+  function renderDrops() {
+    const specs = C.imageSpecs(state.caseType);
+    $$('.drop').forEach((drop) => {
+      const key = drop.dataset.img, img = images[key], spec = specs[key];
+      drop.classList.toggle('has', !!img);
+      if (spec) $('.spec', drop).textContent = 'Maße: ' + spec.w + ' × ' + spec.h + ' mm';
+      const thumb = $('.thumb', drop);
+      thumb.style.backgroundImage = img ? 'url("' + img.url + '")' : 'none';
+      thumb.textContent = img ? '' : '+';
+      const info = $('.info', drop);
+      if (!img) { info.className = 'info'; if (key !== 'backBottom') info.textContent = ''; return; }
+      const dpi = dpiOf(key, img);
+      info.className = 'info ' + (dpi && dpi < 200 ? 'warn' : 'ok');
+      info.textContent = img.name + (dpi ? ' · ' + img.w + ' × ' + img.h + ' px ≈ ' + dpi + ' dpi' + (dpi < 200 ? ' (wird unscharf)' : '') : '');
+    });
+  }
+  function bindDrops() {
+    $$('.drop').forEach((drop) => {
+      const key = drop.dataset.img, input = $('input[type=file]', drop);
+      const take = async (file) => {
+        if (!file || !file.type.startsWith('image/')) return;
+        try { await loadImage(key, file); } catch (e) { alert('Das Bild konnte nicht gelesen werden: ' + (e.message || e)); }
+      };
+      input.addEventListener('change', () => { take(input.files[0]); input.value = ''; });
+      drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+      drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+      drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); take(e.dataTransfer.files[0]); });
+      $('.x', drop).addEventListener('click', () => { clearImage(key); renderDrops(); changed(); });
+    });
+  }
+
+  /* ---------- Cover zeichnen ---------- */
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const setBg = (node, img) => { node.style.backgroundImage = img ? 'url("' + img.url + '")' : 'none'; node.classList.toggle('has-img', !!img); };
+  function setImg(node, src) { if (src) { node.src = src; node.hidden = false; } else { node.removeAttribute('src'); node.hidden = true; } }
+
+  function render() {
+    const c = C.CASES[state.caseType], L = C.LABELS[state.lang];
+    const cover = $('#cover'), wrap = $('#wrap');
+    for (const n of [cover, wrap]) {
+      n.style.setProperty('--w', c.w + 'mm'); n.style.setProperty('--h', c.h + 'mm');
+      n.style.setProperty('--back', c.back + 'mm'); n.style.setProperty('--spine', c.spine + 'mm'); n.style.setProperty('--front', c.front + 'mm');
+    }
+    wrap.classList.toggle('marks', state.cropMarks);
+    wrap.classList.toggle('fold', state.foldLines);
+
+    /* Bilder */
+    setBg($('#front'), images.front);
+    setBg($('#backTop'), images.backTop);
+    setBg($('#backBottom'), images.backBottom || images.backTop);     // ohne eigenes Bild setzt sich das obere fort
+    $('#backBottom').style.backgroundPosition = images.backBottom ? 'center' : 'center bottom';
+    const pubUrl = images.publisher && images.publisher.url;
+    setImg($('#frontPub'), pubUrl);
+    setImg($('#backPub'), pubUrl);
+
+    /* Alterskennzeichen (USK) */
+    const usk = state.usk === 'none' ? '' : 'assets/images/usk/usk_' + state.usk + '.png';
+    setImg($('#frontUsk'), usk);
+    setImg($('#backUsk'), state.uskBack ? usk : '');
+    setImg($('#discLogo'), 'assets/images/disc/' + C.DISCS[state.disc]);
+
+    /* Rücken */
+    $('#spine').classList.toggle('fill', state.spineLogo === 'fill');
+    $('#spineTitle').textContent = state.title.trim();
+    fitSpineTitle(c);
+
+    /* Rückseite: Spielfunktionen, Angaben, GOG-Galaxy-Feld, Copyright */
+    $('#featTitle').textContent = L.features;
+    $('#featNote').textContent = L.featuresNote;
+    const feats = $('#feats');
+    feats.replaceChildren(...C.FEATURE_ORDER.filter((k) => state.features.includes(k)).map((k) => {
+      const item = el('div', 'feat'), img = el('img'); img.src = 'assets/images/features/' + k + '.png'; img.alt = '';
+      item.append(img, el('span', '', L.feat[k])); return item;
+    }));
+    $('#galaxy').hidden = !state.galaxy;
+    $('#gxTitle').textContent = L.galaxy.title; $('#gxText').textContent = L.galaxy.text;
+    $('#gxJoin').textContent = L.galaxy.join; $('#gxUrl').textContent = L.galaxy.url;
+    $('#copy').textContent = state.copyright.trim();
+    renderSpecs();
+
+    renderDrops();
+    renderNotes();
+    fitPreview();
+  }
+
+  function renderSpecs() {
+    const list = $('#specs');
+    list.replaceChildren(...C.buildSpecs(state).map((row) => {
+      const li = el('li'), v = el('span', 'v' + (state.breakHw && row.values.length > 1 ? ' stack' : ''));
+      row.values.forEach((text, i) => {
+        if (i) v.append(el('span', 'sep', ' / '));
+        v.append(el('span', 'alt', text));
+      });
+      li.append(el('span', 'k', row.label), v);
+      return li;
+    }));
+    /* Beim Umbruch zwischen zwei Alternativen ist der Schrägstrich überflüssig */
+    $$('.sep', list).forEach((sep) => {
+      const a = sep.previousElementSibling, b = sep.nextElementSibling;
+      if (state.breakHw || (a && b && a.offsetTop !== b.offsetTop)) sep.style.display = 'none';
+    });
+  }
+
+  /* Titel auf dem Rücken so groß wie möglich, ohne über die Hülle hinauszuragen */
+  function fitSpineTitle(c) {
+    const title = $('#spineTitle'), box = $('#spineBox');
+    const maxPt = c.spine >= 14 ? 12 : 8;
+    let pt = maxPt;
+    title.style.fontSize = pt + 'pt';
+    while (pt > 5 && title.scrollHeight > box.clientHeight - 2) { pt -= 0.25; title.style.fontSize = pt + 'pt'; }
+  }
+
+  /* Hinweise zur Vorlage (blockieren nichts) */
+  function renderNotes() {
+    const notes = [];
+    if (!images.front) notes.push('Es fehlt noch das Frontcover.');
+    if (!state.title.trim()) notes.push('Der Spieletitel für den Rücken fehlt.');
+    if (!state.features.length) notes.push('Es ist keine Spielfunktion gewählt, der grüne Streifen bleibt leer.');
+    $('#notes').replaceChildren(...notes.map((t) => el('p', '', t)));
+  }
+
+  /* ---------- Vorschau auf Fensterbreite einpassen (gedruckt wird immer in Originalgröße) ---------- */
+  function fitPreview() {
+    const pane = $('#preview'), probe = el('div');
+    probe.style.cssText = 'position:absolute;visibility:hidden;width:297mm;height:0';
+    document.body.append(probe);
+    const sheetPx = probe.getBoundingClientRect().width;
+    probe.remove();
+    const k = Math.min(1.6, Math.max(0.2, (pane.clientWidth - 2) / sheetPx));
+    pane.style.setProperty('--k', k.toFixed(4));
+  }
+
+  /* ---------- Start ---------- */
+  function init() {
+    bindControls();
+    bindDrops();
+    syncControls();
+    $('#bPrint').addEventListener('click', () => window.print());
+    $('#bReset').addEventListener('click', () => {
+      if (!confirm('Alle Einstellungen und Bilder zurücksetzen?')) return;
+      Object.keys(images).forEach(clearImage);
+      state = C.defaultState();
+      syncControls();
+      render(); save();
+    });
+    window.addEventListener('resize', fitPreview);
+    const start = () => { render(); };
+    (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(start);
+    render();
+  }
+  init();
+})();

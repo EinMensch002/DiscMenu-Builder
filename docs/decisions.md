@@ -20,6 +20,7 @@
 | Anbieter | `provider` ist `gog` (Standard), `epic` oder `steam`. Jeder hat Abzeichen und Farbe im Menü, nur Text ohne Logos. GOG: Inno-Parameter. Epic: normal, still nur mit eigenen `args`. Steam: nur Anzeige, bis die Wiederherstellung geprüft ist |
 | Silent-Standard | Aus. Bei Aktivierung schlägt das Menü `C:\GOG Games\<Name>` vor |
 | Bildformat Player | PNG, JPEG und WebP werden gelesen |
+| Cover-Tool | Liegt im selben Repo (`cover-tool/`) und wird als eigene Seite unter `/cover/` veröffentlicht: gleiches Thema, gleiche Pages-Veröffentlichung, später Übernahme aus der `menu.json` möglich. Altersfreigabe: USK |
 | Rolle des Menüs | Forwarder: startet Original-Installer und öffnet Extras |
 | Erste Quelle | GOG. Steam später, dafür ist `provider` reserviert |
 | Spiele pro Disc | Eines oder mehrere. Reihenfolge über `index`, beginnend bei 0 |
