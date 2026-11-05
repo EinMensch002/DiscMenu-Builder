@@ -82,6 +82,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 - [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, GOG-Galaxy-Feld, deutsch oder englisch
 - [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzlinien
+- [x] Rückseite mit festen Plätzen (nichts verschiebt sich beim Ausblenden von Galaxy-Feld oder USK), zweiter Stil "Modern" (Konsolen-Stil)
 - [x] Tests im Repo (Logik und Druck)
 - [ ] Mit echtem Drucker und echter Hülle prüfen (Maße, Schnittmarken)
 - [ ] Optional: Titel, Anbieter und Cover direkt aus der `menu.json` übernehmen
