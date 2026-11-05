@@ -46,27 +46,29 @@ const { chromium } = require('playwright');
   assert.match(await page.locator('#dlgBody .issue.error').textContent(), /Kein gültiges JSON/);
   await page.click('text=Abbrechen');
 
-  // Vorschau mit Simulation
+  // Vorschau mit Simulation (klassisches Installer-Fenster: links Bild und Beschreibung, rechts Knöpfe)
   await page.click('#bPrev');
   const stage = page.locator('.stage');
   assert.match(await stage.textContent(), /Wähle ein Spiel/);
   assert.match(await stage.textContent(), /Epic Games|GOG/);
-  await page.locator('.stage .tile').first().click();
+  await page.locator('.stage .cbtn', { hasText: 'Spiel Eins' }).hover();
+  assert.match(await page.locator('.stage .ldesc').textContent(), /Beschreibung von Spiel Eins/);   // Beim Darüberfahren
+  await page.locator('.stage .cbtn', { hasText: 'Spiel Eins' }).click();
   assert.match(await stage.textContent(), /Beschreibung von Spiel Eins/);
-  await page.locator('.stage .sbtn:has-text("Patches")').click();
+  await page.locator('.stage .cbtn', { hasText: 'Patches' }).click();
   assert.match(await stage.textContent(), /Sprache|SPRACHE/);
   assert.match(await stage.textContent(), /Patch A/);
-  await page.locator('.stage .sbtn.tab', { hasText: /^Spiel$/ }).click();
+  await page.locator('.stage .cbtn', { hasText: 'Zurück' }).click();
 
   // Stille Installation ohne Ziel -> Hinweis; mit Ziel -> Simulation läuft und endet mit Erfolg
-  await page.locator('.stage .chk').click();
-  await page.locator('.stage input.fld').fill('');
-  await page.locator('.stage .sbtn.main', { hasText: /^Installieren$/ }).first().click();
+  await page.locator('.stage .opts input[type=checkbox]').check();
+  await page.locator('.stage input.fld2').fill('');
+  await page.locator('.stage .cbtn.main', { hasText: /^Installieren$/ }).first().click();
   assert.match(await stage.textContent(), /Zielordner fehlt/);
   await page.locator('.stage .ovl .sbtn:has-text("OK")').click();
-  await page.locator('.stage input.fld').fill('C:\\Spiele\\Test');
+  await page.locator('.stage input.fld2').fill('C:\\Spiele\\Test');
   await page.selectOption('.simbar select >> nth=1', '3');   // schnell
-  await page.locator('.stage .sbtn.main', { hasText: /^Installieren$/ }).first().click();
+  await page.locator('.stage .cbtn.main', { hasText: /^Installieren$/ }).first().click();
   assert.match(await stage.textContent(), /Installation läuft/);
   await page.waitForFunction(() => /Fertig/.test(document.querySelector('.stage').textContent), null, { timeout: 15000 });
   assert.match(await stage.textContent(), /Installiert nach: C:\\Spiele\\Test/);
@@ -76,7 +78,7 @@ const { chromium } = require('playwright');
 
   // Fehlerfall (Code 5) in der stillen Installation
   await page.selectOption('.simbar select >> nth=0', 'err5');
-  await page.locator('.stage .sbtn.main', { hasText: /^Installieren$/ }).first().click();
+  await page.locator('.stage .cbtn.main', { hasText: /^Installieren$/ }).first().click();
   await page.waitForFunction(() => /nicht erfolgreich/.test(document.querySelector('.stage').textContent), null, { timeout: 15000 });
   assert.match(await stage.textContent(), /Code 5/);
   assert.match(await stage.textContent(), /Administratorrechte/);
@@ -84,8 +86,8 @@ const { chromium } = require('playwright');
 
   // Normaler Modus: nachgebautes Installer-Fenster mit Weiter und Fertigstellen
   await page.selectOption('.simbar select >> nth=0', 'ok');
-  await page.locator('.stage .chk').click();                  // still aus
-  await page.locator('.stage .sbtn.main', { hasText: /^Installieren$/ }).first().click();
+  await page.locator('.stage .opts input[type=checkbox]').uncheck();   // still aus
+  await page.locator('.stage .cbtn.main', { hasText: /^Installieren$/ }).first().click();
   assert.match(await page.locator('.stage .win').textContent(), /Willkommen beim Setup-Assistenten/);
   await page.locator('.stage .win button:has-text("Weiter")').click();
   await page.locator('.stage .win button:has-text("Fertigstellen")').click({ timeout: 15000 });
