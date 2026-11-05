@@ -53,6 +53,9 @@ const { chromium } = require('playwright');
   assert.match(await stage.textContent(), /Epic Games|GOG/);
   await page.locator('.stage .cbtn', { hasText: 'Spiel Eins' }).hover();
   assert.match(await page.locator('.stage .ldesc').textContent(), /Beschreibung von Spiel Eins/);   // Beim Darüberfahren
+  await page.mouse.move(5, 5);                                                                      // Maus weg: Auswahl bleibt stehen
+  await page.waitForTimeout(200);
+  assert.match(await page.locator('.stage .ldesc').textContent(), /Beschreibung von Spiel Eins/);
   await page.locator('.stage .cbtn', { hasText: 'Spiel Eins' }).click();
   assert.match(await stage.textContent(), /Beschreibung von Spiel Eins/);
   await page.locator('.stage .cbtn', { hasText: 'Patches' }).click();
