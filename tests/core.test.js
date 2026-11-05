@@ -127,3 +127,25 @@ test('Einstellungen sichern: mit und ohne Passwort, falsches Passwort', async ()
   assert.deepEqual(await C.unpackSettings(enc, 'geheim'), v);
   await assert.rejects(C.unpackSettings(enc, 'falsch'), /Falsches Passwort/);
 });
+
+test('Disc-Prüfung: gefunden, fehlt, Ordner statt Datei, Links ausgenommen', async () => {
+  const s = sampleState();
+  s.games[0].patches[0].path = 'Spiel1\\Patches\\de.exe';
+  const present = new Map([['Spiel1/setup.exe', 'file'], ['Spiel1/Patches/de.exe', 'dir'], ['Spiel1/Extras/handbuch.pdf', 'file']]);
+  const r = await C.checkDisc(s, async p => present.get(p) || null);
+  assert.equal(r.checked, 3);                       // Link wird nicht geprüft
+  assert.equal(r.ok, 2);
+  assert.equal(r.issues.length, 1);
+  assert.match(r.issues[0].msg, /Ordner, es wird eine Datei erwartet/);
+  const r2 = await C.checkDisc(s, async () => null);
+  assert.equal(r2.issues.length, 3);
+  assert.ok(r2.issues.every(i => /nicht gefunden/.test(i.msg)));
+  const r3 = await C.checkDisc(s, async () => { throw new Error('x'); });
+  assert.equal(r3.issues.length, 3);
+});
+
+test('Disc-Prüfung: ungewöhnliche Endung ist nur ein Hinweis', async () => {
+  const s = sampleState(); s.games[0].installer = 'Spiel1/setup.bin';
+  const r = await C.checkDisc(s, async () => 'file');
+  assert.deepEqual(r.issues.map(i => i.level), ['warn']);
+});

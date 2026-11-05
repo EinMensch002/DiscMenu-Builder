@@ -1,5 +1,7 @@
 # Spezifikation der menu.json (Entwurf, Version 1)
 
+Das Format ist zusätzlich als JSON Schema beschrieben: [schema/menu.schema.json](../schema/menu.schema.json). Es gilt für den Konfigurator und den Builder. Was ein Schema nicht ausdrücken kann (eindeutiger `index`, Existenz der Dateien), prüft der Builder.
+
 ## Pfade
 
 - **Assets** (Cover, Hintergrund, Sounds): relativ zur `menu.json`. Sie werden beim Erstellen in die Menü-EXE gepackt.

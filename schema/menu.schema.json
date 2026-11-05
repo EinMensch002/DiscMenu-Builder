@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://einmensch002.github.io/DiscMenu-Builder/schema/menu.schema.json",
+  "$id": "https://raw.githubusercontent.com/EinMensch002/DiscMenu-Builder/main/schema/menu.schema.json",
   "title": "DiscMenu menu.json (Version 1)",
   "description": "Gemeinsame Beschreibung der menu.json für Konfigurator und Builder. Siehe docs/menu-json-spec.md.",
   "type": "object",

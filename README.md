@@ -27,6 +27,7 @@ Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für
 | [docs/installer-integration.md](docs/installer-integration.md) | Installer starten, still installieren, Ergebnis auslesen |
 | [docs/platforms-and-tech.md](docs/platforms-and-tech.md) | Windows 10/11, Wine/Proton, Technikauswahl |
 | [docs/disc-planung.md](docs/disc-planung.md) | Kapazität, Finalisieren, Updates, Langzeitarchivierung |
+| [docs/manuelle-pruefung.md](docs/manuelle-pruefung.md) | Prüfliste für echte Dienste und Browser |
 | [docs/decisions.md](docs/decisions.md) | Getroffene und offene Entscheidungen |
 
 ## Ordnerstruktur
@@ -37,6 +38,8 @@ DiscMenu-Builder/
 ├─ LICENSE
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
 ├─ configurator/            Konfigurator: index.html (eine eigenständige Datei)
+├─ schema/                  JSON Schema der menu.json
+├─ tests/                   Automatische Tests
 ├─ tools/cors-proxy/        Optionaler Proxy (Cloudflare Worker) für SteamGridDB
 ├─ .github/workflows/       Veröffentlichung des Konfigurators auf GitHub Pages
 ├─ examples/
@@ -65,10 +68,10 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Veröffentlichung auf GitHub Pages über GitHub Actions
 - [ ] GOG- und Epic-Beschreibungen mit echten Anfragen prüfen (bisher nur nachgebaute Antworten)
 - [ ] Mit echten Diensten prüfen: Chrome am Computer (Dateiauswahl, Überschreiben), Android-Chrome
-- [ ] Gemeinsames JSON Schema für Konfigurator und Builder
-- [ ] JSON-Ansicht zum direkten Bearbeiten, Vorschau des Menüs
-- [ ] Automatische Tests im Repo (Kernlogik und Worker laufen aktuell nur lokal)
-- [ ] Optional: Prüfung der Disc-Dateien über Ordnerzugriff
+- [x] Gemeinsames JSON Schema für Konfigurator und Builder (`schema/menu.schema.json`)
+- [x] JSON-Ansicht zum direkten Bearbeiten, Vorschau des Menüs
+- [x] Automatische Tests im Repo (Kernlogik, Schema, Worker, Oberfläche) mit CI
+- [x] Prüfung der Disc-Dateien über Ordnerzugriff (Chrome, Edge)
 
 ### Builder und Player (Konzept, noch kein Code)
 

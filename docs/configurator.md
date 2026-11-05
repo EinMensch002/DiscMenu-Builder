@@ -25,6 +25,9 @@ Links die Liste der Spiele, rechts das Formular zum gewählten Eintrag, ganz rec
 - **Beschreibungen:** Der Knopf "Beschreibung suchen" holt Texte aus dem Steam-Shop, von GOG und aus dem Epic Games Store und kann englische Texte übersetzen. Siehe [steamgriddb.md](steamgriddb.md).
 - **Bilder** per Drag-and-drop, Antippen oder über die SteamGridDB-Suche. Beim Hinzufügen werden sie verkleinert und umgewandelt: Cover auf höchstens 800 Pixel als PNG, Hintergrund auf höchstens 1920 Pixel als JPEG. Das hält die Menü-EXE klein. Diese Werte sind vorläufig.
 - **Sounds:** WAV, OGG oder MP3, unverändert übernommen.
+- **JSON:** Der Knopf "JSON" öffnet die `menu.json` zum direkten Bearbeiten. "Änderungen übernehmen" liest sie zurück in die Maske. Bilder und Sounds bleiben über ihre Pfade (`assets/...`) verbunden, neue Dateien lassen sich nur in der Maske hinzufügen. Felder, die das Format nicht kennt, werden verworfen und gemeldet. Ungültiges JSON bleibt im Dialog stehen und wird nicht übernommen.
+- **Vorschau:** Der Knopf "Vorschau" zeigt das Menü grob so, wie es der Player darstellt: Auswahlseite bei mehreren Spielen, Spielseite mit den Reitern Spiel, DLCs, Patches und Extras, Gruppen als Überschriften, Hintergrund, Cover sowie Klick- und Hover-Sound. Installieren und Öffnen haben in der Vorschau keine Funktion. Das Aussehen des fertigen Players kann abweichen.
+- **Disc-Ordner prüfen:** Im Bereich "Prüfung" gibt es (nur in Chrome und Edge am Computer) den Knopf "Disc-Ordner prüfen". Man wählt den Ordner, der so aufgebaut ist wie die fertige Disc, und der Konfigurator meldet, welche Installer- und Extra-Pfade fehlen oder auf einen Ordner statt einer Datei zeigen. Die Groß-/Kleinschreibung wird dabei nicht beachtet. Es wird nur gelesen, nichts verändert oder hochgeladen. Links (`https://`) werden nicht geprüft.
 - **Prüfung** nach den Regeln der Spezifikation. Exportieren geht erst, wenn keine Fehler mehr da sind. Hinweise blockieren nicht.
 
 ## Projekte, Speichern, Export und Import
@@ -48,18 +51,21 @@ Die Dateiauswahl mit Überschreiben ist bisher nur mit nachgebauten Browserfunkt
 
 ## Grenzen
 
-- Der Browser kann nicht prüfen, ob die angegebenen Pfade auf der Disc existieren. Die Pfade werden von Hand eingetragen.
+- Ohne Ordnerzugriff (Firefox, Safari, Android) kann der Browser nicht prüfen, ob die Pfade auf der Disc existieren. Die Pfade werden von Hand eingetragen.
 - Für das Umwandeln der Bilder braucht der Browser Unterstützung für `createImageBitmap` und Canvas (alle aktuellen Browser).
 - Ist der Speicher des Browsers gesperrt oder voll, zeigt die Kopfzeile "Speichern im Browser nicht möglich". Dann bleibt nur der ZIP-Export.
 
 ## Später
 
-- Optionale Prüfung der Disc-Dateien: Der Nutzer wählt den Disc-Ordner aus, und der Konfigurator prüft die Pfade. Das geht nur in Browsern mit Ordnerzugriff (z. B. Chrome, Edge).
-- Bearbeitbare JSON-Ansicht.
-- Vorschau des Menüs.
 - Eigene Tabs, sobald das Format sie unterstützt.
-- Gemeinsames JSON Schema für Konfigurator und Builder, damit die Regeln nicht auseinanderlaufen.
 
 ## Tests
 
-Die Kernlogik (ZIP, Prüfung, Export, Import, Hilfen für Suche und Beschreibung) steht in der Datei als eigener Block `CORE` und lässt sich ohne Browser testen. Die Oberfläche wurde mit einem simulierten Browser (jsdom) und nachgebauten Antworten der Dienste durchgespielt. Automatische Tests liegen noch nicht im Repo.
+Im Repo liegen automatische Tests (`npm install`, dann `npm test`). Sie laufen bei jedem Push über `.github/workflows/tests.yml`.
+
+- `tests/core.test.js`: Kernlogik des Konfigurators (ZIP, Prüfung, Export und Import, Hilfen für Suche und Beschreibung, Einstellungen, Disc-Prüfung). Der Block `CORE` in `index.html` wird ohne Browser geladen.
+- `tests/schema.test.js`: Beispiel-Rezept und Konfigurator-Export gegen `schema/menu.schema.json`, plus abgelehnte Fälle.
+- `tests/worker.test.js`: CORS-Proxy (Hosts, Herkunft, Weiterleitung).
+- `tests/ui/ui.check.js` (`npm run test:ui`): Oberfläche in einem echten Chromium mit Playwright (JSON-Ansicht, Vorschau, Disc-Prüfung mit nachgebautem Ordner). Läuft lokal, nicht in der CI.
+
+Nicht automatisch geprüft sind die echten Dienste (SteamGridDB, Steam, GOG, Epic, MyMemory) und die Dateiauswahl mit Überschreiben. Dafür gibt es eine Prüfliste zum Abhaken: [manuelle-pruefung.md](manuelle-pruefung.md).

@@ -14,6 +14,8 @@
 | Beschreibungen | Steam-Shop, GOG und Epic Games Store (jeweils auf Deutsch angefragt), englische Texte lassen sich über MyMemory übersetzen. Alle drei brauchen den Proxy |
 | Speichern | Projekte automatisch im Browser, ZIP-Export als Datei. Import legt ein neues Projekt an |
 | Zugangsdaten | API-Schlüssel und Proxy im Browser, per Datei sicherbar, optional mit Passwort verschlüsselt. Nie in ZIP oder Repo |
+| Format-Beschreibung | Gemeinsames JSON Schema in `schema/menu.schema.json`, wird in den Tests gegen Beispiel und Export geprüft |
+| Disc-Prüfung | Im Konfigurator über Ordnerzugriff (Chrome, Edge), nur lesend, ohne Beachtung der Groß-/Kleinschreibung |
 | Rolle des Menüs | Forwarder: startet Original-Installer und öffnet Extras |
 | Erste Quelle | GOG. Steam später, dafür ist `provider` reserviert |
 | Spiele pro Disc | Eines oder mehrere. Reihenfolge über `index`, beginnend bei 0 |
@@ -38,7 +40,7 @@
 | Silent-Standard | Soll das Menü einen Standardzielpfad vorschlagen? Soll Silent standardmäßig an oder aus sein? |
 | Fortschritt | Wie genau wird der Fortschritt bei Silent angezeigt? (Zielordnergröße ist nur eine Schätzung) |
 | Installer ohne Inno | Wie viele GOG-Installer sind keine Inno-Installer und laufen nur im Modus Normal? |
-| Disc-Prüfung | Soll der Builder oder Konfigurator die Disc-Dateien prüfen, wenn der Disc-Ordner angegeben wird? |
+| Disc-Prüfung im Builder | Soll auch der Builder die Disc-Dateien prüfen, wenn der Disc-Ordner angegeben wird? (Im Konfigurator gibt es die Prüfung bereits) |
 | Eigene Tabs | Genaues Format von `customTabs` (Version 2 des Formats?) |
 | Mehrsprachigkeit | Soll das Menü mehrere Sprachen unterstützen? |
 | Steam | Lässt sich die Wiederherstellung eines Backups auslösen? Zuerst prüfen |
