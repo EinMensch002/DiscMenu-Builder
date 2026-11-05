@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cover-Tool für Disc-Hüllen</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top no-print">
+  <h1>💿 Cover-Tool</h1>
+  <span class="sub">Hüllen für selbst gebrannte GOG-Discs, zum Ausdrucken</span>
+  <nav>
+    <a class="link" href="../">Zum Konfigurator</a>
+    <button type="button" id="bReset">Zurücksetzen</button>
+    <button type="button" id="bPrint" class="pri">Drucken</button>
+  </nav>
+</header>
+
+<main class="app">
+  <form class="panel no-print" id="form" autocomplete="off" onsubmit="return false">
+
+    <details class="sec" open>
+      <summary>Hülle und Disc</summary>
+      <div class="grp"><span class="lab">Hülle</span>
+        <div class="tiles">
+          <label class="tile"><input type="radio" name="caseType" data-k="caseType" value="normal"><span>Normal (14 mm)</span></label>
+          <label class="tile"><input type="radio" name="caseType" data-k="caseType" value="slim"><span>Slim (7 mm)</span></label>
+        </div>
+      </div>
+      <div class="grp"><span class="lab">Disc-Medium</span>
+        <div class="tiles">
+          <label class="tile"><input type="radio" name="disc" data-k="disc" value="cd"><span>CD</span></label>
+          <label class="tile"><input type="radio" name="disc" data-k="disc" value="dvd"><span>DVD</span></label>
+          <label class="tile"><input type="radio" name="disc" data-k="disc" value="bluray"><span>Blu-ray</span></label>
+        </div>
+      </div>
+      <div class="two">
+        <label class="f"><span class="lab">Sprache der Beschriftung</span>
+          <select data-k="lang"><option value="de">Deutsch</option><option value="en">English</option></select></label>
+        <label class="f"><span class="lab">USK-Altersfreigabe</span>
+          <select data-k="usk"><option value="none">Keine anzeigen</option><option value="0">ab 0 Jahren</option><option value="6">ab 6 Jahren</option><option value="12">ab 12 Jahren</option><option value="16">ab 16 Jahren</option><option value="18">ab 18 Jahren</option></select></label>
+      </div>
+      <label class="chk"><input type="checkbox" data-k="uskBack"> USK auch auf der Rückseite zeigen</label>
+    </details>
+
+    <details class="sec" open>
+      <summary>Bilder</summary>
+      <p class="hint">Bilder werden beim Laden auf Druckgröße (etwa 300 dpi) verkleinert. Die Vorschau zeigt, wie scharf sie gedruckt werden.</p>
+      <div class="drop" data-img="front"><input type="file" accept="image/*" aria-label="Frontcover"><div class="thumb"></div>
+        <div class="dt"><b>Frontcover</b><span class="spec"></span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
+      <div class="drop" data-img="backTop"><input type="file" accept="image/*" aria-label="Rückseite oben"><div class="thumb"></div>
+        <div class="dt"><b>Rückseite oben</b><span class="spec"></span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
+      <div class="drop" data-img="backBottom"><input type="file" accept="image/*" aria-label="Rückseite unten"><div class="thumb"></div>
+        <div class="dt"><b>Rückseite unten <i>(optional)</i></b><span class="spec"></span><span class="info">Ohne Bild setzt sich das obere Bild hinter den Angaben fort.</span></div><button type="button" class="x" title="Entfernen">✕</button></div>
+      <div class="drop" data-img="publisher"><input type="file" accept="image/*" aria-label="Publisher-Logo"><div class="thumb"></div>
+        <div class="dt"><b>Publisher-Logo <i>(optional)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, etwa 2:1</span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Texte</summary>
+      <label class="f"><span class="lab">Spieletitel (Rücken)</span><input type="text" data-k="title" placeholder="z. B. The Witcher: Enhanced Edition"></label>
+      <label class="f"><span class="lab">Copyright-Text (unten auf der Rückseite)</span><input type="text" data-k="copyright"></label>
+    </details>
+
+    <details class="sec" open>
+      <summary>Spielfunktionen</summary>
+      <div class="tiles three">
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="single_player"><span>Single-Player</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="co_op"><span>Co-op</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="multi_player"><span>Multi-Player</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="controller_support"><span>Controller</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="achievements"><span>Erfolge</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="cloud_saves"><span>Cloud Saves</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="leaderboards"><span>Bestenlisten</span></label>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Systemanforderungen</summary>
+      <div class="grp"><span class="lab">Läuft auf</span>
+        <div class="tiles three">
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="XP"><span>Win XP</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="Vista"><span>Win Vista</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="7"><span>Win 7</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="8"><span>Win 8</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="10"><span>Win 10</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="11"><span>Win 11</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.mac"><span>macOS</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.linux"><span>Linux</span></label>
+        </div>
+        <label class="chk"><input type="checkbox" data-k="os.x64"> „64-Bit“ bei Windows ergänzen</label>
+      </div>
+
+      <div class="grp"><span class="lab">Prozessor</span>
+        <div class="gen" data-enable="cpu.intel.on">
+          <label class="chk brand"><input type="checkbox" data-k="cpu.intel.on"> Intel</label>
+          <div class="row"><select data-k="cpu.intel.pre"><option>Core i3</option><option>Core i5</option><option>Core i7</option><option>Core i9</option><option>Pentium</option><option>Core 2 Duo</option></select>
+            <input type="text" data-k="cpu.intel.num" placeholder="12400" size="6">
+            <span class="sfx"><button type="button" data-k="cpu.intel.sfx" data-v="K">K</button><button type="button" data-k="cpu.intel.sfx" data-v="KF">KF</button><button type="button" data-k="cpu.intel.sfx" data-v="F">F</button></span></div>
+        </div>
+        <div class="gen" data-enable="cpu.amd.on">
+          <label class="chk brand"><input type="checkbox" data-k="cpu.amd.on"> AMD</label>
+          <div class="row"><select data-k="cpu.amd.pre"><option>Ryzen 3</option><option>Ryzen 5</option><option>Ryzen 7</option><option>Ryzen 9</option><option>Athlon</option><option>Phenom</option></select>
+            <input type="text" data-k="cpu.amd.num" placeholder="5600" size="6">
+            <span class="sfx"><button type="button" data-k="cpu.amd.sfx" data-v="X">X</button><button type="button" data-k="cpu.amd.sfx" data-v="X3D">X3D</button><button type="button" data-k="cpu.amd.sfx" data-v="G">G</button></span></div>
+        </div>
+        <label class="f"><span class="lab">Oder eigener Text (ersetzt die Auswahl oben)</span><input type="text" data-k="cpu.custom" placeholder="z. B. Pentium III oder AMD Athlon 500 MHz"></label>
+      </div>
+
+      <div class="grp"><span class="lab">Grafikkarte</span>
+        <div class="gen" data-enable="gpu.nvidia.on">
+          <label class="chk brand"><input type="checkbox" data-k="gpu.nvidia.on"> NVIDIA</label>
+          <div class="row"><select data-k="gpu.nvidia.pre"><option>RTX</option><option>GTX</option><option>GTS</option><option>GT</option><option>Titan</option><option>Quadro</option></select>
+            <input type="text" data-k="gpu.nvidia.num" placeholder="3060" size="6">
+            <span class="sfx"><button type="button" data-k="gpu.nvidia.sfx" data-v="Ti">Ti</button><button type="button" data-k="gpu.nvidia.sfx" data-v="SUPER">SUPER</button></span></div>
+        </div>
+        <div class="gen" data-enable="gpu.amd.on">
+          <label class="chk brand"><input type="checkbox" data-k="gpu.amd.on"> AMD Radeon</label>
+          <div class="row"><select data-k="gpu.amd.pre"><option>RX</option><option>HD</option><option>R9</option><option>R7</option><option>R5</option></select>
+            <input type="text" data-k="gpu.amd.num" placeholder="6700" size="6">
+            <span class="sfx"><button type="button" data-k="gpu.amd.sfx" data-v="XT">XT</button><button type="button" data-k="gpu.amd.sfx" data-v="XTX">XTX</button><button type="button" data-k="gpu.amd.sfx" data-v="GRE">GRE</button></span></div>
+        </div>
+        <label class="f"><span class="lab">Oder eigener Text (ersetzt die Auswahl oben)</span><input type="text" data-k="gpu.custom" placeholder="z. B. 32 MB Direct3D-kompatible Grafikkarte"></label>
+      </div>
+
+      <div class="two">
+        <div class="f"><span class="lab">Arbeitsspeicher (GB)</span>
+          <div class="slide"><input type="range" data-k="ram" min="0.25" max="64" step="0.25"><input type="text" data-k="ram" size="5"></div></div>
+        <div class="f"><span class="lab">Speicherplatz (GB)</span>
+          <div class="slide"><input type="range" data-k="space" min="0.25" max="200" step="0.25"><input type="text" data-k="space" size="5"></div></div>
+      </div>
+      <div class="two">
+        <label class="f"><span class="lab">DirectX (leer = ausblenden)</span><input type="text" data-k="dx" placeholder="Version 11"></label>
+        <label class="f"><span class="lab">Sonstiges (leer = ausblenden)</span><input type="text" data-k="other" placeholder="z. B. 16-Bit-Soundkarte"></label>
+      </div>
+      <label class="chk"><input type="checkbox" data-k="breakHw"> Bei zwei Prozessoren oder Grafikkarten immer untereinander zeigen</label>
+    </details>
+
+    <details class="sec" open>
+      <summary>Darstellung und Druck</summary>
+      <label class="f"><span class="lab">GOG-Logo auf dem Rücken</span>
+        <select data-k="spineLogo"><option value="fixed">Feste Größe (6 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
+      <label class="chk"><input type="checkbox" data-k="galaxy"> GOG-Galaxy-Feld auf der Rückseite</label>
+      <label class="chk"><input type="checkbox" data-k="cropMarks"> Schnittmarken an den Ecken</label>
+      <label class="chk"><input type="checkbox" data-k="foldLines"> Falzlinien am Rücken (gestrichelt)</label>
+      <p class="hint">Drucken: A4 quer, Skalierung 100 %, Ränder „Keine“, Hintergrundgrafiken aktivieren.</p>
+    </details>
+  </form>
+
+  <section class="preview" id="preview">
+    <div class="notes no-print" id="notes"></div>
+    <div class="scalebox" id="scalebox">
+      <div class="sheet" id="sheet">
+        <div class="wrap" id="wrap">
+          <span class="mark tl-v"></span><span class="mark tl-h"></span><span class="mark tr-v"></span><span class="mark tr-h"></span>
+          <span class="mark bl-v"></span><span class="mark bl-h"></span><span class="mark br-v"></span><span class="mark br-h"></span>
+          <div class="cover" id="cover">
+
+            <section class="back" id="back">
+              <div class="back-top" id="backTop"><span class="ph">Rückseite oben</span></div>
+              <div class="banner">
+                <div class="banner-title"><b id="featTitle"></b><small id="featNote"></small></div>
+                <div class="feats" id="feats"></div>
+              </div>
+              <div class="back-bottom" id="backBottom">
+                <div class="panel-back">
+                  <div class="galaxy" id="galaxy">
+                    <i class="ring"></i><b id="gxTitle"></b><span id="gxText"></span><em id="gxJoin"></em><small id="gxUrl"></small>
+                  </div>
+                  <ul class="specs" id="specs"></ul>
+                  <div class="rightcol">
+                    <div class="logos"><img id="backPub" alt=""><img id="discLogo" alt=""></div>
+                    <img id="backUsk" class="usk-back" alt="">
+                    <p class="copy" id="copy"></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="spine" id="spine">
+              <img class="spine-logo" id="spineLogo" src="assets/images/gog_logo.png" alt="GOG">
+              <div class="spine-box" id="spineBox"><span class="spine-title" id="spineTitle"></span></div>
+            </section>
+
+            <section class="front" id="front">
+              <span class="ph">Frontcover</span>
+              <div class="gog-corner"><img src="assets/images/gog_logo.png" alt="GOG"></div>
+              <img class="usk" id="frontUsk" alt="">
+              <img class="front-pub" id="frontPub" alt="">
+            </section>
+
+            <span class="fold f1"></span><span class="fold f2"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -22,6 +22,7 @@ Baut aus einer einzigen `menu.json` ein einheitliches Installer-Menü (EXE) für
 |---|---|
 | [docs/concept.md](docs/concept.md) | Konzept, Bausteine, Ablauf, Menüaufbau, EXE-Aufbau |
 | [docs/player-und-builder.md](docs/player-und-builder.md) | Builder und Player: Bauen, Benutzen, Windows 11, Wine/Proton, Anbieter-Look |
+| [docs/cover-tool.md](docs/cover-tool.md) | Cover-Tool: Hüllen und Booklets zum Ausdrucken |
 | [docs/configurator.md](docs/configurator.md) | Konfigurator (Web-App): Bedienung, Grenzen |
 | [docs/steamgriddb.md](docs/steamgriddb.md) | Bilder, Beschreibungen und Übersetzung, Einrichtung, Proxy |
 | [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json`, Aufbau der Rezept-ZIP |
@@ -40,6 +41,7 @@ DiscMenu-Builder/
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
 ├─ configurator/            Konfigurator: index.html (eine eigenständige Datei)
 ├─ go.mod, scripts/build.sh Go-Projekt und Build-Skript für die Windows-EXEs
+├─ cover-tool/              Cover-Tool: druckfertige Hüllen (Web-App, eigene Seite unter /cover/)
 ├─ schema/                  JSON Schema der menu.json
 ├─ tests/                   Automatische Tests
 ├─ tools/mkdemo/            Erzeugt die Beispiel-Assets
@@ -75,6 +77,14 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] JSON-Ansicht zum direkten Bearbeiten, Vorschau im Look des Players mit Installations-Simulation
 - [x] Automatische Tests im Repo (Kernlogik, Schema, Worker, Oberfläche) mit CI
 - [x] Prüfung der Disc-Dateien über Ordnerzugriff (Chrome, Edge)
+
+### Cover-Tool (Web-App, im Repo, Seite unter /cover/)
+
+- [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, GOG-Galaxy-Feld, deutsch oder englisch
+- [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzlinien
+- [x] Tests im Repo (Logik und Druck)
+- [ ] Mit echtem Drucker und echter Hülle prüfen (Maße, Schnittmarken)
+- [ ] Optional: Titel, Anbieter und Cover direkt aus der `menu.json` übernehmen
 
 ### Builder und Player (gebaut, Praxistest steht aus)
 
