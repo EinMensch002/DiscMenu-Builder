@@ -166,3 +166,24 @@ test('Anbieter: gog ist Standard und wird nicht geschrieben, epic und steam blei
   assert.equal(bad.state.games[0].provider, 'gog');
   assert.match(bad.notes.join(), /origin/);
 });
+
+test('Simulation: stille Installation je Anbieter', () => {
+  assert.equal(C.installCommand('gog', { silent: true, target: 'C:\\Z', logPath: 'L', entryArgs: ['/X'] }),
+    '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /DIR="C:\\Z" /LOG="L" /X');
+  assert.equal(C.installCommand('gog', { silent: false, target: 'C:\\Z', entryArgs: ['/X'] }), '');
+  assert.equal(C.installCommand('epic', { silent: true, target: 'C:\\Z', entryArgs: ['/q'] }), '/q');
+  assert.ok(C.silentAvailable('gog', []));
+  assert.ok(!C.silentAvailable('epic', []) && C.silentAvailable('epic', ['/q']));
+  assert.ok(!C.silentAvailable('steam', ['/q']));
+  assert.equal(C.defaultTarget('Sid Meier\'s: Civ/III?'), 'C:\\GOG Games\\Sid Meier\'s CivIII');
+  assert.equal(C.formatMB(1536), '1.5 GB');
+  assert.equal(C.formatMB(800), '800 MB');
+});
+
+test('Simulation: Ergebnistexte wie im Player', () => {
+  assert.deepEqual(C.describeResult({ code: 0, found: 'C:\\X' }), { ok: true, text: 'Die Installation wurde ohne Fehler beendet.\nInstalliert nach: C:\\X' });
+  const r5 = C.describeResult({ code: 5, logTail: 'Zeile' });
+  assert.ok(!r5.ok && /Code 5/.test(r5.text) && /Administratorrechte/.test(r5.text) && /Protokoll \(Ende\):\nZeile/.test(r5.text));
+  assert.ok(/kaputt/.test(C.describeResult({ err: 'kaputt' }).text));
+  assert.ok(!/Administratorrechte/.test(C.describeResult({ code: 1 }).text));
+});

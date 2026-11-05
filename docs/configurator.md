@@ -26,7 +26,12 @@ Links die Liste der Spiele, rechts das Formular zum gewählten Eintrag, ganz rec
 - **Bilder** per Drag-and-drop, Antippen oder über die SteamGridDB-Suche. Beim Hinzufügen werden sie verkleinert und umgewandelt: Cover auf höchstens 800 Pixel als PNG, Hintergrund auf höchstens 1920 Pixel als JPEG. Das hält die Menü-EXE klein. Diese Werte sind vorläufig.
 - **Sounds:** WAV, OGG oder MP3, unverändert übernommen.
 - **JSON:** Der Knopf "JSON" öffnet die `menu.json` zum direkten Bearbeiten. "Änderungen übernehmen" liest sie zurück in die Maske. Bilder und Sounds bleiben über ihre Pfade (`assets/...`) verbunden, neue Dateien lassen sich nur in der Maske hinzufügen. Felder, die das Format nicht kennt, werden verworfen und gemeldet. Ungültiges JSON bleibt im Dialog stehen und wird nicht übernommen.
-- **Vorschau:** Der Knopf "Vorschau" zeigt das Menü grob so, wie es der Player darstellt: Auswahlseite bei mehreren Spielen, Spielseite mit den Reitern Spiel, DLCs, Patches und Extras, Gruppen als Überschriften, Hintergrund, Cover sowie Klick- und Hover-Sound. Installieren und Öffnen haben in der Vorschau keine Funktion. Das Aussehen des fertigen Players kann abweichen.
+- **Vorschau und Simulation:** Der Knopf "Vorschau" zeigt das Menü so, wie es der Player darstellt (gleiches Layout und gleiche Farben, Abzeichen und Akzentfarbe je Anbieter, Hintergrund, Cover, Klick- und Hover-Sound). Man kann klicken, Reiter wechseln und "Stille Installation" mit Zielordner einschalten. "Installieren" startet eine **Simulation**, installiert wird nichts:
+  - **Still:** Das Menü zeigt "Installation läuft" mit Fortschrittsbalken und danach das Ergebnis.
+  - **Normal:** Es erscheint ein nachgebautes Installer-Fenster (Weiter, Installieren, Fertigstellen, Abbrechen), das Menü wartet wie im Player.
+  - **Ergebnis wählbar:** Erfolg, Fehler mit Code 1 (Platte voll, mit Protokollauszug) oder Code 5 (Administratorrechte fehlen). Das Tempo lässt sich ändern.
+  - Unter der Vorschau steht der **Ablauf** mit der Kommandozeile, mit der der Player den Installer starten würde (z. B. `/VERYSILENT ... /DIR="..."`). Die Befehlszeilen sind durch einen Test mit dem Go-Player abgeglichen.
+  - Grenzen: Die Schrift ist die des Systems (der Player nutzt Go Regular), und das Installer-Fenster ist ein allgemeiner Nachbau, kein echter GOG-Installer. Zielordner-Dialog ("Durchsuchen ...") und "Beenden" werden nur simuliert.
 - **Disc-Ordner prüfen:** Im Bereich "Prüfung" gibt es (nur in Chrome und Edge am Computer) den Knopf "Disc-Ordner prüfen". Man wählt den Ordner, der so aufgebaut ist wie die fertige Disc, und der Konfigurator meldet, welche Installer- und Extra-Pfade fehlen oder auf einen Ordner statt einer Datei zeigen. Die Groß-/Kleinschreibung wird dabei nicht beachtet. Es wird nur gelesen, nichts verändert oder hochgeladen. Links (`https://`) werden nicht geprüft.
 - **Prüfung** nach den Regeln der Spezifikation. Exportieren geht erst, wenn keine Fehler mehr da sind. Hinweise blockieren nicht.
 
@@ -66,6 +71,6 @@ Im Repo liegen automatische Tests (`npm install`, dann `npm test`). Sie laufen b
 - `tests/core.test.js`: Kernlogik des Konfigurators (ZIP, Prüfung, Export und Import, Hilfen für Suche und Beschreibung, Einstellungen, Disc-Prüfung). Der Block `CORE` in `index.html` wird ohne Browser geladen.
 - `tests/schema.test.js`: Beispiel-Rezept und Konfigurator-Export gegen `schema/menu.schema.json`, plus abgelehnte Fälle.
 - `tests/worker.test.js`: CORS-Proxy (Hosts, Herkunft, Weiterleitung).
-- `tests/ui/ui.check.js` (`npm run test:ui`): Oberfläche in einem echten Chromium mit Playwright (JSON-Ansicht, Vorschau, Disc-Prüfung mit nachgebautem Ordner). Läuft lokal, nicht in der CI.
+- `tests/ui/ui.check.js` (`npm run test:ui`): Oberfläche in einem echten Chromium mit Playwright (JSON-Ansicht, Vorschau mit Simulation in beiden Modi und Fehlerfall, Disc-Prüfung mit nachgebautem Ordner). Läuft lokal, nicht in der CI.
 
 Nicht automatisch geprüft sind die echten Dienste (SteamGridDB, Steam, GOG, Epic, MyMemory) und die Dateiauswahl mit Überschreiben. Dafür gibt es eine Prüfliste zum Abhaken: [manuelle-pruefung.md](manuelle-pruefung.md).

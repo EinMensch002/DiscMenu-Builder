@@ -39,6 +39,7 @@ Der Player wurde bisher nur unter Linux (Xvfb) und als Windows-Build geprüft. D
 - [ ] Nach einer normalen Installation wird der Ordner in der Registry erkannt (siehe "Installiert nach") und für DLCs vorgeschlagen.
 - [ ] Extras öffnen: Datei, Ordner und Link.
 - [ ] Menü schließen, während ein Installer läuft: wird abgelehnt.
+- [ ] Der Player sieht der Vorschau im Konfigurator ähnlich (Layout, Farben, Abzeichen). Abweichungen als Issue melden, die Vorschau soll den Player abbilden.
 - [ ] Hohe Bildschirmauflösung (150 % Skalierung): Schrift und Bedienelemente sind scharf und passend groß.
 
 ## Wine und Proton

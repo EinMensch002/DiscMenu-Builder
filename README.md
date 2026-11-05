@@ -72,7 +72,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [ ] GOG- und Epic-Beschreibungen mit echten Anfragen prüfen (bisher nur nachgebaute Antworten)
 - [ ] Mit echten Diensten prüfen: Chrome am Computer (Dateiauswahl, Überschreiben), Android-Chrome
 - [x] Gemeinsames JSON Schema für Konfigurator und Builder (`schema/menu.schema.json`)
-- [x] JSON-Ansicht zum direkten Bearbeiten, Vorschau des Menüs
+- [x] JSON-Ansicht zum direkten Bearbeiten, Vorschau im Look des Players mit Installations-Simulation
 - [x] Automatische Tests im Repo (Kernlogik, Schema, Worker, Oberfläche) mit CI
 - [x] Prüfung der Disc-Dateien über Ordnerzugriff (Chrome, Edge)
 

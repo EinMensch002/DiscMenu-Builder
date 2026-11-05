@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -212,5 +214,39 @@ func TestLoadRecipeFromAppendedPayload(t *testing.T) {
 	os.WriteFile(plain, []byte("MZ-nur-der-player"), 0o755)
 	if _, err := loadRecipe("", plain); err == nil || !strings.Contains(err.Error(), "kein Menü-Paket") {
 		t.Fatalf("ohne Paket: %v", err)
+	}
+}
+
+// Die Vorschau im Konfigurator (JavaScript) und der Player (Go) müssen dieselben Parameter bilden.
+func TestCommandLineMatchesWebPreview(t *testing.T) {
+	node, err := exec.LookPath("node")
+	if err != nil {
+		t.Skip("node nicht installiert")
+	}
+	out, err := exec.Command(node, filepath.Join("..", "..", "tests", "plan-fixture.js")).Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cases []struct {
+		Provider  string   `json:"provider"`
+		Silent    bool     `json:"silent"`
+		Target    string   `json:"target"`
+		LogPath   string   `json:"logPath"`
+		EntryArgs []string `json:"entryArgs"`
+		Available bool     `json:"available"`
+		Command   string   `json:"command"`
+	}
+	if err := json.Unmarshal(out, &cases); err != nil || len(cases) == 0 {
+		t.Fatalf("Fälle: %v", err)
+	}
+	for i, c := range cases {
+		prov := ProviderFor(c.Provider)
+		if prov.SilentAvailable(c.EntryArgs) != c.Available {
+			t.Errorf("Fall %d: SilentAvailable Go=%v JS=%v", i, prov.SilentAvailable(c.EntryArgs), c.Available)
+		}
+		job := &InstallJob{Provider: prov, Silent: c.Silent, Target: c.Target, LogPath: c.LogPath, EntryArgs: c.EntryArgs}
+		if got := job.Command(); got != c.Command {
+			t.Errorf("Fall %d (%s): Go %q, JS %q", i, c.Provider, got, c.Command)
+		}
 	}
 }

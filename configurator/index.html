@@ -73,26 +73,63 @@ dialog::backdrop{background:rgba(5,7,12,.6);backdrop-filter:blur(3px)}
 .gal button.sel{border-color:var(--ok);outline:2px solid var(--ok);background:color-mix(in srgb,var(--ok) 10%,var(--panel2))}
 .gal small{font-size:11px}
 .sgbtn{align-self:flex-start}
-dialog.wide{width:min(1100px,96vw)}
+
+.simbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:8px 0 10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.simbar label{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mut)}
+.simbar select{padding:4px 8px}
+.stagewrap{position:relative;width:100%;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0e1016}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:#0e1016;color:#ecf0f5;font:16px/1.4 system-ui,"Segoe UI",Roboto,sans-serif;user-select:none}
+.stage *{box-sizing:border-box}
+.stage .bgimg{position:absolute;inset:0;background:center/cover no-repeat}
+.stage .shade{position:absolute;inset:0;background:rgba(8,10,16,.78)}
+.stage .abs{position:absolute}
+.stage .sbtn{border:0;border-radius:10px;background:#282d3a;color:#ecf0f5;font:17px system-ui,"Segoe UI",sans-serif;height:40px;padding:0 16px;cursor:pointer;display:flex;align-items:center;justify-content:center;white-space:nowrap;transition:background .1s}
+.stage .sbtn:hover{background:#363d50}
+.stage .sbtn.main{font-weight:700;color:var(--ink,#fff)}
+.stage .sbtn.main:hover{filter:brightness(1.1)}
+.stage .sbtn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+.stage .badge{display:inline-flex;align-items:center;border-radius:99px;padding:1px 11px;font-weight:700;vertical-align:middle}
+.stage .cover{background:#282d3a;display:flex;align-items:center;justify-content:center;text-align:center;color:#a0a8b8;font-weight:700;overflow:hidden}
+.stage .cover img{width:100%;height:100%;object-fit:contain}
+.stage .tile{width:200px;cursor:pointer;padding:8px;margin:-8px;border-radius:14px;position:relative;transition:background .1s}
+.stage .tile:hover{background:rgba(27,31,41,.92)}
+.stage .tile .bar{position:absolute;left:0;right:0;bottom:0;height:4px;border-radius:0 0 14px 14px;opacity:0}
+.stage .tile:hover .bar{opacity:1}
+.stage .panel{background:rgba(27,31,41,.92);border-radius:14px}
+.stage .sbtn.tab{height:40px;font-size:18px;font-weight:700;padding:0 20px}
+.stage .row{background:#282d3a;border-radius:12px;padding:14px 16px;margin:0 14px 10px 0;display:flex;gap:12px;align-items:center;min-height:76px}
+.stage .row .tx{flex:1;min-width:0}
+.stage .row .tx b{font-size:18px;display:block}
+.stage .row .tx span{color:#a0a8b8;font-size:15px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.stage .grp{font-size:14px;font-weight:700;text-transform:uppercase;margin:8px 0 8px}
+.stage .chk{display:flex;gap:12px;align-items:center;height:32px;font-size:17px;cursor:pointer}
+.stage .chk i{width:24px;height:24px;border-radius:6px;background:#282d3a;display:block;position:relative}
+.stage .chk i.on::after{content:"";position:absolute;inset:4px;border-radius:4px;background:var(--acc-c)}
+.stage input.fld{height:42px;border-radius:8px;border:0;border-bottom:3px solid transparent;background:#12151d;color:#ecf0f5;font:17px system-ui,"Segoe UI",sans-serif;padding:0 12px;flex:1;min-width:0;user-select:text}
+.stage input.fld:focus{outline:none;border-bottom-color:var(--acc-c)}
+.stage .scroll{overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
+.stage .ovl{position:absolute;inset:0;background:rgba(6,8,14,.75);display:flex;align-items:center;justify-content:center}
+.stage .box{width:760px;max-width:92%;background:#282d3a;border-radius:16px;padding:24px 28px 28px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.stage .box .top{position:absolute;left:0;right:0;top:0;height:5px}
+.stage .box h4{margin:4px 0 14px;font-size:24px}
+.stage .box pre{white-space:pre-wrap;font:16px/1.45 system-ui,"Segoe UI",sans-serif;margin:0 0 18px;max-height:300px;overflow:auto;border:0;background:none;padding:0;color:#ecf0f5}
+.stage .prog{height:14px;border-radius:7px;background:#363d50;overflow:hidden;position:relative}
+.stage .prog i{display:block;height:100%;border-radius:7px;min-width:14px}
+.stage .prog i.ind{position:absolute;width:33%;animation:slide 1.6s linear infinite}
+@keyframes slide{from{left:-33%}to{left:100%}}
+.stage .win{position:absolute;left:50%;top:50%;width:560px;transform:translate(-50%,-48%);background:#f0f0f0;color:#111;border-radius:6px;box-shadow:0 12px 50px rgba(0,0,0,.7);font:14px/1.45 "Segoe UI",system-ui,sans-serif;overflow:hidden;z-index:3}
+.stage .win .tb{background:#fff;padding:8px 12px;display:flex;justify-content:space-between;border-bottom:1px solid #ddd;font-size:13px}
+.stage .win .bd{padding:22px 24px;min-height:200px}
+.stage .win .bd h5{margin:0 0 10px;font-size:18px;font-weight:600}
+.stage .win .ft{padding:12px 16px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #ddd;background:#e8e8e8}
+.stage .win button{font:14px "Segoe UI",system-ui,sans-serif;border:1px solid #adadad;background:#e1e1e1;border-radius:3px;padding:5px 18px;cursor:pointer;color:#111}
+.stage .win button:hover{background:#e5f1fb;border-color:#0078d4}
+.stage .win .wp{height:20px;background:#e6e6e6;border:1px solid #bcbcbc;margin-top:14px}
+.stage .win .wp i{display:block;height:100%;background:#06b025}
+.simlog{margin:10px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);font:12.5px/1.5 ui-monospace,Consolas,monospace;max-height:150px;overflow:auto;color:var(--mut)}
+.simlog div b{color:var(--txt);font-weight:600}
+dialog.wide{width:min(1360px,98vw)}
 textarea.code{width:100%;min-height:50vh;font:12.5px/1.5 ui-monospace,Consolas,monospace;white-space:pre;tab-size:2;resize:vertical}
-.pv{position:relative;aspect-ratio:16/9;min-height:360px;border-radius:14px;overflow:hidden;background:#10131a center/cover no-repeat;color:#fff;border:1px solid var(--line)}
-.pv .ov{position:absolute;inset:0;background:linear-gradient(rgba(6,8,14,.55),rgba(6,8,14,.82));display:flex;flex-direction:column;padding:18px 22px;gap:12px;overflow:auto}
-.pv h2{color:#fff;margin:0}.pv .hint{color:#c3cada}
-.pv button{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.25);color:#fff}
-.pv button:hover{background:rgba(91,140,255,.35);border-color:#8fb0ff}
-.pv .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
-.pv .tile{display:flex;flex-direction:column;gap:6px;align-items:center;padding:8px;text-align:center}
-.pv .tile img,.pv .cv img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:8px;background:rgba(255,255,255,.08)}
-.pv .ph{width:100%;aspect-ratio:2/3;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:12px;color:#c3cada;padding:6px}
-.pv .game{display:grid;grid-template-columns:170px minmax(0,1fr);gap:20px}
-@media (max-width:640px){.pv .game{grid-template-columns:1fr}.pv .cv{max-width:140px}}
-.pv .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.pv .tabs button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent}
-.pv .gh{margin:12px 0 4px;font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:#aab6d0}
-.pv .it{display:flex;gap:12px;align-items:center;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);margin:6px 0}
-.pv .it img{width:40px;height:56px;object-fit:cover;border-radius:6px}
-.pv .it .tx{flex:1;min-width:0}.pv .it .tx small{color:#c3cada;display:block}
-.pv .desc{white-space:pre-wrap;color:#dfe5f2;font-size:14px}
 footer{text-align:center;color:var(--mut);font-size:12px;padding:8px 14px 28px;line-height:1.8}
 </style>
 </head>
@@ -127,7 +164,40 @@ footer{text-align:center;color:var(--mut);font-size:12px;padding:8px 14px 28px;l
 const CORE = (() => {
   const UML = {'ä':'ae','ö':'oe','ü':'ue','Ä':'ae','Ö':'oe','Ü':'ue','ß':'ss'};
   const SECTIONS = ['dlcs','patches','extras'];
-  const PROVIDERS = {gog:{name:'GOG',color:'#9e4ebe',note:''}, epic:{name:'Epic Games',color:'#8d93a5',note:'Epic hat keine einheitlichen Offline-Installer. Der Player startet sie normal, still nur mit eigenen Parametern.'}, steam:{name:'Steam',color:'#66c0f4',note:'Steam-Backups kann der Player noch nicht wiederherstellen. Der Eintrag wird nur angezeigt, Extras lassen sich öffnen.'}};
+  // Aussehen und Verhalten je Anbieter. Muss zu src/Player/providers.go passen (ein Test vergleicht die Befehlszeilen).
+  const PROVIDERS = {
+    gog:{name:'GOG', color:'#9e4ebe', accent:'#9e4ebe', badge:'#763494', onBadge:'#ffffff', note:'', canInstall:true, usesTarget:true, silent:'always'},
+    epic:{name:'Epic Games', color:'#8d93a5', accent:'#d6dae4', badge:'#34363e', onBadge:'#ffffff', note:'Epic hat keine einheitlichen Offline-Installer. Der Player startet sie normal, still nur mit eigenen Parametern.', canInstall:true, usesTarget:false, silent:'args'},
+    steam:{name:'Steam', color:'#66c0f4', accent:'#66c0f4', badge:'#223e5c', onBadge:'#96d6ff', note:'Steam-Backups kann der Player noch nicht wiederherstellen. Der Eintrag wird nur angezeigt, Extras lassen sich öffnen.', canInstall:false, usesTarget:false, silent:'never'}
+  };
+  const quote = v => /^"/.test(v) ? v : '"' + v + '"';
+  /* Ist für diesen Eintrag eine stille Installation möglich? entryArgs ist eine Liste. */
+  function silentAvailable(provId, entryArgs){
+    const p = PROVIDERS[provId] || PROVIDERS.gog;
+    return p.silent === 'always' || (p.silent === 'args' && entryArgs.length > 0);
+  }
+  /* Parameter des Installers, wie sie der Player übergibt (leer im normalen Modus). */
+  function installCommand(provId, o){
+    if (!o.silent) return '';
+    const p = PROVIDERS[provId] || PROVIDERS.gog, a = [];
+    if (p.silent === 'always'){
+      a.push('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-');
+      if (o.target) a.push('/DIR=' + quote(o.target));
+      if (o.logPath) a.push('/LOG=' + quote(o.logPath));
+    }
+    return a.concat(o.entryArgs || []).join(' ');
+  }
+  function defaultTarget(name){ return 'C:\\GOG Games\\' + String(name || '').replace(/[\\/:*?"<>|]/g, '').trim(); }
+  function formatMB(mb){ return mb >= 1024 ? (mb/1024).toFixed(1) + ' GB' : Math.round(mb) + ' MB'; }
+  /* Ergebnistext nach einer Installation (gleiche Texte wie der Player). */
+  function describeResult(r){
+    if (r.err) return {ok:false, text:'Der Installer konnte nicht gestartet werden:\n' + r.err};
+    if (r.code === 0) return {ok:true, text:'Die Installation wurde ohne Fehler beendet.' + (r.found ? '\nInstalliert nach: ' + r.found : '')};
+    let t = 'Der Installer wurde mit dem Code ' + r.code + ' beendet.';
+    if (r.code === 5 || r.code === 740) t += '\nWahrscheinlich fehlten Administratorrechte.';
+    if (r.logTail) t += '\n\nProtokoll (Ende):\n' + r.logTail;
+    return {ok:false, text:t};
+  }
 
   function slug(s){
     return String(s == null ? '' : s).replace(/[äöüÄÖÜß]/g, c => UML[c]).normalize('NFKD')
@@ -433,14 +503,14 @@ const CORE = (() => {
     }
     return {key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '')};
   }
-  return {PROVIDERS, discRefs, checkDisc, packSettings, unpackSettings, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
+  return {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, discRefs, checkDisc, packSettings, unpackSettings, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
 })();
 if (typeof module !== 'undefined') module.exports = CORE;
 
 /* === UI === */
 (() => {
   if (typeof document === 'undefined') return;
-  const {PROVIDERS, checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText, packSettings, unpackSettings} = CORE;
+  const {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, parseArgs, checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText, packSettings, unpackSettings} = CORE;
   const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Musik','Artwork','Dokumente','Videos'], dlcs:[]};
   const MIME = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif',wav:'audio/wav',ogg:'audio/ogg',mp3:'audio/mpeg'};
   const assets = new Map(); let state = newState(); let sel = 0; let counter = 1; let touched = false;
@@ -1033,43 +1103,192 @@ if (typeof module !== 'undefined') module.exports = CORE;
       ta, msg, h('div', {class:'row', style:'margin-top:10px'}, apply, h('button', {type:'button', onclick:closeDlg}, 'Abbrechen')));
   }
 
-  /* --- Vorschau --- */
+  /* --- Vorschau mit Simulation: bildet den Player nach (Layout, Farben, Anbieter-Look, Installationsablauf) --- */
+  const hexRgb = c => [1,3,5].map(i => parseInt(c.slice(i, i+2), 16));
+  const inkFor = c => { const [r,g,b] = hexRgb(c); return 0.299*r + 0.587*g + 0.114*b > 150 ? '#14161e' : '#ffffff'; };
+
   function openPreview(){
-    const box = h('div', {class:'pv'});
-    let cur = state.games.length > 1 ? null : 0, tab = 'game';
+    const S = {page: state.games.length > 1 ? 'select' : 'game', cur: 0, tab: 'game', silent: false, targets: {}, modal: null,
+      result: 'ok', speed: 1, log: [], timers: new Set()};
+    const stage = h('div', {class:'stage'}), wrap = h('div', {class:'stagewrap'}, stage);
+    const logBox = h('div', {class:'simlog'});
+    const say = (msg, strong) => { S.log.push([new Date().toLocaleTimeString('de-DE'), msg, strong]); if (S.log.length > 60) S.log.shift();
+      logBox.replaceChildren(...S.log.map(([t,m,b]) => h('div', {}, t + '  ', b ? h('b', {}, m) : m))); logBox.scrollTop = logBox.scrollHeight; };
+    const later = (fn, ms) => { const t = setTimeout(() => { S.timers.delete(t); fn(); }, ms / S.speed); S.timers.add(t); return t; };
+    const every = (fn, ms) => { const t = setInterval(fn, ms); S.timers.add(t); return t; };
+    const stop = t => { clearTimeout(t); clearInterval(t); S.timers.delete(t); };
     const play = k => { const id = state.sounds[k]; if (!id || !assets.has(id)) return; try { const a = new Audio(assetUrl(id)); const r = a.play(); if (r && r.catch) r.catch(() => {}); } catch (e) { /* kein Ton */ } };
-    const btn = (label, fn, cls) => { const b = h('button', {type:'button', class: cls || '', onclick: () => { play('click'); fn(); }}, label); b.addEventListener('mouseenter', () => play('hover')); return b; };
-    const cover = (id, name) => id && assets.has(id) ? h('img', {src: assetUrl(id), alt: name}) : h('div', {class:'ph'}, name || '(ohne Namen)');
-    const grouped = list => { const out = new Map(); list.forEach(it => { const k = it.group.trim(); if (!out.has(k)) out.set(k, []); out.get(k).push(it); }); return out; };
-    function item(it){
-      const act = it.kind === 'installer' ? 'Installieren' : 'Öffnen';
-      return h('div', {class:'it'}, it.cover && assets.has(it.cover) ? h('img', {src: assetUrl(it.cover), alt:''}) : null,
-        h('div', {class:'tx'}, h('b', {}, it.name || '(ohne Namen)'), it.description.trim() ? h('small', {}, it.description.trim().slice(0, 180)) : null),
-        btn(act, () => toast('Nur Vorschau: "' + (it.name || '') + '" wird hier nicht ' + (it.kind === 'installer' ? 'installiert' : 'geöffnet') + '.'), 'sm'));
+    const btn = (label, fn, cls, style) => { const b = h('button', {type:'button', class:'sbtn ' + (cls || ''), style: style || '', onclick: () => { play('click'); fn(); }}, label); b.addEventListener('mouseenter', () => { if (!b.disabled) play('hover'); }); return b; };
+    const g = () => state.games[S.cur], P = gm => PROVIDERS[gm.provider || 'gog'];
+    const badge = (gm, size) => { const p = P(gm); return h('span', {class:'badge', style:'background:' + p.badge + ';color:' + p.onBadge + ';font-size:' + (size || 14) + 'px;height:' + ((size || 14) + 10) + 'px'}, p.name); };
+    const cover = (id, name, w, hh) => h('div', {class:'cover', style:'width:' + w + 'px;height:' + hh + 'px;border-radius:10px;font-size:' + (w > 150 ? 20 : 11) + 'px;padding:8px'}, id && assets.has(id) ? h('img', {src:assetUrl(id), alt:''}) : (name || '(ohne Namen)'));
+
+    function fit(){ const avail = Math.max(300, $('#dlgBody').clientWidth), sc = Math.max(0.35, Math.min(avail / 1280, (window.innerHeight - 360) / 720));
+      wrap.style.width = Math.round(1280 * sc) + 'px'; wrap.style.margin = '0 auto'; stage.style.transform = 'scale(' + sc + ')'; wrap.style.height = Math.round(720 * sc) + 'px'; }
+    const onResize = () => fit(); window.addEventListener('resize', onResize);
+    dlg.addEventListener('close', () => { window.removeEventListener('resize', onResize); S.timers.forEach(stop); dlg.classList.remove('wide'); }, {once:true});
+
+    /* --- Seiten --- */
+    function pageSelect(){
+      return h('div', {class:'abs', style:'inset:0'},
+        h('div', {class:'abs', style:'left:48px;top:24px;font-size:36px;font-weight:700'}, state.title.trim() || '(ohne Titel)'),
+        h('div', {class:'abs', style:'left:48px;top:76px;font-size:18px;color:#a0a8b8'}, 'Wähle ein Spiel'),
+        h('div', {class:'abs scroll', style:'left:32px;right:32px;top:116px;bottom:84px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:24px 28px;justify-content:center;align-content:flex-start'},
+          state.games.map((gm,i) => { const p = P(gm);
+            const t = h('div', {class:'tile', onclick: () => { play('click'); S.cur = i; S.tab = 'game'; S.page = 'game'; say('Spiel geöffnet: ' + (gm.name || '(ohne Namen)')); draw(); }},
+              cover(gm.cover, gm.name, 200, 300),
+              h('div', {style:'font-size:18px;font-weight:700;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'}, gm.name || '(ohne Namen)'),
+              h('div', {style:'margin-top:8px'}, badge(gm, 13)), h('div', {class:'bar', style:'background:' + p.accent}));
+            t.addEventListener('mouseenter', () => play('hover')); return t; })),
+        footerQuit());
     }
-    function draw(){
-      box.style.backgroundImage = state.background && assets.has(state.background) ? 'url("' + assetUrl(state.background) + '")' : '';
-      const ov = h('div', {class:'ov'}); box.replaceChildren(ov);
-      if (cur === null){
-        ov.append(h('h2', {}, state.title.trim() || '(ohne Titel)'), h('p', {class:'hint'}, 'Spiel auswählen'),
-          h('div', {class:'grid'}, state.games.map((g,i) => { const b = btn('', () => { cur = i; tab = 'game'; draw(); }, 'tile'); b.append(cover(g.cover, g.name), h('span', {}, g.name || '(ohne Namen)'), providerChip(g)); return b; })));
-        return;
+    function footerQuit(){ return h('div', {class:'abs', style:'right:48px;bottom:24px;width:140px'}, btn('Beenden', () => { say('"Beenden" gedrückt: Das Menü würde sich schließen.', true); toast('Simulation: Das Menü würde sich jetzt schließen.'); }, '', 'width:140px')); }
+
+    function settingsBar(gm, p){
+      if (!p.canInstall) return null;
+      const box = h('div', {style:'margin-bottom:12px;border-bottom:1px solid #424a5c;padding-bottom:12px'});
+      box.append(h('div', {class:'chk', onclick: () => { play('click'); S.silent = !S.silent; if (S.silent && p.usesTarget && !S.targets[S.cur]) S.targets[S.cur] = defaultTarget(gm.name);
+        say('Stille Installation: ' + (S.silent ? 'an' : 'aus')); draw(); }}, h('i', {class: S.silent ? 'on' : ''}), 'Stille Installation (ohne Fenster des Installers)'));
+      if (S.silent && p.usesTarget){
+        const f = h('input', {class:'fld', type:'text', placeholder:'z. B. C:\\GOG Games\\' + (gm.name || ''), oninput: () => { S.targets[S.cur] = f.value; }}); f.value = S.targets[S.cur] || '';
+        box.append(h('div', {style:'display:flex;gap:10px;align-items:center;margin-top:6px'}, h('span', {style:'color:#a0a8b8;font-size:15px;width:90px'}, 'Zielordner'), f,
+          btn('Durchsuchen ...', () => { const v = 'D:\\Spiele\\' + (gm.name || 'Spiel').replace(/[\\/:*?"<>|]/g, ''); S.targets[S.cur] = v; say('Ordnerdialog (simuliert): ' + v); draw(); }, '', 'height:42px;width:160px')));
+      } else if (S.silent && !p.usesTarget && p.note) box.append(h('div', {style:'color:#a0a8b8;font-size:14px;margin-top:6px'}, p.note));
+      return box;
+    }
+
+    function entryRow(e, gm, p){
+      const isInst = e.kind === 'installer';
+      const label = isInst ? 'Installieren' : 'Öffnen';
+      const b = btn(label, () => isInst ? beginInstall(e.name, e.path, parseArgs(e.args), gm, p) : (say('Öffnen (simuliert): ' + e.path, true), toast('Simulation: "' + (e.name || '') + '" wird geöffnet.')),
+        isInst ? 'main' : '', 'width:150px;height:42px;' + (isInst ? 'background:' + p.accent + ';--ink:' + inkFor(p.accent) : ''));
+      if (isInst && !p.canInstall) b.disabled = true;
+      return h('div', {class:'row'}, e.cover && assets.has(e.cover) ? h('div', {style:'width:48px;height:68px;flex:none'}, h('img', {src:assetUrl(e.cover), style:'width:100%;height:100%;object-fit:contain'})) : null,
+        h('div', {class:'tx'}, h('b', {}, e.name || '(ohne Namen)'), e.description.trim() ? h('span', {}, e.description.trim()) : null), b);
+    }
+
+    function pageGame(){
+      const gm = g(), p = P(gm), multi = state.games.length > 1;
+      const tabs = ['game'].concat(['dlcs','patches','extras'].filter(k => gm[k].length));
+      if (!tabs.includes(S.tab)) S.tab = 'game';
+      const names = {game:'Spiel', dlcs:'DLCs', patches:'Patches', extras:'Extras'};
+      const body = h('div', {class:'abs panel', style:'left:348px;right:48px;top:132px;bottom:84px;padding:18px;display:flex;flex-direction:column;--acc-c:' + p.accent});
+      if (S.tab !== 'extras') body.append(settingsBar(gm, p));
+      const sc = h('div', {class:'scroll', style:'flex:1;min-height:0;padding-right:6px'});
+      if (S.tab === 'game'){
+        const ib = btn(p.canInstall ? 'Installieren' : 'Nicht verfügbar', () => beginInstall(gm.name, gm.installer, parseArgs(gm.args), gm, p), 'main', 'width:300px;height:54px;font-size:19px;background:' + p.accent + ';--ink:' + inkFor(p.accent));
+        if (!p.canInstall) ib.disabled = true;
+        sc.append(ib);
+        if (p.note) sc.append(h('div', {style:'color:#a0a8b8;font-size:15px;margin:14px 0 4px'}, p.note));
+        sc.append(h('div', {style:'white-space:pre-wrap;font-size:17px;margin-top:14px;' + (gm.description.trim() ? '' : 'color:#a0a8b8')}, gm.description.trim() || 'Keine Beschreibung.'));
+      } else {
+        let last = '\u0000';
+        gm[S.tab].forEach(e => { if (e.group !== last){ last = e.group; if (e.group) sc.append(h('div', {class:'grp', style:'color:' + p.accent}, e.group)); } sc.append(entryRow(e, gm, p)); });
       }
-      const g = state.games[cur];
-      const tabs = [['game','Spiel']].concat([['dlcs','DLCs'],['patches','Patches'],['extras','Extras']].filter(([k]) => g[k].length));
-      if (!tabs.some(t => t[0] === tab)) tab = 'game';
-      let content;
-      if (tab === 'game') content = h('div', {}, g.description.trim() ? h('p', {class:'desc'}, g.description.trim()) : h('p', {class:'hint'}, '(keine Beschreibung)'),
-        h('div', {class:'row'}, btn('Installieren', () => toast('Nur Vorschau: Das Spiel wird hier nicht installiert.'), 'pri'),
-          g.estimatedSizeMB !== '' ? h('span', {class:'hint'}, 'ca. ' + g.estimatedSizeMB + ' MB') : null));
-      else content = h('div', {}, [...grouped(g[tab])].map(([k, list]) => h('div', {}, k ? h('div', {class:'gh'}, k) : null, list.map(item))));
-      ov.append(h('div', {class:'row'}, state.games.length > 1 ? btn('← Alle Spiele', () => { cur = null; draw(); }, 'sm') : null, h('span', {class:'hint'}, state.title.trim() || '(ohne Titel)')),
-        h('div', {class:'game'}, h('div', {class:'cv'}, cover(g.cover, g.name)),
-          h('div', {}, h('h2', {}, g.name || '(ohne Namen)', ' ', providerChip(g)), h('div', {class:'tabs'}, tabs.map(([k,l]) => btn(l, () => { tab = k; draw(); }, tab === k ? 'on' : ''))), content)));
+      body.append(sc);
+      const nameShown = gm.name || '(ohne Namen)';
+      return h('div', {class:'abs', style:'inset:0'},
+        multi ? h('div', {class:'abs', style:'left:48px;top:24px'}, btn('← Alle Spiele', () => { S.page = 'select'; draw(); }, '', 'width:150px;height:36px')) : null,
+        h('div', {class:'abs', style:'left:' + (multi ? 218 : 48) + 'px;top:18px;font-size:30px;font-weight:700;white-space:nowrap'}, nameShown, ' ', badge(gm, 14)),
+        h('div', {class:'abs', style:'left:48px;top:84px'}, cover(gm.cover, gm.name, 260, 390), h('div', {style:'height:3px;margin-top:10px;border-radius:2px;background:' + p.accent}),
+          gm.estimatedSizeMB !== '' && Number(gm.estimatedSizeMB) > 0 ? h('div', {style:'color:#a0a8b8;font-size:14px;margin-top:8px'}, 'ca. ' + formatMB(Number(gm.estimatedSizeMB)) + ' auf der Festplatte') : null),
+        h('div', {class:'abs', style:'left:348px;top:84px;display:flex;gap:8px'}, tabs.map(t => btn(names[t], () => { S.tab = t; draw(); }, 'tab' + (t === S.tab ? ' main' : ''), t === S.tab ? 'background:' + p.accent + ';--ink:' + inkFor(p.accent) : ''))),
+        body,
+        multi ? h('div', {class:'abs', style:'left:48px;bottom:54px;font-size:14px;color:#a0a8b8'}, 'Esc: zurück zur Auswahl') : null,
+        footerQuit());
     }
-    draw();
-    dlg.classList.add('wide'); dlg.addEventListener('close', () => dlg.classList.remove('wide'), {once:true});
-    openDlg('Vorschau', h('p', {class:'hint'}, 'So ungefähr wirkt das Menü. Das Aussehen des fertigen Players kann abweichen. Installieren und Öffnen sind hier ohne Funktion, Sounds und Bilder sind echt.'), box);
+
+    /* --- Installationssimulation --- */
+    function beginInstall(title, rel, entryArgs, gm, p){
+      if (!p.canInstall){ S.modal = {kind:'msg', title:'Nicht unterstützt', body:p.note}; draw(); return; }
+      const provId = gm.provider || 'gog';
+      const silent = S.silent && silentAvailable(provId, entryArgs);
+      const target = (S.targets[S.cur] || '').trim();
+      if (silent && p.usesTarget && !target){ S.modal = {kind:'msg', title:'Zielordner fehlt', body:'Für die stille Installation muss ein Zielordner angegeben werden.'}; draw(); return; }
+      const logPath = silent ? 'C:\\Users\\Du\\AppData\\Local\\Temp\\discmenu-install.log' : '';
+      const cmd = installCommand(provId, {silent, target: p.usesTarget ? target : '', logPath: p.usesTarget ? logPath : '', entryArgs});
+      say('Starte: ' + rel.replace(/\//g, '\\') + (cmd ? ' ' + cmd : '  (normal, ohne Parameter)'), true);
+      const found = provId === 'gog' ? (silent ? target : defaultTarget(gm.name)) : '';
+      const m = S.modal = {kind:'install', title, silent, target: silent ? target : '', unwanted: S.silent && !silent, done:false, progress: silent ? 0 : -1, step: 0, winProg: 0, res: null, found, rel};
+      if (silent) runSilent(m); else { say('Der Installer öffnet sein eigenes Fenster (hier nachgebaut).'); }
+      draw();
+    }
+    const failLog = 'Fehler: Zu wenig Speicherplatz auf dem Ziellaufwerk.\nSetup wurde vorzeitig beendet.';
+    function finish(m, code){
+      if (m.done) return; m.done = true; m.win = false;
+      const r = describeResult({code, found: code === 0 ? m.found : '', logTail: code !== 0 && m.silent && code === 1 ? failLog : ''});
+      m.res = r; m.progress = r.ok ? 1 : m.progress;
+      say('Installer beendet mit Code ' + code + (r.ok ? ' (Erfolg)' : ' (Fehler)'), true); draw();
+    }
+    function runSilent(m){
+      const failAt = S.result === 'ok' ? 2 : S.result === 'err5' ? 0.04 : 0.6, dur = 6000;
+      const t0 = Date.now();
+      const t = every(() => {
+        const sp = Math.min(1, (Date.now() - t0) * S.speed / dur);
+        m.progress = Math.min(sp, failAt);
+        if (sp >= failAt || sp >= 1){ stop(t); finish(m, S.result === 'ok' ? 0 : S.result === 'err5' ? 5 : 1); return; }
+        draw();
+      }, 120);
+    }
+    // Normaler Modus: nachgebautes Installer-Fenster mit Weiter / Installieren / Fertigstellen
+    function winNext(m){
+      if (m.step === 0){ m.step = 1; m.winProg = 0; say('Installer: Installation gestartet'); const t0 = Date.now(), failAt = S.result === 'ok' ? 2 : 0.55;
+        const t = every(() => { const sp = Math.min(1, (Date.now() - t0) * S.speed / 4500); m.winProg = Math.min(sp, failAt);
+          if (sp >= failAt || sp >= 1){ stop(t); if (S.result === 'ok'){ m.step = 2; } else { m.step = 3; } }
+          draw(); }, 120); }
+      else if (m.step === 2) finish(m, 0);
+      else if (m.step === 3) finish(m, S.result === 'err5' ? 5 : 1);
+    }
+    function winCancel(m){ if (m.step === 1) return; say('Installer: Abbruch durch den Benutzer', true); finish(m, 2); }
+    function installerWindow(m){
+      const gm = g(), nm = m.title || gm.name;
+      let bodyEl, foot;
+      if (m.step === 0){ bodyEl = [h('h5', {}, 'Willkommen beim Setup-Assistenten von ' + nm), h('div', {}, 'Dieser Assistent führt Sie durch die Installation. Klicken Sie auf "Weiter", um fortzufahren.')];
+        foot = [h('button', {type:'button', onclick: () => { play('click'); winNext(m); }}, 'Weiter >'), h('button', {type:'button', onclick: () => { play('click'); winCancel(m); }}, 'Abbrechen')]; }
+      else if (m.step === 1){ bodyEl = [h('h5', {}, 'Installiere ...'), h('div', {}, 'Bitte warten Sie, während ' + nm + ' installiert wird.'), h('div', {class:'wp'}, h('i', {style:'width:' + Math.round(m.winProg * 100) + '%'}))]; foot = [h('button', {type:'button', disabled:true}, 'Abbrechen')]; }
+      else if (m.step === 2){ bodyEl = [h('h5', {}, 'Setup abgeschlossen'), h('div', {}, nm + ' wurde auf Ihrem Computer installiert.')]; foot = [h('button', {type:'button', onclick: () => { play('click'); winNext(m); }}, 'Fertigstellen')]; }
+      else { bodyEl = [h('h5', {style:'color:#b00020'}, 'Setup konnte nicht abgeschlossen werden'), h('div', {}, S.result === 'err5' ? 'Zugriff verweigert (Simulation). Starten Sie das Setup als Administrator.' : 'Nicht genügend Speicherplatz (Simulation).')]; foot = [h('button', {type:'button', onclick: () => { play('click'); winNext(m); }}, 'OK')]; }
+      return h('div', {class:'win'}, h('div', {class:'tb'}, h('span', {}, 'Setup - ' + nm), h('span', {}, '–  □  ×')), h('div', {class:'bd'}, bodyEl), h('div', {class:'ft'}, foot));
+    }
+
+    function modal(){
+      const m = S.modal; if (!m) return null;
+      const gm = g(), p = P(gm);
+      let title, body, accent = p.accent, prog = null, ok = h('div', {style:'display:flex;justify-content:flex-end'}, btn('OK', () => { if (m.kind === 'install' && m.res && m.res.ok && m.found && !S.targets[S.cur]) S.targets[S.cur] = m.found; S.modal = null; draw(); }, 'main', 'width:140px;height:44px;background:' + accent + ';--ink:' + inkFor(accent)));
+      if (m.kind === 'msg'){ title = m.title; body = m.body; }
+      else if (!m.done){
+        title = 'Installation läuft';
+        body = m.title + (m.silent ? '\nDer Installer läuft ohne eigenes Fenster.' + (m.target ? '\nZiel: ' + m.target : '') : '\nDer Installer hat ein eigenes Fenster. Dieses Menü wartet, bis er fertig ist.') + (m.unwanted ? '\n(Für diesen Eintrag ist keine stille Installation möglich, der Installer läuft normal.)' : '');
+        prog = h('div', {class:'prog'}, m.progress < 0 ? h('i', {class:'ind', style:'background:' + accent}) : h('i', {style:'width:' + Math.round(m.progress * 100) + '%;background:' + accent}));
+        ok = null;
+      } else { accent = m.res.ok ? '#3ddc97' : '#ff6b6b'; title = m.res.ok ? 'Fertig' : 'Installation nicht erfolgreich'; body = m.title + '\n\n' + m.res.text;
+        prog = h('div', {class:'prog'}, h('i', {style:'width:100%;background:' + accent}));
+        ok = h('div', {style:'display:flex;justify-content:flex-end;margin-top:18px'}, btn('OK', () => { if (m.res.ok && m.found && !S.targets[S.cur]) S.targets[S.cur] = m.found; S.modal = null; draw(); }, 'main', 'width:140px;height:44px;background:' + accent + ';--ink:#14161e')); }
+      return h('div', {class:'ovl'}, h('div', {class:'box'}, h('div', {class:'top', style:'background:' + accent}), h('h4', {}, title), h('pre', {}, body), prog, ok),
+        m.kind === 'install' && !m.silent && !m.done ? installerWindow(m) : null);
+    }
+
+    function draw(){
+      const gm = state.games[S.cur] || state.games[0];
+      if (!state.games[S.cur]) S.cur = 0;
+      stage.style.setProperty('--acc-c', P(gm).accent);
+      const bg = state.background && assets.has(state.background);
+      stage.replaceChildren(...[bg ? h('div', {class:'bgimg', style:'background-image:url("' + assetUrl(state.background) + '")'}) : null, bg ? h('div', {class:'shade'}) : null,
+        S.page === 'select' ? pageSelect() : pageGame(), modal()].filter(Boolean));
+    }
+
+    /* --- Bedienleiste --- */
+    const sel = (opts, cur, fn) => { const e = h('select', {onchange: () => fn(e.value)}, opts.map(([v,l]) => h('option', {value:v}, l))); e.value = cur; return e; };
+    const bar = h('div', {class:'simbar'},
+      h('b', {}, 'Simulation'),
+      h('label', {}, 'Ergebnis der Installation ', sel([['ok','Erfolg'],['err1','Fehler (Code 1, Platte voll)'],['err5','Fehler (Code 5, Rechte fehlen)']], S.result, v => { S.result = v; say('Ergebnis der nächsten Installation: ' + v); })),
+      h('label', {}, 'Tempo ', sel([['1','Normal'],['3','Schnell'],['0.4','Langsam']], '1', v => { S.speed = Number(v); })),
+      h('button', {type:'button', class:'sm', onclick: () => { S.timers.forEach(stop); S.modal = null; S.silent = false; S.targets = {}; S.page = state.games.length > 1 ? 'select' : 'game'; S.tab = 'game'; S.log = []; say('Zurückgesetzt'); draw(); }}, 'Zurücksetzen'));
+    dlg.classList.add('wide');
+    openDlg('Vorschau und Simulation',
+      h('p', {class:'hint'}, 'Bildet das Menü nach, wie es der Player zeigt: Layout, Farben und Abzeichen je Anbieter. Klicken, Reiter, "Stille Installation" und Installieren funktionieren. Installiert wird nichts, es ist eine Simulation. Die Schrift ist hier die des Systems, im Player ist es Go Regular.'),
+      bar, wrap, h('div', {class:'hint', style:'margin-top:10px'}, 'Ablauf (so würde der Player den Installer starten):'), logBox);
+    fit(); say('Vorschau gestartet. Tipp: Oben das Ergebnis wählen, dann im Menü auf "Installieren" klicken.'); draw();
   }
   $('#bPrev').addEventListener('click', openPreview);
   $('#bJson').addEventListener('click', openJsonEditor);
