@@ -18,7 +18,7 @@ test('Schema: gültige Minimal- und Volldateien', () => {
   ok(base());
   const m = base();
   m.output = 'Setup.exe'; m.background = 'assets/background.jpg'; m.sounds = { click: 'assets/sounds/click.wav' };
-  m.games[0].estimatedSizeMB = 1500; m.games[0].args = ['/SILENT']; m.games[0].provider = 'gog';
+  m.games[0].estimatedSizeMB = 1500; m.games[0].args = ['/SILENT']; m.games[0].provider = 'epic';
   m.games[0].extras = [{ name: 'Link', open: 'https://example.com/x' }, { name: 'Ordner', open: 'Spiel/Extras' }, { name: 'P', installer: 'p.exe', args: ['/S'] }];
   ok(m);
 });
@@ -34,7 +34,7 @@ test('Schema: ungültige Dateien werden abgelehnt', () => {
   m = base(); m.games[0].index = -1; bad(m);
   m = base(); m.games[0].index = 1.5; bad(m);
   m = base(); m.games[0].estimatedSizeMB = 0; bad(m);
-  m = base(); m.games[0].provider = 'steam'; bad(m);
+  m = base(); m.games[0].provider = 'origin'; bad(m);
   m = base(); m.background = 'bild.png'; bad(m);
   m = base(); m.background = 'assets/../x.png'; bad(m);
   m = base(); m.output = 'a/b.exe'; bad(m);

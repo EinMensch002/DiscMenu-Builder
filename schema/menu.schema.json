@@ -49,7 +49,7 @@
         "installer": { "$ref": "#/$defs/discPath" },
         "args": { "$ref": "#/$defs/args" },
         "estimatedSizeMB": { "type": "number", "exclusiveMinimum": 0 },
-        "provider": { "const": "gog" },
+        "provider": { "enum": ["gog", "epic", "steam"], "description": "Quelle des Spiels. Standard: gog." },
         "dlcs": { "type": "array", "items": { "$ref": "#/$defs/entry" } },
         "patches": { "type": "array", "items": { "$ref": "#/$defs/entry" } },
         "extras": { "type": "array", "items": { "$ref": "#/$defs/entry" } }
