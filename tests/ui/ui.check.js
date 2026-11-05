@@ -49,7 +49,7 @@ const { chromium } = require('playwright');
   // Vorschau mit Simulation (klassisches Installer-Fenster: links Bild und Beschreibung, rechts Knöpfe)
   await page.click('#bPrev');
   const stage = page.locator('.stage');
-  assert.match(await stage.textContent(), /Wähle ein Spiel/);
+  assert.match(await page.locator('.stage .ldesc').textContent(), /Beschreibung von Spiel Eins/);   // nichts ausgewählt: oberstes Spiel
   assert.match(await stage.textContent(), /Epic Games|GOG/);
   await page.locator('.stage .cbtn', { hasText: 'Spiel Eins' }).hover();
   assert.match(await page.locator('.stage .ldesc').textContent(), /Beschreibung von Spiel Eins/);   // Beim Darüberfahren
@@ -62,6 +62,13 @@ const { chromium } = require('playwright');
   assert.match(await stage.textContent(), /Sprache|SPRACHE/);
   assert.match(await stage.textContent(), /Patch A/);
   await page.locator('.stage .cbtn', { hasText: 'Zurück' }).click();
+  // Zurück zur Auswahl: Es steht wieder das oberste Spiel links, auch nachdem ein anderes ausgewählt war
+  await page.locator('.stage .cbtn', { hasText: 'Alle Spiele' }).click();
+  await page.locator('.stage .cbtn', { hasText: 'Spiel Zwei' }).hover();
+  await page.locator('.stage .cbtn', { hasText: 'Spiel Zwei' }).click();
+  await page.locator('.stage .cbtn', { hasText: 'Alle Spiele' }).click();
+  assert.equal(await page.locator('.stage .lname').textContent(), 'Spiel Eins');
+  await page.locator('.stage .cbtn', { hasText: 'Spiel Eins' }).click();
 
   // Stille Installation ohne Ziel -> Hinweis; mit Ziel -> Simulation läuft und endet mit Erfolg
   await page.locator('.stage .opts input[type=checkbox]').check();

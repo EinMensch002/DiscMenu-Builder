@@ -1189,12 +1189,13 @@ if (typeof module !== 'undefined') module.exports = CORE;
       leftEl.lastFocus = f;
       let name, cov, desc, hint = '';
       if (S.page === 'select'){
-        if (f){ name = f.name || '(ohne Namen)'; cov = f.cover; desc = f.description.trim(); }
-        else { name = state.title.trim() || '(ohne Titel)'; cov = null; desc = ''; hint = 'Fahre über ein Spiel, um Bild und Beschreibung zu sehen. Ein Klick öffnet es.'; }
+        // Ist nichts ausgewählt, zeigt die Seite das oberste Spiel. Fährt man über ein anderes, wechselt die Anzeige.
+        const sf = f || state.games[0];
+        name = sf.name || '(ohne Namen)'; cov = sf.cover; desc = sf.description.trim(); hint = desc ? '' : 'Keine Beschreibung.';
       } else if (f){ name = f.name || '(ohne Namen)'; cov = f.cover && assets.has(f.cover) ? f.cover : gm.cover; desc = f.description.trim(); hint = ''; }
       else { name = gm.name || '(ohne Namen)'; cov = gm.cover; desc = gm.description.trim(); hint = desc ? '' : 'Keine Beschreibung.'; }
-      const box = h('div', {class:'cbox'}, cov && assets.has(cov) ? h('img', {src:assetUrl(cov), alt:''}) : (S.page === 'select' && !f ? name : name));
-      leftEl.replaceChildren(box, h('div', {class:'lname'}, S.page === 'select' && !f ? 'Wähle ein Spiel' : name), h('div', {class:'ldesc' + (desc ? '' : ' mut')}, desc || hint));
+      const box = h('div', {class:'cbox'}, cov && assets.has(cov) ? h('img', {src:assetUrl(cov), alt:''}) : name);
+      leftEl.replaceChildren(box, h('div', {class:'lname'}, name), h('div', {class:'ldesc' + (desc ? '' : ' mut')}, desc || hint));
     }
     function optionsBar(gm, p){
       if (S.page === 'select' || !p.canInstall) return null;
