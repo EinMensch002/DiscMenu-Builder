@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cover-Tool für Disc-Hüllen</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=__VERSION__">
 </head>
 <body>
 <header class="top no-print">
   <h1>💿 Cover-Tool</h1>
-  <span class="sub">Hüllen für selbst gebrannte GOG-Discs, zum Ausdrucken</span>
+  <span class="sub">Hüllen für selbst gebrannte GOG-Discs, zum Ausdrucken</span><span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version __VERSION__</span>
   <nav>
     <a class="link" href="../">Zum Konfigurator</a>
     <details class="menu"><summary>Daten übernehmen</summary>
@@ -124,13 +124,13 @@
       <div class="grp"><span class="lab">Prozessor</span>
         <div class="gen" data-enable="cpu.intel.on">
           <label class="chk brand"><input type="checkbox" data-k="cpu.intel.on"> Intel</label>
-          <div class="row"><select data-k="cpu.intel.pre"><option>Core i3</option><option>Core i5</option><option>Core i7</option><option>Core i9</option><option>Pentium</option><option>Core 2 Duo</option></select>
+          <div class="row"><select data-k="cpu.intel.pre"><option>Core i3</option><option>Core i5</option><option>Core i7</option><option>Core i9</option><option>Pentium</option><option>Celeron</option><option>Core 2 Duo</option><option>Core 2 Quad</option></select>
             <input type="text" data-k="cpu.intel.num" placeholder="12400" size="6">
             <span class="sfx"><button type="button" data-k="cpu.intel.sfx" data-v="K">K</button><button type="button" data-k="cpu.intel.sfx" data-v="KF">KF</button><button type="button" data-k="cpu.intel.sfx" data-v="F">F</button></span></div>
         </div>
         <div class="gen" data-enable="cpu.amd.on">
           <label class="chk brand"><input type="checkbox" data-k="cpu.amd.on"> AMD</label>
-          <div class="row"><select data-k="cpu.amd.pre"><option>Ryzen 3</option><option>Ryzen 5</option><option>Ryzen 7</option><option>Ryzen 9</option><option>Athlon</option><option>Phenom</option></select>
+          <div class="row"><select data-k="cpu.amd.pre"><option>Ryzen 3</option><option>Ryzen 5</option><option>Ryzen 7</option><option>Ryzen 9</option><option>Athlon</option><option>Phenom</option><option>FX</option></select>
             <input type="text" data-k="cpu.amd.num" placeholder="5600" size="6">
             <span class="sfx"><button type="button" data-k="cpu.amd.sfx" data-v="X">X</button><button type="button" data-k="cpu.amd.sfx" data-v="X3D">X3D</button><button type="button" data-k="cpu.amd.sfx" data-v="G">G</button></span></div>
         </div>
@@ -233,11 +233,11 @@
 
 <dialog id="dlg"><div class="dh"><h2 id="dlgTitle"></h2><button type="button" id="dlgX">Schließen</button></div><div id="dlgBody"></div></dialog>
 
-<script src="core.js"></script>
-<script src="zip.js"></script>
-<script src="online.js"></script>
-<script src="files.js"></script>
-<script src="app.js"></script>
-<script src="extras.js"></script>
+<script src="core.js?v=__VERSION__"></script>
+<script src="zip.js?v=__VERSION__"></script>
+<script src="online.js?v=__VERSION__"></script>
+<script src="files.js?v=__VERSION__"></script>
+<script src="app.js?v=__VERSION__"></script>
+<script src="extras.js?v=__VERSION__"></script>
 </body>
 </html>

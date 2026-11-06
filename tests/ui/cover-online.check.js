@@ -27,6 +27,7 @@ function makeZip(files) {
 }
 
 const STEAM_MIN = '<strong>Minimum:</strong><br><ul class="bb_ul"><li><strong>OS *:</strong> Windows 7 / 8 / 10 (64-bit)<br></li><li><strong>Processor:</strong> Intel Core 2 Duo E6600<br></li><li><strong>Memory:</strong> 2 GB RAM<br></li><li><strong>Graphics:</strong> NVIDIA GeForce 8800 GT<br></li><li><strong>DirectX:</strong> Version 9.0c<br></li><li><strong>Storage:</strong> 8 GB available space<br></li></ul>';
+const STEAM_CP = '<ul><li><strong>OS *:</strong> 64-bit Windows 10<br></li><li><strong>Processor:</strong> Core i7-6700 or Ryzen 5 1600<br></li><li><strong>Memory:</strong> 12 GB RAM<br></li><li><strong>Graphics:</strong> GeForce GTX 1060 6GB or Radeon RX 580 8GB<br></li><li><strong>DirectX:</strong> Version 12<br></li><li><strong>Storage:</strong> 70 GB available space<br></li><li><strong>Additional Notes:</strong> SSD required. Attention: In this game you will encounter a variety of visual effects that might trigger photosensitivity<br></li></ul>';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
 
 (async () => {
@@ -43,6 +44,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     const target = new URL(req.url()).searchParams.get('url'); calls.push({ target, auth: req.headers().authorization });
     const ok = (body) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if (/storesearch/.test(target)) return ok({ items: [{ id: 70, name: 'Half-Life' }, { id: 71, name: 'Half-Life 2' }] });
+    if (/appdetails\?l=english&appids=1091500/.test(target)) return ok({ 1091500: { success: true, data: { name: 'Cyberpunk 2077', pc_requirements: { minimum: STEAM_CP }, platforms: { windows: true, mac: false, linux: false }, categories: [{ id: 2 }, { id: 22 }, { id: 28 }] } } });
     if (/appdetails/.test(target)) return ok({ 70: { success: true, data: { name: 'Half-Life', pc_requirements: { minimum: STEAM_MIN, recommended: '<ul><li><strong>Memory:</strong> 4 GB RAM<br></li></ul>' }, platforms: { windows: true, mac: false, linux: true }, categories: [{ id: 2 }, { id: 1 }, { id: 22 }, { id: 28 }] } } });
     if (/autocomplete/.test(target)) return ok({ success: true, data: [{ id: 5, name: 'Half-Life', verified: true, release_date: 910000000 }] });
     if (/\/grids\/game\/5/.test(target)) return ok({ success: true, data: [{ id: 11, url: 'https://cdn.test/full.png', thumb: 'https://cdn.test/thumb.png', width: 600, height: 900, language: 'de', score: 3 }] });
@@ -144,7 +146,11 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.match(await page.locator('#dlg .shown').innerText(), /4 GB RAM/);
   await page.selectOption('#dlg select', 'minimum');
   await page.click('#dlg button:has-text("Übernehmen")');
-  await page.waitForFunction(() => document.querySelector('[data-k="cpu.custom"]').value.includes('Core 2 Duo'));
+  await page.waitForFunction(() => document.querySelector('[data-k="cpu.intel.on"]').checked);
+  // Prozessor in der Kategorie Intel mit Modell (AMD bleibt aus), die alte Grafikkarte bleibt Text
+  assert.equal(await page.locator('[data-k="cpu.amd.on"]').isChecked(), false);
+  assert.equal(await page.inputValue('[data-k="cpu.intel.pre"]'), 'Core 2 Duo'); assert.equal(await page.inputValue('[data-k="cpu.intel.num"]'), 'E6600');
+  assert.equal(await page.inputValue('[data-k="cpu.custom"]'), '');
   assert.equal(await page.inputValue('[data-k="gpu.custom"]'), 'NVIDIA GeForce 8800 GT');
   assert.equal(await page.inputValue('input[type=text][data-k=ram]'), '2');
   assert.equal(await page.inputValue('[data-k=dx]'), 'Version 9.0c');
@@ -153,7 +159,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.equal(await page.locator('[data-k="os.linux"]').isChecked(), true);
   assert.equal(await page.locator('[data-k="os.win"][value="7"]').isChecked(), true);
   await page.waitForTimeout(100);
-  assert.match(await page.locator('#specs').innerText(), /Core 2 Duo[\s\S]*2 GB RAM/);
+  assert.match(await page.locator('#specs').innerText(), /Intel Core 2 Duo E6600[\s\S]*2 GB RAM/);
 
   // ---- SteamGridDB: Frontcover und Rückseite ----
   await page.click('[data-img=front] .sg');
@@ -239,6 +245,25 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.match(await page.locator('#dlg .shown').innerText(), /Version 9\.0c/);
   assert.ok(calls.some((c) => /appdetails\?l=english&appids=70/.test(c.target)), 'Die Adresse führt direkt zu App 70');
   await page.click('#dlg button:has-text("Abbrechen")');
+
+  // ---- Steam: Prozessor und Grafikkarte in die Kategorien (Beispiel aus der Praxis: Cyberpunk 2077) ----
+  await openMenu('Daten übernehmen'); await page.click('#bSteam');
+  await page.fill('#dlg input[type=text]', '1091500'); await page.press('#dlg input[type=text]', 'Enter');
+  await page.waitForSelector('#dlg .shown');
+  const cpRows = await page.locator('#dlg .shown tr').allInnerTexts();
+  assert.ok(cpRows.some((r) => /Prozessor\s+Intel Core i7-6700 \/ AMD Ryzen 5 1600\s+in Kategorien/.test(r)), cpRows.join(' | '));
+  assert.ok(cpRows.some((r) => /Grafik\s+NVIDIA GeForce GTX 1060 6GB \/ AMD Radeon RX 580 8GB\s+in Kategorien/.test(r)), cpRows.join(' | '));
+  await page.click('#dlg button:has-text("Übernehmen")');
+  await page.waitForFunction(() => document.querySelector('[data-k="gpu.nvidia.on"]').checked);
+  assert.equal(await page.inputValue('[data-k="cpu.intel.pre"]'), 'Core i7'); assert.equal(await page.inputValue('[data-k="cpu.intel.num"]'), '6700');
+  assert.equal(await page.inputValue('[data-k="cpu.amd.pre"]'), 'Ryzen 5'); assert.equal(await page.inputValue('[data-k="cpu.amd.num"]'), '1600');
+  assert.equal(await page.inputValue('[data-k="cpu.custom"]'), '', 'Ein früherer eigener Text wird ersetzt');
+  assert.equal(await page.inputValue('[data-k="gpu.nvidia.pre"]'), 'GTX'); assert.equal(await page.inputValue('[data-k="gpu.nvidia.num"]'), '1060');
+  assert.equal(await page.inputValue('[data-k="gpu.amd.pre"]'), 'RX'); assert.equal(await page.inputValue('[data-k="gpu.amd.num"]'), '580');
+  await page.waitForTimeout(150);
+  assert.match(await page.locator('#specs').innerText(), /Intel Core i7-6700[\s\S]*AMD Ryzen 5 1600[\s\S]*NVIDIA GeForce GTX 1060 6GB[\s\S]*AMD Radeon RX 580 8GB/);
+  // Die lange Zusatzangabe passt in das Feld: Die Liste endet innerhalb der Rückseite
+  assert.ok(await page.evaluate(() => { const p = document.querySelector('.panel-back').getBoundingClientRect(), s = document.querySelector('#specs').getBoundingClientRect(); return s.bottom <= p.bottom && s.top >= p.top; }), 'Angaben ragen aus dem Feld');
 
   // ---- Projekt exportieren und importieren ----
   const giveImage = (key, w, h, type) => page.evaluate(async ({ key, w, h, type }) => {

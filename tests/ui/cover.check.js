@@ -128,6 +128,45 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.emulateMedia({ media: 'screen' });
   await page.check('[data-k=caseType][value=normal]');
 
+  // Naht: Zwischen Rücken und Vorderseite scheint in keiner Zoomstufe ein heller Streifen durch
+  await page.selectOption('[data-k=caseType]', 'normal').catch(() => {});
+  await page.check('[data-k=caseType][value=normal]');
+  await page.selectOption('[data-k=theme]', 'classic');
+  for (const width of [1000, 1280, 1500, 1800]) {            // die Vorschau wählt je nach Fensterbreite einen anderen Maßstab
+    await page.setViewportSize({ width, height: 950 });
+    await page.waitForTimeout(200);
+    const k = await page.evaluate(() => Number(getComputedStyle(document.querySelector('#preview')).getPropertyValue('--k')));
+    const info = await page.evaluate(() => { const s = document.querySelector('#sheet').getBoundingClientRect(), f = document.querySelector('#front').getBoundingClientRect(), c = document.querySelector('.gog-corner').getBoundingClientRect(); return { bx: Math.round(f.left - s.left), y0: Math.round(c.top - s.top) + 3, y1: Math.round(c.bottom - s.top) - 3 }; });
+    const shot = (await page.locator('#sheet').screenshot()).toString('base64');
+    const bad = await page.evaluate(async ({ shot, info }) => {
+      const bmp = await createImageBitmap(await (await fetch('data:image/png;base64,' + shot)).blob());
+      const cv = new OffscreenCanvas(bmp.width, bmp.height), ctx = cv.getContext('2d'); ctx.drawImage(bmp, 0, 0);
+      const out = [];
+      for (let x = info.bx - 3; x <= info.bx + 3; x++) for (let y = info.y0; y < info.y1; y++) {
+        const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
+        if (!(Math.abs(r - 137) < 25 && Math.abs(g - 38) < 25 && Math.abs(b - 141) < 25)) out.push([x, y, r, g, b]);
+      }
+      return out;
+    }, { shot, info });
+    assert.equal(bad.length, 0, 'Helle Naht zwischen Rücken und Vorderseite bei Fensterbreite ' + width + ' (Maßstab ' + k + '): ' + JSON.stringify(bad.slice(0, 2)));
+  }
+
+  await page.setViewportSize({ width: 1500, height: 950 });
+
+  // Lange Angaben: Die Liste bleibt im Feld (Schrift wird kleiner, jeder Wert zeigt höchstens zwei Zeilen)
+  await page.fill('[data-k=other]', 'SSD required. Attention: In this game you will encounter a variety of visual effects that may trigger photosensitivity and more text here');
+  await page.fill('[data-k="cpu.custom"]', 'Intel Core i5-4460 (3.2 GHz) or AMD FX-6300 (3.5 GHz) with a very long additional description of the processor');
+  await page.fill('[data-k=dx]', 'Version 12'); await page.waitForTimeout(200);
+  assert.ok(await page.evaluate(() => { const p = document.querySelector('.panel-back').getBoundingClientRect(), s = document.querySelector('#specs').getBoundingClientRect(); return s.bottom <= p.bottom && s.top >= p.top; }), 'Angaben ragen aus dem Feld');
+  await page.fill('[data-k=other]', ''); await page.fill('[data-k="cpu.custom"]', '');
+
+  // Druck: Flächen ohne Bild bleiben weiß (nicht grau), die Vorschau zeigt Platzhalter
+  await page.evaluate(() => document.querySelectorAll('.drop .x').forEach((x) => x.click()));   // Zustand ohne Bilder
+  await page.emulateMedia({ media: 'print' }); await page.waitForTimeout(300);
+  assert.equal(await page.locator('#backTop').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(255, 255, 255)');
+  await page.emulateMedia({ media: 'screen' });
+  assert.notEqual(await page.locator('#backTop').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(255, 255, 255)');
+
   // Einstellungen bleiben nach dem Neuladen, Bilder nicht
   await page.waitForTimeout(200); await page.reload();
   assert.equal(await page.inputValue('[data-k=theme]'), 'classic');

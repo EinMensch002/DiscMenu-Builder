@@ -75,7 +75,7 @@ Lädt eine Rezept-ZIP aus dem [Konfigurator](configurator.md) oder eine einzelne
 Sucht das Spiel im Steam-Shop und liest die Systemanforderungen aus. Man wählt zwischen Mindest- und empfohlenen Anforderungen und sieht die Werte vor dem Übernehmen. Übernommen werden:
 
 - Windows-Versionen (aus "OS", z. B. "Windows 7 / 8 / 10 (64-bit)"), macOS und Linux (aus den Plattformen),
-- **Prozessor** und **Grafikkarte** als eigener Text (ersetzt die Auswahl), **Arbeitsspeicher**, **Speicherplatz**, **DirectX**,
+- **Prozessor** und **Grafikkarte** werden den **Kategorien** zugeordnet (Hersteller, Reihe, Modell, bei Alternativen wie "Core i7-6700 or Ryzen 5 1600" je Marke eine, höchstens zwei). Erkennt das Tool die Angabe nicht (z. B. nur "2.4 GHz"), steht sie stattdessen als Text. In der Vorschau-Tabelle steht je Zeile "in Kategorien" oder "als Text". **Arbeitsspeicher**, **Speicherplatz**, **DirectX**,
 - **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 90 Zeichen gekürzt),
 - die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller und Bestenlisten (aus den Steam-Kategorien).
 
@@ -101,6 +101,10 @@ Neben jedem Bildfeld (Frontcover, Rückseite oben und unten, Publisher-Logo) gib
 - **In Datei sichern / Aus Datei einlesen:** Sichert Schlüssel und Proxy in `discmenu-einstellungen.json`, **mit oder ohne Passwort** (verschlüsselt mit AES-GCM). Ein vergessenes Passwort lässt sich nicht wiederherstellen. Das Dateiformat ist dasselbe wie im Konfigurator: Eine dort gesicherte Datei lässt sich hier einlesen und umgekehrt. Die Datei enthält deinen Schlüssel, also nicht weitergeben und nicht ins Repository legen.
 
 > **Stand der Prüfung:** Die Abläufe sind mit nachgebauten Antworten von Steam und SteamGridDB getestet. Mit den echten Diensten wurde noch nicht geprüft, siehe [manuelle-pruefung.md](manuelle-pruefung.md).
+
+### Veraltete Darstellung (Cache)
+
+GitHub Pages liefert Dateien bis zu 10 Minuten zwischengespeichert. Damit nach einer Aktualisierung nicht alte und neue Dateien gemischt werden, hängt der Build an alle Dateien `?v=<Version>`. Oben in der Leiste steht "Version …" (lokal: "lokal"). Sehen Menüs oder Dialoge ungestylt oder alt aus, die Seite mit Strg+F5 neu laden.
 
 ## Projekt speichern und laden
 
@@ -178,6 +182,8 @@ Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (26 × 30 mm), i
 1. Auf **Drucken** klicken.
 2. Im Druckdialog: Papier **A4**, Ausrichtung **quer**, Skalierung **100 %** (nicht "Anpassen"), Ränder **Keine**, **Hintergrundgrafiken** einschalten.
 3. Ausdrucken und an den **Schnittmarken** ausschneiden. Die **Falzlinien** am Rücken (gestrichelt, nur wenn eingeschaltet) helfen beim Falten.
+
+Rücken und Vorderseite überlappen um 0,6 mm, damit beim Drucken keine helle Naht zwischen ihnen entsteht. Flächen ohne Bild bleiben im Druck weiß. Ein Test misst die Naht in der Vorschau bei mehreren Maßstäben.
 
 Das Cover wird in Originalgröße (273 × 183 mm, Slim 266 × 183 mm) mittig auf das Blatt gesetzt. Die Schnittmarken liegen 2 bis 6 mm außerhalb des Covers und passen dadurch auf das Blatt. Ein Test stellt sicher, dass der Druck genau eine A4-Seite quer ergibt.
 

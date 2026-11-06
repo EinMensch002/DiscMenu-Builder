@@ -82,6 +82,8 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 
 ## Ausdruck
 
+- [ ] **Naht:** Im Ausdruck ist zwischen Rücken und Vorderseite kein heller Strich zu sehen (besonders an der GOG-Logo-Ecke).
+- [ ] **Steam-Übernahme:** Prozessor und Grafikkarte erscheinen in den Kategorien (z. B. Cyberpunk 2077), die Angaben passen in das Feld.
 - [ ] Hülle drucken (A4 quer, 100 %, Ränder "Keine", Hintergrundgrafiken an) und nachmessen: Cover 273 × 183 mm, Rücken 14 mm, Schnittmarken an den Ecken.
 - [ ] Schnittmarken und Falzlinien treffen die Kanten der echten Hülle.
 - [ ] **Slim:** 266 × 183 mm mit 7 mm Rücken.

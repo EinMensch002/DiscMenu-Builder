@@ -6,6 +6,7 @@
 (function (root) {
   'use strict';
 
+  const Core = (typeof module !== 'undefined' && module.exports) ? require('./core.js') : root.CoverCore;
   const SG_BASE = 'https://www.steamgriddb.com/api/v2';
   const KEY_KEY = 'sgdb-key', KEY_PROXY = 'sgdb-proxy';
 
@@ -206,7 +207,7 @@
     const req = (details.pc_requirements && !Array.isArray(details.pc_requirements) ? details.pc_requirements : {});
     const r = parseRequirements(which === 'recommended' ? (req.recommended || req.minimum) : (req.minimum || req.recommended));
     const patch = {}, shown = [];
-    const add = (label, value) => { if (value) shown.push([label, value]); };
+    const add = (label, value, kind) => { if (value) shown.push([label, value, kind || '']); };
     const os = parseWindows(r.os), plat = details.platforms || {};
     if (os.win.length || plat.mac || plat.linux) {
       patch.os = {}; if (os.win.length) { patch.os.win = os.win; patch.os.x64 = os.x64; }
@@ -214,13 +215,23 @@
       if ('linux' in plat) patch.os.linux = !!plat.linux;
       add('Läuft auf', [os.win.length ? 'Windows (' + os.win.join(', ') + ')' : '', plat.mac ? 'macOS' : '', plat.linux ? 'Linux' : ''].filter(Boolean).join(' / '));
     }
-    if (r.processor) { patch.cpu = { custom: shorten(r.processor) }; add('Prozessor', patch.cpu.custom); }
-    if (r.graphics) { patch.gpu = { custom: shorten(r.graphics) }; add('Grafik', patch.gpu.custom); }
+    /* Prozessor und Grafikkarte kommen möglichst in die Kategorien (Intel, AMD, NVIDIA, Radeon). Passt der Text nicht
+       sauber hinein (z. B. "Pentium III 500 MHz", "Intel HD Graphics 520"), wird er als eigener Text übernommen. */
+    if (r.processor) {
+      const c = Core && Core.parseCpuText(r.processor);
+      if (c) { patch.cpu = { ...c.cpu, custom: '' }; add('Prozessor', Core.cpuList(c.cpu).join(' / '), 'Kategorie'); }
+      else { patch.cpu = { custom: shorten(r.processor) }; add('Prozessor', patch.cpu.custom, 'Text'); }
+    }
+    if (r.graphics) {
+      const g = Core && Core.parseGpuText(r.graphics);
+      if (g) { patch.gpu = { ...g.gpu, custom: '' }; add('Grafik', Core.gpuList(g.gpu).join(' / '), 'Kategorie'); }
+      else { patch.gpu = { custom: shorten(r.graphics) }; add('Grafik', patch.gpu.custom, 'Text'); }
+    }
     const ram = parseSize(r.memory); if (ram) { patch.ram = ram; add('Arbeitsspeicher', r.memory); }
     const space = parseSize(r.storage); if (space) { patch.space = space; add('Speicherplatz', r.storage); }
     if (r.directx) { patch.dx = shorten(r.directx, 40); add('DirectX', patch.dx); }
     const other = [r.sound ? (/sound/i.test(r.sound) ? r.sound : 'Soundkarte: ' + r.sound) : '', r.notes].filter(Boolean).join('. ');
-    if (other) { patch.other = shorten(other, 90); add('Sonstiges', patch.other); }
+    if (other) { patch.other = shorten(other, 60); add('Sonstiges', patch.other); }
     const feats = steamFeatures(details.categories);
     if (feats.length) { patch.features = feats; add('Spielfunktionen', feats.join(', ')); }
     return { patch, shown, hasRequirements: Object.keys(r).length > 0 };

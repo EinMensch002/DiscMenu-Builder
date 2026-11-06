@@ -214,7 +214,7 @@
       const ok = h('button', { type: 'button', class: 'pri', onclick: () => { App.patch(current.patch); closeDlg(); } }, 'Übernehmen');
       const draw = () => {
         current = O.steamPatch(details, which.value);
-        table.replaceChildren(...current.shown.map(([k, v]) => h('tr', {}, h('td', {}, k), h('td', {}, v))));
+        table.replaceChildren(...current.shown.map(([k, v, kind]) => h('tr', {}, h('td', {}, k), h('td', {}, v), h('td', { class: 'kind' }, kind ? (kind === 'Kategorie' ? 'in Kategorien' : 'als Text') : ''))));
         note.textContent = current.hasRequirements ? '' : 'Steam hat zu diesem Spiel keine Systemanforderungen. Es werden nur Plattformen und Funktionen übernommen.';
         ok.disabled = !Object.keys(current.patch).length;
         if (ok.disabled) note.textContent = 'Zu diesem Spiel liefert Steam nichts, was sich übernehmen lässt.';
@@ -223,7 +223,7 @@
       openDlg(details.name || item.name,
         h('div', { class: 'drow' }, which, h('button', { type: 'button', onclick: openSteam }, '← Andere Suche')),
         table, note,
-        h('p', { class: 'dmsg' }, 'Lange Angaben werden für das Cover gekürzt. Prozessor und Grafikkarte werden als eigener Text übernommen und ersetzen die Auswahl. Alles lässt sich danach ändern.'),
+        h('p', { class: 'dmsg' }, 'Prozessor und Grafikkarte werden, wo es passt, in die Kategorien übernommen (Intel, AMD, NVIDIA, Radeon mit Modell). Was nicht hineinpasst, steht als eigener Text und ersetzt dann die Auswahl. Lange Angaben werden gekürzt. Alles lässt sich danach ändern.'),
         h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
       draw();
     }

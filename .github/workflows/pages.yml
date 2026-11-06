@@ -33,6 +33,9 @@ jobs:
           mkdir site
           cp -r configurator/. site/
           cp -r cover-tool site/cover
+          # Versionsnummer in die Adressen der Dateien schreiben: Browser laden nach jeder Veröffentlichung die neuen Dateien
+          # (sonst mischen sie bis zu 10 Minuten lang alte und neue Teile der Seite)
+          sed -i "s/__VERSION__/${GITHUB_SHA::7}/g" site/cover/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

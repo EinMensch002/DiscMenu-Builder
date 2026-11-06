@@ -21,6 +21,11 @@ body { font: 14px/1.45 system-ui, "Segoe UI", Roboto, sans-serif; color: var(--t
 .menu summary:hover, .menu[open] summary { border-color: var(--acc); }
 .menu .pop { position: absolute; right: 0; top: 100%; margin-top: 4px; min-width: 280px; z-index: 30; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(20, 24, 40, .25); }
 .menu .pop button { text-align: left; }
+@media (max-width: 700px) {
+  .menu { position: static; }
+  .menu .pop { left: 12px; right: 12px; min-width: 0; }
+}
+.ver { margin-left: 8px; padding: 1px 8px; border-radius: 99px; background: #eef0f4; color: var(--mut); font-size: 11.5px; }
 .link { color: var(--acc); text-underline-offset: 2px; font-size: 13px; }
 button { font: inherit; padding: 7px 14px; border: 1px solid var(--line); border-radius: 8px; background: #f7f8fb; color: var(--txt); cursor: pointer; }
 button:hover { border-color: var(--acc); }
@@ -104,6 +109,7 @@ dialog .f small { display: block; margin-top: 3px; }
 .shown { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
 .shown td { padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .shown td:first-child { color: var(--mut); width: 130px; }
+.shown td.kind { color: var(--mut); font-size: 11.5px; white-space: nowrap; }
 .preview { position: sticky; top: 64px; min-width: 0; }
 .notes:empty { display: none; }
 .notes { margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; }
@@ -113,7 +119,7 @@ dialog .f small { display: block; margin-top: 3px; }
 /* ===== Blatt und Cover (alle Maße in Millimetern, damit der Druck stimmt) ===== */
 .sheet { width: 297mm; height: 210mm; background: #fff; display: grid; place-items: center; transform: scale(var(--k, .8)); transform-origin: 0 0; }
 .wrap { position: relative; width: var(--w); height: var(--h); }
-.cover { position: relative; width: var(--w); height: var(--h); display: grid; grid-template-columns: var(--back) var(--spine) var(--front); background: #fff; overflow: hidden; font-family: Lato, "Segoe UI", sans-serif; color: #111; }
+.cover { --sp: var(--brand, #89268d); position: relative; width: var(--w); height: var(--h); display: grid; grid-template-columns: var(--back) var(--spine) var(--front); background: var(--sp); overflow: hidden; font-family: Lato, "Segoe UI", sans-serif; color: #111; }
 .cover img[hidden] { display: none; }
 .ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #b9bec9; font-weight: 700; font-size: 12pt; background: #f4f5f8; z-index: 0; }
 .has-img > .ph { display: none; }
@@ -143,7 +149,7 @@ dialog .f small { display: block; margin-top: 3px; }
 .feat img { height: 7.4mm; max-width: 11mm; width: auto; object-fit: contain; }
 .feat span { margin-top: .6mm; font-size: 4.6pt; font-weight: 700; line-height: 1.15; }
 .back-bottom { position: relative; flex: none; height: 46mm; background: #f4f5f8 center bottom / cover no-repeat; }
-.panel-back { position: absolute; inset: 0; display: grid; grid-template-columns: 26mm minmax(0, 1fr) 41mm; gap: 3.5mm; padding: 4.5mm 4.5mm 3mm 4mm; background: rgba(255, 255, 255, .87); }
+.panel-back { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: 26mm minmax(0, 1fr) 41mm; gap: 3.5mm; padding: 4.5mm 4.5mm 3mm 4mm; background: rgba(255, 255, 255, .87); }
 .galaxy.off { visibility: hidden; }   /* der Platz bleibt reserviert, damit sich nichts verschiebt */
 .galaxy { align-self: center; width: 26mm; height: 30mm; border-radius: 2.2mm; padding: 2mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9mm; text-align: center; color: #fff; background: linear-gradient(160deg, #7b1fa8, #35105e); }
 .galaxy .ring { width: 6.4mm; height: 6.4mm; border-radius: 50%; border: 1.3mm solid #d65cff; display: block; margin-bottom: .6mm; }
@@ -151,14 +157,14 @@ dialog .f small { display: block; margin-top: 3px; }
 .galaxy span { font-size: 3.8pt; line-height: 1.25; opacity: .9; }
 .galaxy em { font-style: normal; font-size: 3.3pt; font-weight: 700; letter-spacing: .1mm; padding: .5mm 2.6mm; border-radius: 1mm; background: rgba(255, 255, 255, .35); margin-top: .6mm; }
 .galaxy small { font-size: 3.3pt; opacity: .85; }
-.speccol { min-width: 0; display: flex; flex-direction: column; }
+.speccol { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .speccol h4 { display: none; margin: 0; }
 /* Zeilen beginnen immer oben mit festem Abstand: Ändert sich die Zeilenzahl, springt nichts */
 .specs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: flex-start; gap: 2.2mm; font-size: 7.2pt; line-height: 1.25; min-width: 0; }
 .specs li { display: grid; grid-template-columns: 24mm minmax(0, 1fr); }
 .specs .k { color: #6b6b6b; }
-.specs .v { color: #111; font-weight: 400; }
-.specs .v.stack { display: flex; flex-direction: column; }
+.specs .v { color: #111; font-weight: 400; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.specs .v.stack { display: flex; flex-direction: column; -webkit-line-clamp: unset; }
 .sep { white-space: pre; }
 .alt { white-space: nowrap; }
 .one { overflow-wrap: anywhere; }
@@ -171,8 +177,11 @@ dialog .f small { display: block; margin-top: 3px; }
 .copy { grid-row: 3; margin: 0; align-self: end; font-size: 3.9pt; line-height: 1.3; color: #444; text-align: right; }
 
 /* Rücken */
-.spine { background: var(--brand, #89268d); display: flex; flex-direction: column; align-items: center; min-width: 0; overflow: hidden; }
-.spine-head { width: 100%; display: flex; justify-content: center; padding-top: 2mm; flex: none; }
+/* Naht: An den Kanten zwischen Rücken, Rückseite und Vorderseite scheint beim Drucken und Zoomen sonst ein heller Streifen durch (die Ränder zweier
+   Flächen werden weichgezeichnet). Deshalb ragt der Rücken 0,6 mm in seine Nachbarn hinein und unter dem Cover liegt die Rückenfarbe (--sp). */
+.cover { --ov: .6mm; }
+.spine { position: relative; z-index: 2; margin: 0 calc(-1 * var(--ov)); padding: 0 var(--ov); background: var(--sp, var(--brand, #89268d)); display: flex; flex-direction: column; align-items: center; min-width: 0; overflow: hidden; }
+.spine-head { width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); display: flex; justify-content: center; padding-top: 2mm; flex: none; }
 .spine-foot { display: none; }
 .spine-logo { display: block; width: 6mm; height: auto; }
 .spine.fill .spine-logo { width: calc(100% - 2mm); }
@@ -212,9 +221,9 @@ dialog .f small { display: block; margin-top: 3px; }
 .theme-modern .specs .v { color: #fff; }
 .theme-modern .copy { color: #a995c2; }
 .theme-modern .logos img { background: #fff; padding: 1mm; border-radius: 1mm; }
-.theme-modern .spine { background: var(--dark, #17101f); }
+.theme-modern { --sp: var(--dark, #17101f); }
 .theme-modern .spine-head { background: var(--brand, #89268d); padding: 2mm 0; }
-.theme-modern .spine-foot { display: flex; align-items: center; justify-content: center; width: 100%; height: 12mm; flex: none; background: var(--brand, #89268d); color: var(--on-brand, #fff); font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
+.theme-modern .spine-foot { display: flex; align-items: center; justify-content: center; width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); height: 12mm; flex: none; background: var(--brand, #89268d); color: var(--on-brand, #fff); font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
 
 /* ===== Druck: nur das Blatt, A4 quer, ohne Ränder ===== */
 @page { size: A4 landscape; margin: 0; }
@@ -222,6 +231,7 @@ dialog .f small { display: block; margin-top: 3px; }
   html, body { background: #fff; margin: 0; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .no-print, .ph { display: none !important; }
+  .back-top:not(.has-img), .back-bottom:not(.has-img), .front:not(.has-img) { background-color: #fff; }
   .app { display: block; padding: 0; max-width: none; }
   .preview { position: static; }
   .scalebox { width: 297mm; height: 209.5mm; box-shadow: none; border-radius: 0; }

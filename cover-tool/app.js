@@ -230,11 +230,22 @@
       li.append(el('span', 'k', row.label), v);
       return li;
     }));
+    fitSpecs();
     /* Beim Umbruch zwischen zwei Alternativen ist der Schrägstrich überflüssig */
     $$('.sep', list).forEach((sep) => {
       const a = sep.previousElementSibling, b = sep.nextElementSibling;
       if (state.breakHw || (a && b && a.offsetTop !== b.offsetTop)) sep.style.display = 'none';
     });
+  }
+
+  /* Die Angaben müssen in das Feld passen: Ist die Liste höher als der Platz, wird die Schrift etwas kleiner (nicht unter 5 pt).
+     Zusätzlich zeigt jeder Wert höchstens zwei Zeilen. */
+  function fitSpecs() {
+    const col = $('.speccol'), list = $('#specs'), title = $('#reqTitle');
+    list.style.fontSize = '';
+    const titleH = getComputedStyle(title).display === 'none' ? 0 : title.offsetHeight + parseFloat(getComputedStyle(title).marginBottom || 0);
+    let pt = parseFloat(getComputedStyle(list).fontSize) * 72 / 96;
+    while (pt > 5 && list.offsetHeight + titleH > col.clientHeight) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
   }
 
   /* Titel auf dem Rücken so groß wie möglich, ohne über die Hülle hinauszuragen */
@@ -270,6 +281,7 @@
 
   /* ---------- Start ---------- */
   function init() {
+    const ver = $('#ver'); if (ver && /__/.test(ver.textContent)) ver.textContent = 'lokal';
     bindControls();
     bindDrops();
     syncControls();
