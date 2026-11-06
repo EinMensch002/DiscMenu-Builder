@@ -10,8 +10,8 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 - **Läuft komplett im Browser.** Kein Backend, es wird nichts hochgeladen. Bilder werden lokal verarbeitet.
 - **Live-Vorschau:** Links die Einstellungen, rechts das Blatt in Originalproportionen. Jede Änderung ist sofort sichtbar.
 - **Zwei Stile:** Klassisch (wie die GOG-Originalhüllen) und Modern (angelehnt an Konsolenhüllen).
-- **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben und Schriftzug (siehe [Anbieter](#anbieter)).
-- **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB (siehe [Daten übernehmen](#daten-übernehmen)).
+- **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben, Logo und Schriftzug (siehe [Anbieter](#anbieter)).
+- **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB, Publisher-Logos von Wikidata (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional Falzlinien.
 - **Deutsch oder Englisch:** Die Beschriftung auf dem Cover lässt sich wählen.
 - **USK statt PEGI oder ESRB, ohne Barcode.** Die USK-Kennzeichnung steht vorn (35 × 35 mm, 3 mm Abstand) und auf Wunsch kleiner hinten.
@@ -87,6 +87,8 @@ Sucht das Spiel im Steam-Shop und liest die Systemanforderungen aus. Mindest- un
 - **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 140 Zeichen gekürzt),
 - die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller und Bestenlisten (aus den Steam-Kategorien).
 
+Zusätzlich übernimmt der Steam-Import den **Spielnamen als Titel auf dem Rücken** sowie **Publisher und Entwickler** (als Vorgabe für die Logo-Suche). Ein Haken im Dialog lädt außerdem das **Steam-Cover (Hochformat, 600×900)** als Frontcover. Er ist vorgewählt, wenn noch kein Frontcover geladen ist. Klappt das Laden nicht (CORS oder ein Proxy, der den Host `cdn.akamai.steamstatic.com` nicht erlaubt), sind die Angaben trotzdem übernommen und es erscheint ein Hinweis.
+
 Die Angaben kommen auf Englisch, so wie Steam sie liefert. Lange Angaben (z. B. ganze Sätze bei der Grafikkarte) werden für das Cover gekürzt. Hat ein Spiel keine Anforderungen, werden nur Plattformen und Funktionen übernommen. **SteamDB** hat keine offene Schnittstelle und wird deshalb nicht genutzt.
 
 **Findet die Suche nichts oder kommt eine Fehlermeldung?**
@@ -96,9 +98,13 @@ Die Angaben kommen auf Englisch, so wie Steam sie liefert. Lange Angaben (z. B. 
 3. Den Titel englisch und kürzer eingeben (z. B. "Half-Life" statt "Half-Life: Source - Deutsche Version").
 4. Manche Spiele liefert Steam nur nach Anmeldung oder gar nicht aus, dann bleibt nur Eintippen.
 
+### Publisher-Logo suchen
+
+Beim Publisher-Logo (🔎 im Bildfeld) sucht das Tool **nicht bei SteamGridDB, sondern bei Wikidata** (Logos kommen von Wikimedia Commons). Das Suchfeld ist mit dem **Publisher aus dem Steam-Import** vorbelegt (z. B. "Valve"), darunter stehen Knöpfe für Publisher und Entwickler (z. B. "CD PROJEKT RED"). Es erscheinen nur Firmen, bei denen ein Logo hinterlegt ist. Ein Klick wählt das Logo, "Als Publisher-Logo übernehmen" lädt es (als PNG, 800 px breit, transparent). Es ist weder ein Schlüssel noch ein Proxy nötig. Nicht jede Firma hat ein Logo bei Wikidata, dann hilft ein anderer Name oder das Logo als Datei.
+
 ### Bilder von SteamGridDB
 
-Neben jedem Bildfeld (Frontcover, Rückseite oben und unten, Publisher-Logo) gibt es einen Suchknopf 🔎. Der Ablauf: Spiel suchen, Bildart wählen (Cover im Hochformat, Querformat, Hintergründe, Logos), Bild anklicken und übernehmen. Voreingestellt ist für das Frontcover ein Hochformat-Cover, für die Rückseite ein Hintergrund und für das Publisher-Logo ein Logo. Deutsche Bilder stehen zuerst. Das Bild wird danach wie jedes andere auf Druckgröße verkleinert.
+Neben jedem Bildfeld (Frontcover, Rückseite oben und unten) gibt es einen Suchknopf 🔎. Der Ablauf: Spiel suchen, Bildart wählen (Cover im Hochformat, Querformat, Hintergründe, Logos), Bild anklicken und übernehmen. Voreingestellt ist für das Frontcover ein Hochformat-Cover, für die Rückseite ein Hintergrund und für das Publisher-Logo ein Logo. Deutsche Bilder stehen zuerst. Das Bild wird danach wie jedes andere auf Druckgröße verkleinert.
 
 ### Einstellungen und Proxy
 
@@ -125,13 +131,13 @@ Die Bilder werden dabei unverändert übernommen (nicht erneut verkleinert oder 
 
 ## Anbieter
 
-Der Anbieter bestimmt Farben und Schriftzug der Hülle. Nur GOG hat ein Logo, bei Epic Games und Steam steht ein Schriftzug (nur Text, keine Logos).
+Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Das Logo steht an denselben Plätzen wie das GOG-Logo: in der Ecke (klassisch) oder im Streifen oben (Modern) auf der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.png`).
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
 | **GOG** | Lila | GOG-Logo | Galaxy-Feld, grüner Streifen, im Stil Modern "PC · DRM-FREI" |
-| **Epic Games** | Anthrazit | Schriftzug "EPIC GAMES" | heller grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
-| **Steam** | Marineblau | Schriftzug "STEAM" | blauer Streifen, Hinweis "Steam", kein Galaxy-Feld |
+| **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | heller grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
+| **Steam** | Marineblau | Logo und Schriftzug "STEAM" | blauer Streifen, Hinweis "Steam", kein Galaxy-Feld |
 
 Der Anbieter wird mit den Einstellungen gemerkt und aus dem Rezept übernommen. Dieselbe Farbzuordnung nutzt das Menü ([player-und-builder.md](player-und-builder.md)).
 
@@ -178,7 +184,7 @@ Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseit
 
 ## Feste Plätze auf der Rückseite
 
-Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (26 × 30 mm), in der Mitte die **Angaben**, rechts **Logos, USK und Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Schaltet man das Galaxy-Feld aus (oder wählt Epic Games oder Steam), **rücken nur die Angaben nach links an den Rand** und nutzen den freien Platz, alles andere bleibt, wo es ist. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
+Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (20 × 24 mm, bewusst klein, damit mehr Platz für die Angaben bleibt), in der Mitte die **Angaben**, rechts **Logos, USK und Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Schaltet man das Galaxy-Feld aus (oder wählt Epic Games oder Steam), **rücken nur die Angaben nach links an den Rand** und nutzen den freien Platz, alles andere bleibt, wo es ist. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
 
 ## Rücken
 
@@ -206,6 +212,7 @@ Das Cover wird in Originalgröße (273 × 183 mm, Slim 266 × 183 mm) mittig auf
 | `core.js` | Maße, Beschriftungen, Texte für die Systemanforderungen, Standardwerte. Ohne Browser testbar |
 | `app.js` | Eingaben, Bilder, Zeichnen der Vorschau, Drucken |
 | `extras.js` | Dialoge: Rezept, Steam, SteamGridDB, Einstellungen |
+| `assets/images/` | Logos (GOG als PNG, Epic Games und Steam als SVG), Funktions-, USK- und Disc-Symbole |
 | `online.js` | Anfragen an SteamGridDB und Steam (über den Proxy), Fehlermeldungen, Verbindungstest und Auswertung der Antworten |
 | `files.js` | Einstellungsdatei (mit Passwort), ZIP schreiben, Projektdatei |
 | `zip.js` | Liest die Rezept-ZIP |
@@ -252,5 +259,5 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 
 ## Hinweise
 
-- GOG, die USK-Symbole und das GOG-Galaxy-Feld sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
+- GOG, Epic Games, Steam (Namen und Logos), die USK-Symbole und das GOG-Galaxy-Feld sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
 - Die Schrift Lato steht unter der SIL Open Font License (siehe `cover-tool/assets/fonts/README.txt`).

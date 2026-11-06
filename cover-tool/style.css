@@ -149,14 +149,14 @@ dialog .f small { display: block; margin-top: 3px; }
 .feat img { height: 7.4mm; max-width: 11mm; width: auto; object-fit: contain; }
 .feat span { margin-top: .6mm; font-size: 4.6pt; font-weight: 700; line-height: 1.15; }
 .back-bottom { position: relative; flex: none; height: 46mm; background: #f4f5f8 center bottom / cover no-repeat; }
-.panel-back { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: 26mm minmax(0, 1fr) 41mm; gap: 3.5mm; padding: 4.5mm 4.5mm 3mm 4mm; background: rgba(255, 255, 255, .87); }
+.panel-back { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: 20mm minmax(0, 1fr) 41mm; gap: 3.5mm; padding: 4.5mm 4.5mm 3mm 4mm; background: rgba(255, 255, 255, .87); }
 .galaxy.off { visibility: hidden; }   /* der Platz bleibt reserviert, damit sich nichts verschiebt */
-.galaxy { align-self: center; width: 26mm; height: 30mm; border-radius: 2.2mm; padding: 2mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9mm; text-align: center; color: #fff; background: linear-gradient(160deg, #7b1fa8, #35105e); }
-.galaxy .ring { width: 6.4mm; height: 6.4mm; border-radius: 50%; border: 1.3mm solid #d65cff; display: block; margin-bottom: .6mm; }
-.galaxy b { font-size: 6.4pt; font-weight: 700; line-height: 1.1; }
-.galaxy span { font-size: 3.8pt; line-height: 1.25; opacity: .9; }
-.galaxy em { font-style: normal; font-size: 3.3pt; font-weight: 700; letter-spacing: .1mm; padding: .5mm 2.6mm; border-radius: 1mm; background: rgba(255, 255, 255, .35); margin-top: .6mm; }
-.galaxy small { font-size: 3.3pt; opacity: .85; }
+.galaxy { align-self: center; width: 20mm; height: 24mm; border-radius: 2mm; padding: 1.4mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9mm; text-align: center; color: #fff; background: linear-gradient(160deg, #7b1fa8, #35105e); }
+.galaxy .ring { width: 5mm; height: 5mm; border-radius: 50%; border: 1mm solid #d65cff; display: block; margin-bottom: .4mm; }
+.galaxy b { font-size: 5pt; font-weight: 700; line-height: 1.1; }
+.galaxy span { font-size: 3.1pt; line-height: 1.25; opacity: .9; }
+.galaxy em { font-style: normal; font-size: 2.7pt; font-weight: 700; letter-spacing: .1mm; padding: .4mm 1.6mm; border-radius: .8mm; background: rgba(255, 255, 255, .35); margin-top: .4mm; }
+.galaxy small { font-size: 2.7pt; opacity: .85; }
 .speccol { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .speccol h4 { display: none; margin: 0; }
 /* Zeilen beginnen immer oben mit festem Abstand: Ändert sich die Zeilenzahl, springt nichts */
@@ -170,8 +170,9 @@ dialog .f small { display: block; margin-top: 3px; }
 .alt { display: inline-block; max-width: 100%; }
 /* Mit empfohlenen Angaben: Tabelle mit den Spalten Minimum und Empfohlen. Das Feld wird dafür breiter (Galaxy-Feld und rechte Spalte
    werden etwas schmaler). Ohne Galaxy-Feld nimmt die Tabelle dessen Platz mit. */
-.panel-back.dual { grid-template-columns: 22mm minmax(0, 1fr) 33mm; gap: 3mm; }
-.panel-back.dual .galaxy { width: 22mm; padding: 1.5mm; }
+.panel-back.dual { grid-template-columns: 18mm minmax(0, 1fr) 33mm; gap: 3mm; }
+.panel-back.dual .galaxy { width: 18mm; padding: 1.2mm; }
+.panel-back.dual .galaxy b { font-size: 4.4pt; }
 .panel-back.nogx .speccol { grid-area: 1 / 1 / 2 / 3; }   /* ohne Galaxy-Feld rücken die Anforderungen an den linken Rand */
 .panel-back.dual .logos img { min-width: 0; }
 .specs.dual { font-size: 5.6pt; gap: .55em; line-height: 1.2; }
@@ -208,14 +209,19 @@ dialog .f small { display: block; margin-top: 3px; }
 .gog-corner { position: absolute; left: 0; top: 0; z-index: 3; padding: 2mm; background: var(--brand, #89268d); border-radius: 0 0 2.6mm 0; }
 .gog-corner img { display: block; height: 17mm; width: auto; }
 .gog-bar { display: none; }
-/* Schriftzug statt GOG-Logo bei anderen Anbietern (nur Text, keine Logos) */
+/* Epic Games und Steam: Logo (Vektorgrafik) mit dem Schriftzug darunter, gleiche Plätze wie beim GOG-Logo */
 .wm { display: none; font-weight: 900; color: var(--on-brand, #fff); text-align: center; white-space: pre-line; letter-spacing: .2mm; line-height: 1.05; }
 .has-wm .wm { display: flex; }
-.has-wm .gog-corner img, .has-wm .gog-bar img, .has-wm .spine-logo { display: none !important; }
-.gog-corner .wm { width: 17.7mm; height: 17mm; align-items: center; justify-content: center; font-size: 8.5pt; }
-.gog-bar .wm { margin-left: 3.5mm; font-size: 9pt; letter-spacing: .4mm; margin-right: auto; }
-.spine-head .wm { width: 100%; justify-content: center; font-size: 5.2pt; padding: 1mm 0; }
-.cover.slim .spine-head .wm { font-size: 3.6pt; letter-spacing: 0; }
+.has-wm .gog-corner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2mm; width: 21.8mm; height: 21mm; padding: 0; }
+.has-wm .gog-corner img { height: 11.5mm; width: 11.5mm; }
+.gog-corner .wm { font-size: 5.6pt; letter-spacing: .3mm; }
+.has-wm .gog-bar img { height: 7.5mm; width: 7.5mm; margin-left: 2.5mm; }
+.gog-bar .wm { margin-left: 2.5mm; font-size: 8pt; letter-spacing: .4mm; margin-right: auto; }
+.has-wm .spine-head { flex-direction: column; align-items: center; gap: .8mm; }
+.has-wm .spine-logo { width: 6mm; height: 6mm; }
+.has-wm .spine.fill .spine-logo { width: calc(100% - 4mm); height: auto; }
+.spine-head .wm { width: 100%; justify-content: center; font-size: 4.4pt; letter-spacing: .1mm; padding: 0 0 1mm; }
+.cover.slim .spine-head .wm { font-size: 3.2pt; letter-spacing: 0; }
 .usk { position: absolute; left: 3mm; bottom: 3mm; width: 35mm; height: 35mm; object-fit: contain; z-index: 3; }
 .front-pub { position: absolute; right: 6mm; bottom: 6mm; max-width: 32mm; max-height: 14mm; object-fit: contain; z-index: 3; }
 

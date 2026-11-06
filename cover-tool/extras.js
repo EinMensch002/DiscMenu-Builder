@@ -210,7 +210,24 @@
       const table = h('table', { class: 'shown' });
       const note = h('p', { class: 'dmsg' });
       let current = null;
-      const ok = h('button', { type: 'button', class: 'pri', onclick: () => { App.patch(current.patch); closeDlg(); } }, 'Übernehmen');
+      const hasFront = !!App.snapshot().images.front;
+      const coverChk = h('input', { type: 'checkbox', checked: !hasFront });
+      const apply = async () => {
+        App.patch(current.patch);
+        if (!coverChk.checked) { closeDlg(); return; }
+        ok.disabled = true; say(note, 'Steam-Cover wird geladen ...');
+        try {
+          let blob;
+          try { blob = await O.fetchBlob('https://cdn.akamai.steamstatic.com/steam/apps/' + encodeURIComponent(item.id) + '/library_600x900_2x.jpg'); }
+          catch (e) { blob = await O.fetchBlob('https://cdn.akamai.steamstatic.com/steam/apps/' + encodeURIComponent(item.id) + '/library_600x900.jpg'); }
+          await App.setImage('front', new File([blob], 'steam-' + item.id + '.jpg', { type: blob.type || 'image/jpeg' }));
+          closeDlg();
+        } catch (e) {
+          say(note, 'Die Angaben sind übernommen, das Cover nicht: ' + e.message + ' (Mit dem Proxy muss der Host cdn.akamai.steamstatic.com erlaubt sein, sonst das Cover über die Bildsuche oder per Datei laden.)', true);
+          ok.disabled = false;
+        }
+      };
+      const ok = h('button', { type: 'button', class: 'pri', onclick: apply }, 'Übernehmen');
       const draw = () => {
         current = O.steamPatchBoth(details);
         const two = current.hasBoth;
@@ -223,6 +240,7 @@
       openDlg(details.name || item.name,
         h('div', { class: 'drow' }, h('button', { type: 'button', onclick: openSteam }, '← Andere Suche')),
         table, note,
+        h('label', { class: 'chk' }, coverChk, ' Steam-Cover (Hochformat) als Frontcover laden'),
         h('p', { class: 'dmsg' }, 'Prozessor und Grafikkarte werden, wo es passt, in die Kategorien übernommen (Intel, AMD, NVIDIA, Radeon mit Modell). Was nicht hineinpasst, steht als eigener Text und ersetzt dann die Auswahl. Lange Angaben werden gekürzt. Alles lässt sich danach ändern.'),
         h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
       draw();
@@ -283,6 +301,39 @@
     }
   }
 
+  /* ---------- Publisher-Logo suchen (Wikidata / Wikimedia Commons, kein Schlüssel nötig) ---------- */
+  function openPublisherLogo() {
+    const st = App.state, input = h('input', { type: 'text', placeholder: 'Firma, z. B. Valve oder CD Projekt' });
+    input.value = st.publisher || st.developer || '';
+    const msg = h('p', { class: 'dmsg' }, 'Sucht Firmenlogos bei Wikidata. Vorgabe ist der Publisher aus dem Steam-Import.');
+    const gal = h('div', { class: 'gal' });
+    let chosen = null;
+    const ok = h('button', { type: 'button', class: 'pri', disabled: true, onclick: async () => {
+      ok.disabled = true; say(msg, 'Logo wird übernommen ...');
+      try {
+        const blob = await O.fetchBlob(O.commonsUrl(chosen.file, 800));
+        await App.setImage('publisher', new File([blob], 'logo-' + chosen.id + '.png', { type: blob.type || 'image/png' })); closeDlg();
+      } catch (e) { say(msg, e.message, true); ok.disabled = false; }
+    } }, 'Als Publisher-Logo übernehmen');
+    const go = async () => {
+      const t = input.value.trim(); if (!t) return;
+      say(msg, 'Suche läuft ...'); gal.replaceChildren(); chosen = null; ok.disabled = true;
+      try {
+        const res = await O.logoSearch(t);
+        say(msg, res.length ? 'Logo auswählen:' : 'Kein Eintrag mit Logo gefunden. Anderen Namen versuchen (z. B. ohne "Games" oder "Studio") oder das Logo als Datei laden.');
+        gal.replaceChildren(...res.flatMap((r) => r.logos.slice(0, 4).map((file) => h('button', { type: 'button', onclick: (e) => {
+          gal.querySelectorAll('button').forEach((b) => b.classList.remove('sel')); e.currentTarget.classList.add('sel'); chosen = { id: r.id, file }; ok.disabled = false;
+        } }, h('img', { src: O.commonsUrl(file, 240), alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), h('small', {}, r.label + (r.description ? ' · ' + r.description : ''))))));
+      } catch (e) { say(msg, e.message, true); }
+    };
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+    const quick = [['Publisher', st.publisher], ['Entwickler', st.developer]].filter(([, v]) => v).map(([l, v]) => h('button', { type: 'button', onclick: () => { input.value = v; go(); } }, l + ': ' + v));
+    openDlg('Publisher-Logo suchen', h('div', { class: 'drow' }, input, h('button', { type: 'button', class: 'pri', onclick: go }, 'Suchen')),
+      quick.length ? h('div', { class: 'drow' }, ...quick) : null, msg, gal,
+      h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
+    if (input.value) go();
+  }
+
   /* ---------- Knöpfe verbinden ---------- */
   const recipeInput = $('#recipeFile'), projectInput = $('#projectFile');
   $('#bRecipe').addEventListener('click', () => recipeInput.click());
@@ -292,5 +343,5 @@
   projectInput.addEventListener('change', () => { const f = projectInput.files[0]; projectInput.value = ''; if (f) importProject(f); });
   $('#bSteam').addEventListener('click', openSteam);
   $('#bSettings').addEventListener('click', openSettings);
-  document.querySelectorAll('.drop .sg').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openSteamGridDB(b.closest('.drop').dataset.img); }));
+  document.querySelectorAll('.drop .sg').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const key = b.closest('.drop').dataset.img; key === 'publisher' ? openPublisherLogo() : openSteamGridDB(key); }));
 })();

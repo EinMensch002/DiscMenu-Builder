@@ -220,6 +220,7 @@
     const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB };
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
     cover.classList.toggle('has-wm', state.provider !== 'gog');
+    $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + P.logo; img.alt = P.name; });
     $('#cornerWm').textContent = P.wordmark;
     $('#barWm').textContent = P.wordmark.replace('\n', ' ');
     $('#spineWm').textContent = P.wordmark.split('\n')[0];
