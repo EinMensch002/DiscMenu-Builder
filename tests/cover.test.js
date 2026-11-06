@@ -178,18 +178,3 @@ test('Alle Grafiken, die das Tool lädt, sind vorhanden und nicht übergroß', (
     assert.equal(b.readUInt32BE(16) <= 1000 && b.readUInt32BE(20) <= 1000, true, 'Bild zu hoch aufgelöst: ' + f);   // PNG-Kopf: Breite und Höhe
   }
 });
-
-test('Barcode (Code 128): Prüfziffer, Grenzen und Strichfolge', () => {
-  // Bekannter Wert: "PJJ123C" ist in Zeichensatz B nicht üblich, deshalb Gegenprobe über Startcode, Prüfsumme und Stopp
-  const bits = C.code128('s.team/a/70');
-  assert.match(bits, /^11010010000/);                      // Startcode B
-  assert.ok(bits.endsWith('1100011101011'));               // Stoppzeichen mit Abschlussbalken
-  assert.equal(bits.length, 11 * (1 + 's.team/a/70'.length + 1) + 13);
-  assert.equal(C.code128('ä'), null); assert.equal(C.code128(''), null); assert.equal(C.code128('x'.repeat(41)), null);
-  assert.equal(C.code128('Hello World').length, 156);
-  const s = C.defaultState();
-  assert.deepEqual(s.barcode, { on: false, text: '' });
-  assert.equal(s.iconStyle, 'line'); assert.equal(s.spinePC, true); assert.equal(s.spineTitle, 'top');
-  assert.equal(C.mergeState({ iconStyle: 'komisch', spineTitle: 'x' }).iconStyle, 'line');
-  assert.equal(C.mergeState({ spineTitle: 'center' }).spineTitle, 'center');
-});

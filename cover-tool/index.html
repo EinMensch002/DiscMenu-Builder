@@ -90,8 +90,6 @@
       <summary>Texte</summary>
       <label class="f"><span class="lab">Spieletitel (Rücken)</span><input type="text" data-k="title" placeholder="z. B. The Witcher: Enhanced Edition"></label>
       <label class="f"><span class="lab">Copyright-Text (unten auf der Rückseite, mittig)</span><input type="text" data-k="copyright"></label>
-      <label class="chk"><input type="checkbox" data-k="barcode.on"> Barcode unter dem USK-Zeichen (Code 128)</label>
-      <label class="f"><span class="lab">Barcode-Inhalt (z. B. Link zum Spiel, kurz halten)</span><input type="text" data-k="barcode.text" placeholder="z. B. s.team/a/1091500" maxlength="40"></label>
     </details>
 
     <details class="sec" open>
@@ -108,7 +106,6 @@
         <label class="tile"><input type="checkbox" data-k="features" data-list value="controller_support"><span>Controller</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="achievements"><span>Erfolge</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="cloud_saves"><span>Cloud Saves</span></label>
-        <label class="tile"><input type="checkbox" data-k="features" data-list value="leaderboards"><span>Bestenlisten</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="mods"><span>Mods</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="vr"><span>VR</span></label>
       </div>
@@ -266,7 +263,6 @@
                   <div class="rightcol">
                     <div class="logos"><img id="backPub" alt=""><img id="discLogo" alt=""></div>
                     <img id="backUsk" class="usk-back" alt="">
-                    <div class="barcode" id="barcode" hidden><svg id="barcodeSvg" preserveAspectRatio="none" aria-hidden="true"></svg><span id="barcodeText"></span></div>
                   </div>
                 </div>
               </div>

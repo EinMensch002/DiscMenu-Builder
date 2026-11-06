@@ -191,9 +191,6 @@ dialog .f small { display: block; margin-top: 3px; }
 #discLogo { max-width: 15mm; max-height: 8mm; }
 .usk-back { grid-row: 2; width: 15mm; height: 15mm; object-fit: contain; }
 .copy { position: absolute; left: 4mm; right: 4.5mm; bottom: 1.6mm; margin: 0; font-size: 3.9pt; line-height: 1.25; color: #444; text-align: center; }   /* unten in der Mitte */
-.barcode { grid-row: 3; align-self: end; justify-self: end; display: flex; flex-direction: column; align-items: center; background: #fff; padding: .6mm 0 .2mm; border-radius: .6mm; max-width: 100%; }
-.barcode svg { display: block; height: 4.6mm; max-width: 100%; }
-.barcode span { font: 500 3pt/1.1 ui-monospace, Consolas, monospace; color: #000; padding-top: .2mm; }
 
 /* Rücken */
 /* Naht: An den Kanten zwischen Rücken, Rückseite und Vorderseite scheint beim Drucken und Zoomen sonst ein heller Streifen durch (die Ränder zweier
@@ -255,6 +252,18 @@ dialog .f small { display: block; margin-top: 3px; }
 .theme-modern { --sp: var(--dark, #17101f); }
 .theme-modern .spine-head { background: var(--brand, #89268d); padding: 2mm 0; }
 .theme-modern .spine-foot { display: flex; align-items: center; justify-content: center; width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); height: 12mm; flex: none; background: var(--brand, #89268d); color: var(--on-brand, #fff); font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
+
+/* ===== Steam und Epic Games: dunkle Kopfleiste über die ganze Vorderseite (wie auf den Original-Hüllen), in beiden Stilen =====
+   Verlauf von bannerA nach bannerB, darunter eine Akzentlinie. Der Streifen mit den Spielfunktionen auf der Rückseite ist dunkel. */
+.has-wm .gog-corner { display: none; }
+.has-wm .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: 18.6mm; align-items: center; justify-content: space-between; padding-right: 4mm; background: linear-gradient(var(--bannerA), var(--bannerB)); border-bottom: 1.6mm solid var(--accent); z-index: 3; box-shadow: none; }
+.has-wm .gog-bar img { height: 12.5mm; width: 12.5mm; margin-left: 4.5mm; display: block; }
+.has-wm .gog-bar .wm { margin-left: 4mm; font-size: 17pt; letter-spacing: 1.1mm; color: var(--on-brand); }
+.has-wm .gog-bar b { color: var(--on-brand); font-size: 7.5pt; font-weight: 900; letter-spacing: .35mm; opacity: .85; }
+.has-wm .banner { background: linear-gradient(var(--bannerA), var(--bannerB)); border-top: .6mm solid var(--accent); }
+.has-wm .banner-title b, .has-wm .feat span { color: #fff; }
+.has-wm .banner-title small { color: rgba(255, 255, 255, .72); }
+.has-wm .feat img { filter: invert(1); }
 
 /* ===== Druck: nur das Blatt, A4 quer, ohne Ränder ===== */
 @page { size: A4 landscape; margin: 0; }

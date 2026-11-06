@@ -94,5 +94,5 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 
 - [ ] **Steam-Import mit Titel und Cover:** Nach dem Übernehmen steht der Spielname auf dem Rücken und das Steam-Hochformat-Cover vorn. Falls das Cover nicht lädt: Meldung lesen (ggf. `cdn.akamai.steamstatic.com` im Proxy erlauben).
 - [ ] **Publisher-Logo (Wikidata):** 🔎 beim Publisher-Logo zeigt den Publisher aus dem Steam-Import vorbelegt, Logos erscheinen und lassen sich übernehmen (z. B. Valve, CD PROJEKT RED).
-- [ ] **Barcode:** Mit einem Handy-Scanner den gedruckten Barcode (z. B. `s.team/a/70`) lesen. Der gelesene Text muss stimmen. Falls er nicht erkannt wird: kürzeren Inhalt wählen oder größer drucken.
 - [ ] **Symbole und Rücken:** Linien-Symbole, "PC" am Rückenfuß, mittiger Titel und das etwas größere Logo auf dem Ausdruck ansehen.
+- [ ] **Steam und Epic Games:** Die dunkle Kopfleiste vorn (Logo, Schriftzug, Akzentlinie) und der dunkle Streifen mit den Spielfunktionen hinten gefallen auf dem Ausdruck, in beiden Stilen.

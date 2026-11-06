@@ -95,8 +95,10 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => document.querySelector('#cover').classList.contains('has-wm'));
   assert.equal(await css('#cover', '--brand'), '#2d2d33');
   assert.equal(await page.locator('#cornerWm').textContent(), 'EPIC GAMES');
-  // Epic-Logo auf Vorderseite (Ecke und Streifen) und Rücken, geladen und sichtbar
-  assert.equal(await page.locator('.gog-corner img').isVisible(), true);
+  // Epic-Logo in der dunklen Kopfleiste der Vorderseite (auch im klassischen Stil, keine Ecke) und auf dem Rücken, geladen und sichtbar
+  assert.equal(await page.locator('.gog-bar img').isVisible(), true);
+  assert.equal(await page.locator('.gog-corner').isVisible(), false);
+  assert.equal(await page.locator('#barWm').innerText(), 'EPIC GAMES');
   assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.brand-logo')].map((i) => [i.getAttribute('src'), i.naturalWidth > 0])), [['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true]]);
   assert.equal(await page.locator('#spineLogo').isVisible(), true);
   assert.match(await page.locator('#featNote').textContent(), /Epic Games Launcher/);
@@ -104,9 +106,9 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.equal(await page.locator('#galaxy').evaluate((e) => getComputedStyle(e).visibility), 'hidden');
   await page.selectOption('[data-k=provider]', 'steam');
   await page.waitForFunction(() => document.querySelector('#cornerWm').textContent === 'STEAM');
-  assert.equal(await css('#cover', '--brand'), '#1b3a57');
-  assert.equal(await page.locator('.gog-corner img').getAttribute('src'), 'assets/images/steam_logo.svg');
-  assert.equal(await page.locator('.gog-corner img').evaluate((i) => i.naturalWidth > 0), true);
+  assert.equal(await css('#cover', '--brand'), '#23394c');
+  assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/steam_logo.svg');
+  assert.equal(await page.locator('.gog-bar img').evaluate((i) => i.naturalWidth > 0), true);
   await page.selectOption('[data-k=theme]', 'modern');
   await page.waitForFunction(() => document.querySelector('#cover').classList.contains('theme-modern'));
   assert.equal(await page.locator('#barWm').innerText(), 'STEAM');
@@ -168,10 +170,10 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.match(shown, /Spieletitel[\s\S]*Half-Life/); assert.match(shown, /Publisher \/ Entwickler[\s\S]*Valve/);
   assert.equal(await page.locator('#dlg input[type=checkbox]').isChecked(), true, 'Steam-Cover ist ohne vorhandenes Frontcover vorgewählt');
   await page.click('#dlg button:has-text("Übernehmen")');
-  await page.waitForFunction(() => document.querySelector('[data-k="cpu.intel.on"]').checked);
+  await page.waitForFunction(() => document.querySelector('[data-k="cpu.intel.on"]').checked && document.querySelector('[data-k=title]').value === 'Half-Life');
   // Titel (Rücken) und Cover kommen von Steam
   assert.equal(await page.inputValue('[data-k=title]'), 'Half-Life');
-  assert.equal(await page.locator('#spineTitle').textContent(), 'Half-Life');
+  await page.waitForFunction(() => document.querySelector('#spineTitle').textContent === 'Half-Life');
   await page.waitForFunction(() => document.querySelector('[data-img=front]').classList.contains('has'));
   assert.ok(cdnCalls.some((u) => /steam\/apps\/70\/library_600x900_2x\.jpg/.test(u)), 'Steam-Cover (Hochformat) wurde geladen');
   assert.deepEqual(await page.evaluate(() => [CoverApp.state.publisher, CoverApp.state.developer]), ['Valve', 'Valve']);
@@ -316,7 +318,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     const input = document.querySelector('[data-img=' + key + '] input[type=file]'); input.files = dt.files; input.dispatchEvent(new Event('change', { bubbles: true }));
   }, { key, w, h, type });
   await page.fill('[data-k=title]', 'Größen-Test'); await page.selectOption('[data-k=provider]', 'steam'); await page.selectOption('[data-k=theme]', 'modern');
-  await page.check('[data-k=caseType][value=custom]'); await page.fill('[data-k="custom.back"]', '120'); await page.check('[data-k=features][value=leaderboards]');
+  await page.check('[data-k=caseType][value=custom]'); await page.fill('[data-k="custom.back"]', '120'); await page.check('[data-k=features][value=mods]');
   await giveImage('publisher', 400, 200, 'image/png');
   await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));
   await page.waitForTimeout(150);
@@ -339,7 +341,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.equal(await page.inputValue('[data-k=theme]'), 'modern');
   assert.equal(await page.locator('[data-k=caseType][value=custom]').isChecked(), true);
   assert.equal(await page.inputValue('[data-k="custom.back"]'), '120');
-  assert.equal(await page.locator('[data-k=features][value=leaderboards]').isChecked(), true);
+  assert.equal(await page.locator('[data-k=features][value=mods]').isChecked(), true);
   assert.match(await page.locator('[data-img=publisher]').getAttribute('class'), /has/);
   assert.match(await page.locator('[data-img=front]').getAttribute('class'), /has/);
   assert.equal(await page.locator('#cover').evaluate((e) => e.classList.contains('has-wm') && e.classList.contains('theme-modern')), true);

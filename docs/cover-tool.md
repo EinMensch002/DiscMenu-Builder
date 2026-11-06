@@ -14,7 +14,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 - **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB, Publisher-Logos von Wikidata (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional Falzlinien.
 - **Deutsch oder Englisch:** Die Beschriftung auf dem Cover lässt sich wählen.
-- **USK statt PEGI oder ESRB.** Ein Barcode ist nur auf Wunsch dabei (siehe [Barcode](#barcode)). Die USK-Kennzeichnung steht vorn (35 × 35 mm, 3 mm Abstand) und auf Wunsch kleiner hinten.
+- **USK statt PEGI oder ESRB, ohne Barcode.** Die USK-Kennzeichnung steht vorn (35 × 35 mm, 3 mm Abstand) und auf Wunsch kleiner hinten.
 
 ## Schnellstart
 
@@ -44,8 +44,8 @@ Die Einstellungen des Covers links:
 |---|---|
 | Hülle und Disc | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung: Deutsch oder English. USK-Freigabe: 0, 6, 12, 16, 18 oder keine anzeigen, dazu "USK auch auf der Rückseite zeigen" |
 | Bilder | Frontcover, Rückseite oben, Rückseite unten (optional), Publisher-Logo (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
-| Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) und der optionale Barcode |
-| Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Bestenlisten, Mods, VR. Die Reihenfolge auf dem Cover ist fest. Die Symbole gibt es im **Linienstil** (Standard) oder als **GOG-Original** (nur die ersten sieben, die anderen bleiben im Linienstil) |
+| Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
+| Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Mods, VR. Die Reihenfolge auf dem Cover ist fest. Die Symbole gibt es im **Linienstil** (Standard) oder als **GOG-Original** (nur die ersten sieben, die anderen bleiben im Linienstil) |
 | Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessor (Intel, AMD oder eigener Text), Grafikkarte (NVIDIA, AMD Radeon oder eigener Text), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus), Umbruch bei zwei Prozessoren oder Grafikkarten |
 | Darstellung und Druck | Stil, Größe des GOG-Logos auf dem Rücken (fest 7 mm oder Rückenbreite), Titel oben oder mittig auf dem Rücken, "PC" am Fuß des Rückens, GOG-Galaxy-Feld, Schnittmarken, Falzlinien |
 
@@ -85,7 +85,7 @@ Sucht das Spiel im Steam-Shop und liest die Systemanforderungen aus. Mindest- un
 - Windows-Versionen (aus "OS", z. B. "Windows 7 / 8 / 10 (64-bit)"), macOS und Linux (aus den Plattformen),
 - **Prozessor** und **Grafikkarte** werden den **Kategorien** zugeordnet (Hersteller, Reihe, Modell, bei Alternativen wie "Core i7-6700 or Ryzen 5 1600" je Marke eine, höchstens zwei). Erkennt das Tool die Angabe nicht (z. B. nur "2.4 GHz"), steht sie stattdessen als Text. In der Vorschau-Tabelle steht je Zeile "in Kategorien" oder "als Text". **Arbeitsspeicher**, **Speicherplatz**, **DirectX**,
 - **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 140 Zeichen gekürzt),
-- die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller und Bestenlisten (aus den Steam-Kategorien).
+- die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller, Online, LAN, Cross-Plattform, Mods und VR (aus den Steam-Kategorien).
 
 Zusätzlich übernimmt der Steam-Import den **Spielnamen als Titel auf dem Rücken** sowie **Publisher und Entwickler** (als Vorgabe für die Logo-Suche). Ein Haken im Dialog lädt außerdem das **Steam-Cover (Hochformat, 600×900)** als Frontcover. Er ist vorgewählt, wenn noch kein Frontcover geladen ist. Klappt das Laden nicht (CORS oder ein Proxy, der den Host `cdn.akamai.steamstatic.com` nicht erlaubt), sind die Angaben trotzdem übernommen und es erscheint ein Hinweis.
 
@@ -131,13 +131,15 @@ Die Bilder werden dabei unverändert übernommen (nicht erneut verkleinert oder 
 
 ## Anbieter
 
-Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Das Logo steht an denselben Plätzen wie das GOG-Logo: in der Ecke (klassisch) oder im Streifen oben (Modern) auf der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.png`).
+Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games und Steam** sieht die Vorderseite in beiden Stilen wie auf den Original-Hüllen aus: eine dunkle Leiste über die ganze Breite oben (Verlauf, großes Logo, Schriftzug, farbige Akzentlinie darunter, bei Steam Blau). Der Streifen mit den Spielfunktionen auf der Rückseite ist ebenfalls dunkel statt hell.
+
+Die folgende Beschreibung gilt für die Plätze der Logos: Das Logo steht an denselben Plätzen wie das GOG-Logo: in der Ecke (klassisch) oder im Streifen oben (Modern) auf der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.png`).
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
 | **GOG** | Lila | GOG-Logo | Galaxy-Feld, grüner Streifen, im Stil Modern "PC · DRM-FREI" |
-| **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | heller grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
-| **Steam** | Marineblau | Logo und Schriftzug "STEAM" | blauer Streifen, Hinweis "Steam", kein Galaxy-Feld |
+| **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | dunkler grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
+| **Steam** | Marineblau | Logo und Schriftzug "STEAM" | dunkelblauer Streifen mit blauer Akzentlinie, Hinweis "Steam", kein Galaxy-Feld |
 
 Der Anbieter wird mit den Einstellungen gemerkt und aus dem Rezept übernommen. Dieselbe Farbzuordnung nutzt das Menü ([player-und-builder.md](player-und-builder.md)).
 
@@ -185,14 +187,6 @@ Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseit
 ## Feste Plätze auf der Rückseite
 
 Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (20 × 24 mm, bewusst klein, damit mehr Platz für die Angaben bleibt), in der Mitte die **Angaben**, rechts **Logos, USK und Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Schaltet man das Galaxy-Feld aus (oder wählt Epic Games oder Steam), **rücken nur die Angaben nach links an den Rand** und nutzen den freien Platz, alles andere bleibt, wo es ist. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
-
-## Barcode
-
-Optional steht unter dem USK-Zeichen auf der Rückseite ein **Barcode (Code 128)**, kein QR-Code. Er ist unter "Texte" einzuschalten, der Inhalt ist frei wählbar. Der Steam-Import trägt den Kurzlink `s.team/a/<App-ID>` ein (z. B. `s.team/a/1091500`), den Barcode schaltet er nie selbst ein.
-
-- **Grenzen:** Ein Barcode liest sich nur, wenn die Striche breit genug sind. Der Platz ist etwa 40 mm breit (mit der Minimum/Empfohlen-Tabelle 31 mm). Ab etwa 0,19 mm je Strich ist er scannbar, das reicht für rund 14 bis 17 Zeichen. Deshalb Kurzlinks wie `s.team/a/70` nehmen, lange Adressen warnt das Tool als zu dicht ab.
-- **Was ein Scanner tut:** Er liest den Text. Ob eine Handy-App daraus einen Link macht, entscheidet die App (Adressen ohne `https://` werden meist als Webadresse erkannt). Die Kodierung ist gegen die Bibliothek JsBarcode geprüft.
-- Erlaubt sind Zeichen ohne Umlaute, höchstens 40.
 
 ## Rücken
 

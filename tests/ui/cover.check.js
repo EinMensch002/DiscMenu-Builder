@@ -197,7 +197,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.click('[data-reqtab=min]');
   await page.evaluate(() => CoverApp.patch({ dx: '', other: '', cpu: { intel: { on: false }, amd: { on: false } }, gpu: { nvidia: { on: false }, amd: { on: false } }, rec: { on: false } }));
 
-  // Copyright mittig unten, "PC" am Fuß des Rückens, Titel mittig, Barcode unter dem USK-Zeichen
+  // Copyright mittig unten, "PC" am Fuß des Rückens, Titel mittig
   const keep = await page.evaluate(() => ({ title: CoverApp.state.title, copyright: CoverApp.state.copyright }));
   await page.fill('[data-k=copyright]', '© 2026 Beispiel. Alle Rechte vorbehalten.'); await page.fill('[data-k=title]', 'Mitte'); await page.waitForTimeout(200);
   const geoNow = () => page.evaluate(() => {
@@ -215,19 +215,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.selectOption('[data-k=spineTitle]', 'top');
   await page.uncheck('[data-k=spinePC]'); await page.waitForTimeout(100);
   assert.equal((await geoNow()).foot, 'none'); await page.check('[data-k=spinePC]');
-  assert.equal(await page.locator('#barcode').isVisible(), false, 'Barcode ist standardmäßig aus');
-  await page.check('[data-k="barcode.on"]'); await page.fill('[data-k="barcode.text"]', 's.team/a/220'); await page.waitForTimeout(150);
-  assert.equal(await page.locator('#barcode').isVisible(), true);
-  assert.ok((await page.locator('#barcodeSvg path').getAttribute('d')).length > 100);
-  const bcBox = await page.locator('#barcode').boundingBox(), usk = await page.locator('#backUsk').boundingBox();
-  assert.ok(bcBox.y >= usk.y + usk.height - 2, 'Barcode steht unter dem USK-Zeichen');
-  assert.doesNotMatch(await page.locator('#notes').innerText(), /Barcode/);
-  await page.fill('[data-k="barcode.text"]', 'https://store.steampowered.com/app/1091500');
-  await page.fill('[data-k="barcode.text"]', 'ü'); await page.waitForTimeout(100);
-  assert.match(await page.locator('#notes').innerText(), /Barcode-Inhalt fehlt oder ist ungültig/);
-  await page.fill('[data-k="barcode.text"]', 'https://store.steampowered.com/app/10'); await page.waitForTimeout(100);
-  assert.match(await page.locator('#notes').innerText(), /sehr dicht/);
-  await page.uncheck('[data-k="barcode.on"]'); await page.fill('[data-k=title]', keep.title); await page.fill('[data-k=copyright]', keep.copyright);
+  await page.fill('[data-k=title]', keep.title); await page.fill('[data-k=copyright]', keep.copyright);
   // Symbole: Linienstil für alle Funktionen, Original nur für die ersten sieben
   await page.evaluate(() => CoverApp.patch({ features: ['single_player', 'vr'] })); await page.waitForTimeout(100);
   assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#feats img')].map((i) => [i.getAttribute('src'), i.naturalWidth > 0])), [['assets/images/features/line/single_player.svg', true], ['assets/images/features/line/vr.svg', true]]);
