@@ -102,21 +102,24 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   assert.deepEqual(fewer.find((x) => x[0] === '#feats'), noGx.find((x) => x[0] === '#feats'));
   await page.check('[data-k=galaxy]'); await page.check('[data-k=uskBack]');
 
-  // Stil "Modern": Streifen oben, Überschrift der Systemanforderungen, alles bleibt auf dem Blatt
-  await page.selectOption('[data-k=theme]', 'modern');
-  await page.waitForFunction(() => document.querySelector('#cover').classList.contains('theme-modern'));
+  // Stil "Leiste": Kopfleiste über Vorderseite und Rücken (die Akzentlinie läuft durch), alles bleibt auf dem Blatt
+  await page.selectOption('[data-k=theme]', 'bar');
+  await page.waitForFunction(() => document.querySelector('#cover').classList.contains('theme-bar'));
   assert.equal(await page.locator('.gog-bar').isVisible(), true);
   assert.equal(await page.locator('.gog-corner').isVisible(), false);
-  assert.equal(await page.locator('#reqTitle').textContent(), 'SYSTEMANFORDERUNGEN');
+  const lineY = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(), a = r('.gog-bar'), b = r('.spine-head'); return [Math.round(a.top * 10) / 10, Math.round(a.bottom * 10) / 10, Math.round(b.top * 10) / 10, Math.round(b.bottom * 10) / 10]; });
+  assert.deepEqual([lineY[0], lineY[1]], [lineY[2], lineY[3]], 'Leiste auf Vorderseite und Rücken sind gleich hoch, die Linie läuft durch');
+  for (const p of ['steam', 'epic', 'gog']) { await page.selectOption('[data-k=provider]', p); await page.waitForTimeout(100); assert.equal(await page.locator('#spineLogo').isVisible(), true, p); assert.equal(await page.evaluate(() => { const l = document.querySelector('#spineLogo').getBoundingClientRect(), h = document.querySelector('.spine-head').getBoundingClientRect(); return l.top >= h.top && l.bottom <= h.bottom; }), true, 'Rückenlogo bleibt in der Leiste: ' + p); }
+  await page.selectOption('[data-k=provider]', 'gog');
   assert.equal(await page.locator('#frontTag').textContent(), 'PC · DRM-FREI');
   assert.equal(await page.locator('#spineFoot').isVisible(), true);
   await page.selectOption('[data-k=lang]', 'en');
   await page.waitForFunction(() => document.querySelector('#frontTag').textContent === 'PC · DRM-FREE');
   await page.selectOption('[data-k=lang]', 'de');
   const spec = await page.evaluate(() => { const p = document.querySelector('.panel-back').getBoundingClientRect(), s = document.querySelector('#specs').getBoundingClientRect(); return s.bottom <= p.bottom + 0.5; });
-  assert.ok(spec, 'Die Systemanforderungen müssen im Modern-Stil in das Feld passen');
+  assert.ok(spec, 'Die Systemanforderungen müssen im Leisten-Stil in das Feld passen');
   await page.selectOption('[data-k=theme]', 'classic');
-  await page.waitForFunction(() => !document.querySelector('#cover').classList.contains('theme-modern'));
+  await page.waitForFunction(() => !document.querySelector('#cover').classList.contains('theme-bar'));
 
   // Eigene Maße (Blu-ray-Vorlage): Cover hat die Maße, Bildmaße folgen, Druck bleibt eine Seite
   await page.check('[data-k=caseType][value=custom]');
@@ -176,7 +179,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
     rec: { on: true, cpu: { intel: { on: true, pre: 'Core i7', num: '12700', sfx: '' }, amd: { on: true, pre: 'Ryzen 7', num: '7800', sfx: 'X3D' }, custom: '' },
       gpu: { nvidia: { on: true, pre: 'RTX', num: '2060', sfx: 'SUPER' }, amd: { on: true, pre: 'RX', num: '5700', sfx: 'XT' }, custom: '' }, ram: '16', space: '70', dx: 'Version 12', other: 'SSD required' },
   }));
-  for (const provider of ['gog', 'steam']) for (const theme of ['classic', 'modern']) {
+  for (const provider of ['gog', 'steam']) for (const theme of ['classic', 'bar']) {
     await page.selectOption('[data-k=provider]', provider); await page.selectOption('[data-k=theme]', theme); await page.waitForTimeout(250);
     const r = await page.evaluate(() => {
       const col = document.querySelector('.speccol').getBoundingClientRect(), list = document.querySelector('#specs');

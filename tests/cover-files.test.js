@@ -43,7 +43,7 @@ test('ZIP schreiben: CRC32 und Aufbau werden vom ZIP-Leser gelesen', async () =>
 });
 
 test('Projektdatei: Einstellungen und Bilder überstehen Export und Import', async () => {
-  const state = C.mergeState({ title: 'Größe & Co', provider: 'epic', theme: 'modern', caseType: 'custom', custom: { back: '127.5', spine: '14', front: '127.5', h: '148' }, features: ['co_op'], cpu: { custom: 'Pentium III' } });
+  const state = C.mergeState({ title: 'Größe & Co', provider: 'epic', theme: 'bar', caseType: 'custom', custom: { back: '127.5', spine: '14', front: '127.5', h: '148' }, features: ['co_op'], cpu: { custom: 'Pentium III' } });
   const jpg = new Uint8Array(5000).map((_, i) => (i * 7) % 256), png = new Uint8Array([137, 80, 78, 71, 1, 2, 3]);
   const zip = F.packProject(state, { front: { data: jpg, type: 'image/jpeg', name: 'Vorne ä.jpg' }, publisher: { data: png, type: 'image/png', name: 'logo.png' } });
   const out = F.unpackProject(await Z.read(zip));

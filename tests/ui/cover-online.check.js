@@ -95,10 +95,9 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => document.querySelector('#cover').classList.contains('has-wm'));
   assert.equal(await css('#cover', '--brand'), '#2d2d33');
   assert.equal(await page.locator('#cornerWm').textContent(), 'EPIC GAMES');
-  // Epic-Logo in der dunklen Kopfleiste der Vorderseite (auch im klassischen Stil, keine Ecke) und auf dem Rücken, geladen und sichtbar
-  assert.equal(await page.locator('.gog-bar img').isVisible(), true);
-  assert.equal(await page.locator('.gog-corner').isVisible(), false);
-  assert.equal(await page.locator('#barWm').innerText(), 'EPIC GAMES');
+  // Epic-Logo in der Ecke (klassisch) und auf dem Rücken, geladen und sichtbar; die Leiste gibt es nur im Stil "Leiste"
+  assert.equal(await page.locator('.gog-corner img').isVisible(), true);
+  assert.equal(await page.locator('.gog-bar').isVisible(), false);
   assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.brand-logo')].map((i) => [i.getAttribute('src'), i.naturalWidth > 0])), [['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true]]);
   assert.equal(await page.locator('#spineLogo').isVisible(), true);
   assert.match(await page.locator('#featNote').textContent(), /Epic Games Launcher/);
@@ -107,10 +106,10 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.selectOption('[data-k=provider]', 'steam');
   await page.waitForFunction(() => document.querySelector('#cornerWm').textContent === 'STEAM');
   assert.equal(await css('#cover', '--brand'), '#23394c');
-  assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/steam_logo.svg');
-  assert.equal(await page.locator('.gog-bar img').evaluate((i) => i.naturalWidth > 0), true);
-  await page.selectOption('[data-k=theme]', 'modern');
-  await page.waitForFunction(() => document.querySelector('#cover').classList.contains('theme-modern'));
+  assert.equal(await page.locator('.gog-corner img').getAttribute('src'), 'assets/images/steam_logo.svg');
+  assert.equal(await page.locator('.gog-corner img').evaluate((i) => i.naturalWidth > 0), true);
+  await page.selectOption('[data-k=theme]', 'bar');
+  await page.waitForFunction(() => document.querySelector('#cover').classList.contains('theme-bar'));
   assert.equal(await page.locator('#barWm').innerText(), 'STEAM');
   assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/steam_logo.svg', 'Im Streifen steht das Steam-Logo');
   assert.equal(await page.locator('.gog-bar img').isVisible(), true);
@@ -317,7 +316,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     const blob = await new Promise((r) => cv.toBlob(r, type)); const dt = new DataTransfer(); dt.items.add(new File([blob], key + '.png', { type }));
     const input = document.querySelector('[data-img=' + key + '] input[type=file]'); input.files = dt.files; input.dispatchEvent(new Event('change', { bubbles: true }));
   }, { key, w, h, type });
-  await page.fill('[data-k=title]', 'Größen-Test'); await page.selectOption('[data-k=provider]', 'steam'); await page.selectOption('[data-k=theme]', 'modern');
+  await page.fill('[data-k=title]', 'Größen-Test'); await page.selectOption('[data-k=provider]', 'steam'); await page.selectOption('[data-k=theme]', 'bar');
   await page.check('[data-k=caseType][value=custom]'); await page.fill('[data-k="custom.back"]', '120'); await page.check('[data-k=features][value=mods]');
   await giveImage('publisher', 400, 200, 'image/png');
   await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));
@@ -338,13 +337,13 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => /Projekt importiert/.test(document.querySelector('#dlg').textContent));
   assert.equal(await page.inputValue('[data-k=title]'), 'Größen-Test');
   assert.equal(await page.inputValue('[data-k=provider]'), 'steam');
-  assert.equal(await page.inputValue('[data-k=theme]'), 'modern');
+  assert.equal(await page.inputValue('[data-k=theme]'), 'bar');
   assert.equal(await page.locator('[data-k=caseType][value=custom]').isChecked(), true);
   assert.equal(await page.inputValue('[data-k="custom.back"]'), '120');
   assert.equal(await page.locator('[data-k=features][value=mods]').isChecked(), true);
   assert.match(await page.locator('[data-img=publisher]').getAttribute('class'), /has/);
   assert.match(await page.locator('[data-img=front]').getAttribute('class'), /has/);
-  assert.equal(await page.locator('#cover').evaluate((e) => e.classList.contains('has-wm') && e.classList.contains('theme-modern')), true);
+  assert.equal(await page.locator('#cover').evaluate((e) => e.classList.contains('has-wm') && e.classList.contains('theme-bar')), true);
   assert.equal(await page.locator('#spineTitle').textContent(), 'Größen-Test');
   assert.ok(await page.evaluate(() => /^blob:/.test(document.querySelector('#frontPub').src)), 'Publisher-Logo ist wieder da');
   await page.click('#dlg button:has-text("Schließen")');

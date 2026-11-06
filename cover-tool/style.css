@@ -229,37 +229,22 @@ dialog .f small { display: block; margin-top: 3px; }
 .usk { position: absolute; left: 3mm; bottom: 3mm; width: 35mm; height: 35mm; object-fit: contain; z-index: 3; }
 .front-pub { position: absolute; right: 6mm; bottom: 6mm; max-width: 32mm; max-height: 14mm; object-fit: contain; z-index: 3; }
 
-/* ===== Stil "Modern": Streifen oben auf der Vorderseite, dunkle Rückseite mit gerahmten Systemanforderungen ===== */
-.theme-modern .gog-corner { display: none; }
-.theme-modern .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: 11mm; align-items: center; justify-content: space-between; padding-right: 3.5mm; background: var(--brand, #89268d); z-index: 3; box-shadow: 0 .4mm 1.4mm rgba(0, 0, 0, .35); }
-.theme-modern .gog-bar img { height: 9mm; width: auto; margin-left: 1.5mm; display: block; }
-.theme-modern .gog-bar b { color: var(--on-brand, #fff); font-size: 7.5pt; font-weight: 900; letter-spacing: .35mm; }
-.theme-modern .banner { background: linear-gradient(var(--mid, #2b1842), var(--dark, #190f28)); border-top: .6mm solid var(--brand, #89268d); }
-.theme-modern .banner-title b, .theme-modern .feat span { color: #fff; }
-.theme-modern .banner-title small { color: #cdb7e6; }
-.theme-modern .feat img { filter: invert(1); }
-.theme-modern .panel-back { background: color-mix(in srgb, var(--dark, #140d1e) 94%, transparent); }
-.theme-modern .galaxy { box-shadow: 0 0 0 .25mm var(--accent, #b04fd6); }
-.theme-modern .speccol h4 { display: block; margin: 0 0 1.8mm; padding-bottom: 1mm; border-bottom: .25mm solid var(--brand, #89268d); color: var(--accent, #e6c4ff); font-size: 6.3pt; font-weight: 900; letter-spacing: .3mm; }
-.theme-modern .specs { font-size: 6.9pt; gap: .6em; }
-.theme-modern .specs.dual { font-size: 5.6pt; }
-.theme-modern .specs .k { color: #b9a4d3; }
-.theme-modern .specs .v { color: #fff; }
-.theme-modern .specs .chip { border-color: #b9a4d3; color: #b9a4d3; }
-.theme-modern .specs .chip.rec { color: var(--on-brand, #fff); }
-.theme-modern .copy { color: #a995c2; }
-.theme-modern .logos img { background: #fff; padding: 1mm; border-radius: 1mm; }
-.theme-modern { --sp: var(--dark, #17101f); }
-.theme-modern .spine-head { background: var(--brand, #89268d); padding: 2mm 0; }
-.theme-modern .spine-foot { display: flex; align-items: center; justify-content: center; width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); height: 12mm; flex: none; background: var(--brand, #89268d); color: var(--on-brand, #fff); font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
+/* ===== Stil "Leiste": Kopfleiste über die ganze Breite wie bei Handelsspielen (Vorderseite und Rücken) =====
+   Verlauf von barA nach barB, darunter eine Akzentlinie (line), die über den Rücken durchläuft. Gilt für alle Anbieter. */
+.cover { --bar-h: 18.6mm; --bar-line: 1.6mm; }
+.theme-bar .gog-corner { display: none; }
+.theme-bar .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); align-items: center; justify-content: space-between; padding-right: 4mm; background: linear-gradient(var(--barA), var(--barB)); border-bottom: var(--bar-line) solid var(--line); z-index: 3; }
+.theme-bar .gog-bar img { height: 12.5mm; width: auto; margin-left: 4.5mm; display: block; }
+.has-wm.theme-bar .gog-bar img { width: 12.5mm; }
+.theme-bar .gog-bar .wm { margin-left: 4mm; font-size: 17pt; letter-spacing: 1.1mm; color: var(--on-brand); }
+.theme-bar .gog-bar b { color: var(--on-brand); font-size: 7.5pt; font-weight: 900; letter-spacing: .35mm; opacity: .85; }
+.theme-bar .spine-head { height: var(--bar-h); box-sizing: border-box; align-items: center; justify-content: center; padding: 0; flex-direction: row; background: linear-gradient(var(--barA), var(--barB)); border-bottom: var(--bar-line) solid var(--line); }
+.theme-bar .spine-head .wm { display: none; }
+.theme-bar .spine-logo, .theme-bar.has-wm .spine-logo { width: 9mm; height: auto; max-height: 14mm; }
+.theme-bar.slim .spine-logo, .theme-bar.slim.has-wm .spine-logo { width: 5.5mm; }
+.theme-bar .spine.fill .spine-logo, .theme-bar.has-wm .spine.fill .spine-logo { width: calc(100% - 3mm); height: auto; max-height: 14mm; object-fit: contain; }
 
-/* ===== Steam und Epic Games: dunkle Kopfleiste über die ganze Vorderseite (wie auf den Original-Hüllen), in beiden Stilen =====
-   Verlauf von bannerA nach bannerB, darunter eine Akzentlinie. Der Streifen mit den Spielfunktionen auf der Rückseite ist dunkel. */
-.has-wm .gog-corner { display: none; }
-.has-wm .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: 18.6mm; align-items: center; justify-content: space-between; padding-right: 4mm; background: linear-gradient(var(--bannerA), var(--bannerB)); border-bottom: 1.6mm solid var(--accent); z-index: 3; box-shadow: none; }
-.has-wm .gog-bar img { height: 12.5mm; width: 12.5mm; margin-left: 4.5mm; display: block; }
-.has-wm .gog-bar .wm { margin-left: 4mm; font-size: 17pt; letter-spacing: 1.1mm; color: var(--on-brand); }
-.has-wm .gog-bar b { color: var(--on-brand); font-size: 7.5pt; font-weight: 900; letter-spacing: .35mm; opacity: .85; }
+/* ===== Steam und Epic Games: dunkler Streifen mit den Spielfunktionen auf der Rückseite (in beiden Stilen) ===== */
 .has-wm .banner { background: linear-gradient(var(--bannerA), var(--bannerB)); border-top: .6mm solid var(--accent); }
 .has-wm .banner-title b, .has-wm .feat span { color: #fff; }
 .has-wm .banner-title small { color: rgba(255, 255, 255, .72); }

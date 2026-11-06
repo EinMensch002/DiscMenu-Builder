@@ -9,7 +9,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 - **Läuft komplett im Browser.** Kein Backend, es wird nichts hochgeladen. Bilder werden lokal verarbeitet.
 - **Live-Vorschau:** Links die Einstellungen, rechts das Blatt in Originalproportionen. Jede Änderung ist sofort sichtbar.
-- **Zwei Stile:** Klassisch (wie die GOG-Originalhüllen) und Modern (angelehnt an Konsolenhüllen).
+- **Zwei Stile für alle Anbieter:** Klassisch (Logo-Ecke wie bei den GOG-Originalhüllen) und Leiste (Kopfleiste über die ganze Breite wie bei Handelsspielen).
 - **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben, Logo und Schriftzug (siehe [Anbieter](#anbieter)).
 - **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB, Publisher-Logos von Wikidata (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional Falzlinien.
@@ -131,13 +131,11 @@ Die Bilder werden dabei unverändert übernommen (nicht erneut verkleinert oder 
 
 ## Anbieter
 
-Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games und Steam** sieht die Vorderseite in beiden Stilen wie auf den Original-Hüllen aus: eine dunkle Leiste über die ganze Breite oben (Verlauf, großes Logo, Schriftzug, farbige Akzentlinie darunter, bei Steam Blau). Der Streifen mit den Spielfunktionen auf der Rückseite ist ebenfalls dunkel statt hell.
-
-Die folgende Beschreibung gilt für die Plätze der Logos: Das Logo steht an denselben Plätzen wie das GOG-Logo: in der Ecke (klassisch) oder im Streifen oben (Modern) auf der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.png`).
+Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games und Steam** ist der Streifen mit den Spielfunktionen auf der Rückseite dunkel statt hell (Steam: Marineblau mit blauer Linie, Epic: Dunkelgrau). Das Logo steht in der Ecke (Stil Klassisch) bzw. in der Kopfleiste (Stil Leiste) auf der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.png`).
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
-| **GOG** | Lila | GOG-Logo | Galaxy-Feld, grüner Streifen, im Stil Modern "PC · DRM-FREI" |
+| **GOG** | Lila | GOG-Logo | Galaxy-Feld, grüner Streifen, in der Leiste "PC · DRM-FREI", Leiste in Lila mit grüner Linie |
 | **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | dunkler grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
 | **Steam** | Marineblau | Logo und Schriftzug "STEAM" | dunkelblauer Streifen mit blauer Akzentlinie, Hinweis "Steam", kein Galaxy-Feld |
 
@@ -161,7 +159,7 @@ Ohne Bild für "Rückseite unten" setzt sich das obere Bild hinter den Angaben f
 | Element | Fläche |
 |---|---|
 | GOG-Logo-Ecke (Klassisch) | oben links, etwa 22 × 21 mm |
-| Streifen oben (Modern) | oberste 11 mm der Vorderseite |
+| Kopfleiste (Stil Leiste) | oberste 18,6 mm der Vorderseite und des Rückens |
 | USK vorn | 35 × 35 mm, 3 mm vom linken und unteren Rand |
 | Publisher-Logo vorn | bis 32 × 14 mm, 6 mm vom rechten und unteren Rand |
 | Grüner Streifen und Angabenfeld | 13 mm und 46 mm am unteren Rand der Rückseite |
@@ -180,9 +178,9 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 | Stil | Aussehen |
 |---|---|
 | **Klassisch** (Standard) | Wie die GOG-Originalhüllen: lila Logo-Ecke oben links auf der Vorderseite, grüner Streifen mit Spielfunktionen, helles Feld mit den Angaben, lila Rücken |
-| **Modern** (Konsolen-Stil) | Angelehnt an Hüllen von PlayStation, Switch und Xbox: lila Streifen über die ganze Breite oben auf der Vorderseite mit GOG-Logo und "PC · DRM-FREI", dunkler Rücken mit lila Kopf (Logo) und Fuß ("PC"), dunkler Streifen mit hellen Symbolen, dunkles Feld mit gerahmter Überschrift "Systemanforderungen". Disc- und Publisher-Logo stehen auf weißen Kacheln |
+| **Leiste** | Wie Handelsspiele im Laden: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Die Rückseite bleibt wie beim klassischen Stil |
 
-Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseite und Rücken das GOG-Logo. Der Stil wird mit den Einstellungen gemerkt.
+Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseite und Rücken das GOG-Logo. Der Stil wird mit den Einstellungen gemerkt. Der frühere Stil "Modern" (dunkle Rückseite) ist entfallen, gespeicherte Projekte damit öffnen sich im Stil Leiste.
 
 ## Feste Plätze auf der Rückseite
 
@@ -191,7 +189,7 @@ Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (20 × 24 mm, be
 ## Rücken
 
 - Das **GOG-Logo** steht oben, entweder in fester Größe (7 mm, Slim 5,5 mm) oder in Rückenbreite.
-- Am Fuß steht **"PC"** (abschaltbar). Beim Stil Modern liegt es auf einem Farbbalken.
+- Am Fuß steht **"PC"** (abschaltbar). 
 - Der **Titel** steht oben unter dem Logo oder **mittig** (Auswahl "Titel auf dem Rücken").
 - Der **Titel** steht senkrecht in normaler Schreibweise. Er wird so groß wie möglich (bis 12 pt, Slim bis 8 pt) und verkleinert sich bei langen Titeln selbst, höchstens bis 5 pt.
 
@@ -269,3 +267,4 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 
 - GOG, Epic Games, Steam (Namen und Logos), die USK-Symbole und das GOG-Galaxy-Feld sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
 - Die Schrift Lato steht unter der SIL Open Font License (siehe `cover-tool/assets/fonts/README.txt`).
+
