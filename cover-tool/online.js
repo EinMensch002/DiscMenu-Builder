@@ -256,6 +256,26 @@
     return { patch: { ...com.patch, ...f.patch }, shown, hasRequirements: Object.keys(r).length > 0 };
   }
 
+  /* Altersfreigabe: Steam liefert je nach Spiel die USK (ratings.usk) oder andere Systeme. Bevorzugt die USK, sonst PEGI, ESRB, zuletzt das Steam-Mindestalter.
+     -> { value: '0'|'6'|'12'|'16'|'18', source: Text } oder null, wenn Steam nichts Brauchbares liefert. */
+  function steamUsk(details) {
+    const r = details && details.ratings && typeof details.ratings === 'object' && !Array.isArray(details.ratings) ? details.ratings : {};
+    const num = (x) => { const m = String((x && x.rating) != null ? x.rating : '').match(/\d+/); return m ? parseInt(m[0], 10) : null; };
+    const snap = (n) => (n <= 0 ? '0' : n <= 6 ? '6' : n <= 12 ? '12' : n <= 16 ? '16' : '18');
+    const usk = num(r.usk);
+    if (usk != null && usk <= 18) return { value: snap(usk), source: 'USK laut Steam' };
+    const pegi = num(r.pegi);
+    if (pegi != null && pegi <= 18) return { value: snap(pegi === 3 ? 0 : pegi === 7 ? 6 : pegi), source: 'aus PEGI ' + pegi + ' abgeleitet' };
+    if (r.esrb && r.esrb.rating) {
+      const e = String(r.esrb.rating).toLowerCase();
+      const map = { e: '0', everyone: '0', e10: '6', 'e10+': '6', t: '12', teen: '12', m: '16', mature: '16', ao: '18' };
+      if (map[e] != null) return { value: map[e], source: 'aus ESRB ' + String(r.esrb.rating).toUpperCase() + ' abgeleitet' };
+    }
+    const age = parseInt(details && details.required_age, 10);
+    if (age > 0) return { value: age >= 18 ? '18' : age >= 16 ? '16' : age >= 12 ? '12' : age >= 6 ? '6' : '0', source: 'aus dem Steam-Mindestalter ' + age + ' abgeleitet' };
+    return null;
+  }
+
   /* Mindest- und empfohlene Anforderungen auf einmal: Die Mindestangaben gehen in die normalen Felder, die empfohlenen in "rec".
      Gibt es nur eine Liste, wird sie als Mindestanforderung übernommen und die empfohlene Spalte bleibt aus.
      shown: [Bezeichnung, Minimum, Empfohlen, Art] je Zeile. */
@@ -273,8 +293,11 @@
     if (title) patch.title = title;
     if (publisher) patch.publisher = publisher;
     if (developer) patch.developer = developer;
+    const usk = steamUsk(details);
+    if (usk) patch.usk = usk.value;
     const put = (label, col, value, kind) => { const row = rows.get(label) || { label, min: '', rec: '', kind: '' }; row[col] = value; if (kind) row.kind = kind; rows.set(label, row); };
     if (title) put('Spieletitel (Rücken)', 'min', title);
+    if (usk) put('USK-Freigabe', 'min', 'ab ' + usk.value + ' Jahren (' + usk.source + ')');
     if (publisher || developer) put('Publisher / Entwickler', 'min', [publisher, developer].filter((x, i, a) => x && a.indexOf(x) === i).join(' / '));
     com.shown.filter((x) => x[0] === 'Läuft auf').forEach(([l, v]) => put(l, 'min', v));
     fm.shown.forEach(([l, v, k]) => put(l, 'min', v, k));
@@ -339,7 +362,7 @@
     return url;
   }
 
-  const api = { logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, SG_KINDS };
+  const api = { logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, steamUsk, SG_KINDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverOnline = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -118,13 +118,13 @@
   }
   /* Wie scharf wird das Bild gedruckt? Das Bild füllt die Fläche (zuschneiden), also entscheidet die knappere Seite. */
   function dpiOf(key, img) {
-    const spec = C.imageSpecs(state.caseType)[key];
+    const spec = C.imageSpecs(C.caseDims(state), state.theme)[key];
     if (!spec || !img.w) return 0;
     const mmPerPx = Math.max(spec.w / img.w, spec.h / img.h);
     return Math.round(25.4 / mmPerPx);
   }
   function renderDrops() {
-    const specs = C.imageSpecs(C.caseDims(state));
+    const specs = C.imageSpecs(C.caseDims(state), state.theme);
     $$('.drop').forEach((drop) => {
       const key = drop.dataset.img, img = images[key], spec = specs[key];
       drop.classList.toggle('has', !!img);

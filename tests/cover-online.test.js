@@ -252,3 +252,17 @@ test('Steam: neue Funktionen (Online, LAN, Cross-Plattform, Mods, VR)', () => {
     ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'achievements', 'mods', 'vr']);
   assert.deepEqual(O.steamFeatures([{ id: 25 }]), []);      // Bestenlisten gibt es nicht mehr
 });
+
+test('Steam: Altersfreigabe wird als USK übernommen', () => {
+  assert.deepEqual(O.steamUsk({ ratings: { usk: { rating: '16' }, pegi: { rating: '18' } } }), { value: '16', source: 'USK laut Steam' });       // USK hat Vorrang
+  assert.equal(O.steamUsk({ ratings: { pegi: { rating: '3' } } }).value, '0');
+  assert.equal(O.steamUsk({ ratings: { pegi: { rating: '7' } } }).value, '6');
+  assert.equal(O.steamUsk({ ratings: { esrb: { rating: 'm' } } }).value, '16');
+  assert.equal(O.steamUsk({ required_age: '13' }).value, '12');
+  assert.equal(O.steamUsk({ required_age: 18 }).value, '18');
+  assert.equal(O.steamUsk({ required_age: 0, ratings: [] }), null);                    // nichts Brauchbares: USK bleibt unverändert
+  const b = O.steamPatchBoth({ name: 'X', ratings: { usk: { rating: '12' } }, pc_requirements: [] });
+  assert.equal(b.patch.usk, '12'); assert.match(b.shown.find((r) => r.label === 'USK-Freigabe').min, /ab 12 Jahren \(USK laut Steam\)/);
+  assert.equal(O.steamPatchBoth({ name: 'X', pc_requirements: [] }).patch.usk, undefined);
+  assert.ok(C.USK_VALUES.includes(b.patch.usk));
+});

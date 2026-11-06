@@ -229,6 +229,9 @@ dialog .f small { display: block; margin-top: 3px; }
 .usk { position: absolute; left: 3mm; bottom: 3mm; width: 35mm; height: 35mm; object-fit: contain; z-index: 3; }
 .front-pub { position: absolute; right: 6mm; bottom: 6mm; max-width: 32mm; max-height: 14mm; object-fit: contain; z-index: 3; }
 
+/* Bei der Leiste füllt das Frontbild nur den Teil unter der Kopfleiste, damit der obere Teil des Bildes (Titel) nicht verdeckt wird */
+.theme-bar .front { padding-top: var(--bar-h); background-origin: content-box; background-clip: content-box; background-position: center top; }
+
 /* ===== Stil "Leiste": Kopfleiste über die ganze Breite wie bei Handelsspielen (Vorderseite und Rücken) =====
    Verlauf von barA nach barB, darunter eine Akzentlinie (line), die über den Rücken durchläuft. Gilt für alle Anbieter. */
 .cover { --bar-h: 18.6mm; --bar-line: 1.6mm; }

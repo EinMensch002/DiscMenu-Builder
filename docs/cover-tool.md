@@ -87,7 +87,7 @@ Sucht das Spiel im Steam-Shop und liest die Systemanforderungen aus. Mindest- un
 - **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 140 Zeichen gekürzt),
 - die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller, Online, LAN, Cross-Plattform, Mods und VR (aus den Steam-Kategorien).
 
-Zusätzlich übernimmt der Steam-Import den **Spielnamen als Titel auf dem Rücken** sowie **Publisher und Entwickler** (als Vorgabe für die Logo-Suche). Ein Haken im Dialog lädt außerdem das **Steam-Cover (Hochformat, 600×900)** als Frontcover. Er ist vorgewählt, wenn noch kein Frontcover geladen ist. Klappt das Laden nicht (CORS oder ein Proxy, der den Host `cdn.akamai.steamstatic.com` nicht erlaubt), sind die Angaben trotzdem übernommen und es erscheint ein Hinweis.
+Zusätzlich übernimmt der Steam-Import die **Altersfreigabe als USK** (die USK, die Steam bei vielen Spielen mitliefert, sonst abgeleitet aus PEGI, ESRB oder dem Steam-Mindestalter, im Dialog steht die Herkunft dabei; liefert Steam nichts, bleibt die USK unverändert), den **Spielnamen als Titel auf dem Rücken** sowie **Publisher und Entwickler** (als Vorgabe für die Logo-Suche). Ein Haken im Dialog lädt außerdem das **Steam-Cover (Hochformat, 600×900)** als Frontcover. Er ist vorgewählt, wenn noch kein Frontcover geladen ist. Klappt das Laden nicht (CORS oder ein Proxy, der den Host `cdn.akamai.steamstatic.com` nicht erlaubt), sind die Angaben trotzdem übernommen und es erscheint ein Hinweis.
 
 Die Angaben kommen auf Englisch, so wie Steam sie liefert. Lange Angaben (z. B. ganze Sätze bei der Grafikkarte) werden für das Cover gekürzt. Hat ein Spiel keine Anforderungen, werden nur Plattformen und Funktionen übernommen. **SteamDB** hat keine offene Schnittstelle und wird deshalb nicht genutzt.
 
@@ -178,7 +178,7 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 | Stil | Aussehen |
 |---|---|
 | **Klassisch** (Standard) | Wie die GOG-Originalhüllen: lila Logo-Ecke oben links auf der Vorderseite, grüner Streifen mit Spielfunktionen, helles Feld mit den Angaben, lila Rücken |
-| **Leiste** | Wie Handelsspiele im Laden: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Die Rückseite bleibt wie beim klassischen Stil |
+| **Leiste** | Wie Handelsspiele im Laden: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten. Die Rückseite bleibt wie beim klassischen Stil |
 
 Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseite und Rücken das GOG-Logo. Der Stil wird mit den Einstellungen gemerkt. Der frühere Stil "Modern" (dunkle Rückseite) ist entfallen, gespeicherte Projekte damit öffnen sich im Stil Leiste.
 

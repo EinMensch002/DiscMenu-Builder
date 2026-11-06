@@ -45,7 +45,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     const ok = (body) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if (/storesearch/.test(target)) return ok({ items: [{ id: 70, name: 'Half-Life' }, { id: 71, name: 'Half-Life 2' }] });
     if (/appdetails\?l=english&appids=1091500/.test(target)) return ok({ 1091500: { success: true, data: { name: 'Cyberpunk 2077', pc_requirements: { minimum: STEAM_CP }, platforms: { windows: true, mac: false, linux: false }, categories: [{ id: 2 }, { id: 22 }, { id: 28 }] } } });
-    if (/appdetails/.test(target)) return ok({ 70: { success: true, data: { name: 'Half-Life', publishers: ['Valve'], developers: ['Valve'], pc_requirements: { minimum: STEAM_MIN, recommended: '<ul><li><strong>Memory:</strong> 4 GB RAM<br></li></ul>' }, platforms: { windows: true, mac: false, linux: true }, categories: [{ id: 2 }, { id: 1 }, { id: 22 }, { id: 28 }] } } });
+    if (/appdetails/.test(target)) return ok({ 70: { success: true, data: { name: 'Half-Life', publishers: ['Valve'], developers: ['Valve'], ratings: { usk: { rating: '12' } }, pc_requirements: { minimum: STEAM_MIN, recommended: '<ul><li><strong>Memory:</strong> 4 GB RAM<br></li></ul>' }, platforms: { windows: true, mac: false, linux: true }, categories: [{ id: 2 }, { id: 1 }, { id: 22 }, { id: 28 }] } } });
     if (/autocomplete/.test(target)) return ok({ success: true, data: [{ id: 5, name: 'Half-Life', verified: true, release_date: 910000000 }] });
     if (/\/grids\/game\/5/.test(target)) return ok({ success: true, data: [{ id: 11, url: 'https://cdn.test/full.png', thumb: 'https://cdn.test/thumb.png', width: 600, height: 900, language: 'de', score: 3 }] });
     if (/\/heroes\/game\/5/.test(target)) return ok({ success: true, data: [{ id: 12, url: 'https://cdn.test/full.png', thumb: 'https://cdn.test/thumb.png', width: 1920, height: 620 }] });
@@ -166,6 +166,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   // Beide Spalten auf einmal: Minimum 2 GB, Empfohlen 4 GB
   assert.match(await page.locator('#dlg .shown').innerText(), /Minimum[\s\S]*Empfohlen/);
   assert.match(await page.locator('#dlg .shown tr', { hasText: 'Arbeitsspeicher' }).innerText(), /2 GB RAM[\s\S]*4 GB RAM/);
+  assert.match(shown, /USK-Freigabe[\s\S]*ab 12 Jahren/);
   assert.match(shown, /Spieletitel[\s\S]*Half-Life/); assert.match(shown, /Publisher \/ Entwickler[\s\S]*Valve/);
   assert.equal(await page.locator('#dlg input[type=checkbox]').isChecked(), true, 'Steam-Cover ist ohne vorhandenes Frontcover vorgewählt');
   await page.click('#dlg button:has-text("Übernehmen")');
@@ -176,6 +177,8 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => document.querySelector('[data-img=front]').classList.contains('has'));
   assert.ok(cdnCalls.some((u) => /steam\/apps\/70\/library_600x900_2x\.jpg/.test(u)), 'Steam-Cover (Hochformat) wurde geladen');
   assert.deepEqual(await page.evaluate(() => [CoverApp.state.publisher, CoverApp.state.developer]), ['Valve', 'Valve']);
+  await page.waitForFunction(() => document.querySelector('#frontUsk').getAttribute('src') === 'assets/images/usk/usk_12.png');      // Altersfreigabe von Steam
+  assert.equal(await page.inputValue('[data-k=usk]'), '12');
   // Prozessor in der Kategorie Intel mit Modell (AMD bleibt aus), die alte Grafikkarte bleibt Text
   assert.equal(await page.locator('[data-k="cpu.amd.on"]').isChecked(), false);
   assert.equal(await page.inputValue('[data-k="cpu.intel.pre"]'), 'Core 2 Duo'); assert.equal(await page.inputValue('[data-k="cpu.intel.num"]'), 'E6600');

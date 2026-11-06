@@ -42,10 +42,12 @@
   const BACK = { banner: 13, bottom: 46 };
 
   /* Größe, in der die Bilder für den Druck angelegt werden sollten */
-  function imageSpecs(caseOrDims) {
+  /* Höhe der Kopfleiste im Stil "Leiste" (mm): Das Frontbild füllt nur den Teil darunter */
+  const BAR_HEIGHT = 18.6;
+  function imageSpecs(caseOrDims, theme) {
     const c = typeof caseOrDims === 'object' ? caseOrDims : (CASES[caseOrDims] || CASES.normal);
     return {
-      front: { w: c.front, h: c.h },
+      front: { w: c.front, h: theme === 'bar' ? round1(c.h - BAR_HEIGHT) : c.h },
       backTop: { w: c.back, h: round1(c.h - BACK.banner - BACK.bottom) },
       backBottom: { w: c.back, h: BACK.bottom },
     };
@@ -313,7 +315,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, ORIGINAL_ICONS, ICON_STYLES, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { BAR_HEIGHT, parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, ORIGINAL_ICONS, ICON_STYLES, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

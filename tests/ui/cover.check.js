@@ -107,6 +107,9 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.waitForFunction(() => document.querySelector('#cover').classList.contains('theme-bar'));
   assert.equal(await page.locator('.gog-bar').isVisible(), true);
   assert.equal(await page.locator('.gog-corner').isVisible(), false);
+  // Das Frontbild füllt nur den Teil unter der Kopfleiste (sonst wäre der obere Bildrand verdeckt)
+  assert.deepEqual(await page.evaluate(() => { const f = document.querySelector('#front'), c = getComputedStyle(f), bar = document.querySelector('.gog-bar').getBoundingClientRect(), k = Number(getComputedStyle(document.querySelector('#preview')).getPropertyValue('--k')) || 1; return [c.backgroundClip, c.backgroundOrigin, Math.abs(parseFloat(c.paddingTop) - bar.height / k) < 1.5]; }), ['content-box', 'content-box', true]);
+  assert.match(await page.locator('[data-img=front] .spec').textContent(), /× 164\.4 mm/, 'Maße des Frontbilds ohne die Kopfleiste');
   const lineY = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(), a = r('.gog-bar'), b = r('.spine-head'); return [Math.round(a.top * 10) / 10, Math.round(a.bottom * 10) / 10, Math.round(b.top * 10) / 10, Math.round(b.bottom * 10) / 10]; });
   assert.deepEqual([lineY[0], lineY[1]], [lineY[2], lineY[3]], 'Leiste auf Vorderseite und Rücken sind gleich hoch, die Linie läuft durch');
   for (const p of ['steam', 'epic', 'gog']) { await page.selectOption('[data-k=provider]', p); await page.waitForTimeout(100); assert.equal(await page.locator('#spineLogo').isVisible(), true, p); assert.equal(await page.evaluate(() => { const l = document.querySelector('#spineLogo').getBoundingClientRect(), h = document.querySelector('.spine-head').getBoundingClientRect(); return l.top >= h.top && l.bottom <= h.bottom; }), true, 'Rückenlogo bleibt in der Leiste: ' + p); }
