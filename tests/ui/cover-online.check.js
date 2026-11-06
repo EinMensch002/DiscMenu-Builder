@@ -60,7 +60,10 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     return json({ entities: { Q1: { claims: { P154: [{ mainsnak: { datavalue: { value: 'Valve logo.svg' } } }, { mainsnak: { datavalue: { value: 'Valve old.png' } } }] } }, Q2: { claims: {} } } });
   });
   const cdnCalls = [];
-  await page.route(/https:\/\/(commons\.wikimedia\.org|cdn\.akamai\.steamstatic\.com)\/.*/, (route) => { cdnCalls.push(route.request().url()); return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'image/png' }, body: PNG }); });
+  // Commons: Special:FilePath hat kein CORS (nur als <img> nutzbar), die Bilddatei kommt über die API von upload.wikimedia.org
+  await page.route('https://commons.wikimedia.org/w/api.php**', (route) => { cdnCalls.push(route.request().url()); return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify({ query: { pages: { 1: { imageinfo: [{ thumburl: 'https://upload.wikimedia.org/thumb/800px-Valve_logo.svg.png' }] } } } }) }); });
+  await page.route('https://commons.wikimedia.org/wiki/**', (route) => route.fulfill({ status: 200, headers: { 'content-type': 'image/png' }, body: PNG }));   // ohne CORS-Header
+  await page.route(/https:\/\/(upload\.wikimedia\.org|cdn\.akamai\.steamstatic\.com)\/.*/, (route) => { cdnCalls.push(route.request().url()); return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'image/png' }, body: PNG }); });
   await page.route('https://cdn.test/**', (route) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'image/png' }, body: PNG }));
 
   await page.addInitScript(() => { delete window.showSaveFilePicker; });      // immer der normale Download (die Dateiauswahl lässt sich nicht automatisch bedienen)
@@ -222,7 +225,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.locator('#dlg .gal button').first().click();
   await page.click('#dlg button:has-text("Als Publisher-Logo übernehmen")');
   await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));
-  assert.ok(cdnCalls.some((u) => /Special:FilePath\/Valve%20logo\.svg\?width=800/.test(u)), 'Logo wurde von Commons geladen');
+  assert.ok(cdnCalls.some((u) => /upload\.wikimedia\.org\/thumb\/800px-Valve_logo/.test(u)) && cdnCalls.some((u) => /w\/api\.php.*titles=File%3AValve%20logo\.svg/.test(u)), 'Logo wurde über die Commons-API von upload.wikimedia.org geladen');
   assert.ok(!calls.some((c) => /steamgriddb/.test(c.target) && /logos/.test(c.target)), 'Kein SteamGridDB für Publisher-Logos');
 
   // ---- Einstellungen sichern und einlesen: Datei, mit und ohne Passwort, kompatibel mit dem Konfigurator ----
