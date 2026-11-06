@@ -51,7 +51,11 @@
   function bindControls() {
     $('#form').addEventListener('input', onChange);
     $('#form').addEventListener('change', onChange);
-    $('#form').addEventListener('click', (e) => { const b = e.target.closest('button[data-k]'); if (b) onChange({ target: b }); });
+    $('#form').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-k]'); if (b) onChange({ target: b });
+      const p = e.target.closest('button[data-preset]');
+      if (p) { Object.assign(state.custom, C.PRESETS[p.dataset.preset]); delete state.custom.name; state.caseType = 'custom'; syncControls(); changed(); }
+    });
   }
   function onChange(e) {
     const el = e.target;
@@ -105,7 +109,7 @@
     return Math.round(25.4 / mmPerPx);
   }
   function renderDrops() {
-    const specs = C.imageSpecs(state.caseType);
+    const specs = C.imageSpecs(C.caseDims(state));
     $$('.drop').forEach((drop) => {
       const key = drop.dataset.img, img = images[key], spec = specs[key];
       drop.classList.toggle('has', !!img);
@@ -141,13 +145,16 @@
   function setImg(node, src) { if (src) { node.src = src; node.hidden = false; } else { node.removeAttribute('src'); node.hidden = true; } }
 
   function render() {
-    const c = C.CASES[state.caseType], L = C.LABELS[state.lang];
+    const c = C.caseDims(state), L = C.LABELS[state.lang];
     const cover = $('#cover'), wrap = $('#wrap');
     for (const n of [cover, wrap]) {
       n.style.setProperty('--w', c.w + 'mm'); n.style.setProperty('--h', c.h + 'mm');
       n.style.setProperty('--back', c.back + 'mm'); n.style.setProperty('--spine', c.spine + 'mm'); n.style.setProperty('--front', c.front + 'mm');
     }
     cover.classList.toggle('theme-modern', state.theme === 'modern');
+    cover.classList.toggle('slim', c.spine < 10);
+    $('#customBox').hidden = state.caseType !== 'custom';
+    applyProvider(cover);
     wrap.classList.toggle('marks', state.cropMarks);
     wrap.classList.toggle('fold', state.foldLines);
 
@@ -173,14 +180,15 @@
 
     /* Rückseite: Spielfunktionen, Angaben, GOG-Galaxy-Feld, Copyright */
     $('#featTitle').textContent = L.features;
-    $('#featNote').textContent = L.featuresNote;
+    $('#featNote').textContent = C.PROVIDERS[state.provider].note[state.lang];
     const feats = $('#feats');
     feats.replaceChildren(...C.FEATURE_ORDER.filter((k) => state.features.includes(k)).map((k) => {
       const item = el('div', 'feat'), img = el('img'); img.src = 'assets/images/features/' + k + '.png'; img.alt = '';
       item.append(img, el('span', '', L.feat[k])); return item;
     }));
-    $('#galaxy').classList.toggle('off', !state.galaxy);
-    $('#reqTitle').textContent = L.reqTitle; $('#frontTag').textContent = L.tag;
+    $('#galaxy').classList.toggle('off', !(state.galaxy && state.provider === 'gog'));      // das Feld gibt es nur bei GOG
+    $('#galaxyChk').disabled = state.provider !== 'gog';
+    $('#reqTitle').textContent = L.reqTitle;
     $('#gxTitle').textContent = L.galaxy.title; $('#gxText').textContent = L.galaxy.text;
     $('#gxJoin').textContent = L.galaxy.join; $('#gxUrl').textContent = L.galaxy.url;
     $('#copy').textContent = state.copyright.trim();
@@ -189,6 +197,18 @@
     renderDrops();
     renderNotes();
     fitPreview();
+  }
+
+  /* Farben und Schriftzug des Anbieters. Nur GOG hat ein Logo, bei den anderen steht ein Schriftzug. */
+  function applyProvider(cover) {
+    const P = C.PROVIDERS[state.provider];
+    const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB };
+    for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
+    cover.classList.toggle('has-wm', state.provider !== 'gog');
+    $('#cornerWm').textContent = P.wordmark;
+    $('#barWm').textContent = P.wordmark.replace('\n', ' ');
+    $('#spineWm').textContent = P.wordmark.split('\n')[0];
+    $('#frontTag').textContent = P.tag[state.lang];
   }
 
   function renderSpecs() {
@@ -212,7 +232,7 @@
   /* Titel auf dem Rücken so groß wie möglich, ohne über die Hülle hinauszuragen */
   function fitSpineTitle(c) {
     const title = $('#spineTitle'), box = $('#spineBox');
-    const maxPt = c.spine >= 14 ? 12 : 8;
+    const maxPt = c.spine >= 12 ? 12 : c.spine >= 9 ? 10 : 8;
     let pt = maxPt;
     title.style.fontSize = pt + 'pt';
     while (pt > 5 && title.scrollHeight > box.clientHeight - 2) { pt -= 0.25; title.style.fontSize = pt + 'pt'; }
@@ -223,6 +243,8 @@
     const notes = [];
     if (!images.front) notes.push('Es fehlt noch das Frontcover.');
     if (!state.title.trim()) notes.push('Der Spieletitel für den Rücken fehlt.');
+    const dims = C.caseDims(state);
+    if (dims.adjusted) notes.push('Die eigenen Maße wurden angepasst (erlaubt: Rückseite und Vorderseite 100–150 mm, Rücken 3–30 mm, Höhe 100–198 mm, insgesamt höchstens ' + C.MAX_W + ' mm breit). Verwendet wird: ' + dims.back + ' + ' + dims.spine + ' + ' + dims.front + ' × ' + dims.h + ' mm.');
     if (!state.features.length) notes.push('Es ist keine Spielfunktion gewählt, der grüne Streifen bleibt leer.');
     $('#notes').replaceChildren(...notes.map((t) => el('p', '', t)));
   }
@@ -257,4 +279,19 @@
     render();
   }
   init();
+
+  /* ---------- Schnittstelle für die Dialoge in extras.js ---------- */
+  function merge(target, patch) {
+    for (const [k, v] of Object.entries(patch)) {
+      if (v && typeof v === 'object' && !Array.isArray(v) && target[k] && typeof target[k] === 'object') merge(target[k], v);
+      else target[k] = v;
+    }
+  }
+  window.CoverApp = {
+    get state() { return state; },
+    /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
+    patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },
+    /* Bild laden (Datei oder Blob), wie beim Ziehen in das Bildfeld */
+    async setImage(key, file) { await loadImage(key, file); },
+  };
 })();

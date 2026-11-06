@@ -70,6 +70,30 @@ input[type=text]:focus, select:focus { outline: 2px solid color-mix(in srgb, var
 .drop .x { position: relative; z-index: 2; padding: 3px 8px; display: none; }
 .drop.has .x { display: block; }
 
+.custom { margin-top: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: #fafbfc; }
+.four { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.four .f { margin-bottom: 4px; }
+.actions { display: flex; flex-direction: column; gap: 8px; }
+.actions button { text-align: left; }
+.drop .sg { position: relative; z-index: 2; padding: 3px 8px; }
+dialog { border: 1px solid var(--line); border-radius: 14px; padding: 18px; width: min(760px, 94vw); max-height: 90vh; overflow: auto; background: var(--panel); color: var(--txt); box-shadow: 0 20px 60px rgba(0, 0, 0, .4); }
+dialog::backdrop { background: rgba(10, 12, 20, .55); }
+.dh { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.dh h2 { margin: 0; font-size: 18px; }
+.drow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+.drow input[type=text] { flex: 1; min-width: 180px; }
+.dlist { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.dlist button { text-align: left; }
+.dmsg { color: var(--mut); font-size: 13px; margin: 6px 0; }
+.dmsg.err { color: #b42318; }
+.gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin: 10px 0; }
+.gal button { padding: 5px; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.gal button.sel { border-color: #15803d; outline: 2px solid #15803d; background: #effaf2; }
+.gal img { width: 100%; height: 140px; object-fit: contain; background: #e6e9f0; border-radius: 6px; }
+.gal small { font-size: 11px; color: var(--mut); }
+.shown { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.shown td { padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.shown td:first-child { color: var(--mut); width: 130px; }
 .preview { position: sticky; top: 64px; min-width: 0; }
 .notes:empty { display: none; }
 .notes { margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; }
@@ -100,7 +124,7 @@ input[type=text]:focus, select:focus { outline: 2px solid color-mix(in srgb, var
 /* Rückseite */
 .back { position: relative; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
 .back-top { position: relative; flex: 1; min-height: 0; background: #f4f5f8 center / cover no-repeat; }
-.banner { flex: none; height: 13mm; display: flex; align-items: center; gap: 4mm; padding: 0 4mm; background: linear-gradient(#a8e02a, #84c01a); position: relative; z-index: 2; }
+.banner { flex: none; height: 13mm; display: flex; align-items: center; gap: 4mm; padding: 0 4mm; background: linear-gradient(var(--bannerA, #a8e02a), var(--bannerB, #84c01a)); position: relative; z-index: 2; }
 .banner-title { display: flex; flex-direction: column; justify-content: center; flex: none; }
 .banner-title b { font-weight: 900; font-size: 10pt; line-height: 1.05; white-space: nowrap; }
 .banner-title small { font-size: 3.6pt; margin-top: .8mm; line-height: 1.1; color: #243d00; white-space: nowrap; }
@@ -136,7 +160,7 @@ input[type=text]:focus, select:focus { outline: 2px solid color-mix(in srgb, var
 .copy { grid-row: 3; margin: 0; align-self: end; font-size: 3.9pt; line-height: 1.3; color: #444; text-align: right; }
 
 /* Rücken */
-.spine { background: #89268d; display: flex; flex-direction: column; align-items: center; min-width: 0; overflow: hidden; }
+.spine { background: var(--brand, #89268d); display: flex; flex-direction: column; align-items: center; min-width: 0; overflow: hidden; }
 .spine-head { width: 100%; display: flex; justify-content: center; padding-top: 2mm; flex: none; }
 .spine-foot { display: none; }
 .spine-logo { display: block; width: 6mm; height: auto; }
@@ -146,32 +170,40 @@ input[type=text]:focus, select:focus { outline: 2px solid color-mix(in srgb, var
 
 /* Vorderseite */
 .front { position: relative; background: #f4f5f8 center / cover no-repeat; overflow: hidden; }
-.gog-corner { position: absolute; left: 0; top: 0; z-index: 3; padding: 2mm; background: #89268d; border-radius: 0 0 2.6mm 0; }
+.gog-corner { position: absolute; left: 0; top: 0; z-index: 3; padding: 2mm; background: var(--brand, #89268d); border-radius: 0 0 2.6mm 0; }
 .gog-corner img { display: block; height: 17mm; width: auto; }
 .gog-bar { display: none; }
+/* Schriftzug statt GOG-Logo bei anderen Anbietern (nur Text, keine Logos) */
+.wm { display: none; font-weight: 900; color: var(--on-brand, #fff); text-align: center; white-space: pre-line; letter-spacing: .2mm; line-height: 1.05; }
+.has-wm .wm { display: flex; }
+.has-wm .gog-corner img, .has-wm .gog-bar img, .has-wm .spine-logo { display: none !important; }
+.gog-corner .wm { width: 17.7mm; height: 17mm; align-items: center; justify-content: center; font-size: 8.5pt; }
+.gog-bar .wm { margin-left: 3.5mm; font-size: 9pt; letter-spacing: .4mm; margin-right: auto; }
+.spine-head .wm { width: 100%; justify-content: center; font-size: 5.2pt; padding: 1mm 0; }
+.cover.slim .spine-head .wm { font-size: 3.6pt; letter-spacing: 0; }
 .usk { position: absolute; left: 3mm; bottom: 3mm; width: 35mm; height: 35mm; object-fit: contain; z-index: 3; }
 .front-pub { position: absolute; right: 6mm; bottom: 6mm; max-width: 32mm; max-height: 14mm; object-fit: contain; z-index: 3; }
 
 /* ===== Stil "Modern": Streifen oben auf der Vorderseite, dunkle Rückseite mit gerahmten Systemanforderungen ===== */
 .theme-modern .gog-corner { display: none; }
-.theme-modern .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: 11mm; align-items: center; justify-content: space-between; padding-right: 3.5mm; background: #89268d; z-index: 3; box-shadow: 0 .4mm 1.4mm rgba(0, 0, 0, .35); }
+.theme-modern .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: 11mm; align-items: center; justify-content: space-between; padding-right: 3.5mm; background: var(--brand, #89268d); z-index: 3; box-shadow: 0 .4mm 1.4mm rgba(0, 0, 0, .35); }
 .theme-modern .gog-bar img { height: 9mm; width: auto; margin-left: 1.5mm; display: block; }
-.theme-modern .gog-bar b { color: #fff; font-size: 7.5pt; font-weight: 900; letter-spacing: .35mm; }
-.theme-modern .banner { background: linear-gradient(#2b1842, #190f28); border-top: .6mm solid #89268d; }
+.theme-modern .gog-bar b { color: var(--on-brand, #fff); font-size: 7.5pt; font-weight: 900; letter-spacing: .35mm; }
+.theme-modern .banner { background: linear-gradient(var(--mid, #2b1842), var(--dark, #190f28)); border-top: .6mm solid var(--brand, #89268d); }
 .theme-modern .banner-title b, .theme-modern .feat span { color: #fff; }
 .theme-modern .banner-title small { color: #cdb7e6; }
 .theme-modern .feat img { filter: invert(1); }
-.theme-modern .panel-back { background: rgba(20, 13, 30, .94); }
-.theme-modern .galaxy { box-shadow: 0 0 0 .25mm #b04fd6; }
-.theme-modern .speccol h4 { display: block; margin: 0 0 1.8mm; padding-bottom: 1mm; border-bottom: .25mm solid #89268d; color: #e6c4ff; font-size: 6.3pt; font-weight: 900; letter-spacing: .3mm; }
+.theme-modern .panel-back { background: color-mix(in srgb, var(--dark, #140d1e) 94%, transparent); }
+.theme-modern .galaxy { box-shadow: 0 0 0 .25mm var(--accent, #b04fd6); }
+.theme-modern .speccol h4 { display: block; margin: 0 0 1.8mm; padding-bottom: 1mm; border-bottom: .25mm solid var(--brand, #89268d); color: var(--accent, #e6c4ff); font-size: 6.3pt; font-weight: 900; letter-spacing: .3mm; }
 .theme-modern .specs { font-size: 6.9pt; gap: 1.3mm; }
 .theme-modern .specs .k { color: #b9a4d3; }
 .theme-modern .specs .v { color: #fff; }
 .theme-modern .copy { color: #a995c2; }
 .theme-modern .logos img { background: #fff; padding: 1mm; border-radius: 1mm; }
-.theme-modern .spine { background: #17101f; }
-.theme-modern .spine-head { background: #89268d; padding: 2mm 0; }
-.theme-modern .spine-foot { display: flex; align-items: center; justify-content: center; width: 100%; height: 12mm; flex: none; background: #89268d; color: #fff; font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
+.theme-modern .spine { background: var(--dark, #17101f); }
+.theme-modern .spine-head { background: var(--brand, #89268d); padding: 2mm 0; }
+.theme-modern .spine-foot { display: flex; align-items: center; justify-content: center; width: 100%; height: 12mm; flex: none; background: var(--brand, #89268d); color: var(--on-brand, #fff); font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
 
 /* ===== Druck: nur das Blatt, A4 quer, ohne Ränder ===== */
 @page { size: A4 landscape; margin: 0; }

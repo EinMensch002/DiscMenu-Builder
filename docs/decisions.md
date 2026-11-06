@@ -21,6 +21,7 @@
 | Silent-Standard | Aus. Bei Aktivierung schlägt das Menü `C:\GOG Games\<Name>` vor |
 | Bildformat Player | PNG, JPEG und WebP werden gelesen |
 | Cover-Tool | Liegt im selben Repo (`cover-tool/`) und wird als eigene Seite unter `/cover/` veröffentlicht: gleiches Thema, gleiche Pages-Veröffentlichung, später Übernahme aus der `menu.json` möglich. Altersfreigabe: USK |
+| Cover-Tool: andere Hüllenmaße | Keine festen Blu-ray-Maße, weil die Herstellerangaben abweichen. Stattdessen "Eigene Maße" mit Vorlagen als Richtwerte, die man nachmisst |
 | Rolle des Menüs | Forwarder: startet Original-Installer und öffnet Extras |
 | Erste Quelle | GOG. Steam später, dafür ist `provider` reserviert |
 | Spiele pro Disc | Eines oder mehrere. Reihenfolge über `index`, beginnend bei 0 |
@@ -46,4 +47,4 @@
 | Eigene Tabs | Genaues Format von `customTabs` (Version 2 des Formats?) |
 | Mehrsprachigkeit | Soll das Menü mehrere Sprachen unterstützen? |
 | Steam | Lässt sich die Wiederherstellung eines Backups auslösen? Zuerst prüfen |
-| Cover-Tool: Steam und SteamGridDB | Lassen sich Bilder (SteamGridDB) sowie Anforderungen und Funktionen (Steam-Shop, SteamDB) im Cover-Tool über den Proxy abrufen, und wie werden Schlüssel und Proxy mit dem Konfigurator geteilt? Siehe [cover-tool.md](cover-tool.md) |
+| Cover-Tool: Steam und SteamGridDB | Umgesetzt und mit nachgebauten Antworten getestet. Offen: Funktionieren die echten Dienste über den Proxy (Antwortformat, Sonderfälle bei den Anforderungen)? Prüfliste in [manuelle-pruefung.md](manuelle-pruefung.md) |

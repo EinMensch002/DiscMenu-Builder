@@ -57,3 +57,27 @@ Der Player wurde bisher nur unter Linux (Xvfb) und als Windows-Build geprüft. D
 
 - [ ] Menü-EXE und Inhalte brennen, finalisieren und von der Disc starten: Pfade stimmen, Installer sind erreichbar.
 - [ ] `Builder.exe -disc <Disc-Ordner>` meldet keine fehlenden Dateien.
+
+# Manuelle Prüfung des Cover-Tools
+
+Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Druck getestet. Diese Punkte brauchen echte Dienste und einen echten Drucker. Voraussetzung für die Dienste: derselbe Proxy und SteamGridDB-Schlüssel wie im Konfigurator (Einstellungen im Cover-Tool prüfen, auf Pages sollten sie schon da sein).
+
+## Steam und SteamGridDB (mit Proxy)
+
+- [ ] **Steam:** "Anforderungen von Steam" mit einem bekannten Spiel (z. B. Portal 2). Die Suche liefert Treffer, die Anforderungen erscheinen (Windows-Versionen, Prozessor, Grafik, Speicher, DirectX), und "Übernehmen" füllt die Felder.
+- [ ] **Steam, Sonderfälle:** Ein altes Spiel ohne Angaben, ein Spiel nur mit Freitext bei den Anforderungen und eines mit deutschem Shop-Text. Notieren, was nicht erkannt wird.
+- [ ] **Funktionen:** Die gesetzten Spielfunktionen stimmen mit dem Steam-Shop überein (Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller).
+- [ ] **SteamGridDB:** Suche über das 🔎 am Frontcover. Hochformat-Cover erscheinen, die Übernahme klappt (Bild wird über den Proxy geladen).
+- [ ] **Rückseite und Logo:** Hintergründe (Hero) und Logos lassen sich laden und übernehmen.
+- [ ] **Fehlerfälle:** Falscher Schlüssel, falsche Proxy-Adresse und ohne Proxy zeigen eine verständliche Meldung.
+- [ ] **Gemeinsame Einstellungen:** Schlüssel und Proxy aus dem Konfigurator sind im Cover-Tool schon eingetragen (und umgekehrt).
+
+## Ausdruck
+
+- [ ] Hülle drucken (A4 quer, 100 %, Ränder "Keine", Hintergrundgrafiken an) und nachmessen: Cover 273 × 183 mm, Rücken 14 mm, Schnittmarken an den Ecken.
+- [ ] Schnittmarken und Falzlinien treffen die Kanten der echten Hülle.
+- [ ] **Slim:** 266 × 183 mm mit 7 mm Rücken.
+- [ ] **Blu-ray-Vorlage:** Die Richtwerte (269 × 148 mm, 14 mm Rücken) passen zu deinem Einleger, sonst eigene Maße notieren und das Ergebnis melden.
+- [ ] Der Titel auf dem Rücken liest sich in der Hülle richtig herum, USK vorn (35 mm) und das Motiv sind nicht abgeschnitten.
+- [ ] Beide Stile (Klassisch und Modern) und alle drei Anbieter sehen gedruckt gut aus (Farben, Lesbarkeit der Angaben auf dem dunklen Feld).
+

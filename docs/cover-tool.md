@@ -10,24 +10,28 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 - **Läuft komplett im Browser.** Kein Backend, es wird nichts hochgeladen. Bilder werden lokal verarbeitet.
 - **Live-Vorschau:** Links die Einstellungen, rechts das Blatt in Originalproportionen. Jede Änderung ist sofort sichtbar.
 - **Zwei Stile:** Klassisch (wie die GOG-Originalhüllen) und Modern (angelehnt an Konsolenhüllen).
+- **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben und Schriftzug (siehe [Anbieter](#anbieter)).
+- **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional Falzlinien.
 - **Deutsch oder Englisch:** Die Beschriftung auf dem Cover lässt sich wählen.
 - **USK statt PEGI oder ESRB, ohne Barcode.** Die USK-Kennzeichnung steht vorn (35 × 35 mm, 3 mm Abstand) und auf Wunsch kleiner hinten.
 
 ## Schnellstart
 
-1. **Hülle und Disc** wählen (Normal oder Slim, CD, DVD oder Blu-ray).
-2. **Bilder** laden: Frontcover und Rückseite oben, optional Rückseite unten und Publisher-Logo.
-3. **Titel** für den Rücken eintragen.
-4. **Spielfunktionen** und **Systemanforderungen** ausfüllen.
-5. Auf **Drucken** klicken (Einstellungen siehe [Drucken](#drucken)).
+1. Optional unter **Daten übernehmen** ein Rezept laden (spart Titel, Anbieter und Cover) oder Anforderungen von Steam holen.
+2. **Hülle und Disc** wählen (Normal, Slim oder eigene Maße, CD, DVD oder Blu-ray) und den **Anbieter**.
+3. **Bilder** laden: Frontcover und Rückseite oben, optional Rückseite unten und Publisher-Logo.
+4. **Titel** für den Rücken eintragen.
+5. **Spielfunktionen** und **Systemanforderungen** ausfüllen.
+6. Auf **Drucken** klicken (Einstellungen siehe [Drucken](#drucken)).
 
 ## Bedienung
 
 | Bereich | Inhalt |
 |---|---|
-| Hülle und Disc | Hülle: Normal (14 mm Rücken) oder Slim (7 mm). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung: Deutsch oder English. USK-Freigabe: 0, 6, 12, 16, 18 oder keine anzeigen, dazu "USK auch auf der Rückseite zeigen" |
-| Bilder | Frontcover, Rückseite oben, Rückseite unten (optional), Publisher-Logo (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden und wieder entfernen |
+| Daten übernehmen | Aus Rezept (ZIP oder `menu.json`), Anforderungen von Steam, Einstellungen für SteamGridDB und Steam |
+| Hülle und Disc | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung: Deutsch oder English. USK-Freigabe: 0, 6, 12, 16, 18 oder keine anzeigen, dazu "USK auch auf der Rückseite zeigen" |
+| Bilder | Frontcover, Rückseite oben, Rückseite unten (optional), Publisher-Logo (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
 | Texte | Spieletitel für den Rücken und der Copyright-Text unten auf der Rückseite |
 | Spielfunktionen | Single-Player, Co-op, Multi-Player, Controller Support, Erfolge, Cloud Saves, Bestenlisten. Die Reihenfolge auf dem Cover ist fest |
 | Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessor (Intel, AMD oder eigener Text), Grafikkarte (NVIDIA, AMD Radeon oder eigener Text), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus), Umbruch bei zwei Prozessoren oder Grafikkarten |
@@ -40,6 +44,52 @@ Oben erscheinen Hinweise, wenn etwas fehlt (Frontcover, Titel, Spielfunktionen).
 ### Prozessor und Grafikkarte
 
 Die Auswahl erzeugt Texte wie "Intel Core i5-12400F", "AMD Ryzen 5 5600X", "NVIDIA GeForce RTX 3060 Ti" oder "AMD Radeon RX 6700 XT". Das Modell darf fehlen ("Intel Core i5"). Für alte Spiele gibt es das Feld **eigener Text**, das die Auswahl ersetzt (z. B. "Pentium III 500 MHz"). Sind Intel und AMD (oder NVIDIA und AMD) angehakt, stehen beide mit " / " nebeneinander. Ist dafür kein Platz, bricht die zweite Angabe um und der Schrägstrich entfällt. Mit "immer untereinander" lässt sich das erzwingen.
+
+## Daten übernehmen
+
+Unter "Daten übernehmen" stehen drei Knöpfe. Alles Übernommene lässt sich danach von Hand ändern.
+
+### Aus Rezept
+
+Lädt eine Rezept-ZIP aus dem [Konfigurator](configurator.md) oder eine einzelne `menu.json`. Danach wählt man das Spiel aus der Liste. Übernommen werden:
+
+- der **Titel** (für den Rücken),
+- der **Anbieter** (`gog`, `epic`, `steam`, damit Farben und Schriftzug stimmen),
+- die **geschätzte Größe** (`estimatedSizeMB`) als Speicherplatz, in GB gerundet,
+- das **Cover** des Spiels als Frontcover (nur aus einer ZIP, eine einzelne `menu.json` hat keine Bilder). Das Cover im Rezept ist für das Menü gedacht, prüfe also den Zuschnitt.
+
+### Anforderungen von Steam
+
+Sucht das Spiel im Steam-Shop und liest die Systemanforderungen aus. Man wählt zwischen Mindest- und empfohlenen Anforderungen und sieht die Werte vor dem Übernehmen. Übernommen werden:
+
+- Windows-Versionen (aus "OS", z. B. "Windows 7 / 8 / 10 (64-bit)"), macOS und Linux (aus den Plattformen),
+- **Prozessor** und **Grafikkarte** als eigener Text (ersetzt die Auswahl), **Arbeitsspeicher**, **Speicherplatz**, **DirectX**,
+- **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 90 Zeichen gekürzt),
+- die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller und Bestenlisten (aus den Steam-Kategorien).
+
+Die Angaben kommen auf Englisch, so wie Steam sie liefert. Hat ein Spiel keine Anforderungen, werden nur Plattformen und Funktionen übernommen. **SteamDB** hat keine offene Schnittstelle und wird deshalb nicht genutzt.
+
+### Bilder von SteamGridDB
+
+Neben jedem Bildfeld (Frontcover, Rückseite oben und unten, Publisher-Logo) gibt es einen Suchknopf 🔎. Der Ablauf: Spiel suchen, Bildart wählen (Cover im Hochformat, Querformat, Hintergründe, Logos), Bild anklicken und übernehmen. Voreingestellt ist für das Frontcover ein Hochformat-Cover, für die Rückseite ein Hintergrund und für das Publisher-Logo ein Logo. Deutsche Bilder stehen zuerst. Das Bild wird danach wie jedes andere auf Druckgröße verkleinert.
+
+### Einstellungen und Proxy
+
+Für SteamGridDB braucht man einen **API-Schlüssel**, und für beide Dienste fast immer einen eigenen **Proxy** (Cloudflare Worker), weil sie Anfragen aus dem Browser sonst blockieren. Die Einrichtung ist in [steamgriddb.md](steamgriddb.md) beschrieben und gilt für beide Web-Apps: Das Cover-Tool nutzt **dieselben Einstellungen wie der Konfigurator**. Auf GitHub Pages liegen beide unter demselben Ursprung und teilen sich den Speicher, einmal eintragen genügt. Der Schlüssel liegt nur in deinem Browser.
+
+> **Stand der Prüfung:** Die Abläufe sind mit nachgebauten Antworten von Steam und SteamGridDB getestet. Mit den echten Diensten wurde noch nicht geprüft, siehe [manuelle-pruefung.md](manuelle-pruefung.md).
+
+## Anbieter
+
+Der Anbieter bestimmt Farben und Schriftzug der Hülle. Nur GOG hat ein Logo, bei Epic Games und Steam steht ein Schriftzug (nur Text, keine Logos).
+
+| Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
+|---|---|---|---|
+| **GOG** | Lila | GOG-Logo | Galaxy-Feld, grüner Streifen, im Stil Modern "PC · DRM-FREI" |
+| **Epic Games** | Anthrazit | Schriftzug "EPIC GAMES" | heller grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
+| **Steam** | Marineblau | Schriftzug "STEAM" | blauer Streifen, Hinweis "Steam", kein Galaxy-Feld |
+
+Der Anbieter wird mit den Einstellungen gemerkt und aus dem Rezept übernommen. Dieselbe Farbzuordnung nutzt das Menü ([player-und-builder.md](player-und-builder.md)).
 
 ## Bilder und Maße
 
@@ -63,6 +113,15 @@ Ohne Bild für "Rückseite unten" setzt sich das obere Bild hinter den Angaben f
 | USK vorn | 35 × 35 mm, 3 mm vom linken und unteren Rand |
 | Publisher-Logo vorn | bis 32 × 14 mm, 6 mm vom rechten und unteren Rand |
 | Grüner Streifen und Angabenfeld | 13 mm und 46 mm am unteren Rand der Rückseite |
+
+## Eigene Maße
+
+Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite der Rückseite, des Rückens und der Vorderseite sowie die Höhe in Millimetern. Die Bildmaße, das Cover und der Druck richten sich danach.
+
+- **Erlaubt:** Rückseite und Vorderseite 100 bis 150 mm, Rücken 3 bis 30 mm, Höhe 100 bis 198 mm, insgesamt höchstens 285 mm Breite, damit Cover und Schnittmarken auf A4 quer passen. Andere Werte werden angepasst, und das Tool sagt es.
+- **Vorlagen:** "Blu-ray" (269 × 148 mm, 14 mm Rücken) und "Blu-ray Slim" (262 × 148 mm, 7 mm Rücken) füllen die Felder.
+
+**Die Vorlagen sind Richtwerte.** Die Herstellerangaben für Blu-ray-Einleger weichen voneinander ab (Gesamtbreite 262 bis 272 mm, Seitenbreite 126 bis 129 mm, Rücken 11 bis 14 mm). Miss deinen Einleger nach und trage die Werte ein.
 
 ## Stile
 
@@ -96,29 +155,33 @@ Das Cover wird in Originalgröße (273 × 183 mm, Slim 266 × 183 mm) mittig auf
 
 | Datei | Inhalt |
 |---|---|
-| `index.html` | Seite mit Formular und Vorschau |
+| `index.html` | Seite mit Formular, Vorschau und Dialog |
 | `style.css` | Oberfläche und Cover (alle Maße in Millimetern), beide Stile, Druckregeln |
 | `core.js` | Maße, Beschriftungen, Texte für die Systemanforderungen, Standardwerte. Ohne Browser testbar |
 | `app.js` | Eingaben, Bilder, Zeichnen der Vorschau, Drucken |
+| `extras.js` | Dialoge: Rezept, Steam, SteamGridDB, Einstellungen |
+| `online.js` | Anfragen an SteamGridDB und Steam (über den Proxy) und Auswertung der Antworten |
+| `zip.js` | Liest die Rezept-ZIP |
 | `assets/` | Schriften (Lato), GOG-Logo, USK-, Disc- und Funktionssymbole |
 
 Die Seite hat keine Abhängigkeiten und braucht kein Internet.
 
 ## Grenzen
 
-- Es gibt zwei Hüllenformate (Normal 14 mm, Slim 7 mm). Andere Maße (z. B. Blu-ray-Hüllen) fehlen noch.
+- Fest eingebaut sind zwei Hüllenformate (Normal 14 mm, Slim 7 mm). Andere Maße gehen über "Eigene Maße", die Blu-ray-Werte sind nur Richtwerte.
+- SteamGridDB und Steam sind mit nachgebauten Antworten getestet, nicht mit den echten Diensten.
 - Bilder werden nicht gespeichert, nur die Einstellungen.
 - Es gibt kein eigenes Booklet-Layout und keinen PDF-Export. Gedruckt wird über den Browser (dort lässt sich als PDF speichern).
 - Die Maße sind noch nicht mit einem echten Ausdruck und einer echten Hülle geprüft.
-- Titel, Anbieter und Cover müssen von Hand eingegeben werden (eine Übernahme aus der `menu.json` ist geplant).
+- Es gibt kein GOG-Pendant zu den Steam-Daten (Anforderungen aus dem GOG-Katalog), die Angaben für GOG-Spiele müssen von Hand oder über Steam kommen.
 
 ## Geplant
 
-- **SteamGridDB**: Cover, Hintergründe und Logos suchen und direkt als Front, Rückseite und Publisher-Logo übernehmen, mit derselben Einrichtung (Schlüssel und Proxy) wie im Konfigurator (siehe [steamgriddb.md](steamgriddb.md)).
-- **Steam und SteamDB**: Systemanforderungen und Spielfunktionen eines Spiels automatisch einlesen (Machbarkeit und Proxy zuerst prüfen).
-- Titel, Anbieter und Cover aus der `menu.json` oder der Rezept-ZIP übernehmen.
-- Stile passend zum Anbieter (Epic Games, Steam) wie die Abzeichen im Menü.
-- Weitere Hüllenformate und PDF-Export.
+- Mit **echtem Drucker und echter Hülle** prüfen (Maße, Schnittmarken, Blu-ray-Werte).
+- **SteamGridDB und Steam** mit den echten Diensten prüfen und nachbessern ([Checkliste](manuelle-pruefung.md)).
+- **PDF-Export** direkt aus dem Tool. Bis dahin lässt sich im Druckdialog des Browsers "Als PDF speichern" wählen. Ein eigener Export bräuchte eine Zusatzbibliothek, und das Tool hat bewusst keine Abhängigkeiten.
+- Anforderungen und Funktionen aus dem **GOG-Katalog** übernehmen.
+- Mehrere Hüllen in einem Rutsch aus einem Rezept erzeugen.
 
 Der Stand der Planung steht in der Roadmap in der [README](../README.md).
 
@@ -136,9 +199,9 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 
 ## Tests
 
-`npm test` prüft Maße, Texte und Standardwerte (`tests/cover.test.js`), darunter die Bildmaße, die Systemanforderungstexte, das Zusammenführen gespeicherter Einstellungen und dass alle Grafiken vorhanden und nicht übergroß sind.
+`npm test` prüft die Logik: Maße und eigene Maße (`tests/cover.test.js`), die Auswertung der Steam-Daten, den ZIP-Leser, die Anfragen über den Proxy mit Fehlerfällen und die gemeinsamen Einstellungen (`tests/cover-online.test.js`).
 
-`npm run test:ui` lädt das Tool in einem echten Chromium (`tests/ui/cover.check.js`) und prüft Eingaben, Bildverkleinerung, Disc-Logos, Hüllenwechsel, Speichern der Einstellungen, **feste Plätze** (nichts verschiebt sich), beide Stile und den **Druck** (genau eine A4-Seite quer, Cover mittig in Originalgröße, Schnittmarken im Blatt). Nicht automatisch geprüft ist ein echter Ausdruck.
+`npm run test:ui` lädt das Tool in einem echten Chromium. `tests/ui/cover.check.js` prüft Eingaben, Bildverkleinerung, Disc-Logos, Hüllenwechsel, eigene Maße, Speichern der Einstellungen, **feste Plätze** (nichts verschiebt sich), beide Stile und den **Druck** (genau eine A4-Seite quer, Cover mittig in Originalgröße, Schnittmarken im Blatt). `tests/ui/cover-online.check.js` prüft Anbieter-Stile, die Übernahme aus Rezept und Steam und die Bildsuche bei SteamGridDB mit nachgebauten Diensten. Nicht automatisch geprüft sind ein echter Ausdruck und die echten Dienste.
 
 ## Hinweise
 

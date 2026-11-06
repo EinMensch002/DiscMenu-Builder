@@ -107,13 +107,17 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden von Galaxy-Feld oder USK
 - [x] Zweiter Stil "Modern" (Konsolen-Stil) neben dem klassischen GOG-Stil
 - [x] Bilder werden auf Druckgröße verkleinert, Hinweis zur Schärfe (dpi)
-- [x] Tests im Repo (Logik, Druck, feste Plätze, beide Stile) und Veröffentlichung unter `/cover/`
+- [x] Tests im Repo (Logik, Druck, feste Plätze, beide Stile, Online-Abläufe) und Veröffentlichung unter `/cover/`
 - [ ] Mit echtem Drucker und echter Hülle prüfen (Maße, Schnittmarken)
-- [ ] **SteamGridDB** anbinden: Cover, Hintergründe und Logos suchen und direkt als Front, Rückseite und Publisher-Logo übernehmen (gleiche Einrichtung mit Schlüssel und Proxy wie im Konfigurator)
-- [ ] **Steam und SteamDB**: Systemanforderungen und Spielfunktionen automatisch einlesen (Machbarkeit und Proxy zuerst prüfen)
-- [ ] Titel, Anbieter und Cover aus der `menu.json` oder Rezept-ZIP übernehmen
-- [ ] Stile passend zum Anbieter (Epic Games, Steam) wie die Abzeichen im Menü
-- [ ] Weitere Hüllenformate (z. B. Blu-ray-Hülle), PDF-Export
+- [x] Titel, Anbieter, Größe und Cover aus der `menu.json` oder Rezept-ZIP übernehmen
+- [x] Stile passend zum Anbieter (GOG, Epic Games, Steam) mit eigenen Farben und Schriftzug
+- [x] **SteamGridDB** angebunden: Bilder suchen und direkt als Frontcover, Rückseite oder Publisher-Logo übernehmen (mit nachgebauten Antworten getestet)
+- [x] **Steam**: Systemanforderungen, Plattformen und Funktionen einlesen (mit nachgebauten Antworten getestet, SteamDB hat keine offene Schnittstelle)
+- [x] Gemeinsame Einstellungen mit dem Konfigurator (Schlüssel und Proxy, auf Pages derselbe Speicher)
+- [x] Eigene Hüllenmaße mit Vorlagen für Blu-ray (Richtwerte, nachmessen)
+- [ ] **SteamGridDB und Steam mit den echten Diensten prüfen** und nachbessern ([Checkliste](docs/manuelle-pruefung.md))
+- [ ] Anforderungen und Funktionen aus dem GOG-Katalog übernehmen
+- [ ] Eigener PDF-Export (bis dahin: im Druckdialog "Als PDF speichern")
 
 ### Builder und Player (gebaut, Praxistest steht aus)
 
@@ -134,7 +138,6 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 ### Später
 
 - [ ] Eigene Tabs (z. B. Mods)
-- [ ] Gemeinsame Einstellungen (SteamGridDB-Schlüssel, Proxy) für Konfigurator und Cover-Tool, damit man sie nur einmal einrichten muss
 - [ ] Bessere Übersetzung (z. B. DeepL mit eigenem Schlüssel)
 - [ ] GOG-Katalog als Beschreibungsquelle mit deutschen Texten
 - [ ] Steam-Provider: Backups wiederherstellen (Machbarkeit zuerst prüfen)
