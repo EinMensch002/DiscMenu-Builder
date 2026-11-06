@@ -190,6 +190,8 @@
 
     /* Rücken */
     $('#spine').classList.toggle('fill', state.spineLogo === 'fill');
+    $('#spine').classList.toggle('nopc', !state.spinePC);
+    $('#spine').classList.toggle('tcenter', state.spineTitle === 'center');
     $('#spineTitle').textContent = state.title.trim();
     fitSpineTitle(c);
 
@@ -198,7 +200,7 @@
     $('#featNote').textContent = C.PROVIDERS[state.provider].note[state.lang];
     const feats = $('#feats');
     feats.replaceChildren(...C.FEATURE_ORDER.filter((k) => state.features.includes(k)).map((k) => {
-      const item = el('div', 'feat'), img = el('img'); img.src = 'assets/images/features/' + k + '.png'; img.alt = '';
+      const item = el('div', 'feat'), img = el('img'); img.src = (state.iconStyle === 'line' || !C.ORIGINAL_ICONS.includes(k)) ? 'assets/images/features/line/' + k + '.svg' : 'assets/images/features/' + k + '.png'; img.alt = '';
       item.append(img, el('span', '', L.feat[k])); return item;
     }));
     $('#galaxy').classList.toggle('off', !(state.galaxy && state.provider === 'gog'));      // das Feld gibt es nur bei GOG
@@ -208,6 +210,7 @@
     $('#gxJoin').textContent = L.galaxy.join; $('#gxUrl').textContent = L.galaxy.url;
     $('#copy').textContent = state.copyright.trim();
     renderSpecs();
+    renderBarcode();
 
     renderDrops();
     renderNotes();
@@ -286,6 +289,32 @@
     while (pt > 5 && title.scrollHeight > box.clientHeight - 2) { pt -= 0.25; title.style.fontSize = pt + 'pt'; }
   }
 
+  /* Barcode (Code 128) unter dem USK-Zeichen. Die Strichbreite richtet sich nach dem Platz (höchstens 40 mm),
+     ist sie zu schmal zum Scannen, steht ein Hinweis bei den Notizen. */
+  /* Platz für den Barcode: die rechte Spalte ist 41 mm breit, mit der Tabelle Minimum/Empfohlen nur 33 mm */
+  const maxBarcodeMm = () => ($('.panel-back').classList.contains('dual') ? 31 : 40);
+  function barcodeInfo() {
+    if (!state.barcode.on) return null;
+    const bits = C.code128(state.barcode.text.trim());
+    if (!bits) return { bits: null };
+    const modules = bits.length + 20;                       // je 10 Module Ruhezone links und rechts
+    return { bits, modules, module: Math.min(0.4, maxBarcodeMm() / modules) };
+  }
+  function renderBarcode() {
+    const info = barcodeInfo(), box = $('#barcode');
+    box.hidden = !(info && info.bits);
+    if (box.hidden) return;
+    const svg = $('#barcodeSvg');
+    let d = '', run = 0;
+    [...info.bits, '0'].forEach((b, i) => { if (b === '1') run++; else { if (run) d += 'M' + (i - run + 10) + ' 0h' + run + 'v1h-' + run + 'z'; run = 0; } });
+    svg.setAttribute('viewBox', '0 0 ' + info.modules + ' 1');
+    svg.style.width = (info.modules * info.module).toFixed(2) + 'mm';
+    svg.replaceChildren();
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', d); p.setAttribute('fill', '#000');
+    svg.append(p);
+    $('#barcodeText').textContent = state.barcode.text.trim();
+  }
+
   /* Hinweise zur Vorlage (blockieren nichts) */
   function renderNotes() {
     const notes = [];
@@ -293,6 +322,9 @@
     if (!state.title.trim()) notes.push('Der Spieletitel für den Rücken fehlt.');
     const dims = C.caseDims(state);
     if (dims.adjusted) notes.push('Die eigenen Maße wurden angepasst (erlaubt: Rückseite und Vorderseite 100–150 mm, Rücken 3–30 mm, Höhe 100–198 mm, insgesamt höchstens ' + C.MAX_W + ' mm breit). Verwendet wird: ' + dims.back + ' + ' + dims.spine + ' + ' + dims.front + ' × ' + dims.h + ' mm.');
+    const bc = barcodeInfo();
+    if (bc && !bc.bits) notes.push('Der Barcode-Inhalt fehlt oder ist ungültig (erlaubt: Buchstaben, Ziffern und Satzzeichen ohne Umlaute, höchstens 40 Zeichen).');
+    else if (bc && bc.module < C.BARCODE_MIN_MODULE) notes.push('Der Barcode ist sehr dicht (' + bc.module.toFixed(2) + ' mm je Strich) und lässt sich vielleicht nicht scannen. Kürze den Inhalt (z. B. s.team/a/70 statt langer Adressen).');
     if (!state.features.length) notes.push('Es ist keine Spielfunktion gewählt, der grüne Streifen bleibt leer.');
     $('#notes').replaceChildren(...notes.map((t) => el('p', '', t)));
   }
