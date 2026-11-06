@@ -73,7 +73,10 @@
   }
 
   /* Änderungen höchstens einmal pro Bild zeichnen (flüssig auch bei schnellem Tippen) */
+  let changes = 0;                     // zählt alle Änderungen (für "ungespeichert" in der Leiste)
+  const hooks = { change: [], reset: [] };
   function changed() {
+    changes++; hooks.change.forEach((f) => f());
     if (dirty) return;
     dirty = true;
     requestAnimationFrame(() => { dirty = false; render(); save(); });
@@ -186,6 +189,7 @@
     const usk = state.usk === 'none' ? '' : 'assets/images/usk/usk_' + state.usk + '.png';
     setImg($('#frontUsk'), usk);
     setImg($('#backUsk'), state.uskBack ? usk : '');
+    $('#frontUsk').style.opacity = String(Number(state.uskOpacity) / 100);
     setImg($('#discLogo'), 'assets/images/disc/' + C.DISCS[state.disc]);
 
     /* Rücken */
@@ -321,6 +325,7 @@
       if (!confirm('Alle Einstellungen und Bilder zurücksetzen?')) return;
       Object.keys(images).forEach(clearImage);
       state = C.defaultState();
+      hooks.reset.forEach((f) => f());
       syncControls();
       render(); save();
     });
@@ -340,6 +345,10 @@
   }
   window.CoverApp = {
     get state() { return state; },
+    get changes() { return changes; },
+    get hasImages() { return Object.keys(images).length > 0; },
+    onChange(f) { hooks.change.push(f); },
+    onReset(f) { hooks.reset.push(f); },
     /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
     patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },
     /* Aktuelle Einstellungen und Bilder (für den Projektexport) */

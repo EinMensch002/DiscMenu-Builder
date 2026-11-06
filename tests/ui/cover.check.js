@@ -214,7 +214,10 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   assert.ok(Math.abs(g.copyMid) < 6, 'Copyright steht mittig: ' + g.copyMid);
   assert.ok(g.copyLow >= 0, 'Copyright steht im Feld');
   assert.equal(g.foot, 'flex'); assert.equal(g.footText, 'PC');
-  assert.ok(g.titleTop < g.titleBottom - 20, 'Titel steht oben (Standard)');
+  assert.equal(await page.inputValue('[data-k=spineTitle]'), 'center');
+  await page.selectOption('[data-k=spineTitle]', 'top'); await page.waitForTimeout(150);
+  g = await geoNow();
+  assert.ok(g.titleTop < g.titleBottom - 20, 'Titel steht oben (Auswahl)');
   await page.selectOption('[data-k=spineTitle]', 'center'); await page.waitForTimeout(150);
   g = await geoNow();
   assert.ok(Math.abs(g.titleTop - g.titleBottom) < 8, 'Titel steht mittig: ' + g.titleTop + ' / ' + g.titleBottom);

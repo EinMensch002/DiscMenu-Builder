@@ -96,3 +96,4 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 - [ ] **Publisher-Logo (Wikidata):** 🔎 beim Publisher-Logo zeigt den Publisher aus dem Steam-Import vorbelegt, Logos erscheinen und lassen sich übernehmen (z. B. Valve, CD PROJEKT RED).
 - [ ] **Symbole und Rücken:** Linien-Symbole, "PC" am Rückenfuß, mittiger Titel und das etwas größere Logo auf dem Ausdruck ansehen.
 - [ ] **Steam und Epic Games:** Die dunkle Kopfleiste vorn (Logo, Schriftzug, Akzentlinie) und der dunkle Streifen mit den Spielfunktionen hinten gefallen auf dem Ausdruck, in beiden Stilen.
+- [ ] **Speichern:** In Chrome/Edge: Speichern, etwas ändern, Strg+S, die Datei wird überschrieben (nicht neu angelegt) und wieder ladbar. In Firefox: Speichern lädt jedes Mal neu herunter.

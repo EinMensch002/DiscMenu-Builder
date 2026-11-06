@@ -20,10 +20,12 @@
     </details>
     <details class="menu"><summary>Projekt</summary>
       <div class="pop">
-        <button type="button" id="bProjExport">Projekt exportieren (ZIP) …</button>
-        <button type="button" id="bProjImport">Projekt importieren …</button>
+        <button type="button" id="bSave" title="Überschreibt die geöffnete oder zuletzt gespeicherte Datei (Strg+S)">Speichern <kbd>Strg+S</kbd></button>
+        <button type="button" id="bProjExport">Speichern unter …</button>
+        <button type="button" id="bProjImport">Öffnen …</button>
       </div>
     </details>
+    <span class="saveinfo" id="saveInfo" aria-live="polite"></span>
     <button type="button" id="bSettings">Einstellungen</button>
     <button type="button" id="bReset">Zurücksetzen</button>
     <button type="button" id="bPrint" class="pri">Drucken</button>
@@ -71,6 +73,8 @@
           <select data-k="usk"><option value="none">Keine anzeigen</option><option value="0">ab 0 Jahren</option><option value="6">ab 6 Jahren</option><option value="12">ab 12 Jahren</option><option value="16">ab 16 Jahren</option><option value="18">ab 18 Jahren</option></select></label>
       </div>
       <label class="chk"><input type="checkbox" data-k="uskBack"> USK auch auf der Rückseite zeigen</label>
+      <label class="f"><span class="lab">Deckkraft der USK auf der Vorderseite</span>
+        <div class="slide"><input type="range" data-k="uskOpacity" min="30" max="100" step="5"><input type="text" data-k="uskOpacity" size="4"></div></label>
     </details>
 
     <details class="sec" open>

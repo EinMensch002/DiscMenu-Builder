@@ -240,13 +240,13 @@
     return {
       caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'classic', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       custom: { back: '130', spine: '14', front: '129', h: '183' },
-      usk: '0', uskBack: true, galaxy: true, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
+      usk: '0', uskOpacity: '100', uskBack: true, galaxy: false, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
       features: ['single_player'],
       os: { win: ['10', '11'], mac: false, linux: false, x64: true },
       cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
       gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
       ram: '4', space: '10', dx: '', other: '',
-      iconStyle: 'line', spinePC: true, spineTitle: 'top',
+      iconStyle: 'line', spinePC: true, spineTitle: 'center',
       publisher: '', developer: '',         /* z. B. von Steam übernommen, Vorgabe für die Suche nach dem Publisher-Logo */
       /* Empfohlene Anforderungen (optional, zusätzlich zu den Mindestanforderungen oben) */
       rec: {
@@ -277,7 +277,8 @@
     if (!THEMES[out.theme]) out.theme = 'classic';
     if (!PROVIDERS[out.provider]) out.provider = 'gog';
     if (!ICON_STYLES[out.iconStyle]) out.iconStyle = 'line';
-    if (out.spineTitle !== 'center') out.spineTitle = 'top';
+    if (out.spineTitle !== 'top') out.spineTitle = 'center';
+    out.uskOpacity = String(Math.min(100, Math.max(30, parseInt(out.uskOpacity, 10) || 100)));
     if (out.usk !== 'none' && !USK_VALUES.includes(out.usk)) out.usk = '0';
     return out;
   }

@@ -16,6 +16,10 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 - **Deutsch oder Englisch:** Die Beschriftung auf dem Cover lässt sich wählen.
 - **USK statt PEGI oder ESRB, ohne Barcode.** Die USK-Kennzeichnung steht vorn (35 × 35 mm, 3 mm Abstand) und auf Wunsch kleiner hinten.
 
+## Standardwerte
+
+Neue Projekte starten mit dem Stil Klassisch, dem Rückentitel mittig und ohne GOG-Galaxy-Feld. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
+
 ## Schnellstart
 
 1. Optional oben in der Leiste unter **Daten übernehmen** ein Rezept laden (spart Titel, Anbieter und Cover) oder Anforderungen von Steam holen.
@@ -33,7 +37,7 @@ Links stehen die **Einstellungen des Covers**, rechts die Vorschau. Alles, was n
 |---|---|
 | **Zum Konfigurator** | Wechselt zur Menü-Web-App |
 | **Daten übernehmen** | Menü mit "Aus Rezept (ZIP oder `menu.json`)" und "Anforderungen von Steam" |
-| **Projekt** | Menü mit "Projekt exportieren (ZIP)" und "Projekt importieren" |
+| **Projekt** | Menü mit "Speichern" (Strg+S), "Speichern unter" und "Öffnen". Daneben steht, ob Änderungen noch nicht gespeichert sind |
 | **Einstellungen** | SteamGridDB-Schlüssel, Proxy, Verbindungstest und Sicherung der Einstellungen in einer Datei |
 | **Zurücksetzen** | Löscht alle Einstellungen und Bilder |
 | **Drucken** | Öffnet den Druckdialog |
@@ -42,7 +46,7 @@ Die Einstellungen des Covers links:
 
 | Bereich | Inhalt |
 |---|---|
-| Hülle und Disc | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung: Deutsch oder English. USK-Freigabe: 0, 6, 12, 16, 18 oder keine anzeigen, dazu "USK auch auf der Rückseite zeigen" |
+| Hülle und Disc | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung: Deutsch oder English. USK-Freigabe: 0, 6, 12, 16, 18 oder keine anzeigen, dazu "USK auch auf der Rückseite zeigen" und die Deckkraft der USK auf der Vorderseite (30 bis 100 %) |
 | Bilder | Frontcover, Rückseite oben, Rückseite unten (optional), Publisher-Logo (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
 | Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
 | Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Mods, VR. Die Reihenfolge auf dem Cover ist fest. Die Symbole gibt es im **Linienstil** (Standard) oder als **GOG-Original** (nur die ersten sieben, die anderen bleiben im Linienstil) |
@@ -124,8 +128,10 @@ GitHub Pages liefert Dateien bis zu 10 Minuten zwischengespeichert. Damit nach e
 
 Über **Projekt** in der oberen Leiste:
 
-- **Projekt exportieren (ZIP):** Speichert alle Einstellungen und die Bilder in einer Datei `<titel>-cover.zip` (in Chrome und Edge mit Dateiauswahl, sonst als Download). Die ZIP enthält `cover.json` mit den Einstellungen und die Bilder unter `images/`. Der SteamGridDB-Schlüssel steht **nicht** darin.
-- **Projekt importieren:** Lädt so eine ZIP und ersetzt das aktuelle Projekt (mit Rückfrage). Fehlt ein Bild in der ZIP, wird der Rest trotzdem geladen und das Fehlende gemeldet. Falsche oder beschädigte Dateien werden abgelehnt, ohne das aktuelle Projekt zu verändern.
+- **Speichern (Strg+S):** Schreibt alle Einstellungen und Bilder in eine Datei `<titel>-cover.zip`. In **Chrome und Edge** merkt sich das Tool die Datei: Das erste Speichern fragt nach dem Ort, danach **überschreibt** "Speichern" dieselbe Datei ohne Nachfrage (auch nach "Öffnen"). In anderen Browsern (z. B. Firefox) kann ein Programm keine Datei überschreiben, dort lädt jedes Speichern die ZIP neu herunter. Die ZIP enthält `cover.json` mit den Einstellungen und die Bilder unter `images/`. Der SteamGridDB-Schlüssel steht **nicht** darin.
+- **Speichern unter:** Fragt immer nach einer neuen Datei.
+- **Öffnen:** Lädt so eine ZIP und ersetzt das aktuelle Projekt (mit Rückfrage). In Chrome und Edge überschreibt "Speichern" danach genau diese Datei. Fehlt ein Bild in der ZIP, wird der Rest trotzdem geladen und das Fehlende gemeldet. Falsche oder beschädigte Dateien werden abgelehnt, ohne das aktuelle Projekt zu verändern.
+- **Ungespeichert:** Neben dem Menü steht der Dateiname und "● ungespeichert", sobald sich etwas geändert hat. Beim Schließen der Seite warnt der Browser, wenn Bilder geladen und noch nicht gespeichert sind. Die Einstellungen (ohne Bilder) merkt sich das Tool unabhängig davon automatisch im Browser.
 
 Die Bilder werden dabei unverändert übernommen (nicht erneut verkleinert oder neu kodiert).
 

@@ -331,13 +331,13 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   const inside = CF.unpackProject(await CZ.read(new Uint8Array(proj.buffer)));
   assert.equal(inside.state.title, 'Größen-Test'); assert.equal(inside.state.provider, 'steam');
   assert.ok(inside.images.front && inside.images.publisher, 'Bilder sind in der Projektdatei');      // Frontcover kam aus dem SteamGridDB-Test
-  await page.click('#dlg button:has-text("Schließen")');
+  assert.match(await page.locator('#saveInfo').textContent(), /heruntergeladen: groessen-test-cover\.zip/);
   // Zurücksetzen löscht alles, der Import bringt es zurück
   await page.click('#bReset');
   await page.waitForFunction(() => document.querySelector('[data-k=title]').value === '');
   assert.equal(await page.locator('[data-img=publisher]').getAttribute('class'), 'drop');
   await page.setInputFiles('#projectFile', { name: proj.name, mimeType: 'application/zip', buffer: proj.buffer });
-  await page.waitForFunction(() => /Projekt importiert/.test(document.querySelector('#dlg').textContent));
+  await page.waitForFunction(() => /Projekt geöffnet/.test(document.querySelector('#dlg').textContent));
   assert.equal(await page.inputValue('[data-k=title]'), 'Größen-Test');
   assert.equal(await page.inputValue('[data-k=provider]'), 'steam');
   assert.equal(await page.inputValue('[data-k=theme]'), 'bar');

@@ -125,27 +125,64 @@
       msg2, fin);
   }
 
-  /* ---------- Projekt exportieren und importieren ---------- */
-  async function exportProject() {
+  /* ---------- Projekt speichern, speichern unter und öffnen ----------
+     In Chrome und Edge merkt sich das Tool die Datei und "Speichern" überschreibt sie (wie im Menü-Ersteller). In anderen Browsern
+     lädt "Speichern" die Datei jeweils neu herunter. */
+  const ZIP_TYPE = { description: 'Cover-Projekt (ZIP)', accept: { 'application/zip': ['.zip'] } };
+  let projHandle = null, projName = '', savedAt = App.changes, savedMsg = '';
+  const info = $('#saveInfo');
+  const dirtyNow = () => App.changes !== savedAt;
+  function showInfo() {
+    info.classList.toggle('dirty', dirtyNow());
+    info.textContent = dirtyNow() ? (projName ? projName + ' · ' : '') + '● ungespeichert' : (projName ? savedMsg + projName : '');
+    info.title = projHandle ? 'Strg+S überschreibt diese Datei' : 'Strg+S speichert das Projekt als ZIP';
+  }
+  App.onChange(showInfo);
+  App.onReset(() => { projHandle = null; projName = ''; savedAt = App.changes; showInfo(); });
+  window.addEventListener('beforeunload', (e) => { if (dirtyNow() && App.hasImages) { e.preventDefault(); e.returnValue = ''; } });
+
+  async function packProject() {
     const snap = App.snapshot(), images = {};
     for (const [k, v] of Object.entries(snap.images)) images[k] = { data: new Uint8Array(await v.blob.arrayBuffer()), type: v.type, name: v.name };
-    const zip = F.packProject(snap.state, images);
-    const name = (slug(snap.state.title) || 'cover') + '-cover.zip';
-    const where = await saveFile(new Blob([zip], { type: 'application/zip' }), name, 'Cover-Projekt (ZIP)', 'application/zip', '.zip');
-    if (where) openDlg('Projekt exportiert', h('p', { class: 'dmsg' }, '"' + where + '" enthält alle Einstellungen und ' + Object.keys(images).length + ' Bild(er). Mit "Projekt importieren" lässt sich alles wieder laden.'),
-      h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')));
+    return { blob: new Blob([F.packProject(snap.state, images)], { type: 'application/zip' }), name: (slug(snap.state.title) || 'cover') + '-cover.zip', count: Object.keys(images).length };
   }
-  async function importProject(file) {
+  async function saveProject(asNew) {
+    const { blob, name } = await packProject();
+    let hd = (!asNew && projHandle) || null, where = null;
+    if (typeof window.showSaveFilePicker === 'function') {
+      try {
+        if (hd && hd.requestPermission && (await hd.requestPermission({ mode: 'readwrite' })) !== 'granted') hd = null;
+        if (!hd) hd = await window.showSaveFilePicker({ suggestedName: projName || name, types: [ZIP_TYPE] });
+        const w = await hd.createWritable(); await w.write(blob); await w.close();
+        projHandle = hd; where = hd.name; savedMsg = 'gespeichert: ';
+      } catch (e) { if (e && e.name === 'AbortError') return; hd = null; /* sonst: normaler Download */ }
+    }
+    if (!where) { download(blob, name); where = name; projHandle = null; savedMsg = 'heruntergeladen: '; }
+    projName = where; savedAt = App.changes; showInfo();
+  }
+  async function openProject() {
+    if (typeof window.showOpenFilePicker === 'function') {
+      try {
+        const [hd] = await window.showOpenFilePicker({ types: [ZIP_TYPE], multiple: false });
+        return importProject(await hd.getFile(), hd);
+      } catch (e) { if (e && e.name === 'AbortError') return; /* sonst: Dateiauswahl des Browsers */ }
+    }
+    projectInput.click();
+  }
+  async function importProject(file, hd) {
     try {
       const { state, images, missing } = F.unpackProject(await Z.read(new Uint8Array(await file.arrayBuffer())));
-      if (!confirm('Das aktuelle Projekt wird durch "' + file.name + '" ersetzt. Weiter?')) return;
+      if (dirtyNow() && !confirm('Das aktuelle Projekt hat ungespeicherte Änderungen und wird durch "' + file.name + '" ersetzt. Weiter?')) return;
+      if (!dirtyNow() && !confirm('Das aktuelle Projekt wird durch "' + file.name + '" ersetzt. Weiter?')) return;
       await App.restore(state, images);
-      openDlg('Projekt importiert', h('p', { class: 'dmsg' }, 'Einstellungen und ' + Object.keys(images).length + ' Bild(er) wurden geladen.' + (missing.length ? ' Nicht gefunden: ' + missing.join(', ') + '.' : '')),
+      projHandle = hd || null; projName = file.name; savedAt = App.changes; savedMsg = 'geöffnet: '; showInfo();
+      openDlg('Projekt geöffnet', h('p', { class: 'dmsg' }, 'Einstellungen und ' + Object.keys(images).length + ' Bild(er) wurden geladen.' + (missing.length ? ' Nicht gefunden: ' + missing.join(', ') + '.' : '') + (hd ? ' "Speichern" überschreibt jetzt diese Datei.' : '')),
         h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')));
     } catch (e) {
-      openDlg('Projekt importieren', h('p', { class: 'dmsg err' }, 'Das Projekt konnte nicht geladen werden: ' + (e.message || e)), h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')));
+      openDlg('Projekt öffnen', h('p', { class: 'dmsg err' }, 'Das Projekt konnte nicht geladen werden: ' + (e.message || e)), h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')))
     }
   }
+  document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveProject(false); } });
 
   /* ---------- Aus einem Rezept übernehmen ---------- */
   async function onRecipeFile(file) {
@@ -338,8 +375,9 @@
   const recipeInput = $('#recipeFile'), projectInput = $('#projectFile');
   $('#bRecipe').addEventListener('click', () => recipeInput.click());
   recipeInput.addEventListener('change', () => { const f = recipeInput.files[0]; recipeInput.value = ''; if (f) onRecipeFile(f); });
-  $('#bProjExport').addEventListener('click', exportProject);
-  $('#bProjImport').addEventListener('click', () => projectInput.click());
+  $('#bSave').addEventListener('click', () => saveProject(false));
+  $('#bProjExport').addEventListener('click', () => saveProject(true));
+  $('#bProjImport').addEventListener('click', openProject);
   projectInput.addEventListener('change', () => { const f = projectInput.files[0]; projectInput.value = ''; if (f) importProject(f); });
   $('#bSteam').addEventListener('click', openSteam);
   $('#bSettings').addEventListener('click', openSettings);
