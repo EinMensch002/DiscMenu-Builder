@@ -76,9 +76,9 @@
   const USK_VALUES = ['0', '6', '12', '16', '18'];
   /* Anbieter: Farben und Schriftzug. Es gibt nur Text und Farben, keine Logos (außer dem vorhandenen GOG-Logo). */
   const PROVIDERS = {
-    gog: { name: 'GOG', wordmark: '', brand: '#89268d', onBrand: '#ffffff', dark: '#17101f', mid: '#2b1842', accent: '#d65cff', bannerA: '#a8e02a', bannerB: '#84c01a', tag: { de: 'PC · DRM-FREI', en: 'PC · DRM-FREE' }, note: { de: 'Einige Funktionen erfordern GOG Galaxy', en: 'Some features require GOG Galaxy' } },
-    epic: { name: 'Epic Games', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#111114', mid: '#24242a', accent: '#d6dae4', bannerA: '#eceef3', bannerB: '#c9ccd6', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
-    steam: { name: 'Steam', wordmark: 'STEAM', brand: '#1b3a57', onBrand: '#66c0f4', dark: '#0e1722', mid: '#1b2838', accent: '#66c0f4', bannerA: '#7fcbf7', bannerB: '#4a9bc9', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern Steam', en: 'Some features require Steam' } },
+    gog: { name: 'GOG', logo: 'gog_logo.png', wordmark: '', brand: '#89268d', onBrand: '#ffffff', dark: '#17101f', mid: '#2b1842', accent: '#d65cff', bannerA: '#a8e02a', bannerB: '#84c01a', tag: { de: 'PC · DRM-FREI', en: 'PC · DRM-FREE' }, note: { de: 'Einige Funktionen erfordern GOG Galaxy', en: 'Some features require GOG Galaxy' } },
+    epic: { name: 'Epic Games', logo: 'epic_logo.svg', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#111114', mid: '#24242a', accent: '#d6dae4', bannerA: '#eceef3', bannerB: '#c9ccd6', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
+    steam: { name: 'Steam', logo: 'steam_logo.svg', wordmark: 'STEAM', brand: '#1b3a57', onBrand: '#66c0f4', dark: '#0e1722', mid: '#1b2838', accent: '#66c0f4', bannerA: '#7fcbf7', bannerB: '#4a9bc9', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern Steam', en: 'Some features require Steam' } },
   };
   const THEMES = { classic: 'Klassisch (GOG-Original)', modern: 'Modern (Konsolen-Stil)' };
   const DISCS = { cd: 'cd.png', dvd: 'dvd.png', bluray: 'blu-ray.png' };

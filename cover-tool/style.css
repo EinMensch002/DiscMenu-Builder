@@ -208,14 +208,19 @@ dialog .f small { display: block; margin-top: 3px; }
 .gog-corner { position: absolute; left: 0; top: 0; z-index: 3; padding: 2mm; background: var(--brand, #89268d); border-radius: 0 0 2.6mm 0; }
 .gog-corner img { display: block; height: 17mm; width: auto; }
 .gog-bar { display: none; }
-/* Schriftzug statt GOG-Logo bei anderen Anbietern (nur Text, keine Logos) */
+/* Epic Games und Steam: Logo (Vektorgrafik) mit dem Schriftzug darunter, gleiche Plätze wie beim GOG-Logo */
 .wm { display: none; font-weight: 900; color: var(--on-brand, #fff); text-align: center; white-space: pre-line; letter-spacing: .2mm; line-height: 1.05; }
 .has-wm .wm { display: flex; }
-.has-wm .gog-corner img, .has-wm .gog-bar img, .has-wm .spine-logo { display: none !important; }
-.gog-corner .wm { width: 17.7mm; height: 17mm; align-items: center; justify-content: center; font-size: 8.5pt; }
-.gog-bar .wm { margin-left: 3.5mm; font-size: 9pt; letter-spacing: .4mm; margin-right: auto; }
-.spine-head .wm { width: 100%; justify-content: center; font-size: 5.2pt; padding: 1mm 0; }
-.cover.slim .spine-head .wm { font-size: 3.6pt; letter-spacing: 0; }
+.has-wm .gog-corner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2mm; width: 21.8mm; height: 21mm; padding: 0; }
+.has-wm .gog-corner img { height: 11.5mm; width: 11.5mm; }
+.gog-corner .wm { font-size: 5.6pt; letter-spacing: .3mm; }
+.has-wm .gog-bar img { height: 7.5mm; width: 7.5mm; margin-left: 2.5mm; }
+.gog-bar .wm { margin-left: 2.5mm; font-size: 8pt; letter-spacing: .4mm; margin-right: auto; }
+.has-wm .spine-head { flex-direction: column; align-items: center; gap: .8mm; }
+.has-wm .spine-logo { width: 6mm; height: 6mm; }
+.has-wm .spine.fill .spine-logo { width: calc(100% - 4mm); height: auto; }
+.spine-head .wm { width: 100%; justify-content: center; font-size: 4.4pt; letter-spacing: .1mm; padding: 0 0 1mm; }
+.cover.slim .spine-head .wm { font-size: 3.2pt; letter-spacing: 0; }
 .usk { position: absolute; left: 3mm; bottom: 3mm; width: 35mm; height: 35mm; object-fit: contain; z-index: 3; }
 .front-pub { position: absolute; right: 6mm; bottom: 6mm; max-width: 32mm; max-height: 14mm; object-fit: contain; z-index: 3; }
 

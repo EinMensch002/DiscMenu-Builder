@@ -110,7 +110,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Tests im Repo (Logik, Druck, feste Plätze, beide Stile, Online-Abläufe) und Veröffentlichung unter `/cover/`
 - [ ] Mit echtem Drucker und echter Hülle prüfen (Maße, Schnittmarken)
 - [x] Titel, Anbieter, Größe und Cover aus der `menu.json` oder Rezept-ZIP übernehmen
-- [x] Stile passend zum Anbieter (GOG, Epic Games, Steam) mit eigenen Farben und Schriftzug
+- [x] Stile passend zum Anbieter (GOG, Epic Games, Steam) mit eigenen Farben, Logo und Schriftzug
 - [x] **SteamGridDB** angebunden: Bilder suchen und direkt als Frontcover, Rückseite oder Publisher-Logo übernehmen (mit nachgebauten Antworten getestet)
 - [x] **Steam**: Systemanforderungen, Plattformen und Funktionen einlesen (mit nachgebauten Antworten getestet, SteamDB hat keine offene Schnittstelle)
 - [x] Gemeinsame Einstellungen mit dem Konfigurator (Schlüssel und Proxy, auf Pages derselbe Speicher)

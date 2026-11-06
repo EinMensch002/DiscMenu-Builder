@@ -82,18 +82,24 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => document.querySelector('#cover').classList.contains('has-wm'));
   assert.equal(await css('#cover', '--brand'), '#2d2d33');
   assert.equal(await page.locator('#cornerWm').textContent(), 'EPIC GAMES');
-  assert.equal(await page.locator('.gog-corner img').isVisible(), false);
+  // Epic-Logo auf Vorderseite (Ecke und Streifen) und Rücken, geladen und sichtbar
+  assert.equal(await page.locator('.gog-corner img').isVisible(), true);
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.brand-logo')].map((i) => [i.getAttribute('src'), i.naturalWidth > 0])), [['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true]]);
+  assert.equal(await page.locator('#spineLogo').isVisible(), true);
   assert.match(await page.locator('#featNote').textContent(), /Epic Games Launcher/);
   assert.equal(await page.locator('#galaxyChk').isDisabled(), true, 'Das Galaxy-Feld gibt es nur bei GOG');
   assert.equal(await page.locator('#galaxy').evaluate((e) => getComputedStyle(e).visibility), 'hidden');
   await page.selectOption('[data-k=provider]', 'steam');
   await page.waitForFunction(() => document.querySelector('#cornerWm').textContent === 'STEAM');
   assert.equal(await css('#cover', '--brand'), '#1b3a57');
+  assert.equal(await page.locator('.gog-corner img').getAttribute('src'), 'assets/images/steam_logo.svg');
+  assert.equal(await page.locator('.gog-corner img').evaluate((i) => i.naturalWidth > 0), true);
   await page.selectOption('[data-k=theme]', 'modern');
   await page.waitForFunction(() => document.querySelector('#cover').classList.contains('theme-modern'));
   assert.equal(await page.locator('#barWm').innerText(), 'STEAM');
-  assert.equal(await page.locator('.gog-bar img').isVisible(), false, 'Bei Steam steht kein GOG-Logo im Streifen');
-  assert.equal(await page.locator('#spineLogo').isVisible(), false);
+  assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/steam_logo.svg', 'Im Streifen steht das Steam-Logo');
+  assert.equal(await page.locator('.gog-bar img').isVisible(), true);
+  assert.equal(await page.locator('#spineLogo').isVisible(), true);
   assert.equal(await page.locator('#frontTag').textContent(), 'PC');
   await page.selectOption('[data-k=theme]', 'classic');
   await page.selectOption('[data-k=provider]', 'gog');

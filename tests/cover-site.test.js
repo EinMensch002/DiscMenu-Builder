@@ -25,3 +25,15 @@ test('Der Pages-Workflow setzt die Versionsnummer ein', () => {
   assert.match(out, /style\.css\?v=0c9d65a/);
   assert.match(out, /extras\.js\?v=0c9d65a/);
 });
+
+// Jeder Anbieter hat ein Logo für Vorderseite und Rücken: Datei vorhanden, klein (Vektor bzw. wenige KB) und mit weißer Füllung
+test('Anbieter-Logos: Dateien vorhanden und klein', () => {
+  const C = require('../cover-tool/core.js');
+  for (const [key, p] of Object.entries(C.PROVIDERS)) {
+    const file = path.join(root, 'cover-tool', 'assets', 'images', p.logo);
+    assert.ok(fs.existsSync(file), key + ': ' + p.logo + ' fehlt');
+    assert.ok(fs.statSync(file).size < 20000, key + ': Logo ist zu groß');
+    if (p.logo.endsWith('.svg')) assert.match(fs.readFileSync(file, 'utf8'), /fill="#ffffff"/);
+  }
+  assert.equal((html.match(/class="[^"]*brand-logo/g) || []).length, 3, 'Ecke, Streifen und Rücken');
+});

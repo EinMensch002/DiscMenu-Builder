@@ -10,7 +10,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 - **Läuft komplett im Browser.** Kein Backend, es wird nichts hochgeladen. Bilder werden lokal verarbeitet.
 - **Live-Vorschau:** Links die Einstellungen, rechts das Blatt in Originalproportionen. Jede Änderung ist sofort sichtbar.
 - **Zwei Stile:** Klassisch (wie die GOG-Originalhüllen) und Modern (angelehnt an Konsolenhüllen).
-- **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben und Schriftzug (siehe [Anbieter](#anbieter)).
+- **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben, Logo und Schriftzug (siehe [Anbieter](#anbieter)).
 - **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional Falzlinien.
 - **Deutsch oder Englisch:** Die Beschriftung auf dem Cover lässt sich wählen.
@@ -125,13 +125,13 @@ Die Bilder werden dabei unverändert übernommen (nicht erneut verkleinert oder 
 
 ## Anbieter
 
-Der Anbieter bestimmt Farben und Schriftzug der Hülle. Nur GOG hat ein Logo, bei Epic Games und Steam steht ein Schriftzug (nur Text, keine Logos).
+Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Das Logo steht an denselben Plätzen wie das GOG-Logo: in der Ecke (klassisch) oder im Streifen oben (Modern) auf der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.png`).
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
 | **GOG** | Lila | GOG-Logo | Galaxy-Feld, grüner Streifen, im Stil Modern "PC · DRM-FREI" |
-| **Epic Games** | Anthrazit | Schriftzug "EPIC GAMES" | heller grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
-| **Steam** | Marineblau | Schriftzug "STEAM" | blauer Streifen, Hinweis "Steam", kein Galaxy-Feld |
+| **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | heller grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
+| **Steam** | Marineblau | Logo und Schriftzug "STEAM" | blauer Streifen, Hinweis "Steam", kein Galaxy-Feld |
 
 Der Anbieter wird mit den Einstellungen gemerkt und aus dem Rezept übernommen. Dieselbe Farbzuordnung nutzt das Menü ([player-und-builder.md](player-und-builder.md)).
 
@@ -206,6 +206,7 @@ Das Cover wird in Originalgröße (273 × 183 mm, Slim 266 × 183 mm) mittig auf
 | `core.js` | Maße, Beschriftungen, Texte für die Systemanforderungen, Standardwerte. Ohne Browser testbar |
 | `app.js` | Eingaben, Bilder, Zeichnen der Vorschau, Drucken |
 | `extras.js` | Dialoge: Rezept, Steam, SteamGridDB, Einstellungen |
+| `assets/images/` | Logos (GOG als PNG, Epic Games und Steam als SVG), Funktions-, USK- und Disc-Symbole |
 | `online.js` | Anfragen an SteamGridDB und Steam (über den Proxy), Fehlermeldungen, Verbindungstest und Auswertung der Antworten |
 | `files.js` | Einstellungsdatei (mit Passwort), ZIP schreiben, Projektdatei |
 | `zip.js` | Liest die Rezept-ZIP |
@@ -252,5 +253,5 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 
 ## Hinweise
 
-- GOG, die USK-Symbole und das GOG-Galaxy-Feld sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
+- GOG, Epic Games, Steam (Namen und Logos), die USK-Symbole und das GOG-Galaxy-Feld sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
 - Die Schrift Lato steht unter der SIL Open Font License (siehe `cover-tool/assets/fonts/README.txt`).
