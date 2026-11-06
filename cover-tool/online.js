@@ -72,17 +72,47 @@
   }
 
   /* ---------- Steam-Shop ---------- */
+  /* Verständliche Meldung statt "Unexpected token": Der Worker-Proxy antwortet bei Sperren mit Klartext. */
+  async function checkResponse(r, what) {
+    if (r.ok) return;
+    let body = '';
+    try { body = (await r.text()).slice(0, 200); } catch (e) { /* ohne Text */ }
+    if (r.status === 403 && /Herkunft/i.test(body)) throw new Error('Der Proxy erlaubt Anfragen von dieser Seite nicht (ALLOWED_ORIGIN im Worker). Trage dort die Adresse dieser Seite ein.');
+    if (r.status === 403 && /Host/i.test(body)) throw new Error('Der Proxy erlaubt ' + what + ' nicht. Der Worker-Code ist wahrscheinlich veraltet, bitte den aktuellen aus docs/steamgriddb.md einspielen.');
+    if (r.status === 429) throw new Error(what + ' antwortet gerade nicht (zu viele Anfragen). Bitte kurz warten.');
+    throw new Error(what + ' hat mit Fehler ' + r.status + ' geantwortet.');
+  }
+  async function steamJson(url, what) {
+    const r = await net(url);
+    await checkResponse(r, what);
+    try { return await r.json(); } catch (e) { throw new Error(what + ' hat eine unerwartete Antwort geliefert. Läuft der Proxy richtig? Prüfe ihn mit "Verbindung testen" in den Einstellungen.'); }
+  }
+  /* Steam-Adresse oder reine ID -> App-ID, sonst null. So lässt sich ein Spiel auch ohne Suche wählen. */
+  function parseSteamRef(text) {
+    const t = String(text || '').trim();
+    const m = t.match(/store\.steampowered\.com\/app\/(\d+)/i) || t.match(/steamdb\.info\/app\/(\d+)/i) || t.match(/^(\d{2,9})$/);
+    return m ? m[1] : null;
+  }
   async function steamSearch(term) {
-    const r = await net('https://store.steampowered.com/api/storesearch/?l=english&cc=us&term=' + encodeURIComponent(term));
-    const j = await r.json();
+    const j = await steamJson('https://store.steampowered.com/api/storesearch/?l=english&cc=us&term=' + encodeURIComponent(term), 'Die Steam-Suche');
     return (j && j.items ? j.items : []).filter((i) => i && i.id && i.name);
   }
   async function steamDetails(id) {
-    const r = await net('https://store.steampowered.com/api/appdetails?l=english&appids=' + encodeURIComponent(id));
-    const j = await r.json();
+    const j = await steamJson('https://store.steampowered.com/api/appdetails?l=english&appids=' + encodeURIComponent(id), 'Steam');
     const d = j && j[id] && j[id].success !== false ? j[id].data : null;
-    if (!d) throw new Error('Steam liefert zu diesem Spiel keine Daten.');
+    if (!d) throw new Error('Steam liefert zu diesem Spiel keine Daten (manche Spiele sind im Shop nicht mehr oder nur nach Anmeldung abrufbar).');
     return d;
+  }
+
+  /* Verbindungstest für die Einstellungen: jeder Dienst einzeln, damit man sieht, woran es liegt */
+  async function testConnection() {
+    const out = [];
+    const run = async (name, fn) => { try { out.push({ name, ok: true, text: await fn() }); } catch (e) { out.push({ name, ok: false, text: e.message || String(e) }); } };
+    if (!settings.proxy) out.push({ name: 'Proxy', ok: false, text: 'Kein Proxy eingetragen. Ohne Proxy blockiert der Browser die Anfragen meist (CORS).' });
+    await run('Steam-Shop', async () => { const r = await steamSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
+    if (settings.key) await run('SteamGridDB', async () => { const r = await sgSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
+    else out.push({ name: 'SteamGridDB', ok: false, text: 'Kein API-Schlüssel eingetragen.' });
+    return out;
   }
 
   /* ---------- Steam-Daten auswerten ---------- */
@@ -161,6 +191,16 @@
     return FEATURE_ORDER.filter((f) => found.has(f));
   }
 
+  /* Steam-Texte sind oft sehr lang (z. B. ganze Sätze bei der Grafikkarte). Auf dem Cover ist wenig Platz:
+     lange Angaben werden an einer Stelle mit Komma, Schrägstrich oder "or" gekürzt. */
+  function shorten(text, max) {
+    const t = String(text || '').trim().replace(/\s+/g, ' ');
+    if (t.length <= (max || 80)) return t;
+    const limit = (max || 80) - 4, cut = t.slice(0, limit);          // Platz für " ..."
+    const at = Math.max(cut.lastIndexOf(', '), cut.lastIndexOf(' / '), cut.lastIndexOf(' or '), cut.lastIndexOf('; '), cut.lastIndexOf('. '), cut.lastIndexOf(' ('));
+    return (at > 25 ? cut.slice(0, at) : cut.replace(/\s+\S*$/, '')).trim().replace(/[,;.]$/, '') + ' ...';
+  }
+
   /* Ergebnis: Änderungen für den Zustand des Cover-Tools (nur gefundene Werte) und eine Liste zur Anzeige */
   function steamPatch(details, which) {
     const req = (details.pc_requirements && !Array.isArray(details.pc_requirements) ? details.pc_requirements : {});
@@ -174,19 +214,19 @@
       if ('linux' in plat) patch.os.linux = !!plat.linux;
       add('Läuft auf', [os.win.length ? 'Windows (' + os.win.join(', ') + ')' : '', plat.mac ? 'macOS' : '', plat.linux ? 'Linux' : ''].filter(Boolean).join(' / '));
     }
-    if (r.processor) { patch.cpu = { custom: r.processor }; add('Prozessor', r.processor); }
-    if (r.graphics) { patch.gpu = { custom: r.graphics }; add('Grafik', r.graphics); }
+    if (r.processor) { patch.cpu = { custom: shorten(r.processor) }; add('Prozessor', patch.cpu.custom); }
+    if (r.graphics) { patch.gpu = { custom: shorten(r.graphics) }; add('Grafik', patch.gpu.custom); }
     const ram = parseSize(r.memory); if (ram) { patch.ram = ram; add('Arbeitsspeicher', r.memory); }
     const space = parseSize(r.storage); if (space) { patch.space = space; add('Speicherplatz', r.storage); }
-    if (r.directx) { patch.dx = r.directx; add('DirectX', r.directx); }
+    if (r.directx) { patch.dx = shorten(r.directx, 40); add('DirectX', patch.dx); }
     const other = [r.sound ? (/sound/i.test(r.sound) ? r.sound : 'Soundkarte: ' + r.sound) : '', r.notes].filter(Boolean).join('. ');
-    if (other) { patch.other = other.length > 90 ? other.slice(0, 87) + '...' : other; add('Sonstiges', patch.other); }
+    if (other) { patch.other = shorten(other, 90); add('Sonstiges', patch.other); }
     const feats = steamFeatures(details.categories);
     if (feats.length) { patch.features = feats; add('Spielfunktionen', feats.join(', ')); }
     return { patch, shown, hasRequirements: Object.keys(r).length > 0 };
   }
 
-  const api = { settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, SG_KINDS };
+  const api = { settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, SG_KINDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverOnline = api;
 })(typeof window !== 'undefined' ? window : globalThis);

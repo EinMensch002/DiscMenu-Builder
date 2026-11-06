@@ -18,7 +18,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 ## Schnellstart
 
-1. Optional unter **Daten übernehmen** ein Rezept laden (spart Titel, Anbieter und Cover) oder Anforderungen von Steam holen.
+1. Optional oben in der Leiste unter **Daten übernehmen** ein Rezept laden (spart Titel, Anbieter und Cover) oder Anforderungen von Steam holen.
 2. **Hülle und Disc** wählen (Normal, Slim oder eigene Maße, CD, DVD oder Blu-ray) und den **Anbieter**.
 3. **Bilder** laden: Frontcover und Rückseite oben, optional Rückseite unten und Publisher-Logo.
 4. **Titel** für den Rücken eintragen.
@@ -27,9 +27,21 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 ## Bedienung
 
+Links stehen die **Einstellungen des Covers**, rechts die Vorschau. Alles, was nicht direkt das Cover einstellt, liegt in der **oberen Leiste**:
+
+| Knopf | Aufgabe |
+|---|---|
+| **Zum Konfigurator** | Wechselt zur Menü-Web-App |
+| **Daten übernehmen** | Menü mit "Aus Rezept (ZIP oder `menu.json`)" und "Anforderungen von Steam" |
+| **Projekt** | Menü mit "Projekt exportieren (ZIP)" und "Projekt importieren" |
+| **Einstellungen** | SteamGridDB-Schlüssel, Proxy, Verbindungstest und Sicherung der Einstellungen in einer Datei |
+| **Zurücksetzen** | Löscht alle Einstellungen und Bilder |
+| **Drucken** | Öffnet den Druckdialog |
+
+Die Einstellungen des Covers links:
+
 | Bereich | Inhalt |
 |---|---|
-| Daten übernehmen | Aus Rezept (ZIP oder `menu.json`), Anforderungen von Steam, Einstellungen für SteamGridDB und Steam |
 | Hülle und Disc | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung: Deutsch oder English. USK-Freigabe: 0, 6, 12, 16, 18 oder keine anzeigen, dazu "USK auch auf der Rückseite zeigen" |
 | Bilder | Frontcover, Rückseite oben, Rückseite unten (optional), Publisher-Logo (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
 | Texte | Spieletitel für den Rücken und der Copyright-Text unten auf der Rückseite |
@@ -37,7 +49,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 | Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessor (Intel, AMD oder eigener Text), Grafikkarte (NVIDIA, AMD Radeon oder eigener Text), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus), Umbruch bei zwei Prozessoren oder Grafikkarten |
 | Darstellung und Druck | Stil, Größe des GOG-Logos auf dem Rücken (fest 6 mm oder Rückenbreite), GOG-Galaxy-Feld, Schnittmarken, Falzlinien |
 
-Einstellungen werden im Browser gemerkt (**ohne Bilder**, die müssen nach dem Neuladen erneut geladen werden). "Zurücksetzen" löscht Einstellungen und Bilder.
+Einstellungen werden im Browser gemerkt (**ohne Bilder**, die müssen nach dem Neuladen erneut geladen werden). Wer die Bilder behalten will, exportiert das **Projekt** (siehe unten). "Zurücksetzen" löscht Einstellungen und Bilder.
 
 Oben erscheinen Hinweise, wenn etwas fehlt (Frontcover, Titel, Spielfunktionen). Sie blockieren nichts.
 
@@ -67,7 +79,14 @@ Sucht das Spiel im Steam-Shop und liest die Systemanforderungen aus. Man wählt 
 - **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 90 Zeichen gekürzt),
 - die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller und Bestenlisten (aus den Steam-Kategorien).
 
-Die Angaben kommen auf Englisch, so wie Steam sie liefert. Hat ein Spiel keine Anforderungen, werden nur Plattformen und Funktionen übernommen. **SteamDB** hat keine offene Schnittstelle und wird deshalb nicht genutzt.
+Die Angaben kommen auf Englisch, so wie Steam sie liefert. Lange Angaben (z. B. ganze Sätze bei der Grafikkarte) werden für das Cover gekürzt. Hat ein Spiel keine Anforderungen, werden nur Plattformen und Funktionen übernommen. **SteamDB** hat keine offene Schnittstelle und wird deshalb nicht genutzt.
+
+**Findet die Suche nichts oder kommt eine Fehlermeldung?**
+
+1. Unter **Einstellungen** auf **Verbindung testen** klicken. Dort steht, ob der Proxy fehlt, der Worker-Code veraltet ist oder die Herkunft nicht erlaubt ist.
+2. Statt des Titels die **Adresse der Steam-Seite** (`https://store.steampowered.com/app/...`) oder die **App-ID** einfügen. Dann entfällt die Suche.
+3. Den Titel englisch und kürzer eingeben (z. B. "Half-Life" statt "Half-Life: Source - Deutsche Version").
+4. Manche Spiele liefert Steam nur nach Anmeldung oder gar nicht aus, dann bleibt nur Eintippen.
 
 ### Bilder von SteamGridDB
 
@@ -75,9 +94,22 @@ Neben jedem Bildfeld (Frontcover, Rückseite oben und unten, Publisher-Logo) gib
 
 ### Einstellungen und Proxy
 
-Für SteamGridDB braucht man einen **API-Schlüssel**, und für beide Dienste fast immer einen eigenen **Proxy** (Cloudflare Worker), weil sie Anfragen aus dem Browser sonst blockieren. Die Einrichtung ist in [steamgriddb.md](steamgriddb.md) beschrieben und gilt für beide Web-Apps: Das Cover-Tool nutzt **dieselben Einstellungen wie der Konfigurator**. Auf GitHub Pages liegen beide unter demselben Ursprung und teilen sich den Speicher, einmal eintragen genügt. Der Schlüssel liegt nur in deinem Browser.
+Über **Einstellungen** in der oberen Leiste (der Dialog entspricht dem im Konfigurator). Für SteamGridDB braucht man einen **API-Schlüssel**, und für beide Dienste fast immer einen eigenen **Proxy** (Cloudflare Worker), weil sie Anfragen aus dem Browser sonst blockieren. Die Einrichtung ist in [steamgriddb.md](steamgriddb.md) beschrieben und gilt für beide Web-Apps: Das Cover-Tool nutzt **dieselben Einstellungen wie der Konfigurator**. Auf GitHub Pages liegen beide unter demselben Ursprung und teilen sich den Speicher, einmal eintragen genügt. Der Schlüssel liegt nur in deinem Browser und wird im Dialog nicht im Klartext angezeigt.
+
+- **Speichern, Löschen:** Die Proxy-Adresse muss den Platzhalter `{url}` enthalten.
+- **Verbindung testen:** Prüft den Steam-Shop und SteamGridDB einzeln und zeigt bei jedem, ob er erreichbar ist und woran es liegt (z. B. "Der Worker-Code ist veraltet" oder "Kein Proxy eingetragen").
+- **In Datei sichern / Aus Datei einlesen:** Sichert Schlüssel und Proxy in `discmenu-einstellungen.json`, **mit oder ohne Passwort** (verschlüsselt mit AES-GCM). Ein vergessenes Passwort lässt sich nicht wiederherstellen. Das Dateiformat ist dasselbe wie im Konfigurator: Eine dort gesicherte Datei lässt sich hier einlesen und umgekehrt. Die Datei enthält deinen Schlüssel, also nicht weitergeben und nicht ins Repository legen.
 
 > **Stand der Prüfung:** Die Abläufe sind mit nachgebauten Antworten von Steam und SteamGridDB getestet. Mit den echten Diensten wurde noch nicht geprüft, siehe [manuelle-pruefung.md](manuelle-pruefung.md).
+
+## Projekt speichern und laden
+
+Über **Projekt** in der oberen Leiste:
+
+- **Projekt exportieren (ZIP):** Speichert alle Einstellungen und die Bilder in einer Datei `<titel>-cover.zip` (in Chrome und Edge mit Dateiauswahl, sonst als Download). Die ZIP enthält `cover.json` mit den Einstellungen und die Bilder unter `images/`. Der SteamGridDB-Schlüssel steht **nicht** darin.
+- **Projekt importieren:** Lädt so eine ZIP und ersetzt das aktuelle Projekt (mit Rückfrage). Fehlt ein Bild in der ZIP, wird der Rest trotzdem geladen und das Fehlende gemeldet. Falsche oder beschädigte Dateien werden abgelehnt, ohne das aktuelle Projekt zu verändern.
+
+Die Bilder werden dabei unverändert übernommen (nicht erneut verkleinert oder neu kodiert).
 
 ## Anbieter
 
@@ -160,7 +192,8 @@ Das Cover wird in Originalgröße (273 × 183 mm, Slim 266 × 183 mm) mittig auf
 | `core.js` | Maße, Beschriftungen, Texte für die Systemanforderungen, Standardwerte. Ohne Browser testbar |
 | `app.js` | Eingaben, Bilder, Zeichnen der Vorschau, Drucken |
 | `extras.js` | Dialoge: Rezept, Steam, SteamGridDB, Einstellungen |
-| `online.js` | Anfragen an SteamGridDB und Steam (über den Proxy) und Auswertung der Antworten |
+| `online.js` | Anfragen an SteamGridDB und Steam (über den Proxy), Fehlermeldungen, Verbindungstest und Auswertung der Antworten |
+| `files.js` | Einstellungsdatei (mit Passwort), ZIP schreiben, Projektdatei |
 | `zip.js` | Liest die Rezept-ZIP |
 | `assets/` | Schriften (Lato), GOG-Logo, USK-, Disc- und Funktionssymbole |
 
@@ -170,7 +203,7 @@ Die Seite hat keine Abhängigkeiten und braucht kein Internet.
 
 - Fest eingebaut sind zwei Hüllenformate (Normal 14 mm, Slim 7 mm). Andere Maße gehen über "Eigene Maße", die Blu-ray-Werte sind nur Richtwerte.
 - SteamGridDB und Steam sind mit nachgebauten Antworten getestet, nicht mit den echten Diensten.
-- Bilder werden nicht gespeichert, nur die Einstellungen.
+- Im Browser werden nur die Einstellungen gemerkt, die Bilder nicht. Dafür gibt es den Projektexport.
 - Es gibt kein eigenes Booklet-Layout und keinen PDF-Export. Gedruckt wird über den Browser (dort lässt sich als PDF speichern).
 - Die Maße sind noch nicht mit einem echten Ausdruck und einer echten Hülle geprüft.
 - Es gibt kein GOG-Pendant zu den Steam-Daten (Anforderungen aus dem GOG-Katalog), die Angaben für GOG-Spiele müssen von Hand oder über Steam kommen.
@@ -199,9 +232,9 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 
 ## Tests
 
-`npm test` prüft die Logik: Maße und eigene Maße (`tests/cover.test.js`), die Auswertung der Steam-Daten, den ZIP-Leser, die Anfragen über den Proxy mit Fehlerfällen und die gemeinsamen Einstellungen (`tests/cover-online.test.js`).
+`npm test` prüft die Logik: Maße und eigene Maße (`tests/cover.test.js`), die Auswertung der Steam-Daten, den ZIP-Leser, die Anfragen über den Proxy mit Fehlerfällen und die gemeinsamen Einstellungen (`tests/cover-online.test.js`) sowie die Einstellungs- und Projektdateien samt Austausch mit dem Konfigurator (`tests/cover-files.test.js`).
 
-`npm run test:ui` lädt das Tool in einem echten Chromium. `tests/ui/cover.check.js` prüft Eingaben, Bildverkleinerung, Disc-Logos, Hüllenwechsel, eigene Maße, Speichern der Einstellungen, **feste Plätze** (nichts verschiebt sich), beide Stile und den **Druck** (genau eine A4-Seite quer, Cover mittig in Originalgröße, Schnittmarken im Blatt). `tests/ui/cover-online.check.js` prüft Anbieter-Stile, die Übernahme aus Rezept und Steam und die Bildsuche bei SteamGridDB mit nachgebauten Diensten. Nicht automatisch geprüft sind ein echter Ausdruck und die echten Dienste.
+`npm run test:ui` lädt das Tool in einem echten Chromium. `tests/ui/cover.check.js` prüft Eingaben, Bildverkleinerung, Disc-Logos, Hüllenwechsel, eigene Maße, Speichern der Einstellungen, **feste Plätze** (nichts verschiebt sich), beide Stile und den **Druck** (genau eine A4-Seite quer, Cover mittig in Originalgröße, Schnittmarken im Blatt). `tests/ui/cover-online.check.js` prüft die obere Leiste, Anbieter-Stile, die Übernahme aus Rezept und Steam (auch per Steam-Adresse und mit Fehlern des Proxys), die Bildsuche bei SteamGridDB, den Einstellungsdialog mit Sicherung in Datei (mit und ohne Passwort, auch mit einer Datei aus dem Konfigurator) sowie Export und Import des Projekts, alles mit nachgebauten Diensten. Nicht automatisch geprüft sind ein echter Ausdruck und die echten Dienste.
 
 ## Hinweise
 
