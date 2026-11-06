@@ -178,7 +178,7 @@ Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseit
 
 ## Feste Plätze auf der Rückseite
 
-Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (26 × 30 mm), in der Mitte die **Angaben**, rechts **Logos, USK und Copyright**. Schaltet man das Galaxy-Feld oder die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
+Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (26 × 30 mm), in der Mitte die **Angaben**, rechts **Logos, USK und Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Schaltet man das Galaxy-Feld aus (oder wählt Epic Games oder Steam), **rücken nur die Angaben nach links an den Rand** und nutzen den freien Platz, alles andere bleibt, wo es ist. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
 
 ## Rücken
 

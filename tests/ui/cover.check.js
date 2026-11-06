@@ -85,13 +85,21 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.waitForTimeout(150);
   const base = await layout();
   await page.uncheck('[data-k=galaxy]'); await page.waitForTimeout(150);
-  assert.deepEqual(await layout(), base, 'Ohne Galaxy-Feld darf sich nichts verschieben');
+  // Ohne Galaxy-Feld rücken nur die Systemanforderungen nach links an den Rand, alles andere bleibt an seinem Platz
+  const noGx = await layout();
+  const rest = (l) => l.filter((r) => !r[0].startsWith('#specs'));
+  assert.deepEqual(rest(noGx), rest(base), 'Ohne Galaxy-Feld darf sich nichts außer den Anforderungen verschieben: ' + JSON.stringify([rest(base), rest(noGx)]));
+  for (const sel of ['#specs', '#specs li']) {
+    const was = base.find((r) => r[0] === sel), now = noGx.find((r) => r[0] === sel);
+    assert.ok(now[1] < was[1] - 15, sel + ' rückt nach links (vorher ' + was[1] + ', jetzt ' + now[1] + ')');
+    assert.equal(now[2], was[2], sel + ' bleibt in der Höhe');
+  }
   await page.uncheck('[data-k=uskBack]'); await page.waitForTimeout(150);
-  assert.deepEqual(await layout(), base, 'Ohne USK auf der Rückseite darf sich nichts verschieben');
+  assert.deepEqual(await layout(), noGx, 'Ohne USK auf der Rückseite darf sich nichts verschieben');
   await page.fill('[data-k=other]', ''); await page.waitForTimeout(150);          // eine Zeile weniger: die übrigen bleiben oben stehen
   const fewer = await layout();
-  assert.deepEqual(fewer.find((x) => x[0] === '#specs li'), base.find((x) => x[0] === '#specs li'));
-  assert.deepEqual(fewer.find((x) => x[0] === '#feats'), base.find((x) => x[0] === '#feats'));
+  assert.deepEqual(fewer.find((x) => x[0] === '#specs li'), noGx.find((x) => x[0] === '#specs li'));
+  assert.deepEqual(fewer.find((x) => x[0] === '#feats'), noGx.find((x) => x[0] === '#feats'));
   await page.check('[data-k=galaxy]'); await page.check('[data-k=uskBack]');
 
   // Stil "Modern": Streifen oben, Überschrift der Systemanforderungen, alles bleibt auf dem Blatt
