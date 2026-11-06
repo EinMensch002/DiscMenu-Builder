@@ -19,6 +19,8 @@
     get key() { return store.get(KEY_KEY); },
     get proxy() { return store.get(KEY_PROXY); },
     save(key, proxy) { store.set(KEY_KEY, (key || '').trim()); store.set(KEY_PROXY, (proxy || '').trim()); },
+    get brandfetch() { return store.get('brandfetch-id'); },
+    saveBrandfetch(id) { store.set('brandfetch-id', (id || '').trim()); },
   };
 
   const CORS_HINT = 'Die Anfrage wurde vom Browser blockiert oder es gibt keine Verbindung. Meist liegt das an CORS: Der Dienst erlaubt Anfragen aus dem Browser nicht. Trage in den Einstellungen einen eigenen Proxy ein (Anleitung im Repository: docs/steamgriddb.md).';
@@ -362,7 +364,31 @@
     return url;
   }
 
-  const api = { logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, steamUsk, SG_KINDS };
+  /* ---------- Publisher-Logos über Brandfetch (zweite Quelle, mit kostenloser Client-ID) ----------
+     Die Brand-Search-API von Brandfetch ist für Browser gedacht: Die Client-ID steht in der Adresse, ein Proxy ist nicht nötig.
+     Sie findet Firmen anhand ihrer Webseite, auch kleine Studios. Antwort: Liste mit Name, Domain und Bild-Adresse (icon). */
+  async function brandSearch(term) {
+    const id = settings.brandfetch;
+    if (!id) throw new Error('Bitte zuerst die Brandfetch-Client-ID in den Einstellungen eintragen.');
+    const url = 'https://api.brandfetch.io/v2/search/' + encodeURIComponent(term) + '?c=' + encodeURIComponent(id);
+    let r;
+    try { r = await fetch(url); }
+    catch (e) {
+      if (!settings.proxy) throw new Error('Brandfetch ist nicht erreichbar. Bitte die Internetverbindung prüfen.');
+      r = await net(url);
+    }
+    if (r.status === 401 || r.status === 403) throw new Error('Die Brandfetch-Client-ID wurde abgelehnt. Bitte in den Einstellungen prüfen.');
+    if (r.status === 429) throw new Error('Brandfetch hat zu viele Anfragen gemeldet. Bitte kurz warten.');
+    if (!r.ok) throw new Error('Brandfetch hat mit Fehler ' + r.status + ' geantwortet.');
+    let list;
+    try { list = await r.json(); } catch (e) { throw new Error('Brandfetch hat keine lesbare Antwort geliefert.'); }
+    return (Array.isArray(list) ? list : []).map((b) => ({
+      id: String(b.brandId || b.domain || b.name || ''), label: String(b.name || b.domain || ''), description: String(b.domain || ''),
+      url: typeof b.icon === 'string' && b.icon ? b.icon : (b.domain ? 'https://cdn.brandfetch.io/' + encodeURIComponent(b.domain) + '/w/400/h/400?c=' + encodeURIComponent(id) : ''),
+    })).filter((x) => x.url && x.label);
+  }
+
+  const api = { brandSearch, logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, steamUsk, SG_KINDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverOnline = api;
 })(typeof window !== 'undefined' ? window : globalThis);

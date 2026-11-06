@@ -19,6 +19,7 @@
   /* values: { key, proxy }. Ohne Passwort entsteht lesbarer Text, mit Passwort eine verschlüsselte Datei. */
   async function packSettings(values, password) {
     const plain = { type: 'discmenu-settings', version: 1, sgdbKey: values.key || '', proxy: values.proxy || '' };
+    if (values.brandfetch) plain.brandfetchId = values.brandfetch;      // optional, der Konfigurator ignoriert das Feld
     if (!password) return JSON.stringify(plain, null, 2) + '\n';
     if (!subtle()) throw new Error('Dieser Browser kann hier nicht verschlüsseln. Die Datei lässt sich nur ohne Passwort sichern.');
     const salt = globalThis.crypto.getRandomValues(new Uint8Array(16)), iv = globalThis.crypto.getRandomValues(new Uint8Array(12)), iterations = 250000;
@@ -43,7 +44,9 @@
         plain = JSON.parse(new TextDecoder().decode(await subtle().decrypt({ name: 'AES-GCM', iv: unb64(j.iv) }, key, unb64(j.data))));
       } catch (e) { throw new Error('Falsches Passwort oder beschädigte Datei.'); }
     }
-    return { key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '') };
+    const out = { key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '') };
+    if (plain.brandfetchId) out.brandfetch = String(plain.brandfetchId);
+    return out;
   }
 
   /* ---------- ZIP schreiben (gespeichert, ohne Kompression) ---------- */

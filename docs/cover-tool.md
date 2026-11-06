@@ -18,7 +18,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 ## Standardwerte
 
-Neue Projekte starten mit dem Stil Klassisch, dem Rückentitel mittig und ohne GOG-Galaxy-Feld. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
+Neue Projekte starten mit dem Stil **Leiste**, der dunklen GOG-Leiste, dem Rückentitel mittig und ohne GOG-Galaxy-Feld. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
 
 ## Schnellstart
 
@@ -104,7 +104,7 @@ Die Angaben kommen auf Englisch, so wie Steam sie liefert. Lange Angaben (z. B. 
 
 ### Publisher-Logo suchen
 
-Beim Publisher-Logo (🔎 im Bildfeld) sucht das Tool **nicht bei SteamGridDB, sondern bei Wikidata** (Logos kommen von Wikimedia Commons). Das Suchfeld ist mit dem **Publisher aus dem Steam-Import** vorbelegt (z. B. "Valve"), darunter stehen Knöpfe für Publisher und Entwickler (z. B. "CD PROJEKT RED"). Es erscheinen nur Firmen, bei denen ein Logo hinterlegt ist. Aktuelle Logos stehen vorn, ältere (bei Wikidata mit Enddatum) sind als "älteres Logo" gekennzeichnet. Ein Klick wählt das Logo, "Als Publisher-Logo übernehmen" lädt es (als PNG, 800 px breit, transparent). Es ist weder ein Schlüssel noch ein Proxy nötig. Nicht jede Firma hat ein Logo bei Wikidata, dann hilft ein anderer Name oder das Logo als Datei.
+Beim Publisher-Logo (🔎 im Bildfeld) sucht das Tool **nicht bei SteamGridDB, sondern bei Wikidata** (Logos kommen von Wikimedia Commons). Das Suchfeld ist mit dem **Publisher aus dem Steam-Import** vorbelegt (z. B. "Valve"), darunter stehen Knöpfe für Publisher und Entwickler (z. B. "CD PROJEKT RED"). Es erscheinen nur Firmen, bei denen ein Logo hinterlegt ist. Aktuelle Logos stehen vorn, ältere (bei Wikidata mit Enddatum) sind als "älteres Logo" gekennzeichnet. Ein Klick wählt das Logo, "Als Publisher-Logo übernehmen" lädt es (als PNG, 800 px breit, transparent). Es ist weder ein Schlüssel noch ein Proxy nötig. Nicht jede Firma hat ein Logo bei Wikidata (Indie-Studios oft nicht). Dann die **Quelle im Dialog auf Brandfetch** umstellen: Brandfetch findet Firmen über ihre Webseite und liefert das Firmensymbol. Dafür braucht man eine **kostenlose Client-ID** aus dem [Brandfetch-Entwicklerportal](https://developers.brandfetch.com/), die in den Einstellungen eingetragen wird (nur in diesem Browser gespeichert, auch in der Einstellungsdatei sicherbar). Brandfetch liefert meist das **Symbol** der Firma, nicht den langen Schriftzug. Hilft beides nicht, bleibt das Logo als Datei.
 
 ### Bilder von SteamGridDB
 
@@ -184,7 +184,7 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 | Stil | Aussehen |
 |---|---|
 | **Klassisch** (Standard) | Wie die GOG-Originalhüllen: lila Logo-Ecke oben links auf der Vorderseite, grüner Streifen mit Spielfunktionen, helles Feld mit den Angaben, lila Rücken |
-| **Leiste** | Wie Handelsspiele im Laden: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten. Die Rückseite bleibt wie beim klassischen Stil |
+| **Leiste** | Wie Handelsspiele im Laden: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten. Die Rückseite bleibt wie beim klassischen Stil. Bei GOG ist die Leiste standardmäßig **dunkel (Anthrazit mit lila Linie)**, weil Lila zu den meisten Covern nicht passt. Unter "Farbe der Leiste bei GOG" lässt sich auf **Lila mit grüner Linie** (GOG-Farben) umstellen |
 
 Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseite und Rücken das GOG-Logo. Der Stil wird mit den Einstellungen gemerkt. Der frühere Stil "Modern" (dunkle Rückseite) ist entfallen, gespeicherte Projekte damit öffnen sich im Stil Leiste.
 

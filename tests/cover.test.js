@@ -122,10 +122,10 @@ test('Gespeicherte Einstellungen: kaputte oder alte Daten stören nicht', () => 
   assert.equal(m.disc, 'bluray');
   assert.equal(m.usk, '0');
   assert.equal(m.lang, 'de');
-  assert.equal(m.theme, 'classic');
+  assert.equal(m.theme, 'bar');
   assert.equal(C.mergeState({ theme: 'modern' }).theme, 'bar');          // alter Stil "Modern" wird zur Leiste
-  assert.equal(C.mergeState({ theme: 'bar' }).theme, 'bar'); assert.equal(C.mergeState({ theme: 'x' }).theme, 'classic');
-  assert.equal(C.mergeState({ theme: 'bunt' }).theme, 'classic');
+  assert.equal(C.mergeState({ theme: 'bar' }).theme, 'bar'); assert.equal(C.mergeState({ theme: 'x' }).theme, 'bar');
+  assert.equal(C.mergeState({ theme: 'bunt' }).theme, 'bar');
   assert.equal(m.title, '');
   assert.deepEqual(m.features, ['co_op']);
   assert.deepEqual(m.os.win, ['7']);

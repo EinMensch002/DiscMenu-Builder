@@ -59,6 +59,9 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     if (a === 'wbsearchentities') return json({ search: [{ id: 'Q1', label: 'Valve', description: 'video game company' }, { id: 'Q2', label: 'Valve (Ventil)', description: 'Bauteil' }] });
     return json({ entities: { Q1: { claims: { P154: [{ mainsnak: { datavalue: { value: 'Valve logo.svg' } } }, { mainsnak: { datavalue: { value: 'Valve old.png' } } }] } }, Q2: { claims: {} } } });
   });
+  const bfCalls = [];
+  await page.route('https://api.brandfetch.io/**', (route) => { bfCalls.push(route.request().url()); return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify([{ brandId: 'b1', name: 'Team Cherry', domain: 'teamcherry.com.au', icon: 'https://asset.brandfetch.test/cherry.png' }]) }); });
+  await page.route('https://asset.brandfetch.test/**', (route) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'image/png' }, body: PNG }));
   const cdnCalls = [];
   // Commons: Special:FilePath hat kein CORS (nur als <img> nutzbar), die Bilddatei kommt über die API von upload.wikimedia.org
   await page.route('https://commons.wikimedia.org/w/api.php**', (route) => { cdnCalls.push(route.request().url()); return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify({ query: { pages: { 1: { imageinfo: [{ thumburl: 'https://upload.wikimedia.org/thumb/800px-Valve_logo.svg.png' }] } } } }) }); });
@@ -71,7 +74,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   const openMenu = (name) => page.click('.menu summary:has-text("' + name + '")');
   const download = async (action) => { const [dl] = await Promise.all([page.waitForEvent('download'), action()]); return { name: dl.suggestedFilename(), buffer: fs.readFileSync(await dl.path()) }; };
   await page.goto(url);
-  await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.evaluate(() => localStorage.clear()); await page.reload(); await page.selectOption('[data-k=theme]', 'classic');
 
   // ---- Obere Leiste: alles, was nicht das Cover einstellt, steht dort und nicht im Formular ----
   assert.equal(await page.locator('header.top #bSettings').isVisible(), true);
@@ -231,6 +234,26 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));
   assert.ok(cdnCalls.some((u) => /upload\.wikimedia\.org\/thumb\/800px-Valve_logo/.test(u)) && cdnCalls.some((u) => /w\/api\.php.*titles=File%3AValve%20logo\.svg/.test(u)), 'Logo wurde über die Commons-API von upload.wikimedia.org geladen');
   assert.ok(!calls.some((c) => /steamgriddb/.test(c.target) && /logos/.test(c.target)), 'Kein SteamGridDB für Publisher-Logos');
+
+  // ---- Zweite Quelle: Brandfetch (Indie-Studios), Client-ID in den Einstellungen ----
+  await page.click('[data-img=publisher] .x');
+  await page.click('[data-img=publisher] .sg');
+  await page.selectOption('#dlg select', 'brandfetch');
+  assert.match(await page.locator('#dlg .dmsg.err').textContent(), /Client-ID/, 'ohne ID ein Hinweis');
+  await page.click('#dlgX');
+  await page.click('#bSettings');
+  await page.fill('#dlg input[placeholder*="Brandfetch"]', 'BFID');
+  await page.click('#dlg button:has-text("Speichern")');
+  assert.equal(await page.evaluate(() => localStorage.getItem('brandfetch-id')), 'BFID');
+  await page.click('#dlgX');
+  await page.click('[data-img=publisher] .sg');
+  await page.selectOption('#dlg select', 'brandfetch');
+  await page.waitForFunction(() => /Team Cherry/.test((document.querySelector('#dlg .gal small') || {}).textContent || ''));
+  assert.match(await page.locator('#dlg .gal small').first().textContent(), /Team Cherry · teamcherry\.com\.au/);
+  assert.ok(bfCalls.some((u) => /v2\/search\/Valve\?c=BFID/.test(u)), 'Suche mit der gespeicherten Client-ID');
+  await page.locator('#dlg .gal button').first().click();
+  await page.click('#dlg button:has-text("Als Publisher-Logo übernehmen")');
+  await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));
 
   // ---- Einstellungen sichern und einlesen: Datei, mit und ohne Passwort, kompatibel mit dem Konfigurator ----
   await page.evaluate(() => { localStorage.setItem('sgdb-key', 'KEY2'); localStorage.setItem('sgdb-proxy', 'https://proxy.test/?url={url}'); });

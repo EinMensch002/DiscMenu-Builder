@@ -223,7 +223,8 @@
   /* Farben und Schriftzug des Anbieters. Nur GOG hat ein Logo, bei den anderen steht ein Schriftzug. */
   function applyProvider(cover) {
     const P = C.PROVIDERS[state.provider];
-    const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line };
+    const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line, spineBg: P.brand };
+    if (P.darkBar && state.gogBar === 'dark') Object.assign(vars, { barA: P.darkBar.barA, barB: P.darkBar.barB, line: P.darkBar.line, spineBg: P.darkBar.spine });
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
     cover.classList.toggle('has-wm', state.provider !== 'gog');
     $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + P.logo; img.alt = P.name; });

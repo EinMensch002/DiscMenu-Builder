@@ -25,8 +25,10 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload();
 
-  // Standardwerte: klassischer Stil, Titel mittig, Galaxy-Feld aus, USK voll deckend
-  assert.equal(await page.inputValue('[data-k=theme]'), 'classic');
+  // Standardwerte: Stil Leiste, dunkle GOG-Leiste, Titel mittig, Galaxy-Feld aus, USK voll deckend
+  assert.equal(await page.inputValue('[data-k=theme]'), 'bar');
+  assert.equal(await page.inputValue('[data-k=gogBar]'), 'dark');
+  assert.equal(await page.locator('#cover').evaluate((e) => getComputedStyle(e).getPropertyValue('--barB').trim()), '#1b1b1f');
   assert.equal(await page.inputValue('[data-k=spineTitle]'), 'center');
   assert.equal(await page.locator('[data-k=galaxy]').isChecked(), false);
   assert.equal(await page.locator('#galaxy').evaluate((e) => getComputedStyle(e).visibility), 'hidden');

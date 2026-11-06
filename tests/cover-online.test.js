@@ -266,3 +266,34 @@ test('Steam: Altersfreigabe wird als USK übernommen', () => {
   assert.equal(O.steamPatchBoth({ name: 'X', pc_requirements: [] }).patch.usk, undefined);
   assert.ok(C.USK_VALUES.includes(b.patch.usk));
 });
+
+test('Brandfetch: Suche nach Firmenlogos mit Client-ID', async () => {
+  const mem = new Map();
+  globalThis.localStorage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  const real = globalThis.fetch; let asked = '';
+  try {
+    await assert.rejects(O.brandSearch('Team Cherry'), /Client-ID/);                      // ohne ID kein Versuch
+    O.settings.saveBrandfetch('  ID123 ');
+    assert.equal(O.settings.brandfetch, 'ID123');
+    globalThis.fetch = async (url) => { asked = url; return { ok: true, status: 200, json: async () => [
+      { brandId: 'b1', name: 'Team Cherry', domain: 'teamcherry.com.au', icon: 'https://asset.example/icon.png', claimed: false },
+      { brandId: 'b2', name: 'Ohne Icon', domain: 'x.example' }, { name: '' }, { brandId: 'b3', name: 'Ohne Domain und Bild' }] }; };
+    const res = await O.brandSearch('Team Cherry');
+    assert.equal(asked, 'https://api.brandfetch.io/v2/search/Team%20Cherry?c=ID123');
+    assert.deepEqual(res.map((r) => [r.label, r.url]), [['Team Cherry', 'https://asset.example/icon.png'], ['Ohne Icon', 'https://cdn.brandfetch.io/x.example/w/400/h/400?c=ID123']]);
+    globalThis.fetch = async () => ({ ok: false, status: 401 });
+    await assert.rejects(O.brandSearch('x'), /abgelehnt/);
+    globalThis.fetch = async () => ({ ok: false, status: 429 });
+    await assert.rejects(O.brandSearch('x'), /zu viele/);
+  } finally { globalThis.fetch = real; delete globalThis.localStorage; }
+});
+
+test('Einstellungsdatei: Brandfetch-ID ist optional und stört den Konfigurator nicht', async () => {
+  const F = require('../cover-tool/files.js');
+  const plain = JSON.parse(await F.packSettings({ key: 'k', proxy: 'https://p/?url={url}' }, ''));
+  assert.equal('brandfetchId' in plain, false);                       // ohne ID bleibt die Datei wie beim Konfigurator
+  const text = await F.packSettings({ key: 'k', proxy: '', brandfetch: 'ID1' }, '');
+  assert.deepEqual(await F.unpackSettings(text, ''), { key: 'k', proxy: '', brandfetch: 'ID1' });
+  const enc = await F.packSettings({ key: '', proxy: '', brandfetch: 'ID2' }, 'pw');
+  assert.equal((await F.unpackSettings(enc, 'pw')).brandfetch, 'ID2');
+});

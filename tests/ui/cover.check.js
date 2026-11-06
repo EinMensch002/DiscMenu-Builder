@@ -23,7 +23,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   const page = await browser.newPage({ viewport: { width: 1500, height: 950 } });
   const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(url);
-  await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.evaluate(() => localStorage.clear()); await page.reload(); await page.selectOption('[data-k=theme]', 'classic');   // die Tests gehen vom klassischen Stil aus (Standard ist die Leiste)
 
   // Titel, Funktionen, Systemanforderungen
   await page.fill('[data-k=title]', 'Sehr langer Spieltitel: Die Rückkehr der Titel & Co. <b>');

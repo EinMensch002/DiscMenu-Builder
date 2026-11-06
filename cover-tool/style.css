@@ -235,6 +235,7 @@ dialog .f small { display: block; margin-top: 3px; }
 /* ===== Stil "Leiste": Kopfleiste über die ganze Breite wie bei Handelsspielen (Vorderseite und Rücken) =====
    Verlauf von barA nach barB, darunter eine Akzentlinie (line), die über den Rücken durchläuft. Gilt für alle Anbieter. */
 .cover { --bar-h: 18.6mm; --bar-line: 1.6mm; }
+.theme-bar { --sp: var(--spineBg, var(--brand, #89268d)); }
 .theme-bar .gog-corner { display: none; }
 .theme-bar .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); align-items: center; justify-content: space-between; padding-right: 4mm; background: linear-gradient(var(--barA), var(--barB)); border-bottom: var(--bar-line) solid var(--line); z-index: 3; }
 .theme-bar .gog-bar img { height: 12.5mm; width: auto; margin-left: 4.5mm; display: block; }

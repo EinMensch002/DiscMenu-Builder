@@ -7,7 +7,7 @@
   const REPO = 'https://github.com/EinMensch002/DiscMenu-Builder';
   const DOCS = REPO + '/blob/main/docs/steamgriddb.md';
   const LINKS = {
-    sgdb: 'https://www.steamgriddb.com/', sgdbKey: 'https://www.steamgriddb.com/profile/preferences/api', cf: 'https://dash.cloudflare.com/',
+    sgdb: 'https://www.steamgriddb.com/', brandfetch: 'https://developers.brandfetch.com/', sgdbKey: 'https://www.steamgriddb.com/profile/preferences/api', cf: 'https://dash.cloudflare.com/',
     worker: REPO + '/blob/main/tools/cors-proxy/worker.js', setup: DOCS + '#einrichten-steamgriddb', proxy: DOCS + '#proxy-einrichten-cloudflare-worker',
     secure: DOCS + '#proxy-auf-die-eigene-seite-beschränken-empfohlen', cors: DOCS + '#proxy-cors', backup: DOCS + '#einstellungen-in-einer-datei-sichern',
   };
@@ -74,6 +74,7 @@
   function openSettings() {
     const key = h('input', { type: 'password', autocomplete: 'off', placeholder: 'API-Schlüssel' }); key.value = O.settings.key;
     const proxy = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', placeholder: 'https://mein-proxy.example.workers.dev/?url={url}' }); proxy.value = O.settings.proxy;
+    const bf = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', placeholder: 'Client-ID von Brandfetch (optional)' }); bf.value = O.settings.brandfetch;
     const pw = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'Passwort (optional)' });
     const msg = h('p', { class: 'dmsg' }), msg2 = h('p', { class: 'dmsg' }), tests = h('div', { class: 'dmsg' });
     const fin = h('input', { type: 'file', accept: '.json,application/json', hidden: true, onchange: async () => {
@@ -82,19 +83,22 @@
         const v = await F.unpackSettings(await f.text(), pw.value);
         if (v.proxy && !v.proxy.includes('{url}')) throw new Error('Die Proxy-Adresse in der Datei enthält keinen Platzhalter {url}.');
         key.value = v.key; proxy.value = v.proxy; O.settings.save(v.key, v.proxy);
+        if (v.brandfetch) { bf.value = v.brandfetch; O.settings.saveBrandfetch(v.brandfetch); }
         say(msg2, 'Einstellungen eingelesen und gespeichert.');
       } catch (e) { say(msg2, e.message === 'PASSWORD_NEEDED' ? 'Die Datei ist verschlüsselt. Bitte das Passwort eintragen und die Datei erneut einlesen.' : e.message, true); }
     } });
     const saveCfg = () => {
       const p = proxy.value.trim();
       if (p && !p.includes('{url}')) { say(msg, 'Die Proxy-Adresse muss den Platzhalter {url} enthalten.', true); return false; }
-      O.settings.save(key.value, p); return true;
+      O.settings.save(key.value, p); O.settings.saveBrandfetch(bf.value); return true;
     };
     openDlg('Einstellungen für SteamGridDB und Steam',
       h('p', { class: 'dmsg' }, 'Den API-Schlüssel gibt es kostenlos im SteamGridDB-Profil. Er wird nur in diesem Browser gespeichert. Die Einstellungen gelten auch im Konfigurator (auf GitHub Pages teilen sich beide Seiten den Speicher), und eine dort gesicherte Datei lässt sich hier einlesen.'),
       h('p', { class: 'dmsg' }, ext('Schlüssel bei SteamGridDB erzeugen', LINKS.sgdbKey), ' · ', ext('SteamGridDB', LINKS.sgdb), ' · ', ext('Anleitung', LINKS.setup)),
       wrapField('API-Schlüssel (nur für SteamGridDB)', key),
       wrapField('Proxy-Adresse', proxy, 'Für die Suche bei Steam und SteamGridDB fast immer nötig, weil der Browser die Anfragen sonst blockiert (CORS). {url} wird durch die Zieladresse ersetzt.'),
+      wrapField('Brandfetch-Client-ID (für Publisher-Logos)', bf, 'Zweite Quelle für Publisher-Logos, wenn Wikidata nichts findet (z. B. bei Indie-Studios). Die Client-ID ist kostenlos im Brandfetch-Entwicklerportal erhältlich und gehört nur in diesen Browser.'),
+      h('p', { class: 'dmsg' }, ext('Brandfetch-Entwicklerportal', LINKS.brandfetch)),
       h('p', { class: 'dmsg' }, 'Proxy einrichten: ', ext('Anleitung', LINKS.proxy), ' · ', ext('Cloudflare öffnen', LINKS.cf), ' · ', ext('Worker-Code', LINKS.worker), ' · ', ext('Proxy absichern', LINKS.secure)),
       msg,
       h('div', { class: 'drow' },
@@ -106,15 +110,15 @@
           say(msg, res.every((r) => r.ok) ? 'Alle Verbindungen in Ordnung.' : 'Mindestens eine Verbindung funktioniert nicht, Details unten.', !res.every((r) => r.ok));
           tests.replaceChildren(...res.map((r) => h('div', { class: r.ok ? '' : 'err' }, (r.ok ? '✓ ' : '✗ ') + r.name + ': ' + r.text)));
         } }, 'Verbindung testen'),
-        h('button', { type: 'button', onclick: () => { O.settings.save('', ''); key.value = ''; proxy.value = ''; say(msg, 'Gespeicherte Werte gelöscht.'); } }, 'Löschen')),
+        h('button', { type: 'button', onclick: () => { O.settings.save('', ''); O.settings.saveBrandfetch(''); key.value = ''; proxy.value = ''; bf.value = ''; say(msg, 'Gespeicherte Werte gelöscht.'); } }, 'Löschen')),
       tests,
       h('h3', {}, 'Einstellungen sichern'),
       h('p', { class: 'dmsg' }, 'Speichert Schlüssel und Proxy-Adresse in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Die Datei enthält deinen Schlüssel: nicht weitergeben und nicht ins Repository legen. ', ext('Mehr dazu', LINKS.backup)),
       wrapField('Passwort (optional)', pw, 'Wird beim Sichern zum Verschlüsseln und beim Einlesen zum Entschlüsseln benutzt. Ein vergessenes Passwort lässt sich nicht wiederherstellen.'),
       h('div', { class: 'drow' },
         h('button', { type: 'button', onclick: async () => {
-          const vals = { key: key.value.trim(), proxy: proxy.value.trim() };
-          if (!vals.key && !vals.proxy) { say(msg2, 'Es gibt noch nichts zu sichern.', true); return; }
+          const vals = { key: key.value.trim(), proxy: proxy.value.trim(), brandfetch: bf.value.trim() };
+          if (!vals.key && !vals.proxy && !vals.brandfetch) { say(msg2, 'Es gibt noch nichts zu sichern.', true); return; }
           try {
             const text = await F.packSettings(vals, pw.value);
             const where = await saveFile(new Blob([text], { type: 'application/json' }), 'discmenu-einstellungen.json', 'Einstellungen (JSON)', 'application/json', '.json');
@@ -340,32 +344,43 @@
 
   /* ---------- Publisher-Logo suchen (Wikidata / Wikimedia Commons, kein Schlüssel nötig) ---------- */
   function openPublisherLogo() {
-    const st = App.state, input = h('input', { type: 'text', placeholder: 'Firma, z. B. Valve oder CD Projekt' });
+    const st = App.state, input = h('input', { type: 'text', placeholder: 'Firma, z. B. Valve oder Team Cherry' });
     input.value = st.publisher || st.developer || '';
-    const msg = h('p', { class: 'dmsg' }, 'Sucht Firmenlogos bei Wikidata. Vorgabe ist der Publisher aus dem Steam-Import.');
+    const source = h('select', {}, h('option', { value: 'wikidata' }, 'Wikidata (ohne Schlüssel)'), h('option', { value: 'brandfetch' }, 'Brandfetch (mit Client-ID, findet auch kleine Studios)'));
+    const msg = h('p', { class: 'dmsg' }, 'Vorgabe ist der Publisher aus dem Steam-Import. Findet Wikidata nichts (z. B. bei Indie-Studios), die Quelle auf Brandfetch umstellen.');
     const gal = h('div', { class: 'gal' });
     let chosen = null;
     const ok = h('button', { type: 'button', class: 'pri', disabled: true, onclick: async () => {
       ok.disabled = true; say(msg, 'Logo wird übernommen ...');
       try {
-        const blob = await O.fetchBlob(await O.commonsImageUrl(chosen.file, 800));
-        await App.setImage('publisher', new File([blob], 'logo-' + chosen.id + '.png', { type: blob.type || 'image/png' })); closeDlg();
+        const blob = await O.fetchBlob(chosen.file ? await O.commonsImageUrl(chosen.file, 800) : chosen.url);
+        await App.setImage('publisher', new File([blob], 'logo-' + chosen.id.replace(/[^\w-]+/g, '') + '.' + ((blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg')), { type: blob.type || 'image/png' })); closeDlg();
       } catch (e) { say(msg, e.message, true); ok.disabled = false; }
     } }, 'Als Publisher-Logo übernehmen');
+    const pick = (e, c) => { gal.querySelectorAll('button').forEach((b) => b.classList.remove('sel')); e.currentTarget.classList.add('sel'); chosen = c; ok.disabled = false; };
+    let run = 0;                                   // nur die jüngste Suche darf die Anzeige ändern (langsame ältere Antworten werden verworfen)
     const go = async () => {
       const t = input.value.trim(); if (!t) return;
+      const me = ++run;
       say(msg, 'Suche läuft ...'); gal.replaceChildren(); chosen = null; ok.disabled = true;
       try {
-        const res = await O.logoSearch(t);
-        say(msg, res.length ? 'Logo auswählen (aktuelle zuerst, ältere sind gekennzeichnet):' : 'Kein Eintrag mit Logo gefunden. Anderen Namen versuchen (z. B. ohne "Games" oder "Studio") oder das Logo als Datei laden.');
-        gal.replaceChildren(...res.flatMap((r) => r.logos.slice(0, 6).map((file) => h('button', { type: 'button', onclick: (e) => {
-          gal.querySelectorAll('button').forEach((b) => b.classList.remove('sel')); e.currentTarget.classList.add('sel'); chosen = { id: r.id, file }; ok.disabled = false;
-        } }, h('img', { src: O.commonsUrl(file, 240), alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), h('small', {}, r.label + (r.description ? ' · ' + r.description : '') + (r.old.includes(file) ? ' · älteres Logo' : ''))))));
-      } catch (e) { say(msg, e.message, true); }
+        if (source.value === 'brandfetch') {
+          const res = await O.brandSearch(t); if (me !== run) return;
+          say(msg, res.length ? 'Logo auswählen (Symbole der Firmen, gefunden über die Webseite):' : 'Brandfetch kennt diesen Namen nicht. Anderen Namen versuchen oder das Logo als Datei laden.');
+          gal.replaceChildren(...res.slice(0, 12).map((r) => h('button', { type: 'button', onclick: (e) => pick(e, { id: r.id, url: r.url }) },
+            h('img', { src: r.url, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), h('small', {}, r.label + (r.description ? ' · ' + r.description : '')))));
+          return;
+        }
+        const res = await O.logoSearch(t); if (me !== run) return;
+        say(msg, res.length ? 'Logo auswählen (aktuelle zuerst, ältere sind gekennzeichnet):' : 'Kein Eintrag mit Logo gefunden. Anderen Namen versuchen, die Quelle auf Brandfetch umstellen oder das Logo als Datei laden.');
+        gal.replaceChildren(...res.flatMap((r) => r.logos.slice(0, 6).map((file) => h('button', { type: 'button', onclick: (e) => pick(e, { id: r.id, file }) },
+          h('img', { src: O.commonsUrl(file, 240), alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), h('small', {}, r.label + (r.description ? ' · ' + r.description : '') + (r.old.includes(file) ? ' · älteres Logo' : ''))))));
+      } catch (e) { if (me === run) say(msg, e.message, true); }
     };
+    source.addEventListener('change', () => { if (source.value === 'brandfetch' && !O.settings.brandfetch) say(msg, 'Für Brandfetch fehlt noch die kostenlose Client-ID. Sie gehört in die Einstellungen (Knopf oben in der Leiste).', true); else go(); });
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
     const quick = [['Publisher', st.publisher], ['Entwickler', st.developer]].filter(([, v]) => v).map(([l, v]) => h('button', { type: 'button', onclick: () => { input.value = v; go(); } }, l + ': ' + v));
-    openDlg('Publisher-Logo suchen', h('div', { class: 'drow' }, input, h('button', { type: 'button', class: 'pri', onclick: go }, 'Suchen')),
+    openDlg('Publisher-Logo suchen', h('div', { class: 'drow' }, input, h('button', { type: 'button', class: 'pri', onclick: go }, 'Suchen')), h('div', { class: 'drow' }, source),
       quick.length ? h('div', { class: 'drow' }, ...quick) : null, msg, gal,
       h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
     if (input.value) go();
