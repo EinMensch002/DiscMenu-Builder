@@ -21,11 +21,36 @@
   <form class="panel no-print" id="form" autocomplete="off" onsubmit="return false">
 
     <details class="sec" open>
+      <summary>Daten übernehmen</summary>
+      <p class="hint">Spart Tipparbeit. Rezept und Steam füllen Felder aus, die du danach noch ändern kannst.</p>
+      <div class="actions">
+        <button type="button" id="bRecipe">Aus Rezept (ZIP oder menu.json) …</button>
+        <button type="button" id="bSteam">Anforderungen von Steam …</button>
+        <button type="button" id="bSettings">Einstellungen für SteamGridDB und Steam …</button>
+      </div>
+      <input type="file" id="recipeFile" accept=".zip,.json,application/zip,application/json" hidden>
+    </details>
+
+    <details class="sec" open>
       <summary>Hülle und Disc</summary>
+      <label class="f"><span class="lab">Anbieter (Farben und Schriftzug auf der Hülle)</span>
+        <select data-k="provider"><option value="gog">GOG</option><option value="epic">Epic Games</option><option value="steam">Steam</option></select></label>
       <div class="grp"><span class="lab">Hülle</span>
         <div class="tiles">
           <label class="tile"><input type="radio" name="caseType" data-k="caseType" value="normal"><span>Normal (14 mm)</span></label>
           <label class="tile"><input type="radio" name="caseType" data-k="caseType" value="slim"><span>Slim (7 mm)</span></label>
+          <label class="tile"><input type="radio" name="caseType" data-k="caseType" value="custom"><span>Eigene Maße</span></label>
+        </div>
+        <div class="custom" id="customBox" hidden>
+          <p class="hint">Maße des ausgebreiteten Einlegers in Millimetern. Miss am besten deinen Einleger nach, die Werte der Hersteller weichen ab. Das Cover plus Schnittmarken muss auf A4 quer passen (bis 285 mm Breite, 198 mm Höhe).</p>
+          <div class="four">
+            <label class="f"><span class="lab">Rückseite (Breite)</span><input type="text" inputmode="decimal" data-k="custom.back" size="5"></label>
+            <label class="f"><span class="lab">Rücken</span><input type="text" inputmode="decimal" data-k="custom.spine" size="5"></label>
+            <label class="f"><span class="lab">Vorderseite (Breite)</span><input type="text" inputmode="decimal" data-k="custom.front" size="5"></label>
+            <label class="f"><span class="lab">Höhe</span><input type="text" inputmode="decimal" data-k="custom.h" size="5"></label>
+          </div>
+          <div class="drow"><span class="dmsg">Vorlagen (Richtwerte):</span>
+            <button type="button" data-preset="bluray">Blu-ray</button><button type="button" data-preset="blurayslim">Blu-ray Slim</button></div>
         </div>
       </div>
       <div class="grp"><span class="lab">Disc-Medium</span>
@@ -48,13 +73,13 @@
       <summary>Bilder</summary>
       <p class="hint">Bilder werden beim Laden auf Druckgröße (etwa 300 dpi) verkleinert. Die Vorschau zeigt, wie scharf sie gedruckt werden.</p>
       <div class="drop" data-img="front"><input type="file" accept="image/*" aria-label="Frontcover"><div class="thumb"></div>
-        <div class="dt"><b>Frontcover</b><span class="spec"></span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
+        <div class="dt"><b>Frontcover</b><span class="spec"></span><span class="info"></span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <div class="drop" data-img="backTop"><input type="file" accept="image/*" aria-label="Rückseite oben"><div class="thumb"></div>
-        <div class="dt"><b>Rückseite oben</b><span class="spec"></span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
+        <div class="dt"><b>Rückseite oben</b><span class="spec"></span><span class="info"></span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <div class="drop" data-img="backBottom"><input type="file" accept="image/*" aria-label="Rückseite unten"><div class="thumb"></div>
-        <div class="dt"><b>Rückseite unten <i>(optional)</i></b><span class="spec"></span><span class="info">Ohne Bild setzt sich das obere Bild hinter den Angaben fort.</span></div><button type="button" class="x" title="Entfernen">✕</button></div>
+        <div class="dt"><b>Rückseite unten <i>(optional)</i></b><span class="spec"></span><span class="info">Ohne Bild setzt sich das obere Bild hinter den Angaben fort.</span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <div class="drop" data-img="publisher"><input type="file" accept="image/*" aria-label="Publisher-Logo"><div class="thumb"></div>
-        <div class="dt"><b>Publisher-Logo <i>(optional)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, etwa 2:1</span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
+        <div class="dt"><b>Publisher-Logo <i>(optional)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, etwa 2:1</span><span class="info"></span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
     </details>
 
     <details class="sec" open>
@@ -143,7 +168,7 @@
         <select data-k="theme"><option value="classic">Klassisch (GOG-Original)</option><option value="modern">Modern (Konsolen-Stil)</option></select></label>
       <label class="f"><span class="lab">GOG-Logo auf dem Rücken</span>
         <select data-k="spineLogo"><option value="fixed">Feste Größe (6 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
-      <label class="chk"><input type="checkbox" data-k="galaxy"> GOG-Galaxy-Feld auf der Rückseite (der Platz bleibt reserviert)</label>
+      <label class="chk"><input type="checkbox" data-k="galaxy" id="galaxyChk"> GOG-Galaxy-Feld auf der Rückseite (nur bei GOG, der Platz bleibt reserviert)</label>
       <label class="chk"><input type="checkbox" data-k="cropMarks"> Schnittmarken an den Ecken</label>
       <label class="chk"><input type="checkbox" data-k="foldLines"> Falzlinien am Rücken (gestrichelt)</label>
       <p class="hint">Drucken: A4 quer, Skalierung 100 %, Ränder „Keine“, Hintergrundgrafiken aktivieren.</p>
@@ -181,15 +206,15 @@
             </section>
 
             <section class="spine" id="spine">
-              <div class="spine-head"><img class="spine-logo" id="spineLogo" src="assets/images/gog_logo.png" alt="GOG"></div>
+              <div class="spine-head"><img class="spine-logo" id="spineLogo" src="assets/images/gog_logo.png" alt="GOG"><span class="wm" id="spineWm"></span></div>
               <div class="spine-box" id="spineBox"><span class="spine-title" id="spineTitle"></span></div>
               <div class="spine-foot" id="spineFoot">PC</div>
             </section>
 
             <section class="front" id="front">
               <span class="ph">Frontcover</span>
-              <div class="gog-corner"><img src="assets/images/gog_logo.png" alt="GOG"></div>
-              <div class="gog-bar"><img src="assets/images/gog_logo.png" alt="GOG"><b id="frontTag"></b></div>
+              <div class="gog-corner"><img src="assets/images/gog_logo.png" alt="GOG"><span class="wm" id="cornerWm"></span></div>
+              <div class="gog-bar"><img src="assets/images/gog_logo.png" alt="GOG"><span class="wm" id="barWm"></span><b id="frontTag"></b></div>
               <img class="usk" id="frontUsk" alt="">
               <img class="front-pub" id="frontPub" alt="">
             </section>
@@ -202,7 +227,12 @@
   </section>
 </main>
 
+<dialog id="dlg"><div class="dh"><h2 id="dlgTitle"></h2><button type="button" id="dlgX">Schließen</button></div><div id="dlgBody"></div></dialog>
+
 <script src="core.js"></script>
+<script src="zip.js"></script>
+<script src="online.js"></script>
 <script src="app.js"></script>
+<script src="extras.js"></script>
 </body>
 </html>

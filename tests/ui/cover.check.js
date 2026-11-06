@@ -110,6 +110,24 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.selectOption('[data-k=theme]', 'classic');
   await page.waitForFunction(() => !document.querySelector('#cover').classList.contains('theme-modern'));
 
+  // Eigene Maße (Blu-ray-Vorlage): Cover hat die Maße, Bildmaße folgen, Druck bleibt eine Seite
+  await page.check('[data-k=caseType][value=custom]');
+  await page.waitForFunction(() => !document.querySelector('#customBox').hidden);
+  await page.click('[data-preset=bluray]');
+  await page.waitForFunction(() => document.querySelector('[data-img=front] .spec').textContent.includes('127.5 × 148 mm'));
+  assert.equal(await page.inputValue('[data-k="custom.back"]'), '127.5');
+  const wBlu = (await page.locator('#cover').boundingBox()).width, hBlu = (await page.locator('#cover').boundingBox()).height;
+  assert.ok(Math.abs(wBlu / hBlu - 269 / 148) < 0.01, 'Seitenverhältnis 269 : 148');
+  await page.fill('[data-k="custom.h"]', '900');
+  await page.waitForFunction(() => /angepasst/.test(document.querySelector('#notes').textContent));
+  await page.click('[data-preset=bluray]');
+  await page.waitForFunction(() => !/angepasst/.test(document.querySelector('#notes').textContent));
+  await page.emulateMedia({ media: 'print' });
+  const pdfBlu = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1');
+  assert.equal((pdfBlu.match(/\/Type\s*\/Page[^s]/g) || []).length, 1, 'Auch mit eigenen Maßen genau eine Seite');
+  await page.emulateMedia({ media: 'screen' });
+  await page.check('[data-k=caseType][value=normal]');
+
   // Einstellungen bleiben nach dem Neuladen, Bilder nicht
   await page.waitForTimeout(200); await page.reload();
   assert.equal(await page.inputValue('[data-k=theme]'), 'classic');

@@ -13,6 +13,30 @@ test('Maße: Rücken und Seiten ergeben die Gesamtbreite', () => {
   }
 });
 
+test('Eigene Maße: Grenzen, Anpassung und Vorlagen', () => {
+  const st = (custom, caseType = 'custom') => ({ ...C.defaultState(), caseType, custom: { ...C.defaultState().custom, ...custom } });
+  assert.deepEqual(C.caseDims(st({}, 'normal')), C.CASES.normal);
+  const ok = C.caseDims(st({ back: '127,5', spine: '14', front: '127.5', h: '148' }));
+  assert.deepEqual([ok.w, ok.h, ok.back, ok.spine, ok.front, ok.adjusted], [269, 148, 127.5, 14, 127.5, false]);
+  // zu groß oder unlesbar: in die Grenzen gezwungen und gemeldet
+  const big = C.caseDims(st({ back: '400', spine: '99', front: '150', h: '500' }));
+  assert.ok(big.adjusted && big.w <= C.MAX_W && big.h === 198 && big.spine === 30);
+  assert.ok(big.w + 12 <= C.PAPER.w && big.h + 12 <= C.PAPER.h, 'passt mit Schnittmarken auf das Blatt');
+  const bad = C.caseDims(st({ back: 'abc', spine: '', front: '-5', h: '0' }));
+  assert.ok(bad.adjusted && bad.back === 130 && bad.spine === 14 && bad.front === 100 && bad.h === 100);
+  // Vorlagen liegen innerhalb der Grenzen und ergeben die genannte Gesamtbreite
+  for (const [id, p] of Object.entries(C.PRESETS)) { const d = C.caseDims(st(p)); assert.equal(d.adjusted, false, id); assert.ok(d.w <= C.MAX_W); }
+  assert.equal(C.caseDims(st(C.PRESETS.bluray)).w, 269);
+  assert.equal(C.caseDims(st(C.PRESETS.blurayslim)).w, 262);
+  // Bildmaße folgen den eigenen Maßen
+  const sp = C.imageSpecs(C.caseDims(st(C.PRESETS.bluray)));
+  assert.deepEqual(sp.front, { w: 127.5, h: 148 });
+  assert.equal(sp.backTop.h, 148 - C.BACK.banner - C.BACK.bottom);
+  // gespeichert und wieder geladen
+  assert.equal(C.mergeState({ caseType: 'custom', custom: { back: '120' } }).custom.back, '120');
+  assert.equal(C.mergeState({ caseType: 'custom', custom: { spine: 5 } }).custom.spine, '14');   // Zahl statt Text: Standard
+});
+
 test('Bildmaße: oben, grüner Streifen und unten ergeben die Höhe', () => {
   const s = C.imageSpecs('normal');
   assert.equal(s.backTop.h + C.BACK.banner + C.BACK.bottom, 183);
@@ -96,6 +120,19 @@ test('Bilder werden für den Druck verkleinert, nie vergrößert', () => {
   assert.deepEqual(C.fitSize(5000, 2500, 2300), { w: 2300, h: 1150 });
   assert.deepEqual(C.fitSize(800, 600, 2300), { w: 800, h: 600 });
   assert.deepEqual(C.fitSize(1, 5000, 2300), { w: 1, h: 2300 });
+});
+
+test('Anbieter: Farben, Schriftzüge und Hinweise sind vollständig', () => {
+  assert.deepEqual(Object.keys(C.PROVIDERS), ['gog', 'epic', 'steam']);
+  for (const [id, p] of Object.entries(C.PROVIDERS)) {
+    for (const k of ['brand', 'onBrand', 'dark', 'mid', 'accent', 'bannerA', 'bannerB']) assert.match(p[k], /^#[0-9a-f]{6}$/i, id + '.' + k);
+    for (const lang of ['de', 'en']) { assert.ok(p.tag[lang] && p.note[lang], id + ' ' + lang); }
+  }
+  assert.equal(C.PROVIDERS.gog.wordmark, '');                           // GOG hat sein Logo
+  assert.ok(C.PROVIDERS.epic.wordmark && C.PROVIDERS.steam.wordmark);   // die anderen nur einen Schriftzug
+  assert.ok(!/GOG/.test(C.PROVIDERS.epic.note.de + C.PROVIDERS.epic.note.en + C.PROVIDERS.steam.note.de + C.PROVIDERS.steam.note.en), 'Hinweise anderer Anbieter nennen nicht GOG');
+  const brands = Object.values(C.PROVIDERS).map((p) => p.brand);
+  assert.equal(new Set(brands).size, 3, 'Jeder Anbieter hat eine eigene Farbe');
 });
 
 test('Alle Grafiken, die das Tool lädt, sind vorhanden und nicht übergroß', () => {
