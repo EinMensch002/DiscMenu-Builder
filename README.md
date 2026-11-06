@@ -114,6 +114,10 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] **SteamGridDB** angebunden: Bilder suchen und direkt als Frontcover, Rückseite oder Publisher-Logo übernehmen (mit nachgebauten Antworten getestet)
 - [x] **Steam**: Systemanforderungen, Plattformen und Funktionen einlesen (mit nachgebauten Antworten getestet, SteamDB hat keine offene Schnittstelle)
 - [x] Gemeinsame Einstellungen mit dem Konfigurator (Schlüssel und Proxy, auf Pages derselbe Speicher)
+- [x] Einstellungen wie im Konfigurator: Dialog mit Verbindungstest, Sicherung in Datei mit oder ohne Passwort (gleiches Format, gegenseitig lesbar)
+- [x] Projekt (Einstellungen und Bilder) als ZIP exportieren und importieren
+- [x] Obere Leiste für alles, was nicht das Cover selbst einstellt (Daten übernehmen, Projekt, Einstellungen)
+- [x] Steam-Suche robuster: verständliche Fehlermeldungen, Steam-Adresse oder App-ID statt Suche, gekürzte Angaben
 - [x] Eigene Hüllenmaße mit Vorlagen für Blu-ray (Richtwerte, nachmessen)
 - [ ] **SteamGridDB und Steam mit den echten Diensten prüfen** und nachbessern ([Checkliste](docs/manuelle-pruefung.md))
 - [ ] Anforderungen und Funktionen aus dem GOG-Katalog übernehmen

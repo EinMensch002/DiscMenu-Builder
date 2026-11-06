@@ -43,6 +43,8 @@ Der Schlüssel liegt nur im lokalen Speicher des Browsers und wird nie in die ZI
 
 ## Einstellungen in einer Datei sichern
 
+> Dieselbe Datei lässt sich auch im [Cover-Tool](cover-tool.md) einlesen und dort sichern (gleiches Format, auch mit Passwort). Auf GitHub Pages teilen sich beide Web-Apps außerdem denselben Speicher, einmal eintragen genügt.
+
 Damit Schlüssel und Proxy-Adresse nicht jedes Mal neu eingetragen werden müssen (z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät), gibt es im Dialog **SteamGridDB** den Abschnitt "Einstellungen sichern":
 
 - **In Datei sichern** schreibt `discmenu-einstellungen.json`. Bietet der Browser eine Dateiauswahl an, kann man Ziel und Name wählen, sonst wird die Datei heruntergeladen.

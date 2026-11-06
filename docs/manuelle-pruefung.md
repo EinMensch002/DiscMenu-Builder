@@ -65,12 +65,20 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 ## Steam und SteamGridDB (mit Proxy)
 
 - [ ] **Steam:** "Anforderungen von Steam" mit einem bekannten Spiel (z. B. Portal 2). Die Suche liefert Treffer, die Anforderungen erscheinen (Windows-Versionen, Prozessor, Grafik, Speicher, DirectX), und "Übernehmen" füllt die Felder.
+- [ ] **Steam per Adresse:** Die Adresse einer Steam-Seite (oder die App-ID) in das Suchfeld einfügen führt direkt zu den Anforderungen.
+- [ ] **Verbindung testen** in den Einstellungen zeigt für Steam-Shop und SteamGridDB je ein Häkchen.
 - [ ] **Steam, Sonderfälle:** Ein altes Spiel ohne Angaben, ein Spiel nur mit Freitext bei den Anforderungen und eines mit deutschem Shop-Text. Notieren, was nicht erkannt wird.
 - [ ] **Funktionen:** Die gesetzten Spielfunktionen stimmen mit dem Steam-Shop überein (Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller).
 - [ ] **SteamGridDB:** Suche über das 🔎 am Frontcover. Hochformat-Cover erscheinen, die Übernahme klappt (Bild wird über den Proxy geladen).
 - [ ] **Rückseite und Logo:** Hintergründe (Hero) und Logos lassen sich laden und übernehmen.
 - [ ] **Fehlerfälle:** Falscher Schlüssel, falsche Proxy-Adresse und ohne Proxy zeigen eine verständliche Meldung.
 - [ ] **Gemeinsame Einstellungen:** Schlüssel und Proxy aus dem Konfigurator sind im Cover-Tool schon eingetragen (und umgekehrt).
+
+## Einstellungen und Projekt
+
+- [ ] **Einstellungen sichern** (mit Dialog zur Dateiauswahl in Chrome oder Edge): Datei mit und ohne Passwort speichern, löschen, wieder einlesen.
+- [ ] Eine im **Konfigurator** gesicherte Einstellungsdatei lässt sich im Cover-Tool einlesen (und umgekehrt).
+- [ ] **Projekt exportieren** und wieder **importieren**: Einstellungen und Bilder sind danach wie vorher.
 
 ## Ausdruck
 

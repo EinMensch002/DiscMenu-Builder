@@ -78,7 +78,7 @@
   async function loadImage(key, file) {
     let result;
     if (file.type === 'image/svg+xml') {
-      result = { url: URL.createObjectURL(file), w: 0, h: 0, svg: true };
+      result = { url: URL.createObjectURL(file), w: 0, h: 0, svg: true, blob: file, type: 'image/svg+xml' };
     } else {
       const bmp = await createImageBitmap(file);
       const size = C.fitSize(bmp.width, bmp.height, MAX_EDGE[key]);
@@ -89,7 +89,7 @@
       if (!png) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size.w, size.h); }
       ctx.drawImage(bmp, 0, 0, size.w, size.h);
       const blob = await new Promise((res) => cv.toBlob(res, png ? 'image/png' : 'image/jpeg', 0.92));
-      result = { url: URL.createObjectURL(blob), w: size.w, h: size.h, srcW: bmp.width, srcH: bmp.height };
+      result = { url: URL.createObjectURL(blob), w: size.w, h: size.h, srcW: bmp.width, srcH: bmp.height, blob, type: png ? 'image/png' : 'image/jpeg' };
       bmp.close();
     }
     result.name = file.name;
@@ -97,6 +97,14 @@
     images[key] = result;
     renderDrops();
     changed();
+  }
+  /* Bild aus einer Projektdatei wiederherstellen (ohne es erneut zu verkleinern oder neu zu kodieren) */
+  async function restoreImage(key, data, type, name) {
+    const blob = new Blob([data], { type });
+    let w = 0, h = 0;
+    if (type !== 'image/svg+xml') { const bmp = await createImageBitmap(blob); w = bmp.width; h = bmp.height; bmp.close(); }
+    clearImage(key);
+    images[key] = { url: URL.createObjectURL(blob), w, h, name, blob, type, svg: type === 'image/svg+xml' };
   }
   function clearImage(key) {
     if (images[key]) { URL.revokeObjectURL(images[key].url); delete images[key]; }
@@ -217,7 +225,7 @@
       const li = el('li'), v = el('span', 'v' + (state.breakHw && row.values.length > 1 ? ' stack' : ''));
       row.values.forEach((text, i) => {
         if (i) v.append(el('span', 'sep', ' / '));
-        v.append(el('span', 'alt', text));
+        v.append(el('span', row.values.length > 1 ? 'alt' : 'one', text));      // nur bei zwei Alternativen unumbrochen
       });
       li.append(el('span', 'k', row.label), v);
       return li;
@@ -291,6 +299,15 @@
     get state() { return state; },
     /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
     patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },
+    /* Aktuelle Einstellungen und Bilder (für den Projektexport) */
+    snapshot() { return { state: JSON.parse(JSON.stringify(state)), images: Object.fromEntries(Object.entries(images).map(([k, v]) => [k, { blob: v.blob, type: v.type, name: v.name }])) }; },
+    /* Projekt einsetzen: Einstellungen und Bilder ersetzen das aktuelle Projekt */
+    async restore(newState, imgs) {
+      Object.keys(images).forEach(clearImage);
+      for (const [k, v] of Object.entries(imgs || {})) await restoreImage(k, v.data, v.type, v.name);
+      state = C.mergeState(newState);
+      syncControls(); renderDrops(); changed();
+    },
     /* Bild laden (Datei oder Blob), wie beim Ziehen in das Bildfeld */
     async setImage(key, file) { await loadImage(key, file); },
   };

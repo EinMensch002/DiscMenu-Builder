@@ -3,7 +3,9 @@
 const path = require('node:path');
 const zlib = require('node:zlib');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const { chromium } = require('playwright');
+const { loadCore } = require('../helpers');
 
 const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index.html');
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
@@ -49,8 +51,26 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   });
   await page.route('https://cdn.test/**', (route) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'image/png' }, body: PNG }));
 
+  await page.addInitScript(() => { delete window.showSaveFilePicker; });      // immer der normale Download (die Dateiauswahl lässt sich nicht automatisch bedienen)
+  page.on('dialog', (d) => d.accept());
+  const openMenu = (name) => page.click('.menu summary:has-text("' + name + '")');
+  const download = async (action) => { const [dl] = await Promise.all([page.waitForEvent('download'), action()]); return { name: dl.suggestedFilename(), buffer: fs.readFileSync(await dl.path()) }; };
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload();
+
+  // ---- Obere Leiste: alles, was nicht das Cover einstellt, steht dort und nicht im Formular ----
+  assert.equal(await page.locator('header.top #bSettings').isVisible(), true);
+  assert.equal(await page.locator('header.top #bReset').isVisible(), true);
+  assert.equal(await page.locator('header.top #bPrint').isVisible(), true);
+  assert.equal(await page.locator('#form #bSettings, #form #bRecipe, #form #bSteam').count(), 0, 'Das Formular enthält nur Einstellungen des Covers');
+  assert.doesNotMatch(await page.locator('#form').innerText(), /Daten übernehmen|Einstellungen für SteamGridDB/);
+  assert.equal(await page.locator('#bRecipe').isVisible(), false, 'Das Menü ist zu');
+  await openMenu('Daten übernehmen');
+  assert.equal(await page.locator('#bRecipe').isVisible(), true);
+  await page.click('body', { position: { x: 5, y: 400 } });                 // Klick daneben schließt das Menü
+  assert.equal(await page.locator('#bRecipe').isVisible(), false);
+  await openMenu('Projekt'); assert.equal(await page.locator('#bProjExport').isVisible(), true);
+  await page.keyboard.press('Escape'); assert.equal(await page.locator('#bProjExport').isVisible(), false);
 
   // ---- Anbieter-Stile ----
   const css = (sel, prop) => page.evaluate(([s, p]) => getComputedStyle(document.querySelector(s)).getPropertyValue(p).trim(), [sel, prop]);
@@ -108,14 +128,15 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.fill('#dlg input[placeholder*="API-Schlüssel"]', 'TESTKEY');
   await page.fill('#dlg input[placeholder*="proxy"]', 'https://proxy.test/?url={url}');
   await page.click('#dlg button:has-text("Speichern")');
+  assert.match(await page.locator('#dlg .dmsg', { hasText: 'Einstellungen gespeichert' }).first().textContent(), /gespeichert/);
   assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), 'TESTKEY');
   assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-proxy')), 'https://proxy.test/?url={url}');
   await page.click('#dlgX');
 
   // ---- Anforderungen von Steam ----
   await page.fill('[data-k=title]', 'Half-Life');
-  await page.click('#bSteam');
-  await page.locator('#dlg .dlist button', { hasText: /^Half-Life$/ }).click();
+  await openMenu('Daten übernehmen'); await page.click('#bSteam');
+  await page.locator('#dlg .dlist button', { hasText: /^Half-Life\s+\(App 70\)$/ }).click();
   await page.waitForSelector('#dlg .shown');
   const shown = await page.locator('#dlg .shown').innerText();
   assert.match(shown, /Windows \(7, 8, 10\) \/ Linux/); assert.match(shown, /NVIDIA GeForce 8800 GT/); assert.match(shown, /Version 9\.0c/);
@@ -156,6 +177,114 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.click('[data-img=publisher] .sg');
   assert.match(await page.locator('#dlg .dmsg').first().textContent(), /API-Schlüssel/);
   await page.click('#dlgX');
+
+  // ---- Einstellungen sichern und einlesen: Datei, mit und ohne Passwort, kompatibel mit dem Konfigurator ----
+  await page.evaluate(() => { localStorage.setItem('sgdb-key', 'KEY2'); localStorage.setItem('sgdb-proxy', 'https://proxy.test/?url={url}'); });
+  await page.click('#bSettings');
+  const pwField = '#dlg input[placeholder="Passwort (optional)"]', keyField = '#dlg input[placeholder="API-Schlüssel"]';
+  assert.equal(await page.inputValue(keyField), 'KEY2');
+  assert.equal(await page.locator(keyField).getAttribute('type'), 'password', 'Der Schlüssel wird nicht im Klartext angezeigt');
+  let file = await download(() => page.click('#dlg button:has-text("In Datei sichern")'));
+  assert.equal(file.name, 'discmenu-einstellungen.json');
+  assert.match(file.buffer.toString(), /"sgdbKey": "KEY2"/);
+  await page.fill(pwField, 'geheim');
+  file = await download(() => page.click('#dlg button:has-text("In Datei sichern")'));
+  assert.ok(!file.buffer.toString().includes('KEY2') && /"encrypted": true/.test(file.buffer.toString()), 'Mit Passwort ist die Datei verschlüsselt');
+  await page.click('#dlg button:has-text("Löschen")');
+  assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), null);
+  const load = (buffer) => page.setInputFiles('#dlg input[type=file]', { name: 'einstellungen.json', mimeType: 'application/json', buffer });
+  await page.fill(pwField, ''); await load(file.buffer);
+  await page.waitForFunction(() => /verschlüsselt. Bitte das Passwort/.test(document.querySelector('#dlg').textContent));
+  await page.fill(pwField, 'falsch'); await load(file.buffer);
+  await page.waitForFunction(() => /Falsches Passwort/.test(document.querySelector('#dlg').textContent));
+  await page.fill(pwField, 'geheim'); await load(file.buffer);
+  await page.waitForFunction(() => /eingelesen und gespeichert/.test(document.querySelector('#dlg').textContent));
+  assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), 'KEY2');
+  assert.equal(await page.inputValue(keyField), 'KEY2');
+  // Datei, die der Konfigurator gesichert hat (anderer Code, gleiches Format)
+  const K = loadCore();
+  await page.fill(pwField, '');
+  await load(Buffer.from(await K.packSettings({ key: 'FROMCONF', proxy: 'https://c.example/?url={url}' }, '')));
+  await page.waitForFunction(() => localStorage.getItem('sgdb-key') === 'FROMCONF');
+  await load(Buffer.from(await K.packSettings({ key: 'ENC', proxy: 'https://c.example/?url={url}' }, 'pw1')));
+  await page.fill(pwField, 'pw1'); await load(Buffer.from(await K.packSettings({ key: 'ENC', proxy: 'https://c.example/?url={url}' }, 'pw1')));
+  await page.waitForFunction(() => localStorage.getItem('sgdb-key') === 'ENC');
+  // Proxy ohne Platzhalter wird abgelehnt, keine Einstellungsdatei ebenso
+  await page.fill('#dlg input[placeholder*="proxy"]', 'https://ohne-platzhalter.example/');
+  await page.click('#dlg button:has-text("Speichern")');
+  assert.match(await page.locator('#dlg .dmsg.err').first().textContent(), /Platzhalter \{url\}/);
+  await page.fill(pwField, ''); await load(Buffer.from('{"type":"etwas-anderes"}'));
+  await page.waitForFunction(() => /keine Einstellungsdatei/.test(document.querySelector('#dlg').textContent));
+  await page.fill('#dlg input[placeholder*="proxy"]', 'https://proxy.test/?url={url}'); await page.click('#dlg button:has-text("Speichern")');
+
+  // Verbindungstest: beide Dienste einzeln
+  await page.click('#dlg button:has-text("Verbindung testen")');
+  await page.waitForFunction(() => /Alle Verbindungen in Ordnung/.test(document.querySelector('#dlg').textContent));
+  assert.match(await page.locator('#dlg').innerText(), /✓ Steam-Shop[\s\S]*✓ SteamGridDB/);
+  const blocked = (route) => route.fulfill({ status: 403, headers: CORS, body: 'Dieser Host ist nicht erlaubt.' });
+  await page.route('https://proxy.test/**', blocked);
+  await page.click('#dlg button:has-text("Verbindung testen")');
+  await page.waitForFunction(() => /✗ Steam-Shop/.test(document.querySelector('#dlg').textContent));
+  assert.match(await page.locator('#dlg').innerText(), /Worker-Code ist wahrscheinlich veraltet/);
+  await page.click('#dlgX');
+
+  // Steam: Fehler des Proxys werden erklärt, die Steam-Adresse umgeht die Suche
+  await page.fill('[data-k=title]', 'Half-Life');
+  await openMenu('Daten übernehmen'); await page.click('#bSteam');
+  await page.waitForFunction(() => /Worker-Code ist wahrscheinlich veraltet/.test(document.querySelector('#dlg').textContent));
+  await page.unroute('https://proxy.test/**', blocked);
+  await page.fill('#dlg input[type=text]', 'https://store.steampowered.com/app/70/Half-Life/');
+  await page.press('#dlg input[type=text]', 'Enter');
+  await page.waitForSelector('#dlg .shown');
+  assert.match(await page.locator('#dlg .shown').innerText(), /Version 9\.0c/);
+  assert.ok(calls.some((c) => /appdetails\?l=english&appids=70/.test(c.target)), 'Die Adresse führt direkt zu App 70');
+  await page.click('#dlg button:has-text("Abbrechen")');
+
+  // ---- Projekt exportieren und importieren ----
+  const giveImage = (key, w, h, type) => page.evaluate(async ({ key, w, h, type }) => {
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const ctx = cv.getContext('2d'); ctx.fillStyle = '#e0498a'; ctx.fillRect(0, 0, w, h);
+    const blob = await new Promise((r) => cv.toBlob(r, type)); const dt = new DataTransfer(); dt.items.add(new File([blob], key + '.png', { type }));
+    const input = document.querySelector('[data-img=' + key + '] input[type=file]'); input.files = dt.files; input.dispatchEvent(new Event('change', { bubbles: true }));
+  }, { key, w, h, type });
+  await page.fill('[data-k=title]', 'Größen-Test'); await page.selectOption('[data-k=provider]', 'steam'); await page.selectOption('[data-k=theme]', 'modern');
+  await page.check('[data-k=caseType][value=custom]'); await page.fill('[data-k="custom.back"]', '120'); await page.check('[data-k=features][value=leaderboards]');
+  await giveImage('publisher', 400, 200, 'image/png');
+  await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));
+  await page.waitForTimeout(150);
+  await openMenu('Projekt');
+  const proj = await download(() => page.click('#bProjExport'));
+  assert.equal(proj.name, 'groessen-test-cover.zip');
+  const CF = require('../../cover-tool/files.js'), CZ = require('../../cover-tool/zip.js');
+  const inside = CF.unpackProject(await CZ.read(new Uint8Array(proj.buffer)));
+  assert.equal(inside.state.title, 'Größen-Test'); assert.equal(inside.state.provider, 'steam');
+  assert.ok(inside.images.front && inside.images.publisher, 'Bilder sind in der Projektdatei');      // Frontcover kam aus dem SteamGridDB-Test
+  await page.click('#dlg button:has-text("Schließen")');
+  // Zurücksetzen löscht alles, der Import bringt es zurück
+  await page.click('#bReset');
+  await page.waitForFunction(() => document.querySelector('[data-k=title]').value === '');
+  assert.equal(await page.locator('[data-img=publisher]').getAttribute('class'), 'drop');
+  await page.setInputFiles('#projectFile', { name: proj.name, mimeType: 'application/zip', buffer: proj.buffer });
+  await page.waitForFunction(() => /Projekt importiert/.test(document.querySelector('#dlg').textContent));
+  assert.equal(await page.inputValue('[data-k=title]'), 'Größen-Test');
+  assert.equal(await page.inputValue('[data-k=provider]'), 'steam');
+  assert.equal(await page.inputValue('[data-k=theme]'), 'modern');
+  assert.equal(await page.locator('[data-k=caseType][value=custom]').isChecked(), true);
+  assert.equal(await page.inputValue('[data-k="custom.back"]'), '120');
+  assert.equal(await page.locator('[data-k=features][value=leaderboards]').isChecked(), true);
+  assert.match(await page.locator('[data-img=publisher]').getAttribute('class'), /has/);
+  assert.match(await page.locator('[data-img=front]').getAttribute('class'), /has/);
+  assert.equal(await page.locator('#cover').evaluate((e) => e.classList.contains('has-wm') && e.classList.contains('theme-modern')), true);
+  assert.equal(await page.locator('#spineTitle').textContent(), 'Größen-Test');
+  assert.ok(await page.evaluate(() => /^blob:/.test(document.querySelector('#frontPub').src)), 'Publisher-Logo ist wieder da');
+  await page.click('#dlg button:has-text("Schließen")');
+  // falsche Dateien: verständliche Meldung, nichts geht kaputt
+  await page.setInputFiles('#projectFile', { name: 'x.zip', mimeType: 'application/zip', buffer: Buffer.from('keine zip') });
+  await page.waitForFunction(() => /konnte nicht geladen werden/.test(document.querySelector('#dlg').textContent));
+  await page.click('#dlg button:has-text("Schließen")');
+  await page.setInputFiles('#projectFile', { name: 'rezept.zip', mimeType: 'application/zip', buffer: zip });
+  await page.waitForFunction(() => /fehlt die cover\.json/.test(document.querySelector('#dlg').textContent));
+  await page.click('#dlg button:has-text("Schließen")');
+  assert.equal(await page.inputValue('[data-k=title]'), 'Größen-Test', 'Fehlgeschlagene Importe ändern nichts');
 
   assert.deepEqual(errors, []);
   await browser.close();

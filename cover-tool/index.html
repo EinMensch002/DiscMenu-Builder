@@ -12,24 +12,28 @@
   <span class="sub">Hüllen für selbst gebrannte GOG-Discs, zum Ausdrucken</span>
   <nav>
     <a class="link" href="../">Zum Konfigurator</a>
+    <details class="menu"><summary>Daten übernehmen</summary>
+      <div class="pop">
+        <button type="button" id="bRecipe">Aus Rezept (ZIP oder menu.json) …</button>
+        <button type="button" id="bSteam">Anforderungen von Steam …</button>
+      </div>
+    </details>
+    <details class="menu"><summary>Projekt</summary>
+      <div class="pop">
+        <button type="button" id="bProjExport">Projekt exportieren (ZIP) …</button>
+        <button type="button" id="bProjImport">Projekt importieren …</button>
+      </div>
+    </details>
+    <button type="button" id="bSettings">Einstellungen</button>
     <button type="button" id="bReset">Zurücksetzen</button>
     <button type="button" id="bPrint" class="pri">Drucken</button>
   </nav>
+  <input type="file" id="recipeFile" accept=".zip,.json,application/zip,application/json" hidden>
+  <input type="file" id="projectFile" accept=".zip,application/zip" hidden>
 </header>
 
 <main class="app">
   <form class="panel no-print" id="form" autocomplete="off" onsubmit="return false">
-
-    <details class="sec" open>
-      <summary>Daten übernehmen</summary>
-      <p class="hint">Spart Tipparbeit. Rezept und Steam füllen Felder aus, die du danach noch ändern kannst.</p>
-      <div class="actions">
-        <button type="button" id="bRecipe">Aus Rezept (ZIP oder menu.json) …</button>
-        <button type="button" id="bSteam">Anforderungen von Steam …</button>
-        <button type="button" id="bSettings">Einstellungen für SteamGridDB und Steam …</button>
-      </div>
-      <input type="file" id="recipeFile" accept=".zip,.json,application/zip,application/json" hidden>
-    </details>
 
     <details class="sec" open>
       <summary>Hülle und Disc</summary>
@@ -232,6 +236,7 @@
 <script src="core.js"></script>
 <script src="zip.js"></script>
 <script src="online.js"></script>
+<script src="files.js"></script>
 <script src="app.js"></script>
 <script src="extras.js"></script>
 </body>
