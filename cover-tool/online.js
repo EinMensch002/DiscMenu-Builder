@@ -184,11 +184,17 @@
   }
 
   /* Steam-Kategorien -> Spielfunktionen des Cover-Tools */
-  const FEATURE_BY_ID = { 2: 'single_player', 1: 'multi_player', 49: 'multi_player', 36: 'multi_player', 9: 'co_op', 38: 'co_op', 39: 'co_op', 22: 'achievements', 23: 'cloud_saves', 28: 'controller_support', 18: 'controller_support', 25: 'leaderboards', 24: 'multi_player', 47: 'multi_player', 20: 'multi_player', 48: 'co_op' };
-  const FEATURE_ORDER = ['single_player', 'co_op', 'multi_player', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards'];
+  const FEATURE_BY_ID = {
+    2: 'single_player', 1: 'multi_player', 49: 'multi_player', 24: 'multi_player', 20: 'multi_player',
+    36: ['multi_player', 'online'], 38: ['co_op', 'online'], 9: 'co_op', 39: 'co_op',
+    47: ['multi_player', 'lan'], 48: ['co_op', 'lan'], 27: 'cross_platform',
+    22: 'achievements', 23: 'cloud_saves', 28: 'controller_support', 18: 'controller_support', 25: 'leaderboards',
+    30: 'mods', 31: 'vr', 53: 'vr', 54: 'vr',
+  };
+  const FEATURE_ORDER = Core ? Core.FEATURE_ORDER : ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards', 'mods', 'vr'];
   function steamFeatures(categories) {
     const found = new Set();
-    for (const c of categories || []) if (c && FEATURE_BY_ID[c.id]) found.add(FEATURE_BY_ID[c.id]);
+    for (const c of categories || []) if (c && FEATURE_BY_ID[c.id]) [].concat(FEATURE_BY_ID[c.id]).forEach((f) => found.add(f));
     return FEATURE_ORDER.filter((f) => found.has(f));
   }
 
@@ -265,10 +271,12 @@
     const first = (a) => clean(Array.isArray(a) ? a[0] : a);
     const title = clean(details.name), publisher = first(details.publishers), developer = first(details.developers);
     if (title) patch.title = title;
+    if (details.steam_appid) patch.barcode = { text: 's.team/a/' + details.steam_appid };       // Kurzlink zum Spiel für den Barcode
     if (publisher) patch.publisher = publisher;
     if (developer) patch.developer = developer;
     const put = (label, col, value, kind) => { const row = rows.get(label) || { label, min: '', rec: '', kind: '' }; row[col] = value; if (kind) row.kind = kind; rows.set(label, row); };
     if (title) put('Spieletitel (Rücken)', 'min', title);
+    if (details.steam_appid) put('Barcode-Inhalt (Link)', 'min', 's.team/a/' + details.steam_appid);
     if (publisher || developer) put('Publisher / Entwickler', 'min', [publisher, developer].filter((x, i, a) => x && a.indexOf(x) === i).join(' / '));
     com.shown.filter((x) => x[0] === 'Läuft auf').forEach(([l, v]) => put(l, 'min', v));
     fm.shown.forEach(([l, v, k]) => put(l, 'min', v, k));

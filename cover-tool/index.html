@@ -89,19 +89,28 @@
     <details class="sec" open>
       <summary>Texte</summary>
       <label class="f"><span class="lab">Spieletitel (Rücken)</span><input type="text" data-k="title" placeholder="z. B. The Witcher: Enhanced Edition"></label>
-      <label class="f"><span class="lab">Copyright-Text (unten auf der Rückseite)</span><input type="text" data-k="copyright"></label>
+      <label class="f"><span class="lab">Copyright-Text (unten auf der Rückseite, mittig)</span><input type="text" data-k="copyright"></label>
+      <label class="chk"><input type="checkbox" data-k="barcode.on"> Barcode unter dem USK-Zeichen (Code 128)</label>
+      <label class="f"><span class="lab">Barcode-Inhalt (z. B. Link zum Spiel, kurz halten)</span><input type="text" data-k="barcode.text" placeholder="z. B. s.team/a/1091500" maxlength="40"></label>
     </details>
 
     <details class="sec" open>
       <summary>Spielfunktionen</summary>
+      <label class="f"><span class="lab">Symbole</span>
+        <select data-k="iconStyle"><option value="line">Linien (neu, alle Funktionen)</option><option value="original">GOG-Original (nur die ersten sieben)</option></select></label>
       <div class="tiles three">
         <label class="tile"><input type="checkbox" data-k="features" data-list value="single_player"><span>Single-Player</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="co_op"><span>Co-op</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="multi_player"><span>Multi-Player</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="online"><span>Online</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="lan"><span>LAN</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="cross_platform"><span>Cross-Plattform</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="controller_support"><span>Controller</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="achievements"><span>Erfolge</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="cloud_saves"><span>Cloud Saves</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="leaderboards"><span>Bestenlisten</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="mods"><span>Mods</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="vr"><span>VR</span></label>
       </div>
     </details>
 
@@ -221,7 +230,10 @@
       <label class="f"><span class="lab">Stil</span>
         <select data-k="theme"><option value="classic">Klassisch (GOG-Original)</option><option value="modern">Modern (Konsolen-Stil)</option></select></label>
       <label class="f"><span class="lab">GOG-Logo auf dem Rücken</span>
-        <select data-k="spineLogo"><option value="fixed">Feste Größe (6 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
+        <select data-k="spineLogo"><option value="fixed">Feste Größe (7 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
+      <label class="f"><span class="lab">Titel auf dem Rücken</span>
+        <select data-k="spineTitle"><option value="top">Oben (unter dem Logo)</option><option value="center">Mittig</option></select></label>
+      <label class="chk"><input type="checkbox" data-k="spinePC"> "PC" am Fuß des Rückens</label>
       <label class="chk"><input type="checkbox" data-k="galaxy" id="galaxyChk"> GOG-Galaxy-Feld auf der Rückseite (nur bei GOG, der Platz bleibt reserviert)</label>
       <label class="chk"><input type="checkbox" data-k="cropMarks"> Schnittmarken an den Ecken</label>
       <label class="chk"><input type="checkbox" data-k="foldLines"> Falzlinien am Rücken (gestrichelt)</label>
@@ -250,10 +262,11 @@
                     <i class="ring"></i><b id="gxTitle"></b><span id="gxText"></span><em id="gxJoin"></em><small id="gxUrl"></small>
                   </div>
                   <div class="speccol"><h4 id="reqTitle"></h4><ul class="specs" id="specs"></ul></div>
+                  <p class="copy" id="copy"></p>
                   <div class="rightcol">
                     <div class="logos"><img id="backPub" alt=""><img id="discLogo" alt=""></div>
                     <img id="backUsk" class="usk-back" alt="">
-                    <p class="copy" id="copy"></p>
+                    <div class="barcode" id="barcode" hidden><svg id="barcodeSvg" preserveAspectRatio="none" aria-hidden="true"></svg><span id="barcodeText"></span></div>
                   </div>
                 </div>
               </div>

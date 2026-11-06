@@ -102,7 +102,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 ### Cover-Tool (Web-App, live unter /cover/)
 
-- [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, GOG-Galaxy-Feld, Deutsch oder Englisch
+- [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, Barcode nur auf Wunsch, GOG-Galaxy-Feld, Deutsch oder Englisch
 - [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzlinien (Test im Browser)
 - [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden von Galaxy-Feld oder USK
 - [x] Zweiter Stil "Modern" (Konsolen-Stil) neben dem klassischen GOG-Stil

@@ -14,7 +14,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 - **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB, Publisher-Logos von Wikidata (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional Falzlinien.
 - **Deutsch oder Englisch:** Die Beschriftung auf dem Cover lässt sich wählen.
-- **USK statt PEGI oder ESRB, ohne Barcode.** Die USK-Kennzeichnung steht vorn (35 × 35 mm, 3 mm Abstand) und auf Wunsch kleiner hinten.
+- **USK statt PEGI oder ESRB.** Ein Barcode ist nur auf Wunsch dabei (siehe [Barcode](#barcode)). Die USK-Kennzeichnung steht vorn (35 × 35 mm, 3 mm Abstand) und auf Wunsch kleiner hinten.
 
 ## Schnellstart
 
@@ -44,10 +44,10 @@ Die Einstellungen des Covers links:
 |---|---|
 | Hülle und Disc | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung: Deutsch oder English. USK-Freigabe: 0, 6, 12, 16, 18 oder keine anzeigen, dazu "USK auch auf der Rückseite zeigen" |
 | Bilder | Frontcover, Rückseite oben, Rückseite unten (optional), Publisher-Logo (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
-| Texte | Spieletitel für den Rücken und der Copyright-Text unten auf der Rückseite |
-| Spielfunktionen | Single-Player, Co-op, Multi-Player, Controller Support, Erfolge, Cloud Saves, Bestenlisten. Die Reihenfolge auf dem Cover ist fest |
+| Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) und der optionale Barcode |
+| Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Bestenlisten, Mods, VR. Die Reihenfolge auf dem Cover ist fest. Die Symbole gibt es im **Linienstil** (Standard) oder als **GOG-Original** (nur die ersten sieben, die anderen bleiben im Linienstil) |
 | Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessor (Intel, AMD oder eigener Text), Grafikkarte (NVIDIA, AMD Radeon oder eigener Text), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus), Umbruch bei zwei Prozessoren oder Grafikkarten |
-| Darstellung und Druck | Stil, Größe des GOG-Logos auf dem Rücken (fest 6 mm oder Rückenbreite), GOG-Galaxy-Feld, Schnittmarken, Falzlinien |
+| Darstellung und Druck | Stil, Größe des GOG-Logos auf dem Rücken (fest 7 mm oder Rückenbreite), Titel oben oder mittig auf dem Rücken, "PC" am Fuß des Rückens, GOG-Galaxy-Feld, Schnittmarken, Falzlinien |
 
 Einstellungen werden im Browser gemerkt (**ohne Bilder**, die müssen nach dem Neuladen erneut geladen werden). Wer die Bilder behalten will, exportiert das **Projekt** (siehe unten). "Zurücksetzen" löscht Einstellungen und Bilder.
 
@@ -186,9 +186,19 @@ Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseit
 
 Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (20 × 24 mm, bewusst klein, damit mehr Platz für die Angaben bleibt), in der Mitte die **Angaben**, rechts **Logos, USK und Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Schaltet man das Galaxy-Feld aus (oder wählt Epic Games oder Steam), **rücken nur die Angaben nach links an den Rand** und nutzen den freien Platz, alles andere bleibt, wo es ist. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
 
+## Barcode
+
+Optional steht unter dem USK-Zeichen auf der Rückseite ein **Barcode (Code 128)**, kein QR-Code. Er ist unter "Texte" einzuschalten, der Inhalt ist frei wählbar. Der Steam-Import trägt den Kurzlink `s.team/a/<App-ID>` ein (z. B. `s.team/a/1091500`), den Barcode schaltet er nie selbst ein.
+
+- **Grenzen:** Ein Barcode liest sich nur, wenn die Striche breit genug sind. Der Platz ist etwa 40 mm breit (mit der Minimum/Empfohlen-Tabelle 31 mm). Ab etwa 0,19 mm je Strich ist er scannbar, das reicht für rund 14 bis 17 Zeichen. Deshalb Kurzlinks wie `s.team/a/70` nehmen, lange Adressen warnt das Tool als zu dicht ab.
+- **Was ein Scanner tut:** Er liest den Text. Ob eine Handy-App daraus einen Link macht, entscheidet die App (Adressen ohne `https://` werden meist als Webadresse erkannt). Die Kodierung ist gegen die Bibliothek JsBarcode geprüft.
+- Erlaubt sind Zeichen ohne Umlaute, höchstens 40.
+
 ## Rücken
 
-- Das **GOG-Logo** steht oben, entweder in fester Größe (6 mm) oder in Rückenbreite.
+- Das **GOG-Logo** steht oben, entweder in fester Größe (7 mm, Slim 5,5 mm) oder in Rückenbreite.
+- Am Fuß steht **"PC"** (abschaltbar). Beim Stil Modern liegt es auf einem Farbbalken.
+- Der **Titel** steht oben unter dem Logo oder **mittig** (Auswahl "Titel auf dem Rücken").
 - Der **Titel** steht senkrecht in normaler Schreibweise. Er wird so groß wie möglich (bis 12 pt, Slim bis 8 pt) und verkleinert sich bei langen Titeln selbst, höchstens bis 5 pt.
 
 ## Drucken
@@ -202,6 +212,10 @@ Rücken und Vorderseite überlappen um 0,6 mm, damit beim Drucken keine helle Na
 Das Cover wird in Originalgröße (273 × 183 mm, Slim 266 × 183 mm) mittig auf das Blatt gesetzt. Die Schnittmarken liegen 2 bis 6 mm außerhalb des Covers und passen dadurch auf das Blatt. Ein Test stellt sicher, dass der Druck genau eine A4-Seite quer ergibt.
 
 **Tipp:** Miss nach dem ersten Ausdruck die Breite nach (273 mm). Weicht sie ab, steht im Druckdialog meist noch "Anpassen" statt 100 %.
+
+## Symbole
+
+Die Linien-Symbole stammen aus [Lucide](https://lucide.dev/) (ISC-Lizenz, Datei `assets/images/features/line/LICENSE-lucide.txt`) und sind kleine schwarze SVG-Dateien (unter 1 KB), also in jeder Größe scharf. Die GOG-Originale bleiben als Auswahl erhalten.
 
 ## Aufbau der Dateien
 

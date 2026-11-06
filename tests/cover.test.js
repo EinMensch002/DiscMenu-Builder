@@ -162,8 +162,14 @@ test('Alle Grafiken, die das Tool lädt, sind vorhanden und nicht übergroß', (
     'gog_logo.png',
     ...C.USK_VALUES.map((v) => `usk/usk_${v}.png`),
     ...Object.values(C.DISCS).map((f) => `disc/${f}`),
-    ...C.FEATURE_ORDER.map((f) => `features/${f}.png`),
+    ...C.ORIGINAL_ICONS.map((f) => `features/${f}.png`),
   ];
+  for (const f of C.FEATURE_ORDER) {                         // Linien-Symbole: alle Funktionen, klein und schwarz
+    const p = path.join(root, 'features', 'line', f + '.svg');
+    assert.ok(fs.existsSync(p), 'fehlt: ' + f + '.svg');
+    assert.ok(fs.statSync(p).size < 4000, 'zu groß: ' + f + '.svg');
+    assert.match(fs.readFileSync(p, 'utf8'), /stroke="#000"/);
+  }
   for (const f of need) {
     const p = path.join(root, f);
     assert.ok(fs.existsSync(p), 'fehlt: ' + f);
@@ -171,4 +177,19 @@ test('Alle Grafiken, die das Tool lädt, sind vorhanden und nicht übergroß', (
     const b = fs.readFileSync(p);
     assert.equal(b.readUInt32BE(16) <= 1000 && b.readUInt32BE(20) <= 1000, true, 'Bild zu hoch aufgelöst: ' + f);   // PNG-Kopf: Breite und Höhe
   }
+});
+
+test('Barcode (Code 128): Prüfziffer, Grenzen und Strichfolge', () => {
+  // Bekannter Wert: "PJJ123C" ist in Zeichensatz B nicht üblich, deshalb Gegenprobe über Startcode, Prüfsumme und Stopp
+  const bits = C.code128('s.team/a/70');
+  assert.match(bits, /^11010010000/);                      // Startcode B
+  assert.ok(bits.endsWith('1100011101011'));               // Stoppzeichen mit Abschlussbalken
+  assert.equal(bits.length, 11 * (1 + 's.team/a/70'.length + 1) + 13);
+  assert.equal(C.code128('ä'), null); assert.equal(C.code128(''), null); assert.equal(C.code128('x'.repeat(41)), null);
+  assert.equal(C.code128('Hello World').length, 156);
+  const s = C.defaultState();
+  assert.deepEqual(s.barcode, { on: false, text: '' });
+  assert.equal(s.iconStyle, 'line'); assert.equal(s.spinePC, true); assert.equal(s.spineTitle, 'top');
+  assert.equal(C.mergeState({ iconStyle: 'komisch', spineTitle: 'x' }).iconStyle, 'line');
+  assert.equal(C.mergeState({ spineTitle: 'center' }).spineTitle, 'center');
 });

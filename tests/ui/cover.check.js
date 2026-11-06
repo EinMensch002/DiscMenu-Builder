@@ -197,6 +197,44 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.click('[data-reqtab=min]');
   await page.evaluate(() => CoverApp.patch({ dx: '', other: '', cpu: { intel: { on: false }, amd: { on: false } }, gpu: { nvidia: { on: false }, amd: { on: false } }, rec: { on: false } }));
 
+  // Copyright mittig unten, "PC" am Fuß des Rückens, Titel mittig, Barcode unter dem USK-Zeichen
+  const keep = await page.evaluate(() => ({ title: CoverApp.state.title, copyright: CoverApp.state.copyright }));
+  await page.fill('[data-k=copyright]', '© 2026 Beispiel. Alle Rechte vorbehalten.'); await page.fill('[data-k=title]', 'Mitte'); await page.waitForTimeout(200);
+  const geoNow = () => page.evaluate(() => {
+    const r = (s) => document.querySelector(s).getBoundingClientRect(), back = r('.panel-back'), copy = r('#copy'), sp = r('#spineBox'), tt = (() => { const g = document.createRange(); g.selectNodeContents(document.querySelector('#spineTitle')); return g.getBoundingClientRect(); })();
+    return { copyMid: (copy.left + copy.right) / 2 - (back.left + back.right) / 2, copyLow: back.bottom - copy.bottom, titleTop: tt.top - sp.top, titleBottom: sp.bottom - tt.bottom, foot: getComputedStyle(document.querySelector('#spineFoot')).display, footText: document.querySelector('#spineFoot').textContent };
+  });
+  let g = await geoNow();
+  assert.ok(Math.abs(g.copyMid) < 6, 'Copyright steht mittig: ' + g.copyMid);
+  assert.ok(g.copyLow >= 0, 'Copyright steht im Feld');
+  assert.equal(g.foot, 'flex'); assert.equal(g.footText, 'PC');
+  assert.ok(g.titleTop < g.titleBottom - 20, 'Titel steht oben (Standard)');
+  await page.selectOption('[data-k=spineTitle]', 'center'); await page.waitForTimeout(150);
+  g = await geoNow();
+  assert.ok(Math.abs(g.titleTop - g.titleBottom) < 8, 'Titel steht mittig: ' + g.titleTop + ' / ' + g.titleBottom);
+  await page.selectOption('[data-k=spineTitle]', 'top');
+  await page.uncheck('[data-k=spinePC]'); await page.waitForTimeout(100);
+  assert.equal((await geoNow()).foot, 'none'); await page.check('[data-k=spinePC]');
+  assert.equal(await page.locator('#barcode').isVisible(), false, 'Barcode ist standardmäßig aus');
+  await page.check('[data-k="barcode.on"]'); await page.fill('[data-k="barcode.text"]', 's.team/a/220'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('#barcode').isVisible(), true);
+  assert.ok((await page.locator('#barcodeSvg path').getAttribute('d')).length > 100);
+  const bcBox = await page.locator('#barcode').boundingBox(), usk = await page.locator('#backUsk').boundingBox();
+  assert.ok(bcBox.y >= usk.y + usk.height - 2, 'Barcode steht unter dem USK-Zeichen');
+  assert.doesNotMatch(await page.locator('#notes').innerText(), /Barcode/);
+  await page.fill('[data-k="barcode.text"]', 'https://store.steampowered.com/app/1091500');
+  await page.fill('[data-k="barcode.text"]', 'ü'); await page.waitForTimeout(100);
+  assert.match(await page.locator('#notes').innerText(), /Barcode-Inhalt fehlt oder ist ungültig/);
+  await page.fill('[data-k="barcode.text"]', 'https://store.steampowered.com/app/10'); await page.waitForTimeout(100);
+  assert.match(await page.locator('#notes').innerText(), /sehr dicht/);
+  await page.uncheck('[data-k="barcode.on"]'); await page.fill('[data-k=title]', keep.title); await page.fill('[data-k=copyright]', keep.copyright);
+  // Symbole: Linienstil für alle Funktionen, Original nur für die ersten sieben
+  await page.evaluate(() => CoverApp.patch({ features: ['single_player', 'vr'] })); await page.waitForTimeout(100);
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#feats img')].map((i) => [i.getAttribute('src'), i.naturalWidth > 0])), [['assets/images/features/line/single_player.svg', true], ['assets/images/features/line/vr.svg', true]]);
+  await page.selectOption('[data-k=iconStyle]', 'original'); await page.waitForTimeout(100);
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#feats img')].map((i) => i.getAttribute('src'))), ['assets/images/features/single_player.png', 'assets/images/features/line/vr.svg']);
+  await page.selectOption('[data-k=iconStyle]', 'line'); await page.evaluate(() => CoverApp.patch({ features: ['single_player'] }));
+
   // Druck: Flächen ohne Bild bleiben weiß (nicht grau), die Vorschau zeigt Platzhalter
   await page.evaluate(() => document.querySelectorAll('.drop .x').forEach((x) => x.click()));   // Zustand ohne Bilder
   await page.emulateMedia({ media: 'print' }); await page.waitForTimeout(300);

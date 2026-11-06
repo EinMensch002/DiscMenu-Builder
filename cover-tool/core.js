@@ -60,7 +60,7 @@
       min: 'MINIMUM', rec: 'EMPFOHLEN', short: { ram: 'RAM', space: 'Speicher' }, os: 'Läuft auf', cpu: 'Prozessor', ram: 'Arbeitsspeicher', gpu: 'Grafik', dx: 'DirectX', space: 'Speicherplatz', other: 'Sonstiges',
       ramUnit: 'RAM', spaceUnit: 'freier Speicherplatz', bit64: '64-Bit',
       galaxy: { title: 'GOG GALAXY 2.0', text: 'Alle deine Spiele und Freunde an einem Ort', join: 'JETZT BEITRETEN', url: 'www.gog.com/galaxy' },
-      feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', controller_support: 'Controller Support', achievements: 'Erfolge', cloud_saves: 'Cloud Saves', leaderboards: 'Bestenlisten' },
+      feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', online: 'Online', lan: 'LAN', cross_platform: 'Cross-Plattform', mods: 'Mods', vr: 'VR', controller_support: 'Controller Support', achievements: 'Erfolge', cloud_saves: 'Cloud Saves', leaderboards: 'Bestenlisten' },
     },
     en: {
       reqTitle: 'SYSTEM REQUIREMENTS', tag: 'PC · DRM-FREE',
@@ -68,10 +68,13 @@
       min: 'MINIMUM', rec: 'RECOMMENDED', short: {}, os: 'Works on', cpu: 'Processor', ram: 'Memory', gpu: 'Graphics', dx: 'DirectX', space: 'Storage', other: 'Other',
       ramUnit: 'RAM', spaceUnit: 'available space', bit64: '64-bit',
       galaxy: { title: 'GOG GALAXY 2.0', text: 'All your games and friends in one place', join: 'JOIN NOW', url: 'www.gog.com/galaxy' },
-      feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', controller_support: 'Controller Support', achievements: 'Achievements', cloud_saves: 'Cloud Saves', leaderboards: 'Leaderboards' },
+      feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', online: 'Online', lan: 'LAN', cross_platform: 'Cross-Platform', mods: 'Mods', vr: 'VR', controller_support: 'Controller Support', achievements: 'Achievements', cloud_saves: 'Cloud Saves', leaderboards: 'Leaderboards' },
     },
   };
-  const FEATURE_ORDER = ['single_player', 'co_op', 'multi_player', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards'];
+  const FEATURE_ORDER = ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards', 'mods', 'vr'];
+  /* Symbole im Linienstil (Lucide, ISC-Lizenz) gibt es für alle Funktionen, die GOG-Originale nur für die ersten sieben */
+  const ORIGINAL_ICONS = ['single_player', 'co_op', 'multi_player', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards'];
+  const ICON_STYLES = { line: 'Linien (neu)', original: 'GOG-Original' };
   const WIN_VERSIONS = ['XP', 'Vista', '7', '8', '10', '11'];
   const USK_VALUES = ['0', '6', '12', '16', '18'];
   /* Anbieter: Farben und Schriftzug. Es gibt nur Text und Farben, keine Logos (außer dem vorhandenen GOG-Logo). */
@@ -230,6 +233,22 @@
     return { rows, dual: rows.some((x) => !x.shared), labels: { min: L.min, rec: L.rec } };
   }
 
+  /* ---------- Barcode (Code 128, Zeichensatz B) ----------
+     Liefert die Folge der Striche als Text aus 1 (Strich) und 0 (Lücke), je Modul ein Zeichen, oder null bei ungültigem Text.
+     Code 128 hat eine Prüfziffer, jeder Handy-Scanner liest ihn. Er kodiert Text (ASCII 32 bis 126), kein Link wird automatisch geöffnet. */
+  const CODE128 = ["11011001100", "11001101100", "11001100110", "10010011000", "10010001100", "10001001100", "10011001000", "10011000100", "10001100100", "11001001000", "11001000100", "11000100100", "10110011100", "10011011100", "10011001110", "10111001100", "10011101100", "10011100110", "11001110010", "11001011100", "11001001110", "11011100100", "11001110100", "11101101110", "11101001100", "11100101100", "11100100110", "11101100100", "11100110100", "11100110010", "11011011000", "11011000110", "11000110110", "10100011000", "10001011000", "10001000110", "10110001000", "10001101000", "10001100010", "11010001000", "11000101000", "11000100010", "10110111000", "10110001110", "10001101110", "10111011000", "10111000110", "10001110110", "11101110110", "11010001110", "11000101110", "11011101000", "11011100010", "11011101110", "11101011000", "11101000110", "11100010110", "11101101000", "11101100010", "11100011010", "11101111010", "11001000010", "11110001010", "10100110000", "10100001100", "10010110000", "10010000110", "10000101100", "10000100110", "10110010000", "10110000100", "10011010000", "10011000010", "10000110100", "10000110010", "11000010010", "11001010000", "11110111010", "11000010100", "10001111010", "10100111100", "10010111100", "10010011110", "10111100100", "10011110100", "10011110010", "11110100100", "11110010100", "11110010010", "11011011110", "11011110110", "11110110110", "10101111000", "10100011110", "10001011110", "10111101000", "10111100010", "11110101000", "11110100010", "10111011110", "10111101110", "11101011110", "11110101110", "11010000100", "11010010000", "11010011100", "1100011101011"];
+  function code128(text) {
+    const s = String(text == null ? '' : text);
+    if (!s || s.length > 40 || /[^\x20-\x7e]/.test(s)) return null;
+    const codes = [104];
+    let sum = 104;
+    [...s].forEach((ch, i) => { const v = ch.charCodeAt(0) - 32; codes.push(v); sum += v * (i + 1); });
+    codes.push(sum % 103, 106);
+    return codes.map((k) => CODE128[k]).join('');
+  }
+  /* Mindestbreite eines Moduls in mm, bei der Scanner den Code noch sicher lesen (etwa 0,19 mm) */
+  const BARCODE_MIN_MODULE = 0.19;
+
   /* --- Standardwerte und Speichern --- */
   function defaultState() {
     return {
@@ -241,6 +260,8 @@
       cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
       gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
       ram: '4', space: '10', dx: '', other: '',
+      iconStyle: 'line', spinePC: true, spineTitle: 'top',
+      barcode: { on: false, text: '' },     /* Barcode (Code 128) unter dem USK-Zeichen, z. B. mit dem Link zum Spiel */
       publisher: '', developer: '',         /* z. B. von Steam übernommen, Vorgabe für die Suche nach dem Publisher-Logo */
       /* Empfohlene Anforderungen (optional, zusätzlich zu den Mindestanforderungen oben) */
       rec: {
@@ -269,6 +290,8 @@
     if (!LABELS[out.lang]) out.lang = 'de';
     if (!THEMES[out.theme]) out.theme = 'classic';
     if (!PROVIDERS[out.provider]) out.provider = 'gog';
+    if (!ICON_STYLES[out.iconStyle]) out.iconStyle = 'line';
+    if (out.spineTitle !== 'center') out.spineTitle = 'top';
     if (out.usk !== 'none' && !USK_VALUES.includes(out.usk)) out.usk = '0';
     return out;
   }
@@ -306,7 +329,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, code128, BARCODE_MIN_MODULE, ORIGINAL_ICONS, ICON_STYLES, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

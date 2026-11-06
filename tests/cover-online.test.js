@@ -246,3 +246,11 @@ test('Steam: Spielname, Publisher und Entwickler werden übernommen, Wikidata-Lo
   try { assert.deepEqual(await O.logoSearch('Valve'), [{ id: 'Q1', label: 'Valve', description: 'company', logos: ['Valve logo.svg'], old: [] }]); }
   finally { globalThis.fetch = real; }
 });
+
+test('Steam: neue Funktionen (Online, LAN, Cross-Plattform, Mods, VR) und Kurzlink für den Barcode', () => {
+  assert.deepEqual(O.steamFeatures([{ id: 2 }, { id: 36 }, { id: 48 }, { id: 27 }, { id: 30 }, { id: 53 }, { id: 22 }]),
+    ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'achievements', 'mods', 'vr']);
+  const b = O.steamPatchBoth({ name: 'X', steam_appid: 1091500, pc_requirements: [] });
+  assert.deepEqual(b.patch.barcode, { text: 's.team/a/1091500' });
+  assert.equal(C.mergeState({ ...C.defaultState(), ...b.patch }).barcode.on, false);      // Barcode wird nie von selbst eingeschaltet
+});
