@@ -37,6 +37,26 @@ test('Eigene Maße: Grenzen, Anpassung und Vorlagen', () => {
   assert.equal(C.mergeState({ caseType: 'custom', custom: { spine: 5 } }).custom.spine, '14');   // Zahl statt Text: Standard
 });
 
+test('Prozessor- und Grafikkartentexte werden den Kategorien zugeordnet', () => {
+  const cpu = (t) => { const r = C.parseCpuText(t); return r ? C.cpuList(r.cpu) : null; };
+  const gpu = (t) => { const r = C.parseGpuText(t); return r ? C.gpuList(r.gpu) : null; };
+  assert.deepEqual(cpu('Core i7-6700 or Ryzen 5 1600'), ['Intel Core i7-6700', 'AMD Ryzen 5 1600']);
+  assert.deepEqual(cpu('Intel® Core™ i5-4460 or AMD FX-6300'), ['Intel Core i5-4460', 'AMD FX 6300']);
+  assert.deepEqual(cpu('Intel Core i7-6700K'), ['Intel Core i7-6700K']);
+  assert.deepEqual(cpu('AMD Ryzen 5 5600X (3.7 GHz) or better'), ['AMD Ryzen 5 5600X']);
+  assert.deepEqual(cpu('Intel Core 2 Duo E6600 or AMD Phenom X3 8750'), ['Intel Core 2 Duo E6600', 'AMD Phenom X3 8750']);
+  assert.deepEqual(cpu('Intel Core i5'), ['Intel Core i5']);
+  assert.deepEqual(cpu('Pentium III'), ['Intel Pentium III']);
+  // Was nicht sauber passt, bleibt eigener Text (null): Taktangaben, zwei Prozessoren derselben Marke, mehr als zwei, Unbekanntes
+  for (const t of ['Pentium III 500 MHz', 'Intel Core i5 2.4 GHz', 'Core i5-4460 or Core i7-6700', 'Core i3 or Core i5 or Ryzen 3', '2.33 GHz or faster x86-compatible processor', '']) assert.equal(cpu(t), null, t);
+  assert.deepEqual(gpu('GeForce GTX 1060 6GB or Radeon RX 580 8GB'), ['NVIDIA GeForce GTX 1060 6GB', 'AMD Radeon RX 580 8GB']);
+  assert.deepEqual(gpu('NVIDIA GeForce RTX 3060 Ti'), ['NVIDIA GeForce RTX 3060 Ti']);
+  assert.deepEqual(gpu('GTX 1660 Ti 6GB'), ['NVIDIA GeForce GTX 1660 Ti 6GB']);
+  assert.deepEqual(gpu('Radeon RX 6700 XT'), ['AMD Radeon RX 6700 XT']);
+  assert.deepEqual(gpu('NVIDIA GeForce GTX 560 Ti (1 GB) or AMD Radeon HD 6870'), ['NVIDIA GeForce GTX 560 Ti', 'AMD Radeon HD 6870']);
+  for (const t of ['Intel HD Graphics 520', 'GeForce 8800 GT', 'DirectX 11 compatible graphics card with 2GB VRAM', 'GTX 1060 or GTX 1070']) assert.equal(gpu(t), null, t);
+});
+
 test('Bildmaße: oben, grüner Streifen und unten ergeben die Höhe', () => {
   const s = C.imageSpecs('normal');
   assert.equal(s.backTop.h + C.BACK.banner + C.BACK.bottom, 183);

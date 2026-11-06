@@ -53,9 +53,16 @@
     $('#form').addEventListener('change', onChange);
     $('#form').addEventListener('click', (e) => {
       const b = e.target.closest('button[data-k]'); if (b) onChange({ target: b });
+      const tab = e.target.closest('button[data-reqtab]');
+      if (tab) showReqTab(tab.dataset.reqtab);
       const p = e.target.closest('button[data-preset]');
       if (p) { Object.assign(state.custom, C.PRESETS[p.dataset.preset]); delete state.custom.name; state.caseType = 'custom'; syncControls(); changed(); }
     });
+  }
+  /* Reiter "Mindestanforderungen" / "Empfohlen" im Formular (nur Ansicht, nicht Teil der Einstellungen) */
+  function showReqTab(which) {
+    $$('[data-reqtab]').forEach((b) => b.classList.toggle('on', b.dataset.reqtab === which));
+    $$('[data-pane]').forEach((p) => { p.hidden = p.dataset.pane !== which; });
   }
   function onChange(e) {
     const el = e.target;
@@ -219,22 +226,54 @@
     $('#frontTag').textContent = P.tag[state.lang];
   }
 
+  /* Systemanforderungen: Ohne empfohlene Angaben steht links die Bezeichnung und rechts der Wert. Mit empfohlenen Angaben ist es eine
+     Tabelle mit den Spalten Minimum und Empfohlen. Gleiche Angaben (und das Betriebssystem) stehen nur einmal über beide Spalten. */
   function renderSpecs() {
-    const list = $('#specs');
-    list.replaceChildren(...C.buildSpecs(state).map((row) => {
-      const li = el('li'), v = el('span', 'v' + (state.breakHw && row.values.length > 1 ? ' stack' : ''));
-      row.values.forEach((text, i) => {
+    const list = $('#specs'), table = C.buildSpecTable(state);
+    list.classList.toggle('dual', table.dual);
+    const alts = (values) => {
+      const v = el('span', 'v' + (state.breakHw && values.length > 1 ? ' stack' : ''));
+      values.forEach((text, i) => {
         if (i) v.append(el('span', 'sep', ' / '));
-        v.append(el('span', row.values.length > 1 ? 'alt' : 'one', text));      // nur bei zwei Alternativen unumbrochen
+        v.append(el('span', 'alt', text));
       });
-      li.append(el('span', 'k', row.label), v);
+      return v;
+    };
+    const cell = (cls, values) => { const c = el('span', 'cell ' + cls); if (values.length) c.append(alts(values)); else c.textContent = '–'; return c; };
+    const rows = table.rows.map((row) => {
+      const li = el('li', row.key === 'other' ? 'other' : '');
+      if (!table.dual) { li.append(el('span', 'k', row.label), el('span', 'vals', '')); li.lastChild.append(alts(row.min)); return li; }
+      li.append(el('span', 'k', row.short));
+      if (row.shared) li.append(cell('span2', row.min));
+      else li.append(cell('min', row.min), cell('rec', row.rec));
       return li;
-    }));
+    });
+    if (table.dual) {
+      const head = el('li', 'head');
+      head.append(el('span', 'k'), el('span', 'cell', ''), el('span', 'cell', ''));
+      head.children[1].append(el('span', 'chip min', table.labels.min)); head.children[2].append(el('span', 'chip rec', table.labels.rec));
+      rows.unshift(head);
+    }
+    list.replaceChildren(...rows);
+    const panel = $('.panel-back');
+    panel.classList.toggle('dual', table.dual);
+    panel.classList.toggle('nogx', $('#galaxy').classList.contains('off'));
+    fitSpecs();
     /* Beim Umbruch zwischen zwei Alternativen ist der Schrägstrich überflüssig */
     $$('.sep', list).forEach((sep) => {
       const a = sep.previousElementSibling, b = sep.nextElementSibling;
       if (state.breakHw || (a && b && a.offsetTop !== b.offsetTop)) sep.style.display = 'none';
     });
+  }
+
+  /* Die Angaben müssen vollständig in das Feld passen: Ist die Liste höher als der Platz, wird die Schrift kleiner (bis 4,4 pt).
+     Es wird nichts abgeschnitten. */
+  function fitSpecs() {
+    const col = $('.speccol'), list = $('#specs'), title = $('#reqTitle');
+    list.style.fontSize = '';
+    const titleH = getComputedStyle(title).display === 'none' ? 0 : title.offsetHeight + parseFloat(getComputedStyle(title).marginBottom || 0);
+    let pt = parseFloat(getComputedStyle(list).fontSize) * 72 / 96;
+    while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
   }
 
   /* Titel auf dem Rücken so groß wie möglich, ohne über die Hülle hinauszuragen */
@@ -270,6 +309,7 @@
 
   /* ---------- Start ---------- */
   function init() {
+    const ver = $('#ver'); if (ver && /__/.test(ver.textContent)) ver.textContent = 'lokal';
     bindControls();
     bindDrops();
     syncControls();

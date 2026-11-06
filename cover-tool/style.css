@@ -21,6 +21,11 @@ body { font: 14px/1.45 system-ui, "Segoe UI", Roboto, sans-serif; color: var(--t
 .menu summary:hover, .menu[open] summary { border-color: var(--acc); }
 .menu .pop { position: absolute; right: 0; top: 100%; margin-top: 4px; min-width: 280px; z-index: 30; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(20, 24, 40, .25); }
 .menu .pop button { text-align: left; }
+@media (max-width: 700px) {
+  .menu { position: static; }
+  .menu .pop { left: 12px; right: 12px; min-width: 0; }
+}
+.ver { margin-left: 8px; padding: 1px 8px; border-radius: 99px; background: #eef0f4; color: var(--mut); font-size: 11.5px; }
 .link { color: var(--acc); text-underline-offset: 2px; font-size: 13px; }
 button { font: inherit; padding: 7px 14px; border: 1px solid var(--line); border-radius: 8px; background: #f7f8fb; color: var(--txt); cursor: pointer; }
 button:hover { border-color: var(--acc); }
@@ -104,6 +109,7 @@ dialog .f small { display: block; margin-top: 3px; }
 .shown { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
 .shown td { padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .shown td:first-child { color: var(--mut); width: 130px; }
+.shown td.kind { color: var(--mut); font-size: 11.5px; white-space: nowrap; }
 .preview { position: sticky; top: 64px; min-width: 0; }
 .notes:empty { display: none; }
 .notes { margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; }
@@ -113,7 +119,7 @@ dialog .f small { display: block; margin-top: 3px; }
 /* ===== Blatt und Cover (alle Maße in Millimetern, damit der Druck stimmt) ===== */
 .sheet { width: 297mm; height: 210mm; background: #fff; display: grid; place-items: center; transform: scale(var(--k, .8)); transform-origin: 0 0; }
 .wrap { position: relative; width: var(--w); height: var(--h); }
-.cover { position: relative; width: var(--w); height: var(--h); display: grid; grid-template-columns: var(--back) var(--spine) var(--front); background: #fff; overflow: hidden; font-family: Lato, "Segoe UI", sans-serif; color: #111; }
+.cover { --sp: var(--brand, #89268d); position: relative; width: var(--w); height: var(--h); display: grid; grid-template-columns: var(--back) var(--spine) var(--front); background: var(--sp); overflow: hidden; font-family: Lato, "Segoe UI", sans-serif; color: #111; }
 .cover img[hidden] { display: none; }
 .ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #b9bec9; font-weight: 700; font-size: 12pt; background: #f4f5f8; z-index: 0; }
 .has-img > .ph { display: none; }
@@ -143,7 +149,7 @@ dialog .f small { display: block; margin-top: 3px; }
 .feat img { height: 7.4mm; max-width: 11mm; width: auto; object-fit: contain; }
 .feat span { margin-top: .6mm; font-size: 4.6pt; font-weight: 700; line-height: 1.15; }
 .back-bottom { position: relative; flex: none; height: 46mm; background: #f4f5f8 center bottom / cover no-repeat; }
-.panel-back { position: absolute; inset: 0; display: grid; grid-template-columns: 26mm minmax(0, 1fr) 41mm; gap: 3.5mm; padding: 4.5mm 4.5mm 3mm 4mm; background: rgba(255, 255, 255, .87); }
+.panel-back { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: 26mm minmax(0, 1fr) 41mm; gap: 3.5mm; padding: 4.5mm 4.5mm 3mm 4mm; background: rgba(255, 255, 255, .87); }
 .galaxy.off { visibility: hidden; }   /* der Platz bleibt reserviert, damit sich nichts verschiebt */
 .galaxy { align-self: center; width: 26mm; height: 30mm; border-radius: 2.2mm; padding: 2mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9mm; text-align: center; color: #fff; background: linear-gradient(160deg, #7b1fa8, #35105e); }
 .galaxy .ring { width: 6.4mm; height: 6.4mm; border-radius: 50%; border: 1.3mm solid #d65cff; display: block; margin-bottom: .6mm; }
@@ -151,17 +157,32 @@ dialog .f small { display: block; margin-top: 3px; }
 .galaxy span { font-size: 3.8pt; line-height: 1.25; opacity: .9; }
 .galaxy em { font-style: normal; font-size: 3.3pt; font-weight: 700; letter-spacing: .1mm; padding: .5mm 2.6mm; border-radius: 1mm; background: rgba(255, 255, 255, .35); margin-top: .6mm; }
 .galaxy small { font-size: 3.3pt; opacity: .85; }
-.speccol { min-width: 0; display: flex; flex-direction: column; }
+.speccol { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .speccol h4 { display: none; margin: 0; }
 /* Zeilen beginnen immer oben mit festem Abstand: Ändert sich die Zeilenzahl, springt nichts */
-.specs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: flex-start; gap: 2.2mm; font-size: 7.2pt; line-height: 1.25; min-width: 0; }
+.specs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: flex-start; gap: .9em; font-size: 7.2pt; line-height: 1.25; min-width: 0; }
 .specs li { display: grid; grid-template-columns: 24mm minmax(0, 1fr); }
 .specs .k { color: #6b6b6b; }
-.specs .v { color: #111; font-weight: 400; }
+.specs .vals { display: block; min-width: 0; }
+.specs .v { color: #111; font-weight: 400; overflow-wrap: anywhere; min-width: 0; }   /* nichts wird abgeschnitten, lange Angaben brechen um */
 .specs .v.stack { display: flex; flex-direction: column; }
 .sep { white-space: pre; }
-.alt { white-space: nowrap; }
-.one { overflow-wrap: anywhere; }
+.alt { display: inline-block; max-width: 100%; }
+/* Mit empfohlenen Angaben: Tabelle mit den Spalten Minimum und Empfohlen. Das Feld wird dafür breiter (Galaxy-Feld und rechte Spalte
+   werden etwas schmaler). Ohne Galaxy-Feld nimmt die Tabelle dessen Platz mit. */
+.panel-back.dual { grid-template-columns: 22mm minmax(0, 1fr) 33mm; gap: 3mm; }
+.panel-back.dual .galaxy { width: 22mm; padding: 1.5mm; }
+.panel-back.nogx .speccol { grid-area: 1 / 1 / 2 / 3; }   /* ohne Galaxy-Feld rücken die Anforderungen an den linken Rand */
+.panel-back.dual .logos img { min-width: 0; }
+.specs.dual { font-size: 5.6pt; gap: .55em; line-height: 1.2; }
+.specs.dual li { display: grid; grid-template-columns: 9.5mm minmax(0, 1fr) minmax(0, 1fr); column-gap: 1.6mm; align-items: start; }
+.specs.dual .k { font-size: .92em; line-height: 1.304; font-weight: 700; }
+.specs.dual .cell { min-width: 0; }
+.specs.dual .cell.span2 { grid-column: 2 / 4; }
+.specs.dual li.head { align-items: center; margin-bottom: -.1em; }
+.specs .chip { display: inline-block; font-size: .85em; font-weight: 900; letter-spacing: .04em; line-height: 1.45; padding: 0 1.4mm; border-radius: .7mm; border: .2mm solid #9a9a9a; color: #555; }
+.specs .chip.rec { background: var(--brand, #89268d); border-color: var(--brand, #89268d); color: var(--on-brand, #fff); }
+.galaxy { grid-area: 1 / 1; } .speccol { grid-area: 1 / 2; } .rightcol { grid-area: 1 / 3; }   /* feste Plätze, auch wenn die Anforderungen über das (leere) Galaxy-Feld rücken */
 .rightcol { display: grid; grid-template-rows: 9mm 16mm minmax(0, 1fr); justify-items: end; align-items: center; row-gap: 1mm; min-width: 0; }
 .logos { grid-row: 1; display: flex; gap: 3.5mm; align-items: center; justify-content: flex-end; }
 .logos img { object-fit: contain; }
@@ -171,8 +192,11 @@ dialog .f small { display: block; margin-top: 3px; }
 .copy { grid-row: 3; margin: 0; align-self: end; font-size: 3.9pt; line-height: 1.3; color: #444; text-align: right; }
 
 /* Rücken */
-.spine { background: var(--brand, #89268d); display: flex; flex-direction: column; align-items: center; min-width: 0; overflow: hidden; }
-.spine-head { width: 100%; display: flex; justify-content: center; padding-top: 2mm; flex: none; }
+/* Naht: An den Kanten zwischen Rücken, Rückseite und Vorderseite scheint beim Drucken und Zoomen sonst ein heller Streifen durch (die Ränder zweier
+   Flächen werden weichgezeichnet). Deshalb ragt der Rücken 0,6 mm in seine Nachbarn hinein und unter dem Cover liegt die Rückenfarbe (--sp). */
+.cover { --ov: .6mm; }
+.spine { position: relative; z-index: 2; margin: 0 calc(-1 * var(--ov)); padding: 0 var(--ov); background: var(--sp, var(--brand, #89268d)); display: flex; flex-direction: column; align-items: center; min-width: 0; overflow: hidden; }
+.spine-head { width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); display: flex; justify-content: center; padding-top: 2mm; flex: none; }
 .spine-foot { display: none; }
 .spine-logo { display: block; width: 6mm; height: auto; }
 .spine.fill .spine-logo { width: calc(100% - 2mm); }
@@ -207,14 +231,17 @@ dialog .f small { display: block; margin-top: 3px; }
 .theme-modern .panel-back { background: color-mix(in srgb, var(--dark, #140d1e) 94%, transparent); }
 .theme-modern .galaxy { box-shadow: 0 0 0 .25mm var(--accent, #b04fd6); }
 .theme-modern .speccol h4 { display: block; margin: 0 0 1.8mm; padding-bottom: 1mm; border-bottom: .25mm solid var(--brand, #89268d); color: var(--accent, #e6c4ff); font-size: 6.3pt; font-weight: 900; letter-spacing: .3mm; }
-.theme-modern .specs { font-size: 6.9pt; gap: 1.3mm; }
+.theme-modern .specs { font-size: 6.9pt; gap: .6em; }
+.theme-modern .specs.dual { font-size: 5.6pt; }
 .theme-modern .specs .k { color: #b9a4d3; }
 .theme-modern .specs .v { color: #fff; }
+.theme-modern .specs .chip { border-color: #b9a4d3; color: #b9a4d3; }
+.theme-modern .specs .chip.rec { color: var(--on-brand, #fff); }
 .theme-modern .copy { color: #a995c2; }
 .theme-modern .logos img { background: #fff; padding: 1mm; border-radius: 1mm; }
-.theme-modern .spine { background: var(--dark, #17101f); }
+.theme-modern { --sp: var(--dark, #17101f); }
 .theme-modern .spine-head { background: var(--brand, #89268d); padding: 2mm 0; }
-.theme-modern .spine-foot { display: flex; align-items: center; justify-content: center; width: 100%; height: 12mm; flex: none; background: var(--brand, #89268d); color: var(--on-brand, #fff); font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
+.theme-modern .spine-foot { display: flex; align-items: center; justify-content: center; width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); height: 12mm; flex: none; background: var(--brand, #89268d); color: var(--on-brand, #fff); font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
 
 /* ===== Druck: nur das Blatt, A4 quer, ohne Ränder ===== */
 @page { size: A4 landscape; margin: 0; }
@@ -222,8 +249,16 @@ dialog .f small { display: block; margin-top: 3px; }
   html, body { background: #fff; margin: 0; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .no-print, .ph { display: none !important; }
+  .back-top:not(.has-img), .back-bottom:not(.has-img), .front:not(.has-img) { background-color: #fff; }
   .app { display: block; padding: 0; max-width: none; }
   .preview { position: static; }
   .scalebox { width: 297mm; height: 209.5mm; box-shadow: none; border-radius: 0; }
   .sheet { transform: none; height: 209.5mm; }
 }
+
+/* Reiter für Mindest- und empfohlene Anforderungen im Formular */
+.reqtabs { display: flex; gap: 0; margin: 4px 0 10px; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.reqtabs button { flex: 1; border: 0; border-radius: 0; background: transparent; padding: 7px 8px; font: inherit; font-weight: 600; cursor: pointer; }
+.reqtabs button.on { background: var(--acc); color: #fff; }
+.recfields:not(.on) { opacity: .5; }
+.shown th { text-align: left; font-size: 11.5px; color: var(--mut); padding: 4px 8px; border-bottom: 1px solid var(--line); }

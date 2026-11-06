@@ -57,7 +57,7 @@
     de: {
       reqTitle: 'SYSTEMANFORDERUNGEN', tag: 'PC · DRM-FREI',
       features: 'Spielfunktionen:', featuresNote: 'Einige Funktionen erfordern GOG Galaxy',
-      os: 'Läuft auf', cpu: 'Prozessor', ram: 'Arbeitsspeicher', gpu: 'Grafik', dx: 'DirectX', space: 'Speicherplatz', other: 'Sonstiges',
+      min: 'MINIMUM', rec: 'EMPFOHLEN', short: { ram: 'RAM', space: 'Speicher' }, os: 'Läuft auf', cpu: 'Prozessor', ram: 'Arbeitsspeicher', gpu: 'Grafik', dx: 'DirectX', space: 'Speicherplatz', other: 'Sonstiges',
       ramUnit: 'RAM', spaceUnit: 'freier Speicherplatz', bit64: '64-Bit',
       galaxy: { title: 'GOG GALAXY 2.0', text: 'Alle deine Spiele und Freunde an einem Ort', join: 'JETZT BEITRETEN', url: 'www.gog.com/galaxy' },
       feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', controller_support: 'Controller Support', achievements: 'Erfolge', cloud_saves: 'Cloud Saves', leaderboards: 'Bestenlisten' },
@@ -65,7 +65,7 @@
     en: {
       reqTitle: 'SYSTEM REQUIREMENTS', tag: 'PC · DRM-FREE',
       features: 'Game Features:', featuresNote: 'Some features require GOG Galaxy',
-      os: 'Works on', cpu: 'Processor', ram: 'Memory', gpu: 'Graphics', dx: 'DirectX', space: 'Storage', other: 'Other',
+      min: 'MINIMUM', rec: 'RECOMMENDED', short: {}, os: 'Works on', cpu: 'Processor', ram: 'Memory', gpu: 'Graphics', dx: 'DirectX', space: 'Storage', other: 'Other',
       ramUnit: 'RAM', spaceUnit: 'available space', bit64: '64-bit',
       galaxy: { title: 'GOG GALAXY 2.0', text: 'All your games and friends in one place', join: 'JOIN NOW', url: 'www.gog.com/galaxy' },
       feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', controller_support: 'Controller Support', achievements: 'Achievements', cloud_saves: 'Cloud Saves', leaderboards: 'Leaderboards' },
@@ -112,7 +112,7 @@
     if (cpu.custom && cpu.custom.trim()) return [cpu.custom.trim()];
     const out = [];
     const i = cpu.intel, a = cpu.amd;
-    if (i && i.on) out.push('Intel ' + i.pre + (i.num.trim() ? '-' + i.num.trim() + (i.sfx || '') : ''));
+    if (i && i.on) out.push('Intel ' + i.pre + (i.num.trim() ? (/^Core i\d$/.test(i.pre) ? '-' : ' ') + i.num.trim() + (i.sfx || '') : ''));
     if (a && a.on) out.push('AMD ' + a.pre + (a.num.trim() ? ' ' + a.num.trim() + (a.sfx || '') : ''));
     return out;
   }
@@ -126,6 +126,72 @@
     }
     if (a && a.on) out.push('AMD Radeon ' + a.pre + (a.num.trim() ? ' ' + a.num.trim() : '') + (a.sfx ? ' ' + a.sfx : ''));
     return out;
+  }
+
+  /* ---------- Prozessor- und Grafikkartentexte (z. B. von Steam) in die Kategorien übersetzen ---------- */
+  const clean = (t) => String(t || '').replace(/[®™]|\(R\)|\(TM\)|\(r\)|\(tm\)/g, '').replace(/\([^)]*\)/g, ' ')
+    .replace(/\s+(?:or|oder)\s+(?:better|higher|equivalent|faster|newer|above|similar)\b.*$/i, '').replace(/\s+(?:or|oder)?\s*(?:equivalent|better)\s*$/i, '').replace(/\s+/g, ' ').trim();
+  const split = (t) => clean(t).split(/\s+(?:or|oder)\s+|\s*\/\s*|\s*;\s*|,\s*(?=(?:AMD|Intel|NVIDIA|GeForce|Radeon|Ryzen|Core|Athlon|Phenom|FX)\b)/i).map((x) => x.trim()).filter(Boolean);
+
+  /* Ein Prozessor -> { vendor: 'intel'|'amd', pre, num, sfx } oder null, wenn er nicht sauber in die Kategorien passt */
+  function parseCpuOne(alt) {
+    const t = alt.replace(/^(?:Intel|AMD)\s+/i, '');
+    let m = t.match(/^Core\s*(i[3579])\s*-?\s*(\d{3,5})?([A-Z]{0,2})$/i);
+    if (m) {
+      const suffix = (m[3] || '').toUpperCase(), known = ['K', 'KF', 'F'].includes(suffix);
+      return { vendor: 'intel', pre: 'Core ' + m[1].toLowerCase(), num: (m[2] || '') + (m[2] && !known ? suffix : ''), sfx: known ? suffix : '' };
+    }
+    m = t.match(/^(Core 2 Duo|Core 2 Quad|Pentium|Celeron)\s*(.*)$/i);
+    if (m && /^[A-Za-z0-9 .+-]*$/.test(m[2]) && !/(?:mhz|ghz)/i.test(m[2])) {
+      const pre = ['Core 2 Duo', 'Core 2 Quad', 'Pentium', 'Celeron'].find((p) => p.toLowerCase() === m[1].toLowerCase());
+      return { vendor: 'intel', pre, num: m[2].trim(), sfx: '' };
+    }
+    m = t.match(/^Ryzen\s*([3579])\s*(\d{3,5})\s*(X3D|XT|X|G|GE|U|H|HS)?$/i);
+    if (m) {
+      const suffix = (m[3] || '').toUpperCase(), known = ['X', 'X3D', 'G'].includes(suffix);
+      return { vendor: 'amd', pre: 'Ryzen ' + m[1], num: m[2] + (suffix && !known ? suffix : ''), sfx: known ? suffix : '' };
+    }
+    m = t.match(/^(Athlon|Phenom|FX)\s*-?\s*(.*)$/i);
+    if (m && /^[A-Za-z0-9 .+-]*$/.test(m[2]) && !/(?:mhz|ghz)/i.test(m[2])) {
+      return { vendor: 'amd', pre: ({ athlon: 'Athlon', phenom: 'Phenom', fx: 'FX' })[m[1].toLowerCase()], num: m[2].trim(), sfx: '' };
+    }
+    return null;
+  }
+  const detectCpuVendor = (a) => (/\b(?:amd|ryzen|athlon|phenom|fx|opteron)\b/i.test(a) ? 'amd' : /\b(?:intel|core|pentium|celeron|xeon)\b/i.test(a) ? 'intel' : '');
+
+  /* Prozessor-Text -> { cpu: { intel, amd, custom } } für die Kategorien oder null (dann als Text übernehmen) */
+  function parseCpuText(text) {
+    const alts = split(text);
+    if (!alts.length || alts.length > 2) return null;
+    const out = { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' };
+    for (const a of alts) {
+      const r = parseCpuOne(a);
+      if (!r || out[r.vendor].on || detectCpuVendor(a) && detectCpuVendor(a) !== r.vendor) return null;
+      out[r.vendor] = { on: true, pre: r.pre, num: r.num, sfx: r.sfx };
+    }
+    return { cpu: out };
+  }
+
+  /* Eine Grafikkarte -> { vendor: 'nvidia'|'amd', pre, num, sfx } oder null */
+  function parseGpuOne(alt) {
+    if (/\bintel\b/i.test(alt)) return null;
+    const t = alt.replace(/\b(?:NVIDIA|AMD|ATI|GeForce|Radeon)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+    let m = t.match(/^(RTX|GTX|GTS|GT)\s*(\d{2,4})\s*(Ti|SUPER)?(?:\s+(\d+\s?GB))?$/i);
+    if (m) return { vendor: 'nvidia', pre: m[1].toUpperCase(), num: m[2], sfx: [m[3] ? (m[3].toLowerCase() === 'ti' ? 'Ti' : 'SUPER') : '', (m[4] || '').replace(/\s+/, '').toUpperCase()].filter(Boolean).join(' ') };
+    m = t.match(/^(RX|HD|R9|R7|R5)\s*(\d{3,4})\s*(XTX|XT|GRE)?(?:\s+(\d+\s?GB))?$/i);
+    if (m) return { vendor: 'amd', pre: m[1].toUpperCase(), num: m[2], sfx: [(m[3] || '').toUpperCase(), (m[4] || '').replace(/\s+/, '').toUpperCase()].filter(Boolean).join(' ') };
+    return null;
+  }
+  function parseGpuText(text) {
+    const alts = split(text);
+    if (!alts.length || alts.length > 2) return null;
+    const out = { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' };
+    for (const a of alts) {
+      const r = parseGpuOne(a);
+      if (!r || out[r.vendor].on) return null;
+      out[r.vendor] = { on: true, pre: r.pre, num: r.num, sfx: r.sfx };
+    }
+    return { gpu: out };
   }
 
   /* Zeilen für die Systemanforderungen. Leere Zeilen entfallen. values ist eine Liste von Alternativen. */
@@ -143,6 +209,27 @@
     return rows.map(([key, label, values]) => ({ key, label, values: values.filter(Boolean) })).filter((r) => r.values.length);
   }
 
+  /* Tabelle für die Rückseite: je Zeile die Mindest- und (wenn eingeschaltet) die empfohlenen Angaben.
+     Gleiche Angaben stehen nur einmal da (shared), das Betriebssystem gilt immer für beide. */
+  function buildSpecTable(state) {
+    const L = LABELS[state.lang] || LABELS.de;
+    const pick = (s) => ({
+      cpu: cpuList(s.cpu), ram: [formatStorage(s.ram, L.ramUnit)], gpu: gpuList(s.gpu),
+      dx: [(s.dx || '').trim()], space: [formatStorage(s.space, L.spaceUnit)], other: [(s.other || '').trim()],
+    });
+    const m = pick(state), r = state.rec && state.rec.on ? pick(state.rec) : null;
+    const rows = [];
+    const os = osString(state.os, state.lang);
+    if (os) rows.push({ key: 'os', label: L.os, short: L.short.os || L.os, min: [os], rec: [], shared: true });
+    for (const [key, label] of [['cpu', L.cpu], ['ram', L.ram], ['gpu', L.gpu], ['dx', L.dx], ['space', L.space], ['other', L.other]]) {
+      const min = m[key].filter(Boolean), rec = r ? r[key].filter(Boolean) : [];
+      if (!min.length && !rec.length) continue;
+      const same = !!rec.length && JSON.stringify(min) === JSON.stringify(rec);
+      rows.push({ key, label, short: L.short[key] || label, min, rec: same ? [] : rec, shared: same || !r });
+    }
+    return { rows, dual: rows.some((x) => !x.shared), labels: { min: L.min, rec: L.rec } };
+  }
+
   /* --- Standardwerte und Speichern --- */
   function defaultState() {
     return {
@@ -154,6 +241,13 @@
       cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
       gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
       ram: '4', space: '10', dx: '', other: '',
+      /* Empfohlene Anforderungen (optional, zusätzlich zu den Mindestanforderungen oben) */
+      rec: {
+        on: false,
+        cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
+        gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
+        ram: '8', space: '10', dx: '', other: '',
+      },
     };
   }
 
@@ -211,7 +305,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, defaultState, mergeState, fitSize };
+  const api = { parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
