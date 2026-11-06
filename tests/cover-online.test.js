@@ -214,3 +214,20 @@ test('Systemanforderungen: Alles aus den Feldern steht auch in der Tabelle der R
   assert.equal(t.rows.find((r) => r.key === 'other').shared, true);
   assert.equal(C.buildSpecTable({ ...s, lang: 'en' }).labels.rec, 'RECOMMENDED');
 });
+
+test('Steam: Spielname, Publisher und Entwickler werden übernommen, Wikidata-Logosuche', async () => {
+  const b = O.steamPatchBoth({ name: 'Cyberpunk 2077™', publishers: ['CD PROJEKT RED'], developers: ['CD PROJEKT RED'], pc_requirements: { minimum: '<ul><li><strong>Memory:</strong> 12 GB RAM</li></ul>' } });
+  assert.equal(b.patch.title, 'Cyberpunk 2077'); assert.equal(b.patch.publisher, 'CD PROJEKT RED'); assert.equal(b.patch.developer, 'CD PROJEKT RED');
+  assert.equal(b.shown[0].label, 'Spieletitel (Rücken)');
+  assert.equal(O.steamPatchBoth({ pc_requirements: [] }).patch.title, undefined);
+  const s = C.mergeState({ ...C.defaultState(), ...b.patch });
+  assert.equal(s.title, 'Cyberpunk 2077'); assert.equal(s.publisher, 'CD PROJEKT RED');
+  assert.equal(O.commonsUrl('File:Valve logo.svg', 300), 'https://commons.wikimedia.org/wiki/Special:FilePath/Valve%20logo.svg?width=300');
+  // nur Treffer mit Logo (P154) erscheinen
+  const real = globalThis.fetch;
+  globalThis.fetch = async (url) => ({ ok: true, json: async () => /wbsearchentities/.test(url)
+    ? { search: [{ id: 'Q1', label: 'Valve', description: 'company' }, { id: 'Q2', label: 'Ventil' }] }
+    : { entities: { Q1: { claims: { P154: [{ mainsnak: { datavalue: { value: 'Valve logo.svg' } } }] } }, Q2: { claims: {} } } } });
+  try { assert.deepEqual(await O.logoSearch('Valve'), [{ id: 'Q1', label: 'Valve', description: 'company', logos: ['Valve logo.svg'] }]); }
+  finally { globalThis.fetch = real; }
+});

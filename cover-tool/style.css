@@ -149,14 +149,14 @@ dialog .f small { display: block; margin-top: 3px; }
 .feat img { height: 7.4mm; max-width: 11mm; width: auto; object-fit: contain; }
 .feat span { margin-top: .6mm; font-size: 4.6pt; font-weight: 700; line-height: 1.15; }
 .back-bottom { position: relative; flex: none; height: 46mm; background: #f4f5f8 center bottom / cover no-repeat; }
-.panel-back { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: 26mm minmax(0, 1fr) 41mm; gap: 3.5mm; padding: 4.5mm 4.5mm 3mm 4mm; background: rgba(255, 255, 255, .87); }
+.panel-back { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: 20mm minmax(0, 1fr) 41mm; gap: 3.5mm; padding: 4.5mm 4.5mm 3mm 4mm; background: rgba(255, 255, 255, .87); }
 .galaxy.off { visibility: hidden; }   /* der Platz bleibt reserviert, damit sich nichts verschiebt */
-.galaxy { align-self: center; width: 26mm; height: 30mm; border-radius: 2.2mm; padding: 2mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9mm; text-align: center; color: #fff; background: linear-gradient(160deg, #7b1fa8, #35105e); }
-.galaxy .ring { width: 6.4mm; height: 6.4mm; border-radius: 50%; border: 1.3mm solid #d65cff; display: block; margin-bottom: .6mm; }
-.galaxy b { font-size: 6.4pt; font-weight: 700; line-height: 1.1; }
-.galaxy span { font-size: 3.8pt; line-height: 1.25; opacity: .9; }
-.galaxy em { font-style: normal; font-size: 3.3pt; font-weight: 700; letter-spacing: .1mm; padding: .5mm 2.6mm; border-radius: 1mm; background: rgba(255, 255, 255, .35); margin-top: .6mm; }
-.galaxy small { font-size: 3.3pt; opacity: .85; }
+.galaxy { align-self: center; width: 20mm; height: 24mm; border-radius: 2mm; padding: 1.4mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9mm; text-align: center; color: #fff; background: linear-gradient(160deg, #7b1fa8, #35105e); }
+.galaxy .ring { width: 5mm; height: 5mm; border-radius: 50%; border: 1mm solid #d65cff; display: block; margin-bottom: .4mm; }
+.galaxy b { font-size: 5pt; font-weight: 700; line-height: 1.1; }
+.galaxy span { font-size: 3.1pt; line-height: 1.25; opacity: .9; }
+.galaxy em { font-style: normal; font-size: 2.7pt; font-weight: 700; letter-spacing: .1mm; padding: .4mm 1.6mm; border-radius: .8mm; background: rgba(255, 255, 255, .35); margin-top: .4mm; }
+.galaxy small { font-size: 2.7pt; opacity: .85; }
 .speccol { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .speccol h4 { display: none; margin: 0; }
 /* Zeilen beginnen immer oben mit festem Abstand: Ändert sich die Zeilenzahl, springt nichts */
@@ -170,8 +170,9 @@ dialog .f small { display: block; margin-top: 3px; }
 .alt { display: inline-block; max-width: 100%; }
 /* Mit empfohlenen Angaben: Tabelle mit den Spalten Minimum und Empfohlen. Das Feld wird dafür breiter (Galaxy-Feld und rechte Spalte
    werden etwas schmaler). Ohne Galaxy-Feld nimmt die Tabelle dessen Platz mit. */
-.panel-back.dual { grid-template-columns: 22mm minmax(0, 1fr) 33mm; gap: 3mm; }
-.panel-back.dual .galaxy { width: 22mm; padding: 1.5mm; }
+.panel-back.dual { grid-template-columns: 18mm minmax(0, 1fr) 33mm; gap: 3mm; }
+.panel-back.dual .galaxy { width: 18mm; padding: 1.2mm; }
+.panel-back.dual .galaxy b { font-size: 4.4pt; }
 .panel-back.nogx .speccol { grid-area: 1 / 1 / 2 / 3; }   /* ohne Galaxy-Feld rücken die Anforderungen an den linken Rand */
 .panel-back.dual .logos img { min-width: 0; }
 .specs.dual { font-size: 5.6pt; gap: .55em; line-height: 1.2; }

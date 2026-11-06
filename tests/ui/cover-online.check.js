@@ -45,12 +45,22 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     const ok = (body) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if (/storesearch/.test(target)) return ok({ items: [{ id: 70, name: 'Half-Life' }, { id: 71, name: 'Half-Life 2' }] });
     if (/appdetails\?l=english&appids=1091500/.test(target)) return ok({ 1091500: { success: true, data: { name: 'Cyberpunk 2077', pc_requirements: { minimum: STEAM_CP }, platforms: { windows: true, mac: false, linux: false }, categories: [{ id: 2 }, { id: 22 }, { id: 28 }] } } });
-    if (/appdetails/.test(target)) return ok({ 70: { success: true, data: { name: 'Half-Life', pc_requirements: { minimum: STEAM_MIN, recommended: '<ul><li><strong>Memory:</strong> 4 GB RAM<br></li></ul>' }, platforms: { windows: true, mac: false, linux: true }, categories: [{ id: 2 }, { id: 1 }, { id: 22 }, { id: 28 }] } } });
+    if (/appdetails/.test(target)) return ok({ 70: { success: true, data: { name: 'Half-Life', publishers: ['Valve'], developers: ['Valve'], pc_requirements: { minimum: STEAM_MIN, recommended: '<ul><li><strong>Memory:</strong> 4 GB RAM<br></li></ul>' }, platforms: { windows: true, mac: false, linux: true }, categories: [{ id: 2 }, { id: 1 }, { id: 22 }, { id: 28 }] } } });
     if (/autocomplete/.test(target)) return ok({ success: true, data: [{ id: 5, name: 'Half-Life', verified: true, release_date: 910000000 }] });
     if (/\/grids\/game\/5/.test(target)) return ok({ success: true, data: [{ id: 11, url: 'https://cdn.test/full.png', thumb: 'https://cdn.test/thumb.png', width: 600, height: 900, language: 'de', score: 3 }] });
     if (/\/heroes\/game\/5/.test(target)) return ok({ success: true, data: [{ id: 12, url: 'https://cdn.test/full.png', thumb: 'https://cdn.test/thumb.png', width: 1920, height: 620 }] });
     return route.fulfill({ status: 404, headers: CORS, body: '{}' });
   });
+  // Wikidata/Commons (Publisher-Logos) und Steam-Cover-CDN: direkt, ohne Proxy
+  const wdCalls = [];
+  await page.route('https://www.wikidata.org/**', (route) => {
+    const u = new URL(route.request().url()), a = u.searchParams.get('action'); wdCalls.push(u.searchParams.get('search') || u.searchParams.get('ids'));
+    const json = (body) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (a === 'wbsearchentities') return json({ search: [{ id: 'Q1', label: 'Valve', description: 'video game company' }, { id: 'Q2', label: 'Valve (Ventil)', description: 'Bauteil' }] });
+    return json({ entities: { Q1: { claims: { P154: [{ mainsnak: { datavalue: { value: 'Valve logo.svg' } } }, { mainsnak: { datavalue: { value: 'Valve old.png' } } }] } }, Q2: { claims: {} } } });
+  });
+  const cdnCalls = [];
+  await page.route(/https:\/\/(commons\.wikimedia\.org|cdn\.akamai\.steamstatic\.com)\/.*/, (route) => { cdnCalls.push(route.request().url()); return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'image/png' }, body: PNG }); });
   await page.route('https://cdn.test/**', (route) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'image/png' }, body: PNG }));
 
   await page.addInitScript(() => { delete window.showSaveFilePicker; });      // immer der normale Download (die Dateiauswahl lässt sich nicht automatisch bedienen)
@@ -142,7 +152,8 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.click('#dlgX');
 
   // ---- Anforderungen von Steam ----
-  await page.fill('[data-k=title]', 'Half-Life');
+  if (await page.locator('[data-img=front]').evaluate((e) => e.classList.contains('has'))) await page.click('[data-img=front] .x');
+  await page.fill('[data-k=title]', 'Alter Titel');
   await openMenu('Daten übernehmen'); await page.click('#bSteam');
   await page.locator('#dlg .dlist button', { hasText: /^Half-Life\s+\(App 70\)$/ }).click();
   await page.waitForSelector('#dlg .shown');
@@ -151,8 +162,16 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   // Beide Spalten auf einmal: Minimum 2 GB, Empfohlen 4 GB
   assert.match(await page.locator('#dlg .shown').innerText(), /Minimum[\s\S]*Empfohlen/);
   assert.match(await page.locator('#dlg .shown tr', { hasText: 'Arbeitsspeicher' }).innerText(), /2 GB RAM[\s\S]*4 GB RAM/);
+  assert.match(shown, /Spieletitel[\s\S]*Half-Life/); assert.match(shown, /Publisher \/ Entwickler[\s\S]*Valve/);
+  assert.equal(await page.locator('#dlg input[type=checkbox]').isChecked(), true, 'Steam-Cover ist ohne vorhandenes Frontcover vorgewählt');
   await page.click('#dlg button:has-text("Übernehmen")');
   await page.waitForFunction(() => document.querySelector('[data-k="cpu.intel.on"]').checked);
+  // Titel (Rücken) und Cover kommen von Steam
+  assert.equal(await page.inputValue('[data-k=title]'), 'Half-Life');
+  assert.equal(await page.locator('#spineTitle').textContent(), 'Half-Life');
+  await page.waitForFunction(() => document.querySelector('[data-img=front]').classList.contains('has'));
+  assert.ok(cdnCalls.some((u) => /steam\/apps\/70\/library_600x900_2x\.jpg/.test(u)), 'Steam-Cover (Hochformat) wurde geladen');
+  assert.deepEqual(await page.evaluate(() => [CoverApp.state.publisher, CoverApp.state.developer]), ['Valve', 'Valve']);
   // Prozessor in der Kategorie Intel mit Modell (AMD bleibt aus), die alte Grafikkarte bleibt Text
   assert.equal(await page.locator('[data-k="cpu.amd.on"]').isChecked(), false);
   assert.equal(await page.inputValue('[data-k="cpu.intel.pre"]'), 'Core 2 Duo'); assert.equal(await page.inputValue('[data-k="cpu.intel.num"]'), 'E6600');
@@ -191,11 +210,20 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.ok(calls.some((c) => /heroes\/game\/5/.test(c.target)), 'Rückseite sucht Hintergründe');
   await page.click('#dlgX');
 
-  // ---- Ohne Schlüssel: verständlicher Hinweis ----
+  // ---- Publisher-Logo: Suche über Wikidata, Vorgabe aus dem Steam-Import, kein SteamGridDB-Schlüssel nötig ----
   await page.evaluate(() => localStorage.removeItem('sgdb-key'));
   await page.click('[data-img=publisher] .sg');
-  assert.match(await page.locator('#dlg .dmsg').first().textContent(), /API-Schlüssel/);
-  await page.click('#dlgX');
+  assert.match(await page.locator('#dlgTitle').textContent(), /Publisher-Logo/);
+  assert.equal(await page.inputValue('#dlg input[type=text]'), 'Valve');
+  await page.waitForSelector('#dlg .gal button');
+  assert.equal(await page.locator('#dlg .gal button').count(), 2, 'Nur Firmen mit Logo, beide Logos von Valve');
+  assert.ok(wdCalls.includes('Valve'));
+  assert.equal(await page.locator('#dlg button:has-text("Als Publisher-Logo übernehmen")').isDisabled(), true);
+  await page.locator('#dlg .gal button').first().click();
+  await page.click('#dlg button:has-text("Als Publisher-Logo übernehmen")');
+  await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));
+  assert.ok(cdnCalls.some((u) => /Special:FilePath\/Valve%20logo\.svg\?width=800/.test(u)), 'Logo wurde von Commons geladen');
+  assert.ok(!calls.some((c) => /steamgriddb/.test(c.target) && /logos/.test(c.target)), 'Kein SteamGridDB für Publisher-Logos');
 
   // ---- Einstellungen sichern und einlesen: Datei, mit und ohne Passwort, kompatibel mit dem Konfigurator ----
   await page.evaluate(() => { localStorage.setItem('sgdb-key', 'KEY2'); localStorage.setItem('sgdb-proxy', 'https://proxy.test/?url={url}'); });

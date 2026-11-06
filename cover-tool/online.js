@@ -184,7 +184,7 @@
   }
 
   /* Steam-Kategorien -> Spielfunktionen des Cover-Tools */
-  const FEATURE_BY_ID = { 2: 'single_player', 1: 'multi_player', 49: 'multi_player', 36: 'multi_player', 9: 'co_op', 38: 'co_op', 39: 'co_op', 22: 'achievements', 23: 'cloud_saves', 28: 'controller_support', 18: 'controller_support', 25: 'leaderboards' };
+  const FEATURE_BY_ID = { 2: 'single_player', 1: 'multi_player', 49: 'multi_player', 36: 'multi_player', 9: 'co_op', 38: 'co_op', 39: 'co_op', 22: 'achievements', 23: 'cloud_saves', 28: 'controller_support', 18: 'controller_support', 25: 'leaderboards', 24: 'multi_player', 47: 'multi_player', 20: 'multi_player', 48: 'co_op' };
   const FEATURE_ORDER = ['single_player', 'co_op', 'multi_player', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards'];
   function steamFeatures(categories) {
     const found = new Set();
@@ -261,7 +261,15 @@
     const com = commonFields(details, base), fm = fieldsOf(base);
     const patch = { ...com.patch, ...fm.patch };
     const rows = new Map();
+    const clean = (t) => String(t || '').replace(/[®™©]/g, '').replace(/\s+/g, ' ').trim();
+    const first = (a) => clean(Array.isArray(a) ? a[0] : a);
+    const title = clean(details.name), publisher = first(details.publishers), developer = first(details.developers);
+    if (title) patch.title = title;
+    if (publisher) patch.publisher = publisher;
+    if (developer) patch.developer = developer;
     const put = (label, col, value, kind) => { const row = rows.get(label) || { label, min: '', rec: '', kind: '' }; row[col] = value; if (kind) row.kind = kind; rows.set(label, row); };
+    if (title) put('Spieletitel (Rücken)', 'min', title);
+    if (publisher || developer) put('Publisher / Entwickler', 'min', [publisher, developer].filter((x, i, a) => x && a.indexOf(x) === i).join(' / '));
     com.shown.filter((x) => x[0] === 'Läuft auf').forEach(([l, v]) => put(l, 'min', v));
     fm.shown.forEach(([l, v, k]) => put(l, 'min', v, k));
     if (hasMin && hasRec) {
@@ -278,7 +286,39 @@
     return { patch, shown: [...rows.values()], hasRequirements: hasMin || hasRec, hasBoth: hasMin && hasRec };
   }
 
-  const api = { settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, SG_KINDS };
+  /* ---------- Publisher-Logos über Wikidata und Wikimedia Commons ----------
+     Wikidata kennt zu Firmen (Publisher, Entwickler) das Logo (Eigenschaft P154). Beide Dienste erlauben Anfragen aus dem Browser
+     (CORS), ein Schlüssel ist nicht nötig. Nur Firmen mit hinterlegtem Logo erscheinen in den Treffern. */
+  const WD = 'https://www.wikidata.org/w/api.php';
+  async function plainJson(url) {
+    let r;
+    try { r = await fetch(url); }
+    catch (e) {
+      if (!settings.proxy) throw new Error('Wikidata ist nicht erreichbar. Bitte die Internetverbindung prüfen.');
+      r = await net(url);
+    }
+    if (!r.ok) throw new Error('Wikidata hat mit Fehler ' + r.status + ' geantwortet.');
+    return await r.json();
+  }
+  const commonsUrl = (file, width) => 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(String(file).replace(/^(?:File|Datei):/i, '')) + (width ? '?width=' + width : '');
+  /* -> [{ id, label, description, logos: [Dateiname, ...] }] nur mit Logo */
+  async function logoSearch(term) {
+    const q = '&format=json&origin=*';
+    const s = await plainJson(WD + '?action=wbsearchentities&type=item&limit=12&language=en&uselang=en&search=' + encodeURIComponent(term) + q);
+    const hits = (s && s.search) || [];
+    if (!hits.length) return [];
+    const e = await plainJson(WD + '?action=wbgetentities&props=claims%7Clabels%7Cdescriptions&languages=en%7Cde&ids=' + hits.map((h) => h.id).join('%7C') + q);
+    const out = [];
+    for (const h of hits) {
+      const ent = e && e.entities && e.entities[h.id];
+      const claims = (ent && ent.claims && ent.claims.P154) || [];
+      const logos = claims.map((c) => c && c.mainsnak && c.mainsnak.datavalue && c.mainsnak.datavalue.value).filter((v) => typeof v === 'string');
+      if (logos.length) out.push({ id: h.id, label: h.label || h.id, description: h.description || '', logos });
+    }
+    return out;
+  }
+
+  const api = { logoSearch, commonsUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, SG_KINDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverOnline = api;
 })(typeof window !== 'undefined' ? window : globalThis);
