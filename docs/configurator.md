@@ -66,7 +66,7 @@ Die Dateiauswahl mit Überschreiben ist bisher nur mit nachgebauten Browserfunkt
 
 ## Tests
 
-Im Repo liegen automatische Tests (`npm install`, dann `npm test`). Sie laufen bei jedem Push über `.github/workflows/tests.yml`.
+Im Repo liegen automatische Tests (`npm install`, dann `npm test`). Sie laufen bei jedem Push über `.github/workflows/tests.yml`. Diese Datei prüft vorerst nur die Web-Tools, der Windows-Build (Builder, Player, Wine-Test) ist bewusst nicht dabei.
 
 - `tests/core.test.js`: Kernlogik des Konfigurators (ZIP, Prüfung, Export und Import, Hilfen für Suche und Beschreibung, Einstellungen, Disc-Prüfung). Der Block `CORE` in `index.html` wird ohne Browser geladen.
 - `tests/schema.test.js`: Beispiel-Rezept und Konfigurator-Export gegen `schema/menu.schema.json`, plus abgelehnte Fälle.

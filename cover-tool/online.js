@@ -311,14 +311,29 @@
     const out = [];
     for (const h of hits) {
       const ent = e && e.entities && e.entities[h.id];
-      const claims = (ent && ent.claims && ent.claims.P154) || [];
-      const logos = claims.map((c) => c && c.mainsnak && c.mainsnak.datavalue && c.mainsnak.datavalue.value).filter((v) => typeof v === 'string');
-      if (logos.length) out.push({ id: h.id, label: h.label || h.id, description: h.description || '', logos });
+      /* Aktuelle Logos zuerst: bevorzugter Rang vor normalem, Logos mit Enddatum (P582, "nicht mehr verwendet") und abgelehnte zuletzt */
+      const claims = ((ent && ent.claims && ent.claims.P154) || []).filter((c) => c && c.rank !== 'deprecated').map((c, i) => ({
+        file: c.mainsnak && c.mainsnak.datavalue && c.mainsnak.datavalue.value, i,
+        old: !!(c.qualifiers && c.qualifiers.P582), pref: c.rank === 'preferred',
+      })).filter((c) => typeof c.file === 'string');
+      claims.sort((a, b) => (a.old - b.old) || (b.pref - a.pref) || (a.i - b.i));
+      if (claims.length) out.push({ id: h.id, label: h.label || h.id, description: h.description || '', logos: claims.map((c) => c.file), old: claims.filter((c) => c.old).map((c) => c.file) });
     }
     return out;
   }
 
-  const api = { logoSearch, commonsUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, SG_KINDS };
+  /* Direkte Bildadresse bei upload.wikimedia.org (dort ist CORS erlaubt, bei Special:FilePath nicht). SVG kommt als PNG in der gewünschten Breite. */
+  async function commonsImageUrl(file, width) {
+    const title = 'File:' + String(file).replace(/^(?:File|Datei):/i, '');
+    const j = await plainJson('https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&iiprop=url&iiurlwidth=' + (width || 800) + '&titles=' + encodeURIComponent(title) + '&format=json&origin=*');
+    const pages = (j && j.query && j.query.pages) || {};
+    const info = (Object.values(pages)[0] || {}).imageinfo;
+    const url = info && info[0] && (info[0].thumburl || info[0].url);
+    if (!url) throw new Error('Zu diesem Logo hat Wikimedia Commons keine Bilddatei geliefert.');
+    return url;
+  }
+
+  const api = { logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, SG_KINDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverOnline = api;
 })(typeof window !== 'undefined' ? window : globalThis);

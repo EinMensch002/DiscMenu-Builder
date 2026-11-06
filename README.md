@@ -68,7 +68,7 @@ DiscMenu-Builder/
 ├─ tests/                   Automatische Tests
 ├─ tools/mkdemo/            Erzeugt die Beispiel-Assets
 ├─ tools/cors-proxy/        Optionaler Proxy (Cloudflare Worker) für SteamGridDB
-├─ .github/workflows/       Tests, Windows-Build und Veröffentlichung von Konfigurator und Cover-Tool auf GitHub Pages
+├─ .github/workflows/       Tests der Web-Tools und Veröffentlichung von Konfigurator und Cover-Tool auf GitHub Pages (Windows-Build und Wine-Test vorerst abgeschaltet)
 ├─ examples/
 │  ├─ menu.example.json     Beispiel-Rezept mit drei Spielen (GOG, Epic, Steam)
 │  └─ assets/               Beispiel-Cover, -Hintergrund und -Klick-Sound (erzeugt mit tools/mkdemo)
@@ -131,7 +131,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Player: Installation normal und still, Zielordner wählen, Fortschrittsanzeige, Ergebnis mit Exit-Code und Protokoll
 - [x] Player: DLCs, Patches und Extras mit Gruppen
 - [x] Anbieter `gog`, `epic`, `steam` mit eigenem Abzeichen und eigener Farbe (Steam noch ohne Wiederherstellung)
-- [x] Tests im Repo und CI mit Windows-Build und Wine-Rauchtest
+- [x] Tests im Repo und CI für die Web-Tools (Windows-Build und Wine-Rauchtest sind vorerst aus der CI genommen, `go test ./...` und `scripts/build.sh` laufen von Hand)
 - [ ] Player an das neue Installer-Layout der Web-Vorschau angleichen (Fenster mit Titelleiste, links Bild und Beschreibung, rechts Knöpfe, Bild folgt dem Mauszeiger)
 - [ ] Praxistest unter Windows 10/11: Start, UAC, Ordnerdialog, Zwischenablage ([Checkliste](docs/manuelle-pruefung.md))
 - [ ] Praxistest unter Wine und Proton: Start, Grafik (DirectX oder OpenGL), Installer ([Checkliste](docs/manuelle-pruefung.md))

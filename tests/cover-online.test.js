@@ -228,6 +228,21 @@ test('Steam: Spielname, Publisher und Entwickler werden übernommen, Wikidata-Lo
   globalThis.fetch = async (url) => ({ ok: true, json: async () => /wbsearchentities/.test(url)
     ? { search: [{ id: 'Q1', label: 'Valve', description: 'company' }, { id: 'Q2', label: 'Ventil' }] }
     : { entities: { Q1: { claims: { P154: [{ mainsnak: { datavalue: { value: 'Valve logo.svg' } } }] } }, Q2: { claims: {} } } } });
-  try { assert.deepEqual(await O.logoSearch('Valve'), [{ id: 'Q1', label: 'Valve', description: 'company', logos: ['Valve logo.svg'] }]); }
+  // Ältere Logos (mit Enddatum) stehen hinten, bevorzugte vorn
+  globalThis.fetch = async (url) => ({ ok: true, json: async () => /wbsearchentities/.test(url)
+    ? { search: [{ id: 'Q1', label: 'CDP' }] }
+    : { entities: { Q1: { claims: { P154: [
+      { rank: 'normal', mainsnak: { datavalue: { value: 'alt.svg' } }, qualifiers: { P582: [{}] } },
+      { rank: 'normal', mainsnak: { datavalue: { value: 'neu.svg' } } },
+      { rank: 'preferred', mainsnak: { datavalue: { value: 'best.svg' } } },
+      { rank: 'deprecated', mainsnak: { datavalue: { value: 'falsch.svg' } } }] } } } } });
+  const sorted = await O.logoSearch('CDP');
+  assert.deepEqual(sorted[0].logos, ['best.svg', 'neu.svg', 'alt.svg']); assert.deepEqual(sorted[0].old, ['alt.svg']);
+  globalThis.fetch = async (url) => ({ ok: true, json: async () => ({ query: { pages: { 1: { imageinfo: [{ thumburl: 'https://upload.wikimedia.org/x/800px-a.svg.png', url: 'https://upload.wikimedia.org/x/a.svg' }] } } } }) });
+  assert.equal(await O.commonsImageUrl('File:a.svg', 800), 'https://upload.wikimedia.org/x/800px-a.svg.png');
+  globalThis.fetch = async (url) => ({ ok: true, json: async () => /wbsearchentities/.test(url)
+    ? { search: [{ id: 'Q1', label: 'Valve', description: 'company' }, { id: 'Q2', label: 'Ventil' }] }
+    : { entities: { Q1: { claims: { P154: [{ mainsnak: { datavalue: { value: 'Valve logo.svg' } } }] } }, Q2: { claims: {} } } } });
+  try { assert.deepEqual(await O.logoSearch('Valve'), [{ id: 'Q1', label: 'Valve', description: 'company', logos: ['Valve logo.svg'], old: [] }]); }
   finally { globalThis.fetch = real; }
 });

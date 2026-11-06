@@ -311,7 +311,7 @@
     const ok = h('button', { type: 'button', class: 'pri', disabled: true, onclick: async () => {
       ok.disabled = true; say(msg, 'Logo wird übernommen ...');
       try {
-        const blob = await O.fetchBlob(O.commonsUrl(chosen.file, 800));
+        const blob = await O.fetchBlob(await O.commonsImageUrl(chosen.file, 800));
         await App.setImage('publisher', new File([blob], 'logo-' + chosen.id + '.png', { type: blob.type || 'image/png' })); closeDlg();
       } catch (e) { say(msg, e.message, true); ok.disabled = false; }
     } }, 'Als Publisher-Logo übernehmen');
@@ -320,10 +320,10 @@
       say(msg, 'Suche läuft ...'); gal.replaceChildren(); chosen = null; ok.disabled = true;
       try {
         const res = await O.logoSearch(t);
-        say(msg, res.length ? 'Logo auswählen:' : 'Kein Eintrag mit Logo gefunden. Anderen Namen versuchen (z. B. ohne "Games" oder "Studio") oder das Logo als Datei laden.');
-        gal.replaceChildren(...res.flatMap((r) => r.logos.slice(0, 4).map((file) => h('button', { type: 'button', onclick: (e) => {
+        say(msg, res.length ? 'Logo auswählen (aktuelle zuerst, ältere sind gekennzeichnet):' : 'Kein Eintrag mit Logo gefunden. Anderen Namen versuchen (z. B. ohne "Games" oder "Studio") oder das Logo als Datei laden.');
+        gal.replaceChildren(...res.flatMap((r) => r.logos.slice(0, 6).map((file) => h('button', { type: 'button', onclick: (e) => {
           gal.querySelectorAll('button').forEach((b) => b.classList.remove('sel')); e.currentTarget.classList.add('sel'); chosen = { id: r.id, file }; ok.disabled = false;
-        } }, h('img', { src: O.commonsUrl(file, 240), alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), h('small', {}, r.label + (r.description ? ' · ' + r.description : ''))))));
+        } }, h('img', { src: O.commonsUrl(file, 240), alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), h('small', {}, r.label + (r.description ? ' · ' + r.description : '') + (r.old.includes(file) ? ' · älteres Logo' : ''))))));
       } catch (e) { say(msg, e.message, true); }
     };
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
