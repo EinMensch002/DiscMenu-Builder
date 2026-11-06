@@ -202,42 +202,83 @@
     return (at > 25 ? cut.slice(0, at) : cut.replace(/\s+\S*$/, '')).trim().replace(/[,;.]$/, '') + ' ...';
   }
 
-  /* Ergebnis: Änderungen für den Zustand des Cover-Tools (nur gefundene Werte) und eine Liste zur Anzeige */
-  function steamPatch(details, which) {
-    const req = (details.pc_requirements && !Array.isArray(details.pc_requirements) ? details.pc_requirements : {});
-    const r = parseRequirements(which === 'recommended' ? (req.recommended || req.minimum) : (req.minimum || req.recommended));
+  /* Prozessor, Grafik, Speicher usw. einer Anforderungsliste. Prozessor und Grafikkarte kommen möglichst in die Kategorien
+     (Intel, AMD, NVIDIA, Radeon). Passt der Text nicht sauber hinein (z. B. "Pentium III 500 MHz"), bleibt er als Text erhalten. */
+  function fieldsOf(r) {
     const patch = {}, shown = [];
     const add = (label, value, kind) => { if (value) shown.push([label, value, kind || '']); };
-    const os = parseWindows(r.os), plat = details.platforms || {};
-    if (os.win.length || plat.mac || plat.linux) {
-      patch.os = {}; if (os.win.length) { patch.os.win = os.win; patch.os.x64 = os.x64; }
-      if ('mac' in plat) patch.os.mac = !!plat.mac;
-      if ('linux' in plat) patch.os.linux = !!plat.linux;
-      add('Läuft auf', [os.win.length ? 'Windows (' + os.win.join(', ') + ')' : '', plat.mac ? 'macOS' : '', plat.linux ? 'Linux' : ''].filter(Boolean).join(' / '));
-    }
-    /* Prozessor und Grafikkarte kommen möglichst in die Kategorien (Intel, AMD, NVIDIA, Radeon). Passt der Text nicht
-       sauber hinein (z. B. "Pentium III 500 MHz", "Intel HD Graphics 520"), wird er als eigener Text übernommen. */
     if (r.processor) {
       const c = Core && Core.parseCpuText(r.processor);
       if (c) { patch.cpu = { ...c.cpu, custom: '' }; add('Prozessor', Core.cpuList(c.cpu).join(' / '), 'Kategorie'); }
-      else { patch.cpu = { custom: shorten(r.processor) }; add('Prozessor', patch.cpu.custom, 'Text'); }
+      else { patch.cpu = { custom: shorten(r.processor, 110) }; add('Prozessor', patch.cpu.custom, 'Text'); }
     }
     if (r.graphics) {
       const g = Core && Core.parseGpuText(r.graphics);
       if (g) { patch.gpu = { ...g.gpu, custom: '' }; add('Grafik', Core.gpuList(g.gpu).join(' / '), 'Kategorie'); }
-      else { patch.gpu = { custom: shorten(r.graphics) }; add('Grafik', patch.gpu.custom, 'Text'); }
+      else { patch.gpu = { custom: shorten(r.graphics, 110) }; add('Grafik', patch.gpu.custom, 'Text'); }
     }
     const ram = parseSize(r.memory); if (ram) { patch.ram = ram; add('Arbeitsspeicher', r.memory); }
     const space = parseSize(r.storage); if (space) { patch.space = space; add('Speicherplatz', r.storage); }
     if (r.directx) { patch.dx = shorten(r.directx, 40); add('DirectX', patch.dx); }
     const other = [r.sound ? (/sound/i.test(r.sound) ? r.sound : 'Soundkarte: ' + r.sound) : '', r.notes].filter(Boolean).join('. ');
-    if (other) { patch.other = shorten(other, 60); add('Sonstiges', patch.other); }
-    const feats = steamFeatures(details.categories);
-    if (feats.length) { patch.features = feats; add('Spielfunktionen', feats.join(', ')); }
-    return { patch, shown, hasRequirements: Object.keys(r).length > 0 };
+    if (other) { patch.other = shorten(other, 140); add('Sonstiges', patch.other); }
+    return { patch, shown };
   }
 
-  const api = { settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, SG_KINDS };
+  /* Betriebssysteme und Funktionen (gelten für beide Anforderungen) */
+  function commonFields(details, r) {
+    const patch = {}, shown = [];
+    const os = parseWindows(r.os), plat = details.platforms || {};
+    if (os.win.length || plat.mac || plat.linux) {
+      patch.os = {}; if (os.win.length) { patch.os.win = os.win; patch.os.x64 = os.x64; }
+      if ('mac' in plat) patch.os.mac = !!plat.mac;
+      if ('linux' in plat) patch.os.linux = !!plat.linux;
+      shown.push(['Läuft auf', [os.win.length ? 'Windows (' + os.win.join(', ') + ')' : '', plat.mac ? 'macOS' : '', plat.linux ? 'Linux' : ''].filter(Boolean).join(' / '), '']);
+    }
+    const feats = steamFeatures(details.categories);
+    if (feats.length) { patch.features = feats; shown.push(['Spielfunktionen', feats.join(', '), '']); }
+    return { patch, shown };
+  }
+
+  /* Ergebnis: Änderungen für den Zustand des Cover-Tools (nur gefundene Werte) und eine Liste zur Anzeige.
+     which = 'minimum' oder 'recommended': nur diese Angaben, als Mindestanforderungen. */
+  function steamPatch(details, which) {
+    const req = (details.pc_requirements && !Array.isArray(details.pc_requirements) ? details.pc_requirements : {});
+    const r = parseRequirements(which === 'recommended' ? (req.recommended || req.minimum) : (req.minimum || req.recommended));
+    const com = commonFields(details, r), f = fieldsOf(r);
+    const shown = [...com.shown.filter((x) => x[0] === 'Läuft auf'), ...f.shown, ...com.shown.filter((x) => x[0] !== 'Läuft auf')];
+    return { patch: { ...com.patch, ...f.patch }, shown, hasRequirements: Object.keys(r).length > 0 };
+  }
+
+  /* Mindest- und empfohlene Anforderungen auf einmal: Die Mindestangaben gehen in die normalen Felder, die empfohlenen in "rec".
+     Gibt es nur eine Liste, wird sie als Mindestanforderung übernommen und die empfohlene Spalte bleibt aus.
+     shown: [Bezeichnung, Minimum, Empfohlen, Art] je Zeile. */
+  function steamPatchBoth(details) {
+    const req = (details.pc_requirements && !Array.isArray(details.pc_requirements) ? details.pc_requirements : {});
+    const rMin = parseRequirements(req.minimum), rRec = parseRequirements(req.recommended);
+    const hasMin = Object.keys(rMin).length > 0, hasRec = Object.keys(rRec).length > 0;
+    const base = hasMin ? rMin : rRec;
+    const com = commonFields(details, base), fm = fieldsOf(base);
+    const patch = { ...com.patch, ...fm.patch };
+    const rows = new Map();
+    const put = (label, col, value, kind) => { const row = rows.get(label) || { label, min: '', rec: '', kind: '' }; row[col] = value; if (kind) row.kind = kind; rows.set(label, row); };
+    com.shown.filter((x) => x[0] === 'Läuft auf').forEach(([l, v]) => put(l, 'min', v));
+    fm.shown.forEach(([l, v, k]) => put(l, 'min', v, k));
+    if (hasMin && hasRec) {
+      const fr = fieldsOf(rRec);
+      /* Jede Angabe der empfohlenen Seite ersetzt die alte, auch wenn Steam sie weglässt (sonst bleibt Alt-Wert vom vorigen Spiel stehen) */
+      patch.rec = {
+        on: true,
+        cpu: { intel: { on: false }, amd: { on: false }, custom: '' }, gpu: { nvidia: { on: false }, amd: { on: false }, custom: '' },
+        ram: '', space: '', dx: '', other: '', ...fr.patch,
+      };
+      fr.shown.forEach(([l, v, k]) => put(l, 'rec', v, k));
+    } else if (hasMin || hasRec) patch.rec = { on: false };
+    com.shown.filter((x) => x[0] !== 'Läuft auf').forEach(([l, v]) => put(l, 'min', v));
+    return { patch, shown: [...rows.values()], hasRequirements: hasMin || hasRec, hasBoth: hasMin && hasRec };
+  }
+
+  const api = { settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, SG_KINDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverOnline = api;
 })(typeof window !== 'undefined' ? window : globalThis);

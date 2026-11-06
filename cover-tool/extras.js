@@ -207,21 +207,21 @@
       openDlg(item.name, m2);
       let details;
       try { details = await O.steamDetails(item.id); } catch (e) { say(m2, e.message, true); openDlg(item.name, m2, h('div', { class: 'drow' }, h('button', { type: 'button', onclick: openSteam }, '← Andere Suche'))); return; }
-      const which = h('select', {}, h('option', { value: 'minimum' }, 'Mindestanforderungen'), h('option', { value: 'recommended' }, 'Empfohlene Anforderungen'));
       const table = h('table', { class: 'shown' });
       const note = h('p', { class: 'dmsg' });
       let current = null;
       const ok = h('button', { type: 'button', class: 'pri', onclick: () => { App.patch(current.patch); closeDlg(); } }, 'Übernehmen');
       const draw = () => {
-        current = O.steamPatch(details, which.value);
-        table.replaceChildren(...current.shown.map(([k, v, kind]) => h('tr', {}, h('td', {}, k), h('td', {}, v), h('td', { class: 'kind' }, kind ? (kind === 'Kategorie' ? 'in Kategorien' : 'als Text') : ''))));
+        current = O.steamPatchBoth(details);
+        const two = current.hasBoth;
+        table.replaceChildren(h('tr', { class: 'head' }, h('th', {}, ''), h('th', {}, two ? 'Minimum' : 'Angaben'), h('th', {}, two ? 'Empfohlen' : ''), h('th', {}, '')),
+          ...current.shown.map((r) => h('tr', {}, h('td', {}, r.label), h('td', {}, r.min), h('td', {}, r.rec || (two && r.rec === '' ? '–' : '')), h('td', { class: 'kind' }, r.kind ? (r.kind === 'Kategorie' ? 'in Kategorien' : 'als Text') : ''))));
         note.textContent = current.hasRequirements ? '' : 'Steam hat zu diesem Spiel keine Systemanforderungen. Es werden nur Plattformen und Funktionen übernommen.';
         ok.disabled = !Object.keys(current.patch).length;
         if (ok.disabled) note.textContent = 'Zu diesem Spiel liefert Steam nichts, was sich übernehmen lässt.';
       };
-      which.addEventListener('change', draw);
       openDlg(details.name || item.name,
-        h('div', { class: 'drow' }, which, h('button', { type: 'button', onclick: openSteam }, '← Andere Suche')),
+        h('div', { class: 'drow' }, h('button', { type: 'button', onclick: openSteam }, '← Andere Suche')),
         table, note,
         h('p', { class: 'dmsg' }, 'Prozessor und Grafikkarte werden, wo es passt, in die Kategorien übernommen (Intel, AMD, NVIDIA, Radeon mit Modell). Was nicht hineinpasst, steht als eigener Text und ersetzt dann die Auswahl. Lange Angaben werden gekürzt. Alles lässt sich danach ändern.'),
         h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));

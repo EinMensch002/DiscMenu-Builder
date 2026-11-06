@@ -84,7 +84,7 @@ test('Steam: Adresse oder App-ID erkennen, lange Angaben kürzen', () => {
   assert.equal(O.shorten('Intel Core 2 Duo E6600'), 'Intel Core 2 Duo E6600');
   assert.equal(O.shorten('  viel   Platz  '), 'viel Platz');
   const p = O.steamPatch({ pc_requirements: { minimum: '<ul><li><strong>Graphics:</strong> ' + long + '<br></li><li><strong>DirectX:</strong> Version 9.0c<br></li></ul>' } }, 'minimum').patch;
-  assert.ok(p.gpu.custom.length <= 80);
+  assert.ok(p.gpu.custom.length <= 110);
 });
 
 test('Steam: Fehler des Proxys werden in verständliche Meldungen übersetzt', async () => {

@@ -121,6 +121,8 @@
         <label class="chk"><input type="checkbox" data-k="os.x64"> „64-Bit“ bei Windows ergänzen</label>
       </div>
 
+      <div class="reqtabs" role="tablist"><button type="button" class="on" data-reqtab="min" role="tab">Mindestanforderungen</button><button type="button" data-reqtab="rec" role="tab">Empfohlen</button></div>
+      <div class="reqpane" data-pane="min">
       <div class="grp"><span class="lab">Prozessor</span>
         <div class="gen" data-enable="cpu.intel.on">
           <label class="chk brand"><input type="checkbox" data-k="cpu.intel.on"> Intel</label>
@@ -162,6 +164,54 @@
       <div class="two">
         <label class="f"><span class="lab">DirectX (leer = ausblenden)</span><input type="text" data-k="dx" placeholder="Version 11"></label>
         <label class="f"><span class="lab">Sonstiges (leer = ausblenden)</span><input type="text" data-k="other" placeholder="z. B. 16-Bit-Soundkarte"></label>
+      </div>
+      </div>
+      <div class="reqpane" data-pane="rec" hidden>
+        <label class="chk"><input type="checkbox" data-k="rec.on"> Empfohlene Anforderungen zusätzlich auf der Hülle zeigen</label>
+        <div class="recfields" data-enable="rec.on">
+      <div class="grp"><span class="lab">Prozessor</span>
+        <div class="gen" data-enable="rec.cpu.intel.on">
+          <label class="chk brand"><input type="checkbox" data-k="rec.cpu.intel.on"> Intel</label>
+          <div class="row"><select data-k="rec.cpu.intel.pre"><option>Core i3</option><option>Core i5</option><option>Core i7</option><option>Core i9</option><option>Pentium</option><option>Celeron</option><option>Core 2 Duo</option><option>Core 2 Quad</option></select>
+            <input type="text" data-k="rec.cpu.intel.num" placeholder="12400" size="6">
+            <span class="sfx"><button type="button" data-k="rec.cpu.intel.sfx" data-v="K">K</button><button type="button" data-k="rec.cpu.intel.sfx" data-v="KF">KF</button><button type="button" data-k="rec.cpu.intel.sfx" data-v="F">F</button></span></div>
+        </div>
+        <div class="gen" data-enable="rec.cpu.amd.on">
+          <label class="chk brand"><input type="checkbox" data-k="rec.cpu.amd.on"> AMD</label>
+          <div class="row"><select data-k="rec.cpu.amd.pre"><option>Ryzen 3</option><option>Ryzen 5</option><option>Ryzen 7</option><option>Ryzen 9</option><option>Athlon</option><option>Phenom</option><option>FX</option></select>
+            <input type="text" data-k="rec.cpu.amd.num" placeholder="5600" size="6">
+            <span class="sfx"><button type="button" data-k="rec.cpu.amd.sfx" data-v="X">X</button><button type="button" data-k="rec.cpu.amd.sfx" data-v="X3D">X3D</button><button type="button" data-k="rec.cpu.amd.sfx" data-v="G">G</button></span></div>
+        </div>
+        <label class="f"><span class="lab">Oder eigener Text (ersetzt die Auswahl oben)</span><input type="text" data-k="rec.cpu.custom" placeholder="z. B. Pentium III oder AMD Athlon 500 MHz"></label>
+      </div>
+
+      <div class="grp"><span class="lab">Grafikkarte</span>
+        <div class="gen" data-enable="rec.gpu.nvidia.on">
+          <label class="chk brand"><input type="checkbox" data-k="rec.gpu.nvidia.on"> NVIDIA</label>
+          <div class="row"><select data-k="rec.gpu.nvidia.pre"><option>RTX</option><option>GTX</option><option>GTS</option><option>GT</option><option>Titan</option><option>Quadro</option></select>
+            <input type="text" data-k="rec.gpu.nvidia.num" placeholder="3060" size="6">
+            <span class="sfx"><button type="button" data-k="rec.gpu.nvidia.sfx" data-v="Ti">Ti</button><button type="button" data-k="rec.gpu.nvidia.sfx" data-v="SUPER">SUPER</button></span></div>
+        </div>
+        <div class="gen" data-enable="rec.gpu.amd.on">
+          <label class="chk brand"><input type="checkbox" data-k="rec.gpu.amd.on"> AMD Radeon</label>
+          <div class="row"><select data-k="rec.gpu.amd.pre"><option>RX</option><option>HD</option><option>R9</option><option>R7</option><option>R5</option></select>
+            <input type="text" data-k="rec.gpu.amd.num" placeholder="6700" size="6">
+            <span class="sfx"><button type="button" data-k="rec.gpu.amd.sfx" data-v="XT">XT</button><button type="button" data-k="rec.gpu.amd.sfx" data-v="XTX">XTX</button><button type="button" data-k="rec.gpu.amd.sfx" data-v="GRE">GRE</button></span></div>
+        </div>
+        <label class="f"><span class="lab">Oder eigener Text (ersetzt die Auswahl oben)</span><input type="text" data-k="rec.gpu.custom" placeholder="z. B. 32 MB Direct3D-kompatible Grafikkarte"></label>
+      </div>
+
+      <div class="two">
+        <div class="f"><span class="lab">Arbeitsspeicher (GB)</span>
+          <div class="slide"><input type="range" data-k="rec.ram" min="0.25" max="64" step="0.25"><input type="text" data-k="rec.ram" size="5"></div></div>
+        <div class="f"><span class="lab">Speicherplatz (GB)</span>
+          <div class="slide"><input type="range" data-k="rec.space" min="0.25" max="200" step="0.25"><input type="text" data-k="rec.space" size="5"></div></div>
+      </div>
+      <div class="two">
+        <label class="f"><span class="lab">DirectX (leer = ausblenden)</span><input type="text" data-k="rec.dx" placeholder="Version 11"></label>
+        <label class="f"><span class="lab">Sonstiges (leer = ausblenden)</span><input type="text" data-k="rec.other" placeholder="z. B. 16-Bit-Soundkarte"></label>
+      </div>
+        </div>
       </div>
       <label class="chk"><input type="checkbox" data-k="breakHw"> Bei zwei Prozessoren oder Grafikkarten immer untereinander zeigen</label>
     </details>

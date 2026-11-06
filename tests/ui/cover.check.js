@@ -160,6 +160,35 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   assert.ok(await page.evaluate(() => { const p = document.querySelector('.panel-back').getBoundingClientRect(), s = document.querySelector('#specs').getBoundingClientRect(); return s.bottom <= p.bottom && s.top >= p.top; }), 'Angaben ragen aus dem Feld');
   await page.fill('[data-k=other]', ''); await page.fill('[data-k="cpu.custom"]', '');
 
+  // Minimum und Empfohlen: alles steht in der Tabelle und passt vollständig in das Feld (Prozessor, Grafik, Sonstiges)
+  await page.evaluate(() => CoverApp.patch({
+    cpu: { intel: { on: true, pre: 'Core i7', num: '6700', sfx: '' }, amd: { on: true, pre: 'Ryzen 5', num: '1600', sfx: '' }, custom: '' },
+    gpu: { nvidia: { on: true, pre: 'GTX', num: '1060', sfx: '6GB' }, amd: { on: true, pre: 'RX', num: '580', sfx: '8GB' }, custom: '' },
+    dx: 'Version 12', other: 'SSD recommended. Attention: this game may trigger photosensitivity and more text here',
+    rec: { on: true, cpu: { intel: { on: true, pre: 'Core i7', num: '12700', sfx: '' }, amd: { on: true, pre: 'Ryzen 7', num: '7800', sfx: 'X3D' }, custom: '' },
+      gpu: { nvidia: { on: true, pre: 'RTX', num: '2060', sfx: 'SUPER' }, amd: { on: true, pre: 'RX', num: '5700', sfx: 'XT' }, custom: '' }, ram: '16', space: '70', dx: 'Version 12', other: 'SSD required' },
+  }));
+  for (const provider of ['gog', 'steam']) for (const theme of ['classic', 'modern']) {
+    await page.selectOption('[data-k=provider]', provider); await page.selectOption('[data-k=theme]', theme); await page.waitForTimeout(250);
+    const r = await page.evaluate(() => {
+      const col = document.querySelector('.speccol').getBoundingClientRect(), list = document.querySelector('#specs');
+      const cells = [...list.querySelectorAll('li')].map((li) => li.getBoundingClientRect());
+      return { dual: list.classList.contains('dual'), inside: cells.every((c) => c.bottom <= col.bottom + 0.5 && c.top >= col.top - 0.5), text: list.innerText, pt: parseFloat(getComputedStyle(list).fontSize) * 72 / 96 };
+    });
+    const where = provider + '/' + theme;
+    assert.equal(r.dual, true, where); assert.ok(r.inside, 'Anforderungen ragen aus dem Feld: ' + where);
+    for (const t of ['Core i7-6700', 'Ryzen 5 1600', 'Core i7-12700', 'GTX 1060', 'RTX 2060', 'Sonstiges', 'SSD required', 'photosensitivity']) assert.ok(r.text.includes(t), t + ' fehlt (' + where + ')');
+    assert.ok(r.pt >= 4.4, 'Schrift zu klein: ' + r.pt);
+  }
+  await page.selectOption('[data-k=provider]', 'gog'); await page.selectOption('[data-k=theme]', 'classic');
+  // Reiter im Formular: "Empfohlen" zeigt die zweiten Felder und schaltet die Spalte ein
+  await page.click('[data-reqtab=rec]');
+  assert.equal(await page.locator('[data-pane=rec]').isVisible(), true); assert.equal(await page.locator('[data-pane=min]').isVisible(), false);
+  await page.uncheck('[data-k="rec.on"]'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('#specs.dual').count(), 0);
+  await page.click('[data-reqtab=min]');
+  await page.evaluate(() => CoverApp.patch({ dx: '', other: '', cpu: { intel: { on: false }, amd: { on: false } }, gpu: { nvidia: { on: false }, amd: { on: false } }, rec: { on: false } }));
+
   // Druck: Flächen ohne Bild bleiben weiß (nicht grau), die Vorschau zeigt Platzhalter
   await page.evaluate(() => document.querySelectorAll('.drop .x').forEach((x) => x.click()));   // Zustand ohne Bilder
   await page.emulateMedia({ media: 'print' }); await page.waitForTimeout(300);

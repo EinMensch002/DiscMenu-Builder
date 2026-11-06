@@ -142,9 +142,9 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForSelector('#dlg .shown');
   const shown = await page.locator('#dlg .shown').innerText();
   assert.match(shown, /Windows \(7, 8, 10\) \/ Linux/); assert.match(shown, /NVIDIA GeForce 8800 GT/); assert.match(shown, /Version 9\.0c/);
-  await page.selectOption('#dlg select', 'recommended');
-  assert.match(await page.locator('#dlg .shown').innerText(), /4 GB RAM/);
-  await page.selectOption('#dlg select', 'minimum');
+  // Beide Spalten auf einmal: Minimum 2 GB, Empfohlen 4 GB
+  assert.match(await page.locator('#dlg .shown').innerText(), /Minimum[\s\S]*Empfohlen/);
+  assert.match(await page.locator('#dlg .shown tr', { hasText: 'Arbeitsspeicher' }).innerText(), /2 GB RAM[\s\S]*4 GB RAM/);
   await page.click('#dlg button:has-text("Übernehmen")');
   await page.waitForFunction(() => document.querySelector('[data-k="cpu.intel.on"]').checked);
   // Prozessor in der Kategorie Intel mit Modell (AMD bleibt aus), die alte Grafikkarte bleibt Text
@@ -160,6 +160,13 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.equal(await page.locator('[data-k="os.win"][value="7"]').isChecked(), true);
   await page.waitForTimeout(100);
   assert.match(await page.locator('#specs').innerText(), /Intel Core 2 Duo E6600[\s\S]*2 GB RAM/);
+  // Mindest- und empfohlene Angaben stehen beide auf der Hülle
+  assert.equal(await page.locator('[data-k="rec.on"]').isChecked(), true);
+  assert.equal(await page.inputValue('input[type=text][data-k="rec.ram"]'), '4');
+  assert.equal(await page.locator('#specs.dual').count(), 1);
+  const ramRow = await page.locator('#specs li', { hasText: /^RAM/ }).innerText();
+  assert.match(ramRow, /2 GB RAM[\s\S]*4 GB RAM/);
+  assert.match(await page.locator('#specs li.head').innerText(), /MINIMUM[\s\S]*EMPFOHLEN/);
 
   // ---- SteamGridDB: Frontcover und Rückseite ----
   await page.click('[data-img=front] .sg');

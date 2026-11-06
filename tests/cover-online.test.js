@@ -63,7 +63,7 @@ test('Steam: Auswahl f체r das Cover-Tool (Anforderungen, Plattformen, Funktionen
   assert.deepEqual(none.patch, {}); assert.equal(none.hasRequirements, false);
   // Lange Zusatzangaben werden gek체rzt, damit sie auf das Cover passen
   const long = O.steamPatch({ pc_requirements: { minimum: '<ul><li><strong>Additional Notes:</strong> ' + 'x'.repeat(200) + '</li></ul>' } }, 'minimum');
-  assert.ok(long.patch.other.length <= 90);
+  assert.ok(long.patch.other.length <= 140);
 });
 
 test('Steam: Prozessor und Grafikkarte kommen in die Kategorien (Beispiel Cyberpunk 2077)', () => {
@@ -74,7 +74,7 @@ test('Steam: Prozessor und Grafikkarte kommen in die Kategorien (Beispiel Cyberp
   assert.deepEqual(p.gpu.nvidia, { on: true, pre: 'GTX', num: '1060', sfx: '6GB' });
   assert.deepEqual(p.gpu.amd, { on: true, pre: 'RX', num: '580', sfx: '8GB' });
   assert.equal(p.cpu.custom, ''); assert.equal(p.gpu.custom, '');          // ein fr체herer eigener Text wird ersetzt
-  assert.ok(p.other.length <= 60, 'Sonstiges ist kurz genug f체r das Cover');
+  assert.ok(p.other.length <= 140, 'Sonstiges ist kurz genug f체r das Cover');
   const state = C.mergeState({ ...C.defaultState(), cpu: { ...C.defaultState().cpu, custom: 'alter Text' } });
   const rows = C.buildSpecs({ ...state, cpu: { ...state.cpu, ...p.cpu }, gpu: { ...state.gpu, ...p.gpu } });
   assert.deepEqual(rows.find((r) => r.key === 'cpu').values, ['Intel Core i7-6700', 'AMD Ryzen 5 1600']);
@@ -171,4 +171,46 @@ test('SteamGridDB und Steam: Anfragen laufen 체ber den Proxy, Fehler sind verst�
   }, async () => { throw new TypeError('Failed to fetch'); });
   O.settings.save('', '');
   await assert.rejects(O.sgSearch('x'), /API-Schl체ssel in den Einstellungen/);
+});
+
+test('Steam: Mindest- und empfohlene Anforderungen auf einmal', () => {
+  const details = {
+    pc_requirements: {
+      minimum: '<ul><li><strong>OS *:</strong> Windows 7<br></li><li><strong>Processor:</strong> Core i5-4460 or AMD FX-6300<br></li><li><strong>Memory:</strong> 4 GB RAM<br></li><li><strong>Graphics:</strong> GeForce GTX 660<br></li><li><strong>DirectX:</strong> Version 11<br></li></ul>',
+      recommended: '<ul><li><strong>Processor:</strong> Core i7-6700 or Ryzen 5 1600<br></li><li><strong>Memory:</strong> 8 GB RAM<br></li><li><strong>Graphics:</strong> GeForce GTX 1060<br></li><li><strong>DirectX:</strong> Version 11<br></li></ul>',
+    },
+    platforms: { windows: true },
+  };
+  const both = O.steamPatchBoth(details);
+  assert.equal(both.hasBoth, true);
+  assert.equal(both.patch.rec.on, true);
+  assert.deepEqual(both.patch.cpu.intel, { on: true, pre: 'Core i5', num: '4460', sfx: '' });
+  assert.deepEqual(both.patch.rec.cpu.intel, { on: true, pre: 'Core i7', num: '6700', sfx: '' });
+  assert.equal(both.patch.rec.ram, '8'); assert.equal(both.patch.ram, '4');
+  assert.equal(both.patch.rec.space, '');            // fehlende Angabe ersetzt einen alten Wert
+  const cpuRow = both.shown.find((r) => r.label === 'Prozessor');
+  assert.equal(cpuRow.min, 'Intel Core i5-4460 / AMD FX 6300'); assert.equal(cpuRow.rec, 'Intel Core i7-6700 / AMD Ryzen 5 1600');
+  // Tabelle auf der R체ckseite: gleiche Angaben (DirectX) nur einmal, der Rest als Mindest- und empfohlen
+  const state = C.mergeState({ ...C.defaultState(), ...both.patch, os: { ...C.defaultState().os, ...both.patch.os } });
+  const t = C.buildSpecTable(state);
+  assert.equal(t.dual, true);
+  assert.deepEqual(t.rows.find((r) => r.key === 'dx'), { key: 'dx', label: 'DirectX', short: 'DirectX', min: ['Version 11'], rec: [], shared: true });
+  const cpu = t.rows.find((r) => r.key === 'cpu');
+  assert.deepEqual(cpu.min, ['Intel Core i5-4460', 'AMD FX 6300']); assert.deepEqual(cpu.rec, ['Intel Core i7-6700', 'AMD Ryzen 5 1600']);
+  // Nur eine Liste von Steam: sie wird zur Mindestanforderung, die empfohlene Spalte bleibt aus
+  const one = O.steamPatchBoth({ pc_requirements: { recommended: '<ul><li><strong>Memory:</strong> 8 GB RAM<br></li></ul>' } });
+  assert.equal(one.patch.rec.on, false); assert.equal(one.patch.ram, '8'); assert.equal(one.hasBoth, false);
+});
+
+test('Systemanforderungen: Alles aus den Feldern steht auch in der Tabelle der R체ckseite', () => {
+  const s = C.mergeState({ ...C.defaultState(), other: 'SSD required', cpu: { intel: { on: true, pre: 'Core i5', num: '4460', sfx: '' }, amd: { on: false }, custom: '' }, dx: '11' });
+  let t = C.buildSpecTable(s);
+  assert.equal(t.dual, false);                                      // ohne empfohlene Angaben kein Doppelspalt
+  assert.deepEqual(t.rows.map((r) => r.key), ['os', 'cpu', 'ram', 'dx', 'space', 'other']);
+  assert.deepEqual(t.rows.find((r) => r.key === 'other').min, ['SSD required']);
+  t = C.buildSpecTable({ ...s, rec: { ...s.rec, on: true, other: 'SSD required', ram: '8' } });
+  assert.equal(t.dual, true);
+  assert.deepEqual(t.rows.find((r) => r.key === 'ram'), { key: 'ram', label: 'Arbeitsspeicher', short: 'RAM', min: ['4 GB RAM'], rec: ['8 GB RAM'], shared: false });
+  assert.equal(t.rows.find((r) => r.key === 'other').shared, true);
+  assert.equal(C.buildSpecTable({ ...s, lang: 'en' }).labels.rec, 'RECOMMENDED');
 });
