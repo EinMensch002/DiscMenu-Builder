@@ -365,10 +365,13 @@
       const logoChk = h('input', { type: 'checkbox', checked: !!img.logo && !have.spineLogo });
       const bgChk = h('input', { type: 'checkbox', checked: false });
       const coverChk = h('input', { type: 'checkbox', checked: false });
+      const shotsChk = h('input', { type: 'checkbox', checked: false });
       let current = null;
       const apply = async () => {
         App.patch(O.keepManualFeatures(current.patch, App.state.features));
         const jobs = [[logoChk, 'spineLogo', img.logo, 'das GOG-Logo', 'png'], [bgChk, 'backTop', img.background, 'das Hintergrundbild', 'jpg'], [coverChk, 'front', img.cover, 'das Cover', 'jpg']].filter((j) => j[0].checked && j[2]);
+        const shots = shotsChk.checked ? img.shots.slice(0, 4) : [];
+        shots.forEach((u, i) => jobs.push([shotsChk, 'shot' + (i + 1), u, 'die Bilder der Bildleiste', 'jpg']));
         if (!jobs.length) { closeDlg(); return; }
         ok.disabled = true; const problems = [];
         for (const [, key, url, what, ext] of jobs) {
@@ -376,8 +379,12 @@
           try { const blob = await O.fetchBlob(url); await App.setImage(key, new File([blob], 'gog-' + item.id + '-' + key + '.' + ext, { type: blob.type || (ext === 'png' ? 'image/png' : 'image/jpeg') })); }
           catch (e) { problems.push(what + ' (' + e.message + ')'); }
         }
+        if (shots.length >= 2) {                  // Bildleiste einschalten und auf die Zahl der geladenen Bilder stellen
+          const blocks = App.state.back.blocks.map((b) => (b.type === 'shots' ? { ...b, on: true } : b));
+          App.patch({ back: { shotsCount: String(Math.min(4, shots.length)), blocks } });
+        }
         if (!problems.length) { closeDlg(); return; }
-        say(note, 'Die Angaben sind übernommen, nicht geladen wurde ' + problems.join(' und ') + '.', true);
+        say(note, 'Die Angaben sind übernommen, nicht geladen wurde ' + [...new Set(problems)].join(' und ') + '.', true);
         ok.disabled = false;
       };
       const ok = h('button', { type: 'button', class: 'pri', onclick: apply }, 'Übernehmen');
@@ -393,6 +400,7 @@
         table, note,
         h('label', { class: 'chk' }, logoChk, ' Spiel-Logo für den Rücken laden (hochauflösend, transparent)'),
         h('label', { class: 'chk' }, bgChk, ' Hintergrundbild (etwa 2560 Pixel breit) als Rückseite oben laden'),
+        h('label', { class: 'chk' }, shotsChk, ' Screenshots für die Bildleiste laden (bis zu 4)'),
         h('label', { class: 'chk' }, coverChk, ' GOG-Cover als Frontcover laden (nur etwa 342 × 482 Pixel, also unscharf; besser Steam oder SteamGridDB)'),
         h('p', { class: 'dmsg' }, 'GOG liefert Cover nur in kleiner Größe (etwa 342 × 482 Pixel, das sind auf der Hülle rund 67 dpi). Logo und Hintergrund sind dagegen hochauflösend.'),
         h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));

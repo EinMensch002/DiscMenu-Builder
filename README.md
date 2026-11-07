@@ -147,7 +147,8 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 - [x] **GOG-Stil überarbeitet:** schmale Leiste wie bei den echten GOG-Hüllen in sechs Varianten (Schieberegler von hell nach dunkel), Logo immer sichtbar, "GOG.COM" ein-/ausschaltbar, Rücken und Streifen neutral statt Lila
 - [x] **Oberfläche in Deutsch und Englisch** (Sprachmenü mit Flagge oben, Sprachpakete für weitere Sprachen), Farbe von "PC" am Rücken, GOG-Varianten Weiß, Warmweiß, Dunkel, Violett-Hauch, durchscheinend, heller Rücken
-- [ ] **Rückseite frei gestalten:** Konfigurator mit Textfeldern, Bildern und festen Bausteinen, die man selbst anordnet (wie die Steam-Rückseiten mit Beschreibung und Bildleiste)
+- [x] **Rückseite aus Bausteinen** (erste Stufe): Hintergrundbild, Beschreibung, Bildleiste (2 bis 4 Screenshots), Spielfunktionen, Anforderungen mit Logos und freier Text, ein/ausschaltbar, in der Reihenfolge und Höhe einstellbar, drei Vorlagen; Beschreibung von Steam und GOG, Screenshots von GOG
+- [ ] **Rückseite, nächste Stufen:** zwei Spalten, Screenshots auch von Steam, eigene weitere Bausteine, Vorlagen speichern
 - [ ] **Beide Web-Tools zusammenführen:** Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
 - [ ] **Ein-Datei-Build** (Vorarbeit erledigt: alle Grafiken sind SVG, nur die Schrift Lato ist noch eine Binärdatei): Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
 

@@ -139,7 +139,7 @@ dialog .f small { display: block; margin-top: 3px; }
 .wrap.show-fold .fold { display: block; }
 
 /* Rückseite */
-.back { position: relative; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+.back { position: relative; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; background: #fff; }
 .back-top { position: relative; flex: 1; min-height: 0; background: #f4f5f8 center / cover no-repeat; }
 .banner { flex: none; height: 15mm; display: flex; align-items: center; gap: 4mm; padding: 0 4mm; background: linear-gradient(var(--bannerA, #a8e02a), var(--bannerB, #84c01a)); position: relative; z-index: 2; }
 .banner-title { display: flex; flex-direction: column; justify-content: center; flex: none; }
@@ -358,3 +358,27 @@ dialog .f small { display: block; margin-top: 3px; }
 .tline.good .tmark { color: #067647; }
 .tline.warn, .tline.warn .tmark { color: #b54708; }
 .tline.bad, .tline.bad .tmark { color: #b42318; }
+
+/* Rückseite aus Bausteinen: Reihenfolge und Höhen setzt das Programm (order, height) */
+.back-top { flex: 1 1 0; }
+.back-desc, .back-text { flex: none; box-sizing: border-box; padding: 3mm 4.5mm; background: #fff; color: #222; overflow: hidden; }
+.back-desc p, .back-text p { margin: 0; height: 100%; overflow: hidden; font-size: 7pt; line-height: 1.3; }
+.back-desc p { text-align: left; }
+.back-text p { text-align: center; white-space: pre-line; }
+.back-shots { flex: none; box-sizing: border-box; display: flex; gap: 2mm; padding: 3mm; background: #f4f5f8; }
+.back-shots .shot { display: block; flex: 1 1 0; min-width: 0; background: #e2e6ee center / cover no-repeat; border-radius: .5mm; }
+.back-shots .shot.has-img { background-color: transparent; }
+@media print { .back-shots .shot:not(.has-img) { background: #fff; } .back-shots:not(.any) { background: #fff; } }
+.back-desc p:empty::before, .back-text p:empty::before { content: attr(data-ph); color: #b9bec9; }
+@media print { .back-desc p:empty::before, .back-text p:empty::before { content: ""; } }
+textarea { width: 100%; padding: 7px 10px; border: 1px solid #c8cdd8; border-radius: 7px; font: inherit; background: #fff; color: var(--txt); resize: vertical; }
+textarea:focus { outline: 2px solid color-mix(in srgb, var(--acc) 40%, transparent); border-color: var(--acc); }
+
+/* Baustein-Liste im Formular */
+.blocks { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.brow { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+.brow.off { opacity: .55; }
+.brow .bname { flex: 1; min-width: 0; font-weight: 600; font-size: 13px; }
+.brow .bh { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--mut); }
+.brow .bh input[type=number] { width: 74px; padding: 4px 6px; }
+.brow button { padding: 3px 8px; line-height: 1; }

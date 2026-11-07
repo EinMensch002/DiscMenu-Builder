@@ -92,7 +92,7 @@
 
   /* ---------- Projektdatei ---------- */
   const PROJECT_TYPE = 'discmenu-cover';
-  const IMAGE_KEYS = ['front', 'backTop', 'backBottom', 'publisher', 'spineLogo', 'spineBg'];
+  const IMAGE_KEYS = ['front', 'backTop', 'backBottom', 'publisher', 'spineLogo', 'spineBg', 'shot1', 'shot2', 'shot3', 'shot4'];
   const EXT_BY_TYPE = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' };
   const TYPE_BY_EXT = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml' };
 

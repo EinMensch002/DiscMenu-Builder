@@ -183,6 +183,33 @@
   },
   "pegiRating": {
    "ageRating": 18
-  }
- }
+  },
+  "screenshots": [
+   {
+    "_links": {
+     "self": {
+      "href": "https://images.gog-statics.com/0101010101010101010101010101010101010101010101010101010101010101_{formatter}.jpg",
+      "templated": true
+     }
+    }
+   },
+   {
+    "_links": {
+     "self": {
+      "href": "https://images.gog-statics.com/0202020202020202020202020202020202020202020202020202020202020202_{formatter}.jpg",
+      "templated": true
+     }
+    }
+   },
+   {
+    "_links": {
+     "self": {
+      "href": "https://images.gog-statics.com/0303030303030303030303030303030303030303030303030303030303030303_{formatter}.jpg",
+      "templated": true
+     }
+    }
+   }
+  ]
+ },
+ "description": "\n\n<p>\nThe Witcher is a role-playing game set in a dark fantasy world. <br>\n<br>\nBecome Geralt of Rivia.</p>"
 }

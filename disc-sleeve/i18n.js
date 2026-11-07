@@ -59,8 +59,9 @@
     r.out = out; textRec.set(n, r);
     if (n.data !== out) n.data = out;
   }
+  const skipAttrs = (el) => !!el.closest('[data-notr], script, style') || (!!el.closest('#sheet') && !el.closest('.ph'));        // Eingabefelder (textarea) tragen Platzhalter, die übersetzt werden
   function doAttrs(el) {
-    if (skip(el)) return;
+    if (skipAttrs(el)) return;
     let rec = attrRec.get(el); if (!rec) { rec = {}; attrRec.set(el, rec); }
     for (const a of ATTRS) {
       if (!el.hasAttribute(a)) continue;
@@ -73,8 +74,9 @@
   }
   function walk(node) {
     if (node.nodeType === 3) { doText(node); return; }
-    if (node.nodeType !== 1 || node.matches('[data-notr], script, style, textarea')) return;
-    doAttrs(node);                       // (innerhalb des Covers ohne Wirkung: skip() lässt dort nur .ph durch)
+    if (node.nodeType !== 1 || node.matches('[data-notr], script, style')) return;
+    doAttrs(node);
+    if (node.tagName === 'TEXTAREA') return;                  // Inhalt eines Eingabefeldes ist Eingabe, kein Text der Oberfläche                       // (innerhalb des Covers ohne Wirkung: skip() lässt dort nur .ph durch)
     for (let c = node.firstChild; c; c = c.nextSibling) walk(c);
   }
 

@@ -235,6 +235,27 @@ Oben in der Leiste steht ein **Sprachmenü mit Flagge** (Deutsch, English). Es s
 Damit sich das Tool auch ohne Vorkenntnisse bedienen lässt, stehen **Auswahlen mit wenigen Möglichkeiten als Schaltflächen** da (z. B. Anbieter, Hülle, Disc-Medium, Sprache der Beschriftung, Frontbild einpassen, Rücken hell oder dunkel, Farbe von "PC"): Man sieht alle Möglichkeiten auf einen Blick und wählt mit einem Klick statt über eine Aufklappliste. Der **Stil** ist ein Schieberegler mit Farbvorschau. Oben im Formular stehen **Sprungknöpfe zu allen Bereichen** (Hülle und Stil, Titel und Texte, Bilder ...), sie öffnen den Bereich und springen hin.
 
 
+### Rückseite aus Bausteinen
+
+Die Rückseite ist aus **Bausteinen von oben nach unten** gebaut (Bereich **"Rückseite"** im Formular). Man wählt eine **Vorlage**, schaltet Bausteine **ein oder aus**, ändert die **Reihenfolge** mit den Pfeilen ▲ ▼ und stellt die **Höhen in mm** ein (Pfeiltasten: 0,25-mm-Schritte). Das **Hintergrundbild füllt den Rest**, die Zeile zeigt, wie viel Platz es noch hat. Die Vorschau und der Druck folgen sofort.
+
+| Baustein | Inhalt | Standardhöhe |
+|---|---|---|
+| **Hintergrundbild** | das Bild "Rückseite oben", füllt den Rest | Rest |
+| **Beschreibung** | Text, die **Schrift passt sich der Höhe an** (bis 4,4 pt, nichts wird abgeschnitten) | 34 mm |
+| **Bildleiste** | 2 bis 4 Bilder nebeneinander (Screenshots) | 30 mm |
+| **Spielfunktionen** | der bisherige Streifen mit den Symbolen | 15 mm |
+| **Systemanforderungen und Logos** | Tabelle, Publisher-Logo, Disc und USK, Copyright | 46 mm |
+| **Freier Text** | ein Hinweis oder eine Widmung, zentriert | 16 mm |
+
+**Vorlagen:** *Wie bisher* (Bild, Spielfunktionen, Anforderungen, das ist der Standard und sieht aus wie vorher), *Beschreibung und Bildleiste* (zusätzlich Beschreibung und Screenshots, wie bei Steam-Hüllen) und *Nur Anforderungen*. Eine Vorlage setzt Reihenfolge und Ein/Aus neu, **Texte und Bilder bleiben erhalten**. Danach kann man alles von Hand anpassen.
+
+- **Zu hoch:** Sind die Bausteine zusammen höher als die Rückseite (z. B. auf einer Blu-ray-Hülle mit 148 mm), steht ein Hinweis da, und das Hintergrundbild verschwindet. Dann Höhen verkleinern oder Bausteine ausschalten. Das Blatt selbst bleibt unverändert.
+- **Bildmaße:** Bei jedem Bildfeld (Rückseite oben, Bilder der Bildleiste) steht die passende Größe in mm und die dpi, damit die Bilder scharf werden.
+- **Import:** **Steam** und **GOG** übernehmen die **Beschreibung** in das Feld (der Baustein bleibt, wie er ist, man schaltet ihn selbst ein). Im GOG-Dialog lassen sich zusätzlich bis zu **vier Screenshots** für die Bildleiste laden, dann wird der Baustein eingeschaltet.
+- **Gespeichert** wird alles mit dem Projekt (Einstellungen, Bilder, ZIP).
+- Eine **freie Platzierung** per Ziehen gibt es bewusst nicht: Feste Bausteine in einer Spalte sind robust und drucken sauber. Mögliche Ausbaustufen (zwei Spalten, eigene Bausteine) stehen in der Roadmap.
+
 ### Längen in Millimetern und negative Abstände
 
 Alle Felder, in denen man eine Länge in **Millimetern** eingibt (eigene Hüllenmaße, Abstände und Breite von Rückenlogo und Publisher-Logo am Rücken), sind Zahlenfelder: Mit **Pfeil nach oben und unten** (oder den kleinen Pfeilen im Feld) geht der Wert in **0,25-mm-Schritten**. Bei den **Abständen am Rücken** (zur Seite, zum Kopf oben, zum Fuß unten) sind auch **negative Zahlen** erlaubt: Das Logo wird dann größer und ragt über seinen Rahmen hinaus. Das hilft bei Logos mit viel leerem Rand ums Bild. Zur Seite hin wird alles am Rand des Rückens abgeschnitten, damit nichts auf Vorder- oder Rückseite zu sehen ist. Nach oben und unten darf das Logo über sein Feld hinaus in den Bereich von Leiste und "PC" ragen. Das kann dort etwas überdecken, bitte im Ausdruck prüfen.

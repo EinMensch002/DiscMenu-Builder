@@ -38,21 +38,73 @@
     return { name: 'Eigene Maße', w: round1(back + spine + front), h, back: round1(back), spine: round1(spine), front: round1(front), adjusted };
   }
 
-  /* Rückseite: oben das Bild, dann der grüne Streifen, unten die Angaben. */
-  const BACK = { banner: 15, bottom: 46 };
+  /* ---------- Rückseite aus Bausteinen ----------
+     Die Rückseite besteht aus Bausteinen von oben nach unten (Reihenfolge und Ein/Aus wählbar). Das Hintergrundbild füllt den Rest, alle anderen Bausteine
+     haben eine feste Höhe in mm. Vorlagen setzen eine Reihenfolge samt Ein/Aus, die Inhalte (Beschreibung, Text, Bilder) bleiben dabei erhalten. */
+  const BACK_TYPES = ['image', 'description', 'shots', 'features', 'requirements', 'text'];
+  const BACK_H = { description: 34, shots: 30, features: 15, requirements: 46, text: 16 };            // Standardhöhen (mm)
+  const BACK_LIMITS = { description: [10, 100], shots: [12, 80], features: [10, 30], requirements: [30, 110], text: [8, 80] };
+  const BACK_TEMPLATES = {
+    classic: { name: 'Wie bisher', on: ['image', 'features', 'requirements'], order: ['image', 'features', 'requirements', 'description', 'shots', 'text'] },
+    steam: { name: 'Beschreibung und Bildleiste', on: ['image', 'description', 'shots', 'features', 'requirements'], order: ['image', 'description', 'shots', 'features', 'requirements', 'text'] },
+    minimal: { name: 'Nur Anforderungen', on: ['image', 'requirements'], order: ['image', 'requirements', 'features', 'description', 'shots', 'text'] },
+  };
+  const BACK_SHOT_MARGIN = 3, BACK_SHOT_GAP = 2;                      // Rand und Abstand der Bildleiste (mm)
+  function templateBlocks(id) {
+    const t = BACK_TEMPLATES[id] || BACK_TEMPLATES.classic;
+    return t.order.map((type) => ({ type, on: t.on.includes(type), h: BACK_H[type] || 0 }));
+  }
+  function defaultBack() { return { template: 'classic', blocks: templateBlocks('classic'), description: '', text: '', shotsCount: '3' }; }
+  /* Gespeicherte Rückseite prüfen: jeder Baustein genau einmal, Höhen in den Grenzen, unbekanntes fällt weg, Fehlendes kommt dazu */
+  function normalizeBack(saved) {
+    const d = defaultBack(), s = saved && typeof saved === 'object' ? saved : {};
+    const out = { template: BACK_TEMPLATES[s.template] ? s.template : 'classic', description: typeof s.description === 'string' ? s.description : '', text: typeof s.text === 'string' ? s.text : '' };
+    out.shotsCount = ['2', '3', '4'].includes(String(s.shotsCount)) ? String(s.shotsCount) : d.shotsCount;
+    const seen = new Set(), blocks = [];
+    for (const b of Array.isArray(s.blocks) ? s.blocks : []) {
+      if (!b || !BACK_TYPES.includes(b.type) || seen.has(b.type)) continue;
+      seen.add(b.type);
+      const lim = BACK_LIMITS[b.type], h = parseFloat(String(b.h).replace(',', '.'));
+      blocks.push({ type: b.type, on: b.type === 'image' ? b.on !== false : !!b.on, h: lim ? Math.min(lim[1], Math.max(lim[0], isFinite(h) ? h : BACK_H[b.type])) : 0 });
+    }
+    for (const type of d.blocks.map((x) => x.type)) if (!seen.has(type)) blocks.push(d.blocks.find((x) => x.type === type));
+    out.blocks = blocks;
+    return out;
+  }
+  /* Höhen auf der Rückseite: Bausteine von oben nach unten, das Hintergrundbild nimmt den Rest. overflow > 0: die festen Bausteine sind zusammen zu hoch (mm). */
+  function backLayout(state, dims) {
+    const c = dims || caseDims(state), back = (state && state.back) || defaultBack();
+    const blocks = back.blocks.map((b) => ({ type: b.type, on: !!b.on, h: b.type === 'image' ? 0 : b.h }));
+    const fixed = blocks.filter((b) => b.on && b.type !== 'image').reduce((a, b) => a + b.h, 0);
+    const image = blocks.find((b) => b.type === 'image');
+    const rest = round1(c.h - fixed);
+    if (image) image.h = image.on ? Math.max(0, rest) : 0;
+    return { blocks, imageH: image && image.on ? Math.max(0, rest) : 0, overflow: rest < 0 ? round1(-rest) : 0, fixed: round1(fixed) };
+  }
+  const blockOf = (lay, type) => lay.blocks.find((b) => b.type === type);
+  /* Bildleiste: Breite und Höhe eines Bildes (mm) */
+  function shotSize(state, dims) {
+    const c = dims || caseDims(state), n = Number((state.back && state.back.shotsCount) || 3), lay = backLayout(state, c), blk = blockOf(lay, 'shots');
+    return { w: round1((c.back - 2 * BACK_SHOT_MARGIN - (n - 1) * BACK_SHOT_GAP) / n), h: round1(Math.max(1, (blk ? blk.h : BACK_H.shots) - 2 * BACK_SHOT_MARGIN)) };
+  }
+  const BACK = { banner: BACK_H.features, bottom: BACK_H.requirements };      // Standardhöhen der Rückseite "Wie bisher"
 
   /* Größe, in der die Bilder für den Druck angelegt werden sollten */
   /* Höhe der Kopfleiste (mm): Das Frontbild füllt nur den Teil darunter */
   const BAR_HEIGHT = 18.6;
-  function imageSpecs(caseOrDims, top) {
+  function imageSpecs(caseOrDims, top, state) {
     if (top === undefined) top = BAR_HEIGHT;
     const c = typeof caseOrDims === 'object' ? caseOrDims : (CASES[caseOrDims] || CASES.normal);
-    return {
+    const lay = backLayout(state || { back: defaultBack() }, c), req = blockOf(lay, 'requirements');
+    const specs = {
       front: { w: c.front, h: round1(c.h - top) },
-      backTop: { w: c.back, h: round1(c.h - BACK.banner - BACK.bottom) },
-      backBottom: { w: c.back, h: BACK.bottom },
+      backTop: { w: c.back, h: round1(lay.imageH) },
+      backBottom: { w: c.back, h: req && req.on ? req.h : BACK.bottom },
       spineBg: { w: c.spine, h: c.h },
     };
+    const shot = shotSize(state || { back: defaultBack() }, c);
+    for (let i = 1; i <= 4; i++) specs['shot' + i] = shot;
+    return specs;
   }
   const round1 = (n) => Math.round(n * 10) / 10;
 
@@ -319,6 +371,7 @@
       caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'glass', gogText: true, gogSpine: 'match', pcColor: 'auto', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       custom: { back: '130', spine: '14', front: '129', h: '183' },
       usk: '0', uskOpacity: '100', frontFit: 'stretch', frontZoom: '100', frontX: '50', frontY: '50', uskBack: true, spineLogo: 'fixed', cropMarks: true, foldLines: true, breakHw: false,
+      back: defaultBack(),
       features: ['single_player'],
       os: { win: ['10', '11'], mac: false, linux: false, x64: true },
       cpu: { items: [] },
@@ -351,6 +404,7 @@
       else if (typeof b === 'object') out[key] = mergeObject(b, s);
       else out[key] = typeof s === typeof b ? s : b;
     }
+    out.back = normalizeBack(saved.back);
     out.cpu = normalizeHw(saved.cpu, 'cpu'); out.gpu = normalizeHw(saved.gpu, 'gpu');
     out.rec.cpu = normalizeHw(saved.rec && saved.rec.cpu, 'cpu'); out.rec.gpu = normalizeHw(saved.rec && saved.rec.gpu, 'gpu');
     if (!CASES[out.caseType] && out.caseType !== 'custom') out.caseType = 'normal';
@@ -407,7 +461,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { BACK_TYPES, BACK_H, BACK_LIMITS, BACK_TEMPLATES, templateBlocks, defaultBack, normalizeBack, backLayout, shotSize, BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

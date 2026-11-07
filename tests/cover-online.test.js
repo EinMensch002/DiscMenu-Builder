@@ -342,7 +342,7 @@ test('GOG: Spiel-Daten werden wie die von Steam ausgewertet (Anforderungen, Funk
   assert.notEqual(img.background, img.cover);
   // Ohne Windows-Anforderungen oder Bewertung bleibt alles leer, ohne Fehler
   const bare = O.gogDetails({ _embedded: { product: { id: 1, title: 'X' } }, _links: {} });
-  assert.equal(O.steamPatchBoth(bare).hasRequirements, false); assert.deepEqual(O.gogImages({}), { cover: '', logo: '', background: '' });
+  assert.equal(O.steamPatchBoth(bare).hasRequirements, false); assert.deepEqual(O.gogImages({}), { cover: '', logo: '', background: '', shots: [] });
 });
 
 test('Import: selbst gesetzte Funktionen, die die Läden nicht kennen (Mods), bleiben erhalten', () => {
