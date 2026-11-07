@@ -239,6 +239,31 @@ Damit sich das Tool auch ohne Vorkenntnisse bedienen lässt, stehen **Auswahlen 
 
 Alle Felder, in denen man eine Länge in **Millimetern** eingibt (eigene Hüllenmaße, Abstände und Breite von Rückenlogo und Publisher-Logo am Rücken), sind Zahlenfelder: Mit **Pfeil nach oben und unten** (oder den kleinen Pfeilen im Feld) geht der Wert in **0,25-mm-Schritten**. Bei den **Abständen am Rücken** (zur Seite, zum Kopf oben, zum Fuß unten) sind auch **negative Zahlen** erlaubt: Das Logo wird dann größer und ragt über seinen Rahmen hinaus. Das hilft bei Logos mit viel leerem Rand ums Bild. Zur Seite hin wird alles am Rand des Rückens abgeschnitten, damit nichts auf Vorder- oder Rückseite zu sehen ist. Nach oben und unten darf das Logo über sein Feld hinaus in den Bereich von Leiste und "PC" ragen. Das kann dort etwas überdecken, bitte im Ausdruck prüfen.
 
+
+### Daten und Bilder von GOG
+
+Unter **Daten übernehmen > Daten von GOG …** sucht DiscSleeve im **GOG-Katalog** (`catalog.gog.com`) und liest die Spiel-Daten bei `api.gog.com/v2` aus, also bei den Schnittstellen von GOG selbst (aus denen auch [gogdb.org](https://www.gogdb.org/moreinfo) seine Daten holt; deren Seite bittet darum, ihren Server nicht mit Einzelabfragen zu belasten, deshalb fragt DiscSleeve direkt bei GOG). Übernommen werden wie bei Steam:
+
+- **Titel, Publisher, Entwickler**, die **Altersfreigabe** (USK von GOG, sonst PEGI) und die **Spielfunktionen** (Einzelspieler, Mehrspieler, Koop, Cloud-Speicherstände, Erfolge, Controller).
+- **Systemanforderungen** für Windows (Minimum und, wenn vorhanden, Empfohlen): Prozessor und Grafikkarte kommen in die Auswahlfelder, Rest als Text, genau wie beim Steam-Import.
+- **Bilder** (zum Haken): das **Spiel-Logo** (PNG, transparent, etwa 1600 Pixel breit) für den Rücken, der **Hintergrund** (etwa 2560 Pixel breit) als Rückseite oben, und das **GOG-Cover** als Frontcover.
+
+**Wichtig zur Auflösung:** GOG liefert Cover nur in **etwa 342 × 482 Pixel** (bei älteren Spielen sogar nur 171 × 241). Das sind auf einer Hülle nur rund 67 dpi. Das GOG-Cover ist deshalb **nicht vorangekreuzt**. Logo und Hintergrund dagegen sind hochauflösend und eignen sich gut für Rücken und Rückseite. Gesucht werden Spiele und **Ausgaben** (viele Hauptspiele wie Cyberpunk 2077 führt GOG als Ausgabe), die Treffer sind nach Ähnlichkeit zum eingegebenen Titel sortiert. Die Suche und die Daten gehen wie bei Steam über den **Proxy** (GOG erlaubt Anfragen im Browser nur von gog.com), die Bilder von `images.gog-statics.com` erlauben Anfragen von überall und werden direkt geladen. Der Proxy-Worker erlaubt `catalog.gog.com` und `api.gog.com` bereits.
+
+**Selbst gesetzte Funktionen bleiben:** Beim Übernehmen von Steam oder GOG ersetzt die Funktionsliste des Ladens die bisherige. Nur **"Mods"** bleibt erhalten, wenn Du es selbst eingeschaltet hast (die Läden kennen Mods von Disc-Zusätzen nicht, z. B. ein später installiertes Mod-Menü).
+
+**Verbindung testen** (Einstellungen) prüft zuerst den **Proxy-Worker** (Version und erlaubte Hosts, siehe [Proxy einrichten](steamgriddb.md)) und dann jeden Dienst einzeln: Steam-Shop, SteamGridDB, GOG-Katalog, GOG-Spieldaten, GOG-Bilder, Wikidata und Brandfetch. Bei Fehlern nennt die Zeile oben, wie viele und welche Dienste nicht funktionieren. Der **Konfigurator** testet ebenfalls einzeln (auch den Proxy-Worker): SteamGridDB, Steam-Shop, GOG-Katalog, GOG-Spieldaten, Epic Games Store und die Übersetzung (MyMemory).
+
+### Woher kommen scharfe Cover?
+
+| Quelle | Hochformat-Cover | Hinweis |
+|---|---|---|
+| **Steam** (Import) | **1200 × 1800** (`library_600x900_2x.jpg`), sonst 600 × 900 | die beste automatische Quelle, etwa 240 dpi |
+| **SteamGridDB** | höchstens **660 × 930** | die Schnittstelle erlaubt für Hochformat nur 342 × 482, 600 × 900 und 660 × 930, etwa 120 bis 130 dpi |
+| **GOG** | **342 × 482** | nur für Logo und Hintergrund (hochauflösend) sinnvoll |
+
+Die Bildauswahl bei SteamGridDB zeigt zu jedem Bild die **dpi auf der gedruckten Hülle** (rot unter 150, orange unter 250, grün ab 250). Für Druck in 300 dpi brauchte ein Cover (127 × 183 mm) etwa 1500 × 2160 Pixel. Keine Quelle liefert das verlässlich für jedes Spiel: Pressematerial der Hersteller oder ein vorheriges Hochskalieren des Bildes helfen weiter.
+
 ## Feste Plätze auf der Rückseite
 
 Die Rückseite hat feste Plätze: links die **Angaben** (am linken Rand, so breit wie möglich), rechts eine **schmale Spalte** mit **Publisher-Logo, Disc-Logo und USK** übereinander, unten in der Mitte das **Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.

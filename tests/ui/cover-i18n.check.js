@@ -68,7 +68,7 @@ const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zu
   await page.click('#bSettings');
   assert.match(await page.locator('#dlg').textContent(), /Settings for SteamGridDB and Steam/);
   await page.click('#dlg button:has-text("Test connection")');
-  await page.waitForFunction(() => /At least one connection is not working/.test(document.querySelector('#dlg').textContent));
+  await page.waitForFunction(() => /connections are not working/.test(document.querySelector('#dlg').textContent));
   assert.deepEqual(await leftovers('#dlg'), [], 'Deutsche Reste im Einstellungsdialog');
   await page.click('#dlgX');
   await page.click('details.menu:has-text("Import data") summary'); await page.click('#bSteam');
@@ -76,6 +76,11 @@ const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zu
   await page.fill('#dlg input', 'Half-Life'); await page.click('#dlg button:has-text("Search")');
   await page.waitForTimeout(600);
   assert.deepEqual(await leftovers('#dlg'), [], 'Deutsche Reste im Steam-Dialog (auch Fehlermeldung)');
+  await page.click('#dlgX');
+  await page.click('details.menu:has-text("Import data") summary'); await page.click('#bGog');
+  assert.match(await page.locator('#dlg').textContent(), /Data from GOG/);
+  await page.fill('#dlg input', 'Witcher'); await page.click('#dlg button:has-text("Search")'); await page.waitForTimeout(600);
+  assert.deepEqual(await leftovers('#dlg'), [], 'Deutsche Reste im GOG-Dialog (auch Fehlermeldung)');
   await page.click('#dlgX');
   await page.click('[data-img=publisher] button.sg');
   await page.waitForTimeout(300);

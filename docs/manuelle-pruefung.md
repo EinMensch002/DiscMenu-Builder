@@ -64,9 +64,9 @@ Das [Cover-Tool](disc-sleeve.md) ist mit nachgebauten Diensten und im Browser-Dr
 
 ## Steam und SteamGridDB (mit Proxy)
 
-- [ ] **Steam:** "Anforderungen von Steam" mit einem bekannten Spiel (z. B. Portal 2). Die Suche liefert Treffer, die Anforderungen erscheinen (Windows-Versionen, Prozessor, Grafik, Speicher, DirectX), und "Übernehmen" füllt die Felder.
+- [x] **Steam:** "Anforderungen von Steam" mit einem bekannten Spiel (z. B. Portal 2). Die Suche liefert Treffer, die Anforderungen erscheinen (Windows-Versionen, Prozessor, Grafik, Speicher, DirectX), und "Übernehmen" füllt die Felder. (Bestätigt: Suche und Übernahme funktionieren mit dem echten Dienst und Proxy.)
 - [ ] **Steam per Adresse:** Die Adresse einer Steam-Seite (oder die App-ID) in das Suchfeld einfügen führt direkt zu den Anforderungen.
-- [ ] **Verbindung testen** in den Einstellungen zeigt für Steam-Shop und SteamGridDB je ein Häkchen.
+- [x] **Verbindung testen** in den Einstellungen zeigt für Steam-Shop und SteamGridDB je ein Häkchen. (Bestätigt: alle Dienste zeigen ein Häkchen, mit Steam, SteamGridDB, GOG-Katalog, Wikidata und Brandfetch.)
 - [ ] **Steam, Sonderfälle:** Ein altes Spiel ohne Angaben, ein Spiel nur mit Freitext bei den Anforderungen und eines mit deutschem Shop-Text. Notieren, was nicht erkannt wird.
 - [ ] **Funktionen:** Die gesetzten Spielfunktionen stimmen mit dem Steam-Shop überein (Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller).
 - [ ] **SteamGridDB:** Suche über das 🔎 am Frontcover. Hochformat-Cover erscheinen, die Übernahme klappt (Bild wird über den Proxy geladen).
@@ -112,6 +112,12 @@ Das [Cover-Tool](disc-sleeve.md) ist mit nachgebauten Diensten und im Browser-Dr
 - [ ] **Frontbild einpassen:** Auf einer Blu-ray-Hülle (148 mm hoch) mit einem Hochformat-Cover: "Strecken" füllt die Fläche, "Zuschneiden" mit Zoom und Ausschnitt sieht gedruckt gut aus.
 - [ ] **USK-Hintergrund:** Bei 0 % steht nur die Raute (kein roter Rand), bei 100 % wie gewohnt. Auf der Rückseite nur die Raute.
 - [ ] **GOG-Varianten:** Weiß, Warmweiß, Durchsichtig weiß, Durchsichtig schwarz, Dunkel und Dunkel mit Violett-Hauch sehen gedruckt gut aus. Bei "durchscheinend" kein Strich links oder rechts oben in der Leiste (Linien im Bild selbst sind Teil des Covers). "Rücken hell" und die Farbe von "PC" (Weiß/Schwarz) wirken auf dem Ausdruck gut.
-- [ ] **Englische Oberfläche:** Sprache oben auf English stellen: alle Beschriftungen, Dialoge und Meldungen sind englisch, das Feld "Sprache der Beschriftung" fehlt, das Cover ist englisch beschriftet.
+- [x] **Englische Oberfläche:** Sprache oben auf English stellen: alle Beschriftungen, Dialoge und Meldungen sind englisch, das Feld "Sprache der Beschriftung" fehlt, das Cover ist englisch beschriftet. (Oberfläche angesehen und für gut befunden.)
 - [ ] **Standardstart:** Nach "Zurücksetzen" ist GOG, normale Hülle, DVD, Durchsichtig schwarz mit passendem dunklem Rücken und sichtbarem GOG.COM eingestellt, die Falzmarken stehen unten und oben außerhalb des Covers.
 - [ ] **Negative Abstände am Rücken:** Ein Rückenlogo mit viel leerem Rand lässt sich mit negativen Abständen größer ziehen. Zur Seite wird abgeschnitten (nichts auf der Vorderseite), nach oben und unten prüfen, ob etwas Wichtiges überdeckt wird.
+- [x] **Daten von GOG (echter Dienst):** Mit eingerichtetem Proxy ein GOG-Spiel suchen und übernehmen. Titel, Publisher, USK, Funktionen und Anforderungen stimmen, der Proxy-Worker ist aktuell. Das GOG-Cover ist erwartungsgemäß klein. (Bestätigt für Suche, Titel, Publisher, USK, Funktionen und Anforderungen von Cyberpunk 2077. Hinweis: Bei GOG sind die Anforderungen vieler Spiele knapp oder uneinheitlich geführt, das liegt an GOG. Offen: Logo und Hintergrund wirklich laden, siehe nächster Punkt.)
+- [x] **dpi-Hinweis:** In der SteamGridDB-Auswahl steht zu jedem Bild die dpi auf der Hülle, die Werte passen zu den Bildmaßen. (Bestätigt: 600 × 900 zeigt rund 118 dpi.)
+- [ ] **GOG-Bilder laden (echter Dienst):** Im Dialog "Daten von GOG" das Spiel-Logo und den Hintergrund ankreuzen und übernehmen: Das Logo erscheint als Rückenlogo (transparent), der Hintergrund als Rückseite oben.
+- [ ] **Verbindung testen (neu):** In den Einstellungen stehen jetzt auch "GOG-Spieldaten" und "GOG-Bilder" mit Häkchen, im Konfigurator zusätzlich Steam-Shop, GOG-Katalog, GOG-Spieldaten, Epic Games Store und Übersetzung. Ein veralteter Proxy-Worker zeigt dabei "Der Proxy erlaubt ... nicht".
+- [ ] **Mods bleiben beim Import:** "Mods" bei den Spielfunktionen einschalten, danach Daten von Steam oder GOG übernehmen: "Mods" bleibt gesetzt, die anderen Funktionen kommen vom Laden.
+- [ ] **Proxy-Worker-Version:** Mit dem alten (noch nicht aktualisierten) Worker zeigt "Verbindung testen" ein Kreuz bei "Proxy-Worker" mit dem Hinweis, den Code einzuspielen. Nach dem Einspielen von `worker.js` (Version 2) steht dort "Version 2 (aktuell)" mit Häkchen, auch im Konfigurator.

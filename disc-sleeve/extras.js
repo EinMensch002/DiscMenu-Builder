@@ -107,8 +107,9 @@
           if (!saveCfg()) return;
           say(msg, 'Teste die Verbindung ...'); tests.replaceChildren();
           const res = await O.testConnection();
-          say(msg, res.every((r) => r.ok) ? 'Alle Verbindungen in Ordnung.' : 'Mindestens eine Verbindung funktioniert nicht, Details unten.', !res.every((r) => r.ok));
-          tests.replaceChildren(...res.map((r) => h('div', { class: r.ok ? '' : 'err' }, (r.ok ? '✓ ' : '✗ ') + r.name + ': ' + r.text)));
+          const bad = res.filter((r) => !r.ok);
+          say(msg, bad.length ? bad.length + ' von ' + res.length + ' Verbindungen funktionieren nicht: ' + bad.map((r) => r.name).join(', ') + '. Details unten.' : 'Alle Verbindungen in Ordnung.', !!bad.length);
+          tests.replaceChildren(...res.map((r) => h('div', { class: 'tline ' + (!r.ok ? 'bad' : r.warn ? 'warn' : 'good') }, h('b', { class: 'tmark' }, !r.ok ? '✗' : r.warn ? '⚠' : '✓'), ' ' + r.name + ': ' + r.text)));
         } }, 'Verbindung testen'),
         h('button', { type: 'button', onclick: () => { O.settings.save('', ''); O.settings.saveBrandfetch(''); key.value = ''; proxy.value = ''; bf.value = ''; say(msg, 'Gespeicherte Werte gelöscht.'); } }, 'Löschen')),
       tests,
@@ -295,7 +296,7 @@
       const CDN = 'https://cdn.akamai.steamstatic.com/steam/apps/' + encodeURIComponent(item.id) + '/';
       const firstBlob = async (names) => { let err; for (const n of names) { try { return await O.fetchBlob(CDN + n); } catch (e) { err = e; } } throw err; };
       const apply = async () => {
-        App.patch(current.patch);
+        App.patch(O.keepManualFeatures(current.patch, App.state.features));
         if (!coverChk.checked && !logoChk.checked) { closeDlg(); return; }
         ok.disabled = true; const problems = [];
         if (coverChk.checked) {
@@ -330,6 +331,71 @@
         h('p', { class: 'dmsg' }, 'Prozessor und Grafikkarte werden bei "or" bzw. "/" in einzelne Einträge zerlegt (jeder steht auf dem Cover in einer eigenen Zeile). Was in die Auswahlfelder passt (Intel, AMD, GeForce, Radeon mit Modell und Speicher), kommt dorthin, der Rest bleibt als Text. Lange Angaben werden gekürzt. Alles lässt sich danach ändern.'),
         h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
       draw();
+    }
+  }
+
+  /* ---------- Daten von GOG (Katalog und Spiel-Daten, Bilder von GOG) ---------- */
+  function openGog() {
+    const input = h('input', { type: 'text', placeholder: 'Spieltitel oder GOG-Produkt-ID' }); input.value = App.state.title || '';
+    const msg = h('p', { class: 'dmsg' }, 'Sucht im GOG-Katalog und liest Systemanforderungen, Funktionen, Altersfreigabe und Publisher aus (englische Angaben). Du kannst auch die GOG-Produkt-ID oder die Adresse einer gogdb.org-Seite einfügen, dann entfällt die Suche.');
+    const list = h('div', { class: 'dlist' });
+    const go = async () => {
+      const t = input.value.trim(); if (!t) return;
+      const ref = O.parseGogRef(t);
+      if (ref) { showDetails({ id: ref, name: 'GOG-Produkt ' + ref }); return; }
+      say(msg, 'Suche läuft ...'); list.replaceChildren();
+      try {
+        const res = (await O.gogSearch(t)).slice(0, 8);
+        say(msg, res.length ? 'Spiel auswählen:' : 'Keine Treffer. Anderen Titel versuchen (am besten englisch) oder die GOG-Produkt-ID einfügen.');
+        list.replaceChildren(...res.map((it) => h('button', { type: 'button', onclick: () => showDetails(it) }, it.name + (it.year ? '  (' + it.year + ')' : ''))));
+      } catch (e) { say(msg, e.message, true); }
+    };
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+    openDlg('Daten von GOG', h('div', { class: 'drow' }, input, h('button', { type: 'button', class: 'pri', onclick: go }, 'Suchen')), msg, list,
+      h('p', { class: 'dmsg' }, 'Funktioniert die Suche nicht, hilft ', h('a', { href: '#', onclick: (e) => { e.preventDefault(); openSettings(); } }, '"Verbindung testen" in den Einstellungen'), '.'));
+    if (input.value.trim() && O.settings.proxy) go();
+
+    async function showDetails(item) {
+      const m2 = h('p', { class: 'dmsg' }, 'Daten werden geladen ...');
+      openDlg(item.name, m2);
+      let game;
+      try { game = await O.gogGame(item.id); } catch (e) { say(m2, e.message, true); openDlg(item.name, m2, h('div', { class: 'drow' }, h('button', { type: 'button', onclick: openGog }, '← Andere Suche'))); return; }
+      const details = O.gogDetails(game), img = O.gogImages(game), have = App.snapshot().images;
+      const table = h('table', { class: 'shown' }), note = h('p', { class: 'dmsg' });
+      const logoChk = h('input', { type: 'checkbox', checked: !!img.logo && !have.spineLogo });
+      const bgChk = h('input', { type: 'checkbox', checked: false });
+      const coverChk = h('input', { type: 'checkbox', checked: false });
+      let current = null;
+      const apply = async () => {
+        App.patch(O.keepManualFeatures(current.patch, App.state.features));
+        const jobs = [[logoChk, 'spineLogo', img.logo, 'das GOG-Logo', 'png'], [bgChk, 'backTop', img.background, 'das Hintergrundbild', 'jpg'], [coverChk, 'front', img.cover, 'das Cover', 'jpg']].filter((j) => j[0].checked && j[2]);
+        if (!jobs.length) { closeDlg(); return; }
+        ok.disabled = true; const problems = [];
+        for (const [, key, url, what, ext] of jobs) {
+          say(note, 'Bilder werden geladen ...');
+          try { const blob = await O.fetchBlob(url); await App.setImage(key, new File([blob], 'gog-' + item.id + '-' + key + '.' + ext, { type: blob.type || (ext === 'png' ? 'image/png' : 'image/jpeg') })); }
+          catch (e) { problems.push(what + ' (' + e.message + ')'); }
+        }
+        if (!problems.length) { closeDlg(); return; }
+        say(note, 'Die Angaben sind übernommen, nicht geladen wurde ' + problems.join(' und ') + '.', true);
+        ok.disabled = false;
+      };
+      const ok = h('button', { type: 'button', class: 'pri', onclick: apply }, 'Übernehmen');
+      current = O.steamPatchBoth(details);
+      const two = current.hasBoth;
+      table.replaceChildren(h('tr', { class: 'head' }, h('th', {}, ''), h('th', {}, two ? 'Minimum' : 'Angaben'), h('th', {}, two ? 'Empfohlen' : ''), h('th', {}, '')),
+        ...current.shown.map((r) => h('tr', {}, h('td', {}, r.label), h('td', {}, r.min), h('td', {}, r.rec || (two && r.rec === '' ? '–' : '')), h('td', { class: 'kind' }, r.kind ? ({ Kategorie: 'in Auswahlfeldern', Gemischt: 'teils als Text', Text: 'als Text' }[r.kind] || '') : ''))));
+      note.textContent = current.hasRequirements ? '' : 'GOG hat zu diesem Spiel keine Systemanforderungen. Es werden nur Plattformen und Funktionen übernommen.';
+      ok.disabled = !Object.keys(current.patch).length;
+      if (ok.disabled) note.textContent = 'Zu diesem Spiel liefert GOG nichts, was sich übernehmen lässt.';
+      openDlg(details.name || item.name,
+        h('div', { class: 'drow' }, h('button', { type: 'button', onclick: openGog }, '← Andere Suche')),
+        table, note,
+        h('label', { class: 'chk' }, logoChk, ' Spiel-Logo für den Rücken laden (hochauflösend, transparent)'),
+        h('label', { class: 'chk' }, bgChk, ' Hintergrundbild (etwa 2560 Pixel breit) als Rückseite oben laden'),
+        h('label', { class: 'chk' }, coverChk, ' GOG-Cover als Frontcover laden (nur etwa 342 × 482 Pixel, also unscharf; besser Steam oder SteamGridDB)'),
+        h('p', { class: 'dmsg' }, 'GOG liefert Cover nur in kleiner Größe (etwa 342 × 482 Pixel, das sind auf der Hülle rund 67 dpi). Logo und Hintergrund sind dagegen hochauflösend.'),
+        h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
     }
   }
 
@@ -375,7 +441,8 @@
           gal.replaceChildren(...imgs.map((it) => {
             const b = h('button', { type: 'button', onclick: () => { gal.querySelectorAll('button').forEach((x) => x.classList.remove('sel')); b.classList.add('sel'); chosen = it; ok.disabled = false; } },
               h('img', { src: it.thumb || it.url, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }),
-              h('small', {}, (it.width && it.height ? it.width + '×' + it.height : '') + (it.language ? ' · ' + it.language : '')));
+              h('small', {}, (it.width && it.height ? it.width + '×' + it.height : '') + (it.language ? ' · ' + it.language : '')),
+              (() => { const dpi = it.width && it.height ? App.dpiOf(key, it.width, it.height) : 0; return dpi ? h('small', { class: dpi < 150 ? 'dpi-low' : dpi < 250 ? 'dpi-mid' : 'dpi-ok' }, '≈ ' + dpi + ' dpi') : ''; })());
             return b;
           }));
         } catch (e) { say(m2, e.message, true); }
@@ -445,6 +512,7 @@
   $('#bProjImport').addEventListener('click', openProject);
   projectInput.addEventListener('change', () => { const f = projectInput.files[0]; projectInput.value = ''; if (f) importProject(f); });
   $('#bSteam').addEventListener('click', openSteam);
+  $('#bGog').addEventListener('click', openGog);
   $('#bSettings').addEventListener('click', openSettings);
   document.querySelectorAll('.drop .sg').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const key = b.closest('.drop').dataset.img; key === 'publisher' ? openPublisherLogo() : openSteamGridDB(key); }));
 

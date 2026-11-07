@@ -107,14 +107,36 @@
     return d;
   }
 
+  /* Version des Proxy-Workers (tools/cors-proxy/worker.js): Der Worker meldet sich bei /?info=1 mit Version und erlaubten Hosts. Wird der Worker
+     geändert, steigen VERSION dort und WORKER_VERSION hier (ein Test prüft die Gleichheit). REQUIRED_HOSTS sind die Hosts, die die Tools über den Proxy brauchen. */
+  const WORKER_VERSION = 2;
+  const REQUIRED_HOSTS = ['www.steamgriddb.com', 'store.steampowered.com', 'catalog.gog.com', 'api.gog.com', 'store-content.ak.epicgames.com'];
+  async function checkWorker() {
+    let info = null;
+    try {
+      const u = new URL(settings.proxy.split('{url}').join('x')); u.search = '?info=1&t=' + Date.now();                  // nie aus dem Zwischenspeicher: nach dem Einspielen eines neuen Workers soll sofort die neue Version erscheinen
+      const r = await fetch(u.href, { cache: 'no-store' });
+      try { info = await r.json(); } catch (e) { info = null; }
+    } catch (e) { throw new Error('Der Proxy ist nicht erreichbar oder blockiert die Anfrage. Bitte die Proxy-Adresse prüfen.'); }
+    if (!info || typeof info.version !== 'number') throw new Error('Alte Version des Proxy-Workers (ohne Versionsangabe), aktuell ist Version ' + WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen (Anleitung bei "Proxy einrichten").');
+    const missing = REQUIRED_HOSTS.filter((h) => !(info.hosts || []).some((src) => { try { return new RegExp(src).test(h); } catch (e) { return false; } }));
+    if (info.version < WORKER_VERSION || missing.length) throw new Error('Proxy-Worker Version ' + info.version + ', aktuell ist ' + WORKER_VERSION + (missing.length ? '. Er erlaubt nicht: ' + missing.join(', ') : '') + '. Bitte den aktuellen Worker-Code einspielen.');
+    return info.version > WORKER_VERSION ? { warn: true, text: 'Version ' + info.version + ' (neuer als dieses Tool)' } : { text: 'Version ' + info.version + ' (aktuell)' };
+  }
+
   /* Verbindungstest für die Einstellungen: jeder Dienst einzeln, damit man sieht, woran es liegt */
   async function testConnection() {
     const out = [];
-    const run = async (name, fn) => { try { out.push({ name, ok: true, text: await fn() }); } catch (e) { out.push({ name, ok: false, text: e.message || String(e) }); } };
+    /* Eine Prüfung liefert Text oder { text, warn: true } (läuft, aber Hinweis: gelb statt grün) */
+    const run = async (name, fn) => { try { const v = await fn(); out.push(v && typeof v === 'object' ? { name, ok: true, warn: !!v.warn, text: v.text } : { name, ok: true, text: v }); } catch (e) { out.push({ name, ok: false, text: e.message || String(e) }); } };
     if (!settings.proxy) out.push({ name: 'Proxy', ok: false, text: 'Kein Proxy eingetragen. Ohne Proxy blockiert der Browser die Anfragen meist (CORS).' });
+    if (settings.proxy) await run('Proxy-Worker', checkWorker);
     await run('Steam-Shop', async () => { const r = await steamSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
     if (settings.key) await run('SteamGridDB', async () => { const r = await sgSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
     else out.push({ name: 'SteamGridDB', ok: false, text: 'Kein API-Schlüssel eingetragen.' });
+    await run('GOG-Katalog', async () => { const r = await gogSearch('Witcher'); return r.length + ' Treffer für den Test'; });
+    await run('GOG-Spieldaten', async () => { const g = await gogGame('1207658924'); return 'erreichbar, ' + ((g._embedded && g._embedded.product && g._embedded.product.title) || 'Antwort ohne Titel'); });
+    await run('GOG-Bilder', async () => { const l = gogImages(await gogGame('1207658924')); if (!l.logo) throw new Error('GOG hat keine Bild-Adresse geliefert.'); await fetchBlob(l.logo); return 'erreichbar'; });
     await run('Wikidata (Publisher-Logos)', async () => { await logoSearch('Valve'); return 'erreichbar'; });
     if (settings.brandfetch) await run('Brandfetch', async () => { const r = await brandSearch('Valve'); return 'erreichbar, ' + r.length + ' Treffer für den Test'; });
     else out.push({ name: 'Brandfetch', ok: true, text: 'Keine Client-ID eingetragen (optional).' });
@@ -253,6 +275,17 @@
     return { patch, shown };
   }
 
+  /* Beim Übernehmen ersetzt die Funktionsliste von Steam oder GOG die bisherige. Nachträglich selbst gesetzte Funktionen, die die Läden gar nicht kennen
+     (z. B. "Mods", wenn man ein Mod-Menü auf die Disc legt), bleiben aber erhalten. */
+  const MANUAL_FEATURES = ['mods'];
+  function keepManualFeatures(patch, current) {
+    if (!patch || !Array.isArray(patch.features)) return patch;
+    const keep = (current || []).filter((f) => MANUAL_FEATURES.includes(f));
+    if (!keep.length) return patch;
+    const all = new Set([...patch.features, ...keep]);
+    return { ...patch, features: FEATURE_ORDER.filter((f) => all.has(f)) };
+  }
+
   /* Ergebnis: Änderungen für den Zustand des Cover-Tools (nur gefundene Werte) und eine Liste zur Anzeige.
      which = 'minimum' oder 'recommended': nur diese Angaben, als Mindestanforderungen. */
   function steamPatch(details, which) {
@@ -270,7 +303,7 @@
     const num = (x) => { const m = String((x && x.rating) != null ? x.rating : '').match(/\d+/); return m ? parseInt(m[0], 10) : null; };
     const snap = (n) => (n <= 0 ? '0' : n <= 6 ? '6' : n <= 12 ? '12' : n <= 16 ? '16' : '18');
     const usk = num(r.usk);
-    if (usk != null && usk <= 18) return { value: snap(usk), source: 'USK laut Steam' };
+    if (usk != null && usk <= 18) return { value: snap(usk), source: 'USK laut ' + (details.ratingFrom || 'Steam') };
     const pegi = num(r.pegi);
     if (pegi != null && pegi <= 18) return { value: snap(pegi === 3 ? 0 : pegi === 7 ? 6 : pegi), source: 'aus PEGI ' + pegi + ' abgeleitet' };
     if (r.esrb && r.esrb.rating) {
@@ -320,6 +353,68 @@
     } else if (hasMin || hasRec) patch.rec = { on: false };
     com.shown.filter((x) => x[0] !== 'Läuft auf').forEach(([l, v]) => put(l, 'min', v));
     return { patch, shown: [...rows.values()], hasRequirements: hasMin || hasRec, hasBoth: hasMin && hasRec };
+  }
+
+  /* ---------- GOG: Katalogsuche und Spiel-Daten ----------
+     Quelle sind die Schnittstellen von GOG selbst (aus denen auch gogdb.org seine Daten holt): catalog.gog.com für die Suche und api.gog.com/v2 für
+     die Spieldaten (Systemanforderungen, Funktionen, Altersfreigabe, Publisher, Bilder). Beide erlauben im Browser nur Anfragen von gog.com (CORS),
+     deshalb geht es über den Proxy wie bei Steam. Die Bilder von images.gog-statics.com erlauben Anfragen von überall und werden direkt geladen. */
+  /* Wichtig: Viele Hauptspiele (z. B. Cyberpunk 2077, The Witcher 3) führt GOG als "pack" (Ausgabe mit Zusatzinhalten), deshalb werden game und pack gesucht.
+     Die Katalogsuche "like:" kommt mit mehreren Wörtern nicht zurecht: Gesucht wird nach dem längsten Wort, die Treffer ordnen wir danach selbst nach
+     Ähnlichkeit zum eingegebenen Titel (genau gleich, beginnt damit, enthält alle Wörter). */
+  const GOG_CATALOG = 'https://catalog.gog.com/v1/catalog?limit=48&productType=in%3Agame%2Cpack&countryCode=US&locale=en-US&query=like%3A';
+  const GOG_GAME = 'https://api.gog.com/v2/games/';
+  async function gogSearch(term) {
+    const t = String(term || '').trim(), words = t.toLowerCase().split(/[\s:\-–—_,.]+/).filter(Boolean);
+    const q = words.reduce((a, w) => (w.length > a.length ? w : a), '') || t;
+    const j = await steamJson(GOG_CATALOG + encodeURIComponent(q), 'Der GOG-Katalog');
+    const low = t.toLowerCase();
+    const rank = (title) => { const x = title.toLowerCase(); return (x === low ? 100 : 0) + (x.startsWith(low) ? 40 : 0) + (x.includes(low) ? 30 : 0) + words.filter((w) => x.includes(w)).length * 10 - Math.min(x.length, 100) / 100; };
+    return (j && Array.isArray(j.products) ? j.products : []).filter((p) => p && p.id && p.title)
+      .map((p) => ({ id: String(p.id), name: p.title, year: String(p.releaseDate || '').slice(0, 4), cover: p.coverVertical || '' }))
+      .sort((a, b) => rank(b.name) - rank(a.name));
+  }
+  /* GOG-Produkt-ID oder Adresse einer gogdb.org-Seite -> ID, sonst null */
+  function parseGogRef(text) {
+    const t = String(text || '').trim();
+    const m = t.match(/gogdb\.org\/product\/(\d+)/i) || t.match(/^(\d{6,12})$/);
+    return m ? m[1] : null;
+  }
+  async function gogGame(id) {
+    const j = await steamJson(GOG_GAME + encodeURIComponent(id) + '?locale=en-US', 'GOG');
+    if (!j || !j._embedded || !j._embedded.product) throw new Error('GOG liefert zu diesem Spiel keine Daten.');
+    return j;
+  }
+  /* GOG-Antwort in die Form der Steam-Daten bringen, damit dieselbe Auswertung (Prozessoren, Grafikkarten, Funktionen, USK) wiederverwendet wird */
+  function gogDetails(v2) {
+    const e = (v2 && v2._embedded) || {}, p = e.product || {};
+    const esc = (t) => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const LABEL = { system: 'OS', processor: 'Processor', memory: 'Memory', graphics: 'Graphics', directx: 'DirectX', storage: 'Storage', sound: 'Sound Card' };
+    const systems = e.supportedOperatingSystems || [], has = (n) => systems.some((o) => o.operatingSystem && o.operatingSystem.name === n);
+    const win = systems.find((o) => o.operatingSystem && o.operatingSystem.name === 'windows');
+    const req = {};
+    for (const sr of (win && win.systemRequirements) || []) {
+      const items = (sr.requirements || []).filter((r) => r && r.description);
+      req[sr.type] = items.length
+        ? '<ul class="bb_ul">' + items.map((r) => '<li><strong>' + (LABEL[r.id] || 'Additional Notes') + ':</strong> ' + esc(String(r.description).replace(/\s+/g, ' ').trim()) + '<br></li>').join('') + '</ul>'
+        : esc(String(sr.description || '').trim());
+    }
+    const CATEGORY = [[/single/i, 2], [/multi/i, 1], [/co-?op/i, 9], [/cloud/i, 23], [/achiev/i, 22], [/controller/i, 28], [/cross/i, 27]];
+    const categories = [];
+    for (const f of e.features || []) for (const [re, id] of CATEGORY) if (re.test((f && f.name) || '') && !categories.some((c) => c.id === id)) categories.push({ id });
+    const ratings = {};
+    if (e.uskRating && e.uskRating.ageRating != null) ratings.usk = { rating: String(e.uskRating.ageRating) };
+    if (e.pegiRating && e.pegiRating.ageRating != null) ratings.pegi = { rating: String(e.pegiRating.ageRating) };
+    const names = (list) => (list || []).map((x) => x && x.name).filter(Boolean);
+    return {
+      name: p.title, publishers: e.publisher && e.publisher.name ? [e.publisher.name] : names(e.publishers), developers: names(e.developers),
+      pc_requirements: req, platforms: { windows: !!win, mac: has('osx'), linux: has('linux') }, categories, ratings, ratingFrom: 'GOG',
+    };
+  }
+  /* Bilder aus den Links der GOG-Antwort: Cover (nur etwa 342 x 482 Pixel), Logo (PNG, transparent, etwa 1600 px) und Hintergrund (etwa 2560 px breit) */
+  function gogImages(v2) {
+    const l = (v2 && v2._links) || {}, href = (k) => (l[k] && l[k].href) || '';
+    return { cover: href('boxArtImage'), logo: href('logo'), background: href('galaxyBackgroundImage') || href('backgroundImage') };
   }
 
   /* ---------- Publisher-Logos über Wikidata und Wikimedia Commons ----------
@@ -393,7 +488,7 @@
     })).filter((x) => x.url && x.label);
   }
 
-  const api = { brandSearch, logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, steamUsk, SG_KINDS };
+  const api = { brandSearch, logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, steamUsk, keepManualFeatures, checkWorker, WORKER_VERSION, REQUIRED_HOSTS, gogSearch, parseGogRef, gogGame, gogDetails, gogImages, SG_KINDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverOnline = api;
 })(typeof window !== 'undefined' ? window : globalThis);

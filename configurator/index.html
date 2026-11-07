@@ -169,6 +169,11 @@ dialog::backdrop{background:rgba(5,7,12,.6);backdrop-filter:blur(3px)}
 dialog.wide{width:min(1360px,98vw)}
 textarea.code{width:100%;min-height:50vh;font:12.5px/1.5 ui-monospace,Consolas,monospace;white-space:pre;tab-size:2;resize:vertical}
 footer{text-align:center;color:var(--mut);font-size:12px;padding:8px 14px 28px;line-height:1.8}
+  /* Verbindungstest: grünes Häkchen, gelbes Warnzeichen (läuft, aber mit Hinweis), rotes Kreuz */
+  .tline .tmark { font-weight: 700; }
+  .tline.good .tmark { color: #067647; }
+  .tline.warn, .tline.warn .tmark { color: #b54708; }
+  .tline.bad, .tline.bad .tmark { color: #b42318; }
 </style>
 </head>
 <body>
@@ -639,11 +644,50 @@ if (typeof module !== 'undefined') module.exports = CORE;
   }
   function closeDlg(){ if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open'); }
 
+  /* Version des Proxy-Workers (tools/cors-proxy/worker.js): gleiche Prüfung wie im DiscSleeve. Wird der Worker geändert, steigen VERSION dort und hier
+     WORKER_VERSION (ein Test prüft die Gleichheit). */
+  const WORKER_VERSION = 2;
+  const REQUIRED_HOSTS = ['www.steamgriddb.com', 'store.steampowered.com', 'catalog.gog.com', 'api.gog.com', 'store-content.ak.epicgames.com'];
+  async function checkWorker(){
+    let info = null;
+    try {
+      const u = new URL(cfg.proxy.split('{url}').join('x')); u.search = '?info=1&t=' + Date.now();                  // nie aus dem Zwischenspeicher
+      const r = await fetch(u.href, { cache: 'no-store' });
+      try { info = await r.json(); } catch (e) { info = null; }
+    } catch (e) { throw new Error('Der Proxy ist nicht erreichbar oder blockiert die Anfrage. Bitte die Proxy-Adresse prüfen.'); }
+    if (!info || typeof info.version !== 'number') throw new Error('Alte Version des Proxy-Workers (ohne Versionsangabe), aktuell ist Version ' + WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen (Anleitung bei "Proxy einrichten").');
+    const missing = REQUIRED_HOSTS.filter(h => !(info.hosts || []).some(src => { try { return new RegExp(src).test(h); } catch (e) { return false; } }));
+    if (info.version < WORKER_VERSION || missing.length) throw new Error('Proxy-Worker Version ' + info.version + ', aktuell ist ' + WORKER_VERSION + (missing.length ? '. Er erlaubt nicht: ' + missing.join(', ') : '') + '. Bitte den aktuellen Worker-Code einspielen.');
+    return info.version > WORKER_VERSION ? {warn: true, text: 'Version ' + info.version + ' (neuer als dieses Tool)'} : {text: 'Version ' + info.version + ' (aktuell)'};
+  }
+
+  /* Verbindungstest: jeder Dienst, den der Konfigurator nutzt, einzeln (SteamGridDB, Steam, GOG, Epic Games, Übersetzung), damit man sieht, woran es liegt */
+  async function testServices(){
+    const out = [];
+    const run = async (name, fn) => { try { const v = await fn(); out.push(v && typeof v === 'object' ? {name, ok: true, warn: !!v.warn, text: v.text} : {name, ok: true, text: v}); } catch (e) { out.push({name, ok: false, text: e.message || String(e)}); } };
+    const get = async (url, what) => {
+      const r = await net(url);
+      if (r.status === 403 && /Host/i.test(await r.clone().text().catch(() => ''))) throw new Error('Der Proxy erlaubt ' + what + ' nicht. Der Worker-Code ist wahrscheinlich veraltet, bitte den aktuellen aus docs/steamgriddb.md einspielen.');
+      return r;
+    };
+    if (!cfg.proxy) out.push({name: 'Proxy', ok: false, text: 'Kein Proxy eingetragen. Ohne Proxy blockiert der Browser die Anfragen meist (CORS).'});
+    if (cfg.proxy) await run('Proxy-Worker', checkWorker);
+    if (cfg.key) await run('SteamGridDB', async () => { const r = await sgGet('/search/autocomplete/' + encodeURIComponent('Half-Life')); return r.length + ' Treffer für den Test'; });
+    else out.push({name: 'SteamGridDB', ok: false, text: 'Kein API-Schlüssel eingetragen.'});
+    await run('Steam-Shop', async () => { const r = await get('https://store.steampowered.com/api/storesearch/?l=german&cc=DE&term=Half-Life', 'Steam'); if (!r.ok) throw new Error('Steam hat mit Fehler ' + r.status + ' geantwortet.'); const j = await r.json(); return (j.items || []).length + ' Treffer für den Test'; });
+    await run('GOG-Katalog', async () => { const r = await get('https://catalog.gog.com/v1/catalog?limit=3&query=like%3AWitcher&productType=in%3Agame%2Cpack&countryCode=DE&locale=de-DE', 'GOG'); if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.'); const j = await r.json(); return (j.products || []).length + ' Treffer für den Test'; });
+    await run('GOG-Spieldaten', async () => { const r = await get('https://api.gog.com/products/1207658924?expand=description&locale=de-DE', 'GOG'); if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.'); await r.json(); return 'erreichbar'; });
+    await run('Epic Games Store', async () => { const r = await get('https://store-content.ak.epicgames.com/api/de/content/products/rocket-league', 'Epic Games'); if (r.status >= 500 || r.status === 403) throw new Error('Epic Games hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
+    await run('Übersetzung (MyMemory)', async () => { let r; try { r = await fetch('https://api.mymemory.translated.net/get?langpair=en%7Cde&q=Hello'); } catch (e) { throw new Error('Der Übersetzungsdienst ist nicht erreichbar. Bitte die Internetverbindung prüfen.'); } if (!r.ok) throw new Error('Der Übersetzungsdienst hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
+    return out;
+  }
+
   function openSettings(){
     const key = h('input', {type:'password', autocomplete:'off', placeholder:'API-Schlüssel', value: cfg.key});
     const pw = h('input', {type:'password', autocomplete:'new-password', placeholder:'Passwort (optional)'});
     const proxy = h('input', {type:'text', placeholder:'https://mein-proxy.example.workers.dev/?url={url}', value: cfg.proxy});
     const msg = h('p', {class:'hint'});
+    const tests = h('div', {class:'hint', id:'sgTests'});
     const msg2 = h('p', {class:'hint', id:'sgMsg2'});
     const fin = h('input', {type:'file', accept:'.json,application/json', hidden:true, onchange: async () => {
       const f = fin.files[0]; fin.value = ''; if (!f) return;
@@ -665,13 +709,15 @@ if (typeof module !== 'undefined') module.exports = CORE;
       wrap('API-Schlüssel', key),
       wrap('Proxy-Adresse (optional)', proxy, 'Nur nötig, wenn der Browser Anfragen direkt blockiert (CORS). {url} wird durch die Zieladresse ersetzt.'),
       h('p', {class:'hint'}, 'Proxy einrichten: ', docLink('Anleitung', 'steamgriddb.md', 'proxy-einrichten-cloudflare-worker'), ' · ', ext('Cloudflare öffnen', LINKS.cf), ' · ', ext('Worker-Code', LINKS.worker), ' · ', docLink('Proxy absichern', 'steamgriddb.md', 'proxy-auf-die-eigene-seite-beschränken-empfohlen')),
-      msg,
+      msg, tests,
       h('div', {class:'row'},
         h('button', {type:'button', class:'pri', onclick: () => { if (saveCfg()){ closeDlg(); toast('SteamGridDB-Einstellungen gespeichert.'); } }}, 'Speichern'),
         h('button', {type:'button', onclick: async () => {
-          if (!saveCfg()) return; msg.textContent = 'Teste die Verbindung ...';
-          try { const r = await sgGet('/search/autocomplete/' + encodeURIComponent('Half-Life')); msg.textContent = 'Verbindung in Ordnung (' + r.length + ' Treffer für den Test).'; }
-          catch (e) { showMsg(msg, e.message); }
+          if (!saveCfg()) return; msg.textContent = 'Teste die Verbindung ...'; tests.replaceChildren();
+          const res = await testServices();
+          const bad = res.filter(r => !r.ok);
+          msg.textContent = bad.length ? bad.length + ' von ' + res.length + ' Verbindungen funktionieren nicht: ' + bad.map(r => r.name).join(', ') + '. Details unten.' : 'Alle Verbindungen in Ordnung.';
+          tests.replaceChildren(...res.map(r => h('div', {class: 'tline ' + (!r.ok ? 'bad' : r.warn ? 'warn' : 'good')}, h('b', {class: 'tmark'}, !r.ok ? '✗' : r.warn ? '⚠' : '✓'), ' ' + r.name + ': ' + r.text)));
         }}, 'Verbindung testen'),
         h('button', {type:'button', class:'danger', onclick: () => { store.set('sgdb-key',''); store.set('sgdb-proxy',''); key.value = ''; proxy.value = ''; msg.textContent = 'Gespeicherte Werte gelöscht.'; }}, 'Löschen')),
       h('h3', {}, 'Einstellungen sichern'),
