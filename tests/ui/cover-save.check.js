@@ -27,8 +27,9 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
 
   // Standardwerte: GOG dunkel (schmale Leiste), Titel mittig, USK voll deckend
   const cv = (v) => page.locator('#cover').evaluate((e, n) => getComputedStyle(e).getPropertyValue(n).trim(), v);
-  assert.equal(await page.inputValue('[data-k=theme]'), 'dark');
-  assert.deepEqual(await page.locator('[data-k=theme] option').allTextContents(), ['Weiß', 'Dunkel', 'Dunkel, durchscheinend']);
+  assert.equal(await page.inputValue('[data-k=theme]'), 'white', 'Standard: Weiß');
+  assert.deepEqual(await page.locator('[data-k=theme] option').allTextContents(), ['Weiß', 'Warmweiß', 'Dunkel', 'Dunkel mit Violett-Hauch', 'Dunkel, durchscheinend']);
+  await page.selectOption('[data-k=theme]', 'dark'); await page.waitForTimeout(150);
   assert.equal(await cv('--barB'), '#18181c');
   assert.equal(await page.locator('#spine').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(35, 35, 40)');
   assert.equal(await page.locator('.gog-bar').evaluate((e) => Math.abs(e.getBoundingClientRect().height / (Number(getComputedStyle(document.querySelector('#preview')).getPropertyValue('--k')) || 1) / 3.7795 - 10) < 0.6), true, 'Leiste ist 10 mm schmal');
@@ -39,6 +40,28 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
   assert.equal(await page.locator('#barWm').isVisible(), false); assert.equal(await page.locator('.gog-bar img').isVisible(), true);
   assert.equal(await page.locator('#frontTag').textContent(), 'PC · DRM-FREI'); assert.equal(await page.locator('#frontTag').isVisible(), true);
   await page.check('[data-k=gogText]');
+  // Warmweiß und Violett-Hauch: eigene Farben, gleiche Logik
+  await page.selectOption('[data-k=theme]', 'warm'); await page.waitForTimeout(150);
+  assert.equal(await cv('--barA'), '#f8f6f2'); assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/gog_logo_outline.svg');
+  await page.selectOption('[data-k=theme]', 'violet'); await page.waitForTimeout(150);
+  assert.equal(await cv('--barA'), '#241e30'); assert.equal(await page.locator('#cover').evaluate((e) => e.classList.contains('gog-dk')), true);
+  await page.selectOption('[data-k=theme]', 'dark'); await page.waitForTimeout(100);
+  // Rücken hell und Farbe von "PC": automatisch passend, oder fest Weiß/Schwarz
+  const pcColor = () => page.locator('#spine .pc').evaluate((e) => getComputedStyle(e).color);
+  assert.equal(await pcColor(), 'rgb(255, 255, 255)', 'auf dunklem Rücken ist PC weiß');
+  await page.selectOption('[data-k=gogSpine]', 'light'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('#spine').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(233, 233, 238)');
+  assert.equal(await pcColor(), 'rgb(28, 28, 34)', 'auf hellem Rücken ist PC automatisch dunkel');
+  assert.equal(await page.locator('#spineTitle').evaluate((e) => getComputedStyle(e).color), 'rgb(28, 28, 34)', 'Rückentitel ist auf hellem Rücken dunkel');
+  await page.selectOption('[data-k=pcColor]', 'white'); await page.waitForTimeout(100);
+  assert.equal(await pcColor(), 'rgb(255, 255, 255)');
+  await page.selectOption('[data-k=pcColor]', 'black'); await page.selectOption('[data-k=gogSpine]', 'dark'); await page.waitForTimeout(100);
+  assert.equal(await pcColor(), 'rgb(17, 17, 17)', 'Schwarz lässt sich fest wählen');
+  await page.selectOption('[data-k=pcColor]', 'auto');
+  // Naht der durchscheinenden Leiste: Leiste der Vorderseite beginnt dort, wo die des Rückens endet (keine doppelte Überlagerung)
+  await page.selectOption('[data-k=theme]', 'glass'); await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => { const b = document.querySelector('.gog-bar').getBoundingClientRect(), h = document.querySelector('.spine-head').getBoundingClientRect(); return Math.abs(b.left - h.right) < 0.8; }), true, 'Leisten überlappen sich nicht');
+  await page.selectOption('[data-k=theme]', 'dark'); await page.waitForTimeout(100);
   // Weiß: helle Leiste mit dunklem Logo, die Leiste hat dunkle Schrift
   await page.selectOption('[data-k=theme]', 'white'); await page.waitForTimeout(150);
   assert.equal(await cv('--barA'), '#ffffff'); assert.equal(await cv('--barFg'), '#1c1c22');

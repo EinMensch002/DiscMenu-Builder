@@ -12,6 +12,7 @@
   <span class="sub">Hüllen für selbst gebrannte GOG-Discs, zum Ausdrucken</span><span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version __VERSION__</span>
   <nav>
     <a class="link" href="../">Zum Konfigurator</a>
+    <details class="menu" id="langMenu" data-notr><summary></summary><div class="pop"></div></details>
     <details class="menu"><summary>Daten übernehmen</summary>
       <div class="pop">
         <button type="button" id="bRecipe">Aus Rezept (ZIP oder menu.json) …</button>
@@ -72,6 +73,8 @@
         <select data-k="lang"><option value="de">Deutsch</option><option value="en">English</option></select></label>
       <label class="f"><span class="lab">Stil</span>
         <select data-k="theme"></select></label>
+      <label class="f" id="gogSpineRow"><span class="lab">Rücken (GOG)</span>
+        <select data-k="gogSpine"><option value="dark">Dunkel (anthrazit)</option><option value="light">Hell, passend zur Leiste</option></select></label>
       <label class="chk" id="gogTextRow"><input type="checkbox" data-k="gogText"> "GOG.COM" neben dem Logo zeigen</label>
     </details>
 
@@ -117,6 +120,8 @@
       <summary>Rücken</summary>
       <label class="f"><span class="lab">Titel auf dem Rücken</span>
         <select data-k="spineTitle"><option value="top">Oben (unter dem Logo)</option><option value="center">Mittig</option></select></label>
+      <label class="f"><span class="lab">Farbe von "PC" am Fuß des Rückens</span>
+        <select data-k="pcColor"><option value="auto">Automatisch (passend zum Rücken)</option><option value="white">Weiß</option><option value="black">Schwarz</option></select></label>
       <label class="f"><span class="lab">Hintergrund des Rückens</span>
         <select data-k="spineArt"><option value="color">Farbe des Anbieters</option><option value="own">Eigenes Rückenbild (siehe unten)</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
       <div class="drop" data-img="spineBg"><input type="file" accept="image/*" aria-label="Rückenbild"><div class="thumb"></div>
@@ -284,6 +289,8 @@
 
 <dialog id="dlg"><div class="dh"><h2 id="dlgTitle"></h2><button type="button" id="dlgX">Schließen</button></div><div id="dlgBody"></div></dialog>
 
+<script src="i18n.js?v=__VERSION__"></script>
+<script src="lang-en.js?v=__VERSION__"></script>
 <script src="core.js?v=__VERSION__"></script>
 <script src="zip.js?v=__VERSION__"></script>
 <script src="online.js?v=__VERSION__"></script>

@@ -9,7 +9,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 - **Läuft komplett im Browser.** Kein Backend, es wird nichts hochgeladen. Bilder werden lokal verarbeitet.
 - **Live-Vorschau:** Links die Einstellungen, rechts das Blatt in Originalproportionen. Jede Änderung ist sofort sichtbar.
-- **Ein Stil für alle Anbieter:** die Leiste (Kopfleiste über die ganze Breite, wie bei Handelsspielen). Bei GOG ist die Leiste schmal (10 mm) und es gibt drei Varianten: Weiß, Dunkel und Dunkel durchscheinend.
+- **Ein Stil für alle Anbieter:** die Leiste (Kopfleiste über die ganze Breite, wie bei Handelsspielen). Bei GOG ist die Leiste schmal (10 mm) und es gibt fünf Varianten (Weiß, Warmweiß, Dunkel, Dunkel mit Violett-Hauch, Dunkel durchscheinend).
 - **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben, Logo und Schriftzug (siehe [Anbieter](#anbieter)).
 - **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB, Publisher-Logos von Wikidata (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional gestrichelte Falzmarken an den Rückenkanten (ebenfalls außerhalb).
@@ -18,7 +18,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 ## Standardwerte
 
-Neue Projekte starten mit der GOG-Variante **Dunkel** und dem Rückentitel mittig. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
+Neue Projekte starten mit der GOG-Variante **Weiß** und dem Rückentitel mittig. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
 
 ## Schnellstart
 
@@ -46,7 +46,7 @@ Die Einstellungen des Covers links:
 
 | Bereich | Inhalt |
 |---|---|
-| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite, bis 18 × 9,5 mm groß). Sprache der Beschriftung. Stil (nur bei GOG: Weiß, Dunkel, Dunkel durchscheinend) und Haken "GOG.COM" zeigen |
+| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite, bis 18 × 9,5 mm groß). Sprache der Beschriftung. Stil (nur bei GOG: Weiß, Warmweiß, Dunkel, Dunkel mit Violett-Hauch, Dunkel durchscheinend), Rücken (hell oder dunkel) und Haken "GOG.COM" zeigen |
 | 2. Titel und Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
 | 3. Bilder | Frontcover, Rückseite oben, Rückseite unten (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
 | 4. Publisher-Logo und Altersfreigabe | Publisher-Logo (Vorderseite, Rückseite und Rücken), **Unterlage dahinter auf der Vorderseite** (keine, weiß oder schwarz), USK-Freigabe (0, 6, 12, 16, 18 oder keine), "USK auch auf der Rückseite zeigen" und Hintergrund der USK vorn (Deckkraft 0 bis 100 %, 0 = nur die Raute) |
@@ -195,11 +195,15 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 
 Es gibt einen Stil für alle Anbieter, die **Leiste**: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, Logo (bei Steam und Epic mit Schriftzug, bei GOG schmal, siehe unten) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, Epic hellgrau, GOG nur bei "Dunkel" in feinem Lila). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm bei Steam und Epic, 129 × 173 mm bei GOG, statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten.
 
-Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, damit auf Blu-ray-Hüllen Platz für das Bild bleibt, und es gibt drei Varianten (Feld "Stil"):
+Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, damit auf Blu-ray-Hüllen Platz für das Bild bleibt, und es gibt fünf Varianten (Feld "Stil"). **Weiß** ist der Standard:
 
-- **Weiß:** helle Leiste mit dem **Rahmen-Logo** (`gog_logo_outline.svg`, dunkel gezeichnet) und dunkler Schrift, der Rücken ist anthrazit. Der Streifen mit den Spielfunktionen ist hellgrau.
-- **Dunkel** (Standard): anthrazitfarbene Leiste ohne Linie, weißes Logo, dunkler Streifen mit den Spielfunktionen. Passt zu den meisten Covern.
-- **Dunkel, durchscheinend:** wie Dunkel, aber die Leiste liegt als **weicher Verlauf (läuft nach unten ganz durchsichtig aus, ohne harte Kante) über dem Bild**. Das Frontbild beginnt dann ganz oben (Bildmaß z. B. 129 × 183 mm statt 173 mm).
+- **Weiß:** helle Leiste mit feiner Trennlinie, dem **Rahmen-Logo** (`gog_logo_outline.svg`, dunkel gezeichnet) und dunkler Schrift. Der Streifen mit den Spielfunktionen ist hellgrau.
+- **Warmweiß:** wie Weiß, aber mit warmem Hellgrau statt reinem Weiß (auf Papier weniger kalt).
+- **Dunkel:** anthrazitfarbene Leiste ohne Linie, weißes Kachel-Logo, dunkler Streifen mit den Spielfunktionen.
+- **Dunkel mit Violett-Hauch:** fast schwarz mit einem leichten Violett-Ton, bewusst keine Lila-Fläche (und deutlich anders als das Grau von Epic Games).
+- **Dunkel, durchscheinend:** dunkel, aber die Leiste liegt als **weicher Verlauf (läuft nach unten ganz durchsichtig aus, ohne harte Kante) über dem Bild**. Das Frontbild beginnt dann ganz oben (Bildmaß z. B. 129 × 183 mm statt 173 mm).
+
+Bei GOG gibt es außerdem das Feld **"Rücken (GOG)"**: **Dunkel (anthrazit)** oder **Hell, passend zur Leiste** (dann ist auch der Rückentitel dunkel). Die **Naht** zwischen Rücken und Vorderseite ist bei durchscheinender Leiste ohne Strich, weil beide Leisten dort genau aneinanderstoßen.
 
 Das **GOG-Logo ist immer zu sehen** (bei Dunkel und durchscheinend die weiße Kachel `gog_logo.svg`, bei Weiß das Rahmen-Logo). Der Schriftzug **"GOG.COM"** daneben lässt sich mit dem Haken "GOG.COM neben dem Logo zeigen" ein- und ausschalten. Rechts in der Leiste steht immer **"PC · DRM-FREI"**. Frühere Stile (GOG-Farben mit Lila und Grün, Dunkel mit Lila) werden beim Laden zu **Dunkel**. Bei Steam und Epic gibt es nichts zu wählen.
 
@@ -209,6 +213,21 @@ Beide Anbieter-Farben und die Rückseite (helles Feld mit den Angaben) sind in a
 
 - **Frontbild einpassen** (Bereich "Bilder", unter dem Frontcover): **Strecken** ist der Standard, das ganze Bild füllt die Fläche, bei einem anderen Seitenverhältnis (z. B. Blu-ray-Hülle) wird es leicht gestaucht, nichts fehlt. **Zuschneiden** füllt die Fläche ohne Verzerrung: **Zoom** (100 bis 300 %) und **Ausschnitt** waagerecht und senkrecht (0 bis 100 %) bestimmen, welcher Teil zu sehen ist. Bei "Bild über den Rücken fortsetzen" bleibt es beim Zuschneiden über Rücken und Vorderseite.
 - **USK-Hintergrund:** Das USK-Zeichen besteht aus der **Raute** (immer voll sichtbar) und dem **Hintergrund** dahinter (abgerundetes Quadrat mit farbigem Rand). Der Regler "Hintergrund der USK auf der Vorderseite" stellt **nur den Hintergrund** ein: 100 % wie bisher, **0 % zeigt nur die Raute** ohne den farbigen Rand. Auf der **Rückseite steht immer nur die Raute**, etwas größer (19,5 mm), weil der Rand fehlt. Die Dateien liegen als `usk_<Wert>.svg` (Raute) und `usk_<Wert>_bg.svg` (Hintergrund) in `assets/images/usk/`.
+
+
+### Farbe von "PC" am Rücken
+
+Im Bereich "Rücken" lässt sich die Farbe des **"PC"** am Fuß des Rückens wählen: **Automatisch** (weiß auf dunklem, dunkel auf hellem Rücken), **Weiß** oder **Schwarz**. Das gilt für alle Anbieter (z. B. Schwarz, wenn der Rücken ein helles Bild zeigt).
+
+### Sprache der Oberfläche
+
+Oben in der Leiste steht ein **Sprachmenü mit Flagge** (Deutsch, English). Es stellt die **ganze Benutzeroberfläche** um: Beschriftungen, Hinweise, Dialoge, Fehlermeldungen und Rückfragen. Die Wahl wird im Browser gemerkt (oder mit `?lang=en` in der Adresse gesetzt).
+
+- Bei **Deutsch** gibt es das Feld "Sprache der Beschriftung" (Deutsch oder English): Das ist die Sprache der Texte **auf dem Cover**.
+- Bei **English** entfällt dieses Feld, das Cover wird englisch beschriftet.
+- Das **Cover selbst** wird nie von der Oberfläche übersetzt, es folgt allein der Beschriftungssprache.
+
+**Weitere Sprachen:** Deutsch ist die Grundsprache, im HTML und im Code stehen die deutschen Texte. Eine Sprache ist ein **Sprachpaket** (`lang-en.js`), das den deutschen Text auf die Zielsprache abbildet. Für eine neue Sprache legt man `lang-xx.js` an (`I18n.register('xx', { name, flag, dict, parts, rules })`), bindet sie in `index.html` ein und legt eine Flagge in `assets/images/flags/` ab. Das Menü zeigt sie dann automatisch an. `dict` enthält ganze Texte, `parts` Bruchstücke zusammengesetzter Meldungen ("... hat mit Fehler 500 geantwortet.") und `rules` Muster mit Zahlen. Ein Test (`tests/i18n.test.js`) prüft, dass jeder deutsche Text im HTML übersetzt ist und keine Schlüssel Tippfehler enthalten, ein Browsertest (`tests/ui/cover-i18n.check.js`) sucht in Oberfläche und Dialogen nach deutschen Resten.
 
 ## Feste Plätze auf der Rückseite
 
@@ -254,6 +273,7 @@ Die Symbole der Spielfunktionen stammen aus [Lucide](https://lucide.dev/) (ISC-L
 | `core.js` | Maße, Beschriftungen, Texte für die Systemanforderungen, Standardwerte. Ohne Browser testbar |
 | `app.js` | Eingaben, Bilder, Zeichnen der Vorschau, Drucken |
 | `extras.js` | Dialoge: Rezept, Steam, SteamGridDB, Einstellungen |
+| `i18n.js`, `lang-en.js` | Sprache der Oberfläche: Umschalten, Sprachpaket Englisch |
 | `assets/images/` | Logos (GOG als PNG, Epic Games und Steam als SVG), Funktions-, USK- und Disc-Symbole |
 | `online.js` | Anfragen an SteamGridDB und Steam (über den Proxy), Fehlermeldungen, Verbindungstest und Auswertung der Antworten |
 | `files.js` | Einstellungsdatei (mit Passwort), ZIP schreiben, Projektdatei |

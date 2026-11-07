@@ -190,6 +190,8 @@ dialog .f small { display: block; margin-top: 3px; }
 .spine { position: relative; z-index: 2; margin: 0 calc(-1 * var(--ov)); padding: 0 var(--ov); background: var(--sp, var(--brand, #89268d)); display: flex; flex-direction: column; align-items: center; min-width: 0; overflow: hidden; }
 .spine-head { width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); display: flex; justify-content: center; padding-top: 2mm; flex: none; }
 .spine-foot { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1.6mm; width: 100%; min-height: 8mm; padding-bottom: 2mm; flex: none; color: #fff; font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
+.spine-foot .pc { color: var(--pc, #fff); }
+.spine-light .spine-title { color: #1c1c22; }
 .spine.nopc .spine-foot .pc { display: none; }
 .spine.nopc.nopub .spine-foot { display: none; }
 .spine-pubbox { position: relative; flex: none; box-sizing: border-box; background: #fff; border-radius: .9mm; overflow: hidden; }
@@ -230,7 +232,7 @@ dialog .f small { display: block; margin-top: 3px; }
 /* ===== Stil "Leiste": Kopfleiste über die ganze Breite wie bei Handelsspielen (Vorderseite und Rücken) =====
    Verlauf von barA nach barB, darunter eine Akzentlinie (line), die über den Rücken durchläuft. Gilt für alle Anbieter. */
 .cover { --bar-h: 18.6mm; --bar-line: 1.6mm; }
-.theme-bar .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); align-items: center; justify-content: space-between; padding-right: 4mm; background: var(--barGrad); border-bottom: var(--bar-line) solid var(--line); z-index: 3; }
+.theme-bar .gog-bar { display: flex; position: absolute; left: var(--ov); right: 0; top: 0; height: var(--bar-h); align-items: center; justify-content: space-between; padding-right: 4mm; background: var(--barGrad); border-bottom: var(--bar-line) solid var(--line); z-index: 3; }
 .theme-bar .gog-bar img { height: 12.5mm; width: auto; margin-left: 4.5mm; display: block; }
 .has-wm.theme-bar .gog-bar img { width: 12.5mm; }
 .theme-bar .gog-bar .wm { margin-left: 4mm; font-size: 17pt; letter-spacing: 1.1mm; color: var(--on-brand); }
@@ -316,3 +318,8 @@ dialog .f small { display: block; margin-top: 3px; }
 .hwrow input[type=text] { width: 66px; }
 .hwrow input[data-f=gb] { width: 44px; }
 .hwrow { gap: 5px; }
+
+/* Sprachmenü in der oberen Leiste */
+.flag { width: 18px; height: 12px; object-fit: cover; border-radius: 2px; vertical-align: -2px; margin-right: 6px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .18); }
+#langMenu .pop { min-width: 150px; }
+#langMenu .pop button[aria-current] { font-weight: 700; background: var(--acc-soft); }

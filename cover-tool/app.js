@@ -105,7 +105,8 @@
     const sel = $('[data-k=theme]');
     if (!sel) return;
     if (state.provider !== 'gog') state.theme = 'bar';
-    else if (!['white', 'dark', 'glass'].includes(state.theme)) state.theme = 'dark';
+    else if (!Object.keys(C.PROVIDERS.gog.variants).includes(state.theme)) state.theme = 'dark';
+    $('#gogSpineRow').hidden = state.provider !== 'gog';
     $('#gogTextRow').hidden = state.provider !== 'gog';
     if (styleFor === state.provider && sel.options.length) return;
     styleFor = state.provider;
@@ -337,7 +338,8 @@
     const P = C.PROVIDERS[state.provider];
     const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line, spineBg: P.brand };
     const V = P.variants && P.variants[state.theme];
-    if (V) Object.assign(vars, { barA: V.barA, barB: V.barB, line: V.line, spineBg: V.spine, bannerA: V.bannerA, bannerB: V.bannerB, barFg: V.fg, barGrad: V.grad || 'linear-gradient(' + V.barA + ', ' + V.barB + ')', 'bar-h': C.barHeight(state) + 'mm', 'bar-line': V.barLine });
+    const lightSpine = !!(V && state.gogSpine === 'light');
+    if (V) Object.assign(vars, { barA: V.barA, barB: V.barB, line: V.line, spineBg: lightSpine ? V.spineLight : V.spine, bannerA: V.bannerA, bannerB: V.bannerB, barFg: V.fg, barGrad: V.grad || 'linear-gradient(' + V.barA + ', ' + V.barB + ')', 'bar-h': C.barHeight(state) + 'mm', 'bar-line': V.barLine });
     else Object.assign(vars, { barFg: P.onBrand, barGrad: 'linear-gradient(' + P.barA + ', ' + P.barB + ')', 'bar-h': C.BAR_HEIGHT + 'mm', 'bar-line': '1.6mm' });
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
     cover.classList.toggle('has-wm', state.provider !== 'gog');
@@ -346,6 +348,9 @@
     cover.classList.toggle('gog-tint', !!(V && V.tint));
     cover.classList.toggle('gog-dk', !!(V && V.dk));
     cover.classList.toggle('bar-over', !!(V && V.over));
+    cover.classList.toggle('spine-light', lightSpine);
+    /* Farbe von "PC" am Fuß des Rückens: automatisch passend zum Rücken (weiß auf dunkel, schwarz auf hell) oder fest */
+    cover.style.setProperty('--pc', state.pcColor === 'white' ? '#ffffff' : state.pcColor === 'black' ? '#111111' : lightSpine ? '#1c1c22' : '#ffffff');
     $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + ((V && V.logo) || P.logo); img.alt = P.name; });
     $('#barWm').textContent = P.wordmark.replace('\n', ' ');
     $('#spineWm').textContent = P.wordmark.split('\n')[0];

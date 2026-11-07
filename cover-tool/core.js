@@ -81,9 +81,11 @@
     gog: { name: 'GOG', logo: 'gog_logo.svg', wordmark: 'GOG.COM', brand: '#2b2b31', onBrand: '#ffffff', dark: '#17171b', mid: '#2b2b31', accent: '#b45ad1', bannerA: '#3a3a42', bannerB: '#222227', barA: '#303036', barB: '#18181c', line: '#b45ad1',
       /* Leisten-Varianten: Weiß, Dunkel und Dunkel durchscheinend (die Leiste liegt über dem Bild, mit Verlauf nach unten). fg = Farbe von Schrift in der Leiste */
       variants: {
-        white: { logo: 'gog_logo_outline.svg', barA: '#ffffff', barB: '#ececf0', fg: '#1c1c22', line: 'rgba(0,0,0,.18)', barLine: '.25mm', spine: '#2b2b31', bannerA: '#e6e6ec', bannerB: '#d1d1da', tint: true, dk: false, over: false },
-        dark: { barA: '#323238', barB: '#18181c', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#232328', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: false },
-        glass: { barA: 'rgba(12,12,16,.9)', barB: 'rgba(12,12,16,0)', grad: 'linear-gradient(rgba(12,12,16,.9), rgba(12,12,16,.7) 45%, rgba(12,12,16,0))', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#232328', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: true },
+        white: { logo: 'gog_logo_outline.svg', barA: '#ffffff', barB: '#f1f1f4', fg: '#1c1c22', line: 'rgba(0,0,0,.18)', barLine: '.25mm', spine: '#2b2b31', spineLight: '#f3f3f5', bannerA: '#e6e6ec', bannerB: '#d1d1da', tint: true, dk: false, over: false },
+        warm: { logo: 'gog_logo_outline.svg', barA: '#f8f6f2', barB: '#ece9e3', fg: '#25221e', line: 'rgba(70,55,40,.22)', barLine: '.25mm', spine: '#2b2b31', spineLight: '#efece6', bannerA: '#ebe8e1', bannerB: '#d9d5cc', tint: true, dk: false, over: false },
+        dark: { barA: '#323238', barB: '#18181c', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#232328', spineLight: '#e9e9ee', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: false },
+        violet: { barA: '#241e30', barB: '#0d0b12', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#17141d', spineLight: '#ebe9f0', bannerA: '#2b2536', bannerB: '#17131f', tint: false, dk: true, over: false },
+        glass: { barA: 'rgba(12,12,16,.9)', barB: 'rgba(12,12,16,0)', grad: 'linear-gradient(rgba(12,12,16,.9), rgba(12,12,16,.7) 45%, rgba(12,12,16,0))', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#232328', spineLight: '#e9e9ee', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: true },
       },
       tag: { de: 'PC · DRM-FREI', en: 'PC · DRM-FREE' }, note: { de: 'Einige Funktionen erfordern GOG Galaxy', en: 'Some features require GOG Galaxy' } },
     epic: { name: 'Epic Games', logo: 'epic_logo.svg', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#0f0f12', mid: '#26262b', accent: '#d6dae4', bannerA: '#3a3a42', bannerB: '#222227', barA: '#3a3a42', barB: '#222227', line: '#d6dae4', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
@@ -92,7 +94,7 @@
   const THEMES = { bar: 'Leiste', white: 'Weiß', dark: 'Dunkel', glass: 'Dunkel, durchscheinend' };
   /* Auswahl im Stil-Menü: Nur GOG hat zwei Farbvarianten (Lila mit Grün, dunkel mit Lila), bei Steam und Epic sind die Farben ohnehin dunkel. */
   function styleOptions(provider) {
-    return provider === 'gog' ? [['white', 'Weiß'], ['dark', 'Dunkel'], ['glass', 'Dunkel, durchscheinend']] : [['bar', 'Leiste']];
+    return provider === 'gog' ? [['white', 'Weiß'], ['warm', 'Warmweiß'], ['dark', 'Dunkel'], ['violet', 'Dunkel mit Violett-Hauch'], ['glass', 'Dunkel, durchscheinend']] : [['bar', 'Leiste']];
   }
   /* Höhe der Leiste (mm) und Beginn des Frontbildes: GOG hat eine schmale Leiste, bei "durchscheinend" liegt sie über dem Bild (Bild beginnt ganz oben) */
   const GOG_BAR_HEIGHT = 10;
@@ -313,7 +315,7 @@
   /* --- Standardwerte und Speichern --- */
   function defaultState() {
     return {
-      caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'dark', gogText: true, provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
+      caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'white', gogText: true, gogSpine: 'dark', pcColor: 'auto', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       custom: { back: '130', spine: '14', front: '129', h: '183' },
       usk: '0', uskOpacity: '100', frontFit: 'stretch', frontZoom: '100', frontX: '50', frontY: '50', uskBack: true, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
       features: ['single_player'],
@@ -354,8 +356,10 @@
     if (!DISCS[out.disc]) out.disc = 'dvd';
     if (!LABELS[out.lang]) out.lang = 'de';
     if (!PROVIDERS[out.provider]) out.provider = 'gog';
-    /* GOG: Weiß, Dunkel oder Dunkel durchscheinend. Alle früheren Stile (Leiste in GOG-Farben, dunkel mit Lila, Modern ...) werden zu "Dunkel" */
-    out.theme = out.provider === 'gog' ? (['white', 'dark', 'glass'].includes(out.theme) ? out.theme : 'dark') : 'bar';
+    /* GOG: Weiß, Warmweiß, Dunkel, Dunkel mit Violett-Hauch oder durchscheinend. Alle früheren Stile (Leiste in GOG-Farben, dunkel mit Lila, Modern ...) werden zu "Dunkel" */
+    out.theme = out.provider === 'gog' ? (['white', 'warm', 'dark', 'violet', 'glass'].includes(out.theme) ? out.theme : 'dark') : 'bar';
+    if (!['dark', 'light'].includes(out.gogSpine)) out.gogSpine = 'dark';
+    if (!['auto', 'white', 'black'].includes(out.pcColor)) out.pcColor = 'auto';
     out.gogText = out.gogText !== false;
     for (const k of ['frontPubPlate', 'spinePubPlate']) if (!['none', 'white', 'black'].includes(out[k])) out[k] = k === 'spinePubPlate' ? 'white' : 'none';
     if (out.spineTitle !== 'top') out.spineTitle = 'center';

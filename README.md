@@ -106,7 +106,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzmarken (Test im Browser)
 - [x] Prozessoren und Grafikkarten als Listen (mehrere Einträge, an- und ausschaltbar, GeForce/Radeon, Speicher in GB), Import zerlegt "or" in einzelne Zeilen
 - [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden der USK
-- [x] Stil "Leiste" (Kopfleiste wie bei Handelsspielen) für alle Anbieter, bei GOG schmal in drei Varianten
+- [x] Stil "Leiste" (Kopfleiste wie bei Handelsspielen) für alle Anbieter, bei GOG schmal in fünf Varianten
 - [x] Bilder werden auf Druckgröße verkleinert, Hinweis zur Schärfe (dpi)
 - [x] Tests im Repo (Logik, Druck, feste Plätze, beide Stile, Online-Abläufe) und Veröffentlichung unter `/cover/`
 - [ ] Mit echtem Drucker und echter Hülle prüfen (Maße, Schnittmarken)
@@ -145,7 +145,8 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 ### Nächste Schritte der Web-Tools (Reihenfolge)
 
-- [x] **GOG-Stil überarbeitet:** schmale Leiste wie bei den echten GOG-Hüllen in drei Varianten (Weiß, Dunkel, Dunkel durchscheinend), Logo immer sichtbar, "GOG.COM" ein-/ausschaltbar, Rücken und Streifen neutral statt Lila
+- [x] **GOG-Stil überarbeitet:** schmale Leiste wie bei den echten GOG-Hüllen in fünf Varianten, Logo immer sichtbar, "GOG.COM" ein-/ausschaltbar, Rücken und Streifen neutral statt Lila
+- [x] **Oberfläche in Deutsch und Englisch** (Sprachmenü mit Flagge oben, Sprachpakete für weitere Sprachen), Farbe von "PC" am Rücken, GOG-Varianten Weiß, Warmweiß, Dunkel, Violett-Hauch, durchscheinend, heller Rücken
 - [ ] **Rückseite frei gestalten:** Konfigurator mit Textfeldern, Bildern und festen Bausteinen, die man selbst anordnet (wie die Steam-Rückseiten mit Beschreibung und Bildleiste)
 - [ ] **Beide Web-Tools zusammenführen:** Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
 - [ ] **Ein-Datei-Build** (Vorarbeit erledigt: alle Grafiken sind SVG, nur die Schrift Lato ist noch eine Binärdatei): Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien

@@ -142,7 +142,7 @@ test('Gespeicherte Einstellungen: kaputte oder alte Daten stören nicht', () => 
   assert.equal(m.disc, 'bluray');
   assert.equal(m.usk, '0');
   assert.equal(m.lang, 'de');
-  assert.equal(m.theme, 'dark');
+  assert.equal(m.theme, 'white');                                          // Standard ist jetzt Weiß
   assert.equal(C.mergeState({ theme: 'modern' }).theme, 'dark');          // alter Stil "Modern" wird zu "Dunkel"
   assert.equal(C.mergeState({ theme: 'bar' }).theme, 'dark'); assert.equal(C.mergeState({ theme: 'x' }).theme, 'dark');
   assert.equal(C.mergeState({ theme: 'bunt' }).theme, 'dark');
@@ -202,10 +202,13 @@ test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
 });
 
 test('Stil-Auswahl: GOG hat drei Varianten (Weiß, Dunkel, durchscheinend), die anderen Anbieter nur die Leiste', () => {
-  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['white', 'dark', 'glass']);
+  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['white', 'warm', 'dark', 'violet', 'glass']);
   assert.deepEqual(C.styleOptions('steam').map((o) => o[0]), ['bar']);
-  assert.equal(C.defaultState().theme, 'dark'); assert.equal(C.defaultState().gogText, true);
-  for (const t of ['white', 'dark', 'glass']) assert.equal(C.mergeState({ provider: 'gog', theme: t }).theme, t);
+  assert.equal(C.defaultState().theme, 'white'); assert.equal(C.defaultState().gogText, true);
+  assert.equal(C.defaultState().gogSpine, 'dark'); assert.equal(C.defaultState().pcColor, 'auto');
+  assert.equal(C.mergeState({ gogSpine: 'x', pcColor: 'rot' }).gogSpine, 'dark'); assert.equal(C.mergeState({ gogSpine: 'x', pcColor: 'rot' }).pcColor, 'auto');
+  assert.equal(C.mergeState({ gogSpine: 'light', pcColor: 'black' }).pcColor, 'black'); assert.equal(C.mergeState({ gogSpine: 'light' }).gogSpine, 'light');
+  for (const t of ['white', 'warm', 'dark', 'violet', 'glass']) assert.equal(C.mergeState({ provider: 'gog', theme: t }).theme, t);
   assert.equal(C.mergeState({ provider: 'steam', theme: 'white' }).theme, 'bar');                 // Varianten gibt es nur bei GOG
   assert.equal(C.mergeState({ provider: 'gog', theme: 'bar' }).theme, 'dark');                    // alte Stile werden zu "Dunkel"
   assert.equal(C.mergeState({ provider: 'gog', theme: 'bar-dark' }).theme, 'dark');

@@ -447,4 +447,16 @@
   $('#bSteam').addEventListener('click', openSteam);
   $('#bSettings').addEventListener('click', openSettings);
   document.querySelectorAll('.drop .sg').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const key = b.closest('.drop').dataset.img; key === 'publisher' ? openPublisherLogo() : openSteamGridDB(key); }));
+
+  /* Sprache der Oberfläche: Bei Deutsch lässt sich die Sprache der Beschriftung des Covers wählen, bei jeder anderen Sprache entfällt das Feld
+     und das Cover wird englisch beschriftet. */
+  if (window.I18n) {
+    const syncLang = (code) => {
+      const lab = document.querySelector('[data-k=lang]').closest('label');
+      lab.hidden = code !== 'de';
+      if (code !== 'de' && App.state.lang !== 'en') App.patch({ lang: 'en' });
+    };
+    I18n.onChange(syncLang);
+    I18n.init();
+  }
 })();
