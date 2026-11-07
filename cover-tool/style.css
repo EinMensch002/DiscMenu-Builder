@@ -85,7 +85,7 @@ input[type=text]:focus, input[type=password]:focus, select:focus { outline: 2px 
 .custom { margin-top: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: #fafbfc; }
 .four { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .four .f { margin-bottom: 4px; }
-.drop .sg { position: relative; z-index: 2; padding: 3px 8px; }
+.drop .sg, .drop .bgx { position: relative; z-index: 2; padding: 3px 8px; }
 dialog { border: 1px solid var(--line); border-radius: 14px; padding: 18px; width: min(760px, 94vw); max-height: 90vh; overflow: auto; background: var(--panel); color: var(--txt); box-shadow: 0 20px 60px rgba(0, 0, 0, .4); }
 dialog::backdrop { background: rgba(10, 12, 20, .55); }
 .dh { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -119,7 +119,7 @@ dialog .f small { display: block; margin-top: 3px; }
 /* ===== Blatt und Cover (alle Maße in Millimetern, damit der Druck stimmt) ===== */
 .sheet { width: 297mm; height: 210mm; background: #fff; display: grid; place-items: center; transform: scale(var(--k, .8)); transform-origin: 0 0; }
 .wrap { position: relative; width: var(--w); height: var(--h); }
-.cover { --sp: var(--brand, #89268d); position: relative; width: var(--w); height: var(--h); display: grid; grid-template-columns: var(--back) var(--spine) var(--front); background: var(--sp); overflow: hidden; font-family: Lato, "Segoe UI", sans-serif; color: #111; }
+.cover { --sp: var(--spineBg, var(--brand, #89268d)); position: relative; width: var(--w); height: var(--h); display: grid; grid-template-columns: var(--back) var(--spine) var(--front); background: var(--sp); overflow: hidden; font-family: Lato, "Segoe UI", sans-serif; color: #111; }
 .cover img[hidden] { display: none; }
 .ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #b9bec9; font-weight: 700; font-size: 12pt; background: #f4f5f8; z-index: 0; }
 .has-img > .ph { display: none; }
@@ -133,30 +133,24 @@ dialog .f small { display: block; margin-top: 3px; }
 .tr-v { right: -.125mm; top: -6mm; } .tr-h { right: -6mm; top: -.125mm; }
 .bl-v { left: -.125mm; bottom: -6mm; } .bl-h { left: -6mm; bottom: -.125mm; }
 .br-v { right: -.125mm; bottom: -6mm; } .br-h { right: -6mm; bottom: -.125mm; }
-.fold { position: absolute; top: 0; bottom: 0; width: .3mm; z-index: 40; display: none; background: repeating-linear-gradient(to bottom, #000 0 2mm, #fff 2mm 4mm); }
-.f1 { left: calc(var(--back) - .15mm); } .f2 { left: calc(var(--back) + var(--spine) - .15mm); }
-.wrap.fold .fold { display: block; }
+.fold { position: absolute; width: .3mm; height: 4mm; z-index: 40; display: none; background: repeating-linear-gradient(to bottom, #000 0 .8mm, transparent .8mm 1.6mm); }      /* gestrichelte Falzmarken wie die Schnittmarken außerhalb des Covers */
+.f1t, .f1b { left: calc(var(--back) - .15mm); } .f2t, .f2b { left: calc(var(--back) + var(--spine) - .15mm); }
+.f1t, .f2t { top: -6mm; } .f1b, .f2b { bottom: -6mm; }
+.wrap.show-fold .fold { display: block; }
 
 /* Rückseite */
 .back { position: relative; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
 .back-top { position: relative; flex: 1; min-height: 0; background: #f4f5f8 center / cover no-repeat; }
-.banner { flex: none; height: 13mm; display: flex; align-items: center; gap: 4mm; padding: 0 4mm; background: linear-gradient(var(--bannerA, #a8e02a), var(--bannerB, #84c01a)); position: relative; z-index: 2; }
+.banner { flex: none; height: 15mm; display: flex; align-items: center; gap: 4mm; padding: 0 4mm; background: linear-gradient(var(--bannerA, #a8e02a), var(--bannerB, #84c01a)); position: relative; z-index: 2; }
 .banner-title { display: flex; flex-direction: column; justify-content: center; flex: none; }
 .banner-title b { font-weight: 900; font-size: 10pt; line-height: 1.05; white-space: nowrap; }
 .banner-title small { font-size: 3.6pt; margin-top: .8mm; line-height: 1.1; color: #243d00; white-space: nowrap; }
-.feats { flex: 1; min-width: 0; display: flex; align-items: flex-start; }
+.feats { flex: 1; min-width: 0; display: flex; align-items: flex-start; padding-top: .2mm; }
 .feat { flex: 0 1 13.5mm; width: 13.5mm; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .feat img { height: 7.4mm; max-width: 11mm; width: auto; object-fit: contain; }
-.feat span { margin-top: .6mm; font-size: 4.6pt; font-weight: 700; line-height: 1.15; }
+.feat span { margin-top: .3mm; font-size: 4.6pt; font-weight: 700; line-height: 1.15; }
 .back-bottom { position: relative; flex: none; height: 46mm; background: #f4f5f8 center bottom / cover no-repeat; }
-.panel-back { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: 20mm minmax(0, 1fr) 41mm; gap: 3.5mm; padding: 4.5mm 4.5mm 5.6mm 4mm; background: rgba(255, 255, 255, .87); }
-.galaxy.off { visibility: hidden; }   /* der Platz bleibt reserviert, damit sich nichts verschiebt */
-.galaxy { align-self: center; width: 20mm; height: 24mm; border-radius: 2mm; padding: 1.4mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9mm; text-align: center; color: #fff; background: linear-gradient(160deg, #7b1fa8, #35105e); }
-.galaxy .ring { width: 5mm; height: 5mm; border-radius: 50%; border: 1mm solid #d65cff; display: block; margin-bottom: .4mm; }
-.galaxy b { font-size: 5pt; font-weight: 700; line-height: 1.1; }
-.galaxy span { font-size: 3.1pt; line-height: 1.25; opacity: .9; }
-.galaxy em { font-style: normal; font-size: 2.7pt; font-weight: 700; letter-spacing: .1mm; padding: .4mm 1.6mm; border-radius: .8mm; background: rgba(255, 255, 255, .35); margin-top: .4mm; }
-.galaxy small { font-size: 2.7pt; opacity: .85; }
+.panel-back { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) 27mm; gap: 3.5mm; padding: 4.5mm 4.5mm 5.6mm 4mm; background: rgba(255, 255, 255, .87); }
 .speccol { min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .speccol h4 { display: none; margin: 0; }
 /* Zeilen beginnen immer oben mit festem Abstand: Ändert sich die Zeilenzahl, springt nichts */
@@ -166,16 +160,13 @@ dialog .f small { display: block; margin-top: 3px; }
 .specs .vals { display: block; min-width: 0; }
 .specs .v { color: #111; font-weight: 400; overflow-wrap: anywhere; min-width: 0; }   /* nichts wird abgeschnitten, lange Angaben brechen um */
 .specs .v.stack { display: flex; flex-direction: column; }
-.sep { white-space: pre; }
-.alt { display: inline-block; max-width: 100%; }
-/* Mit empfohlenen Angaben: Tabelle mit den Spalten Minimum und Empfohlen. Das Feld wird dafür breiter (Galaxy-Feld und rechte Spalte
-   werden etwas schmaler). Ohne Galaxy-Feld nimmt die Tabelle dessen Platz mit. */
-.panel-back.dual { grid-template-columns: 18mm minmax(0, 1fr) 33mm; gap: 3mm; }
-.panel-back.dual .galaxy { width: 18mm; padding: 1.2mm; }
-.panel-back.dual .galaxy b { font-size: 4.4pt; }
-.panel-back.nogx .speccol { grid-area: 1 / 1 / 2 / 3; }   /* ohne Galaxy-Feld rücken die Anforderungen an den linken Rand */
+.specs li.cont { margin-top: -.62em; }                 /* weitere Sätze unter "Sonstiges" rücken an die erste Zeile heran */
+.specs.dual li.cont { margin-top: -.38em; }
+.alt { display: block; max-width: 100%; }
+/* Mit empfohlenen Angaben: Tabelle mit den Spalten Minimum und Empfohlen. Die rechte Spalte wird dafür etwas schmaler. */
+.panel-back.dual { gap: 3mm; }
 .panel-back.dual .logos img { min-width: 0; }
-.specs.dual { font-size: 5.6pt; gap: .55em; line-height: 1.2; }
+.specs.dual { font-size: 6.2pt; gap: .55em; line-height: 1.2; }
 .specs.dual li { display: grid; grid-template-columns: 9.5mm minmax(0, 1fr) minmax(0, 1fr); column-gap: 1.6mm; align-items: start; }
 .specs.dual .k { font-size: .92em; line-height: 1.304; font-weight: 700; }
 .specs.dual .cell { min-width: 0; }
@@ -183,17 +174,14 @@ dialog .f small { display: block; margin-top: 3px; }
 .specs.dual li.head { align-items: center; margin-bottom: -.1em; }
 .specs .chip { display: inline-block; font-size: .85em; font-weight: 900; letter-spacing: .04em; line-height: 1.45; padding: 0 1.4mm; border-radius: .7mm; border: .2mm solid #9a9a9a; color: #555; }
 .specs .chip.rec { background: var(--brand, #89268d); border-color: var(--brand, #89268d); color: var(--on-brand, #fff); }
-.galaxy { grid-area: 1 / 1; } .speccol { grid-area: 1 / 2; } .rightcol { grid-area: 1 / 3; }   /* feste Plätze, auch wenn die Anforderungen über das (leere) Galaxy-Feld rücken */
-.rightcol { display: grid; grid-template-rows: 9mm 16mm minmax(0, 1fr); justify-items: end; align-items: center; row-gap: 1mm; min-width: 0; }
-.logos { grid-row: 1; display: flex; gap: 3.5mm; align-items: center; justify-content: flex-end; }
-.logos img { object-fit: contain; }
-#backPub { max-width: 22mm; max-height: 9mm; }
-#discLogo { max-width: 15mm; max-height: 8mm; }
-.usk-back { grid-row: 2; width: 15mm; height: 15mm; object-fit: contain; }
+.speccol { grid-area: 1 / 1; } .rightcol { grid-area: 1 / 2; }   /* feste Plätze: Angaben links, Logos rechts */
+.rightcol { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2mm; min-width: 0; }   /* von oben nach unten: Publisher-Logo, Disc, USK (schmal, damit die Angaben mehr Platz haben) */
+.logos { display: flex; flex-direction: column; align-items: center; gap: 2mm; max-width: 100%; min-width: 0; }   /* passt sich der Spalte an, schiebt nie unter den Rücken */
+.logos img { object-fit: contain; flex: 0 1 auto; min-width: 0; max-width: 100%; }
+#backPub { max-width: 26mm; max-height: 10mm; }
+#discLogo { max-width: 18mm; max-height: 9.5mm; flex: none; }
+.usk-back { width: 15mm; height: 15mm; object-fit: contain; flex: none; }
 .copy { position: absolute; left: 4mm; right: 4.5mm; bottom: 1.6mm; margin: 0; font-size: 3.9pt; line-height: 1.25; color: #444; text-align: center; }   /* unten in der Mitte */
-.barcode { grid-row: 3; align-self: end; justify-self: end; display: flex; flex-direction: column; align-items: center; background: #fff; padding: .6mm 0 .2mm; border-radius: .6mm; max-width: 100%; }
-.barcode svg { display: block; height: 4.6mm; max-width: 100%; }
-.barcode span { font: 500 3pt/1.1 ui-monospace, Consolas, monospace; color: #000; padding-top: .2mm; }
 
 /* Rücken */
 /* Naht: An den Kanten zwischen Rücken, Rückseite und Vorderseite scheint beim Drucken und Zoomen sonst ein heller Streifen durch (die Ränder zweier
@@ -201,8 +189,17 @@ dialog .f small { display: block; margin-top: 3px; }
 .cover { --ov: .6mm; }
 .spine { position: relative; z-index: 2; margin: 0 calc(-1 * var(--ov)); padding: 0 var(--ov); background: var(--sp, var(--brand, #89268d)); display: flex; flex-direction: column; align-items: center; min-width: 0; overflow: hidden; }
 .spine-head { width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); display: flex; justify-content: center; padding-top: 2mm; flex: none; }
-.spine-foot { display: flex; align-items: center; justify-content: center; width: 100%; height: 8mm; flex: none; color: #fff; font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
-.spine.nopc .spine-foot { display: none; }
+.spine-foot { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1.6mm; width: 100%; min-height: 8mm; padding-bottom: 2mm; flex: none; color: #fff; font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
+.spine.nopc .spine-foot .pc { display: none; }
+.spine.nopc.nopub .spine-foot { display: none; }
+.spine-pubbox { position: relative; flex: none; box-sizing: border-box; background: #fff; border-radius: .9mm; overflow: hidden; }
+.spine-pubbox.plate-black { background: #111; }
+.spine-pubbox.plate-none { background: transparent; }
+.spine.nopub .spine-pubbox { display: none; }
+.spine-pub { position: absolute; left: 50%; top: 50%; max-width: none; object-fit: contain; }
+.spine-box { position: relative; }
+.spine-art { position: absolute; left: 50%; top: 50%; object-fit: contain; max-width: none; }
+.spine.usingLogo .spine-title { visibility: hidden; }
 .spine.tcenter .spine-box { align-items: center; }
 .spine-logo { display: block; width: 7mm; height: auto; }
 .cover.slim .spine-logo { width: 5.5mm; }
@@ -212,15 +209,9 @@ dialog .f small { display: block; margin-top: 3px; }
 
 /* Vorderseite */
 .front { position: relative; background: #f4f5f8 center / cover no-repeat; overflow: hidden; }
-.gog-corner { position: absolute; left: 0; top: 0; z-index: 3; padding: 2mm; background: var(--brand, #89268d); border-radius: 0 0 2.6mm 0; }
-.gog-corner img { display: block; height: 17mm; width: auto; }
-.gog-bar { display: none; }
 /* Epic Games und Steam: Logo (Vektorgrafik) mit dem Schriftzug darunter, gleiche Plätze wie beim GOG-Logo */
 .wm { display: none; font-weight: 900; color: var(--on-brand, #fff); text-align: center; white-space: pre-line; letter-spacing: .2mm; line-height: 1.05; }
 .has-wm .wm { display: flex; }
-.has-wm .gog-corner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2mm; width: 21.8mm; height: 21mm; padding: 0; }
-.has-wm .gog-corner img { height: 11.5mm; width: 11.5mm; }
-.gog-corner .wm { font-size: 5.6pt; letter-spacing: .3mm; }
 .has-wm .gog-bar img { height: 7.5mm; width: 7.5mm; margin-left: 2.5mm; }
 .gog-bar .wm { margin-left: 2.5mm; font-size: 8pt; letter-spacing: .4mm; margin-right: auto; }
 .has-wm .spine-head { flex-direction: column; align-items: center; gap: .8mm; }
@@ -232,29 +223,28 @@ dialog .f small { display: block; margin-top: 3px; }
 .usk { position: absolute; left: 3mm; bottom: 3mm; width: 35mm; height: 35mm; object-fit: contain; z-index: 3; }
 .front-pub { position: absolute; right: 6mm; bottom: 6mm; max-width: 32mm; max-height: 14mm; object-fit: contain; z-index: 3; }
 
-/* ===== Stil "Modern": Streifen oben auf der Vorderseite, dunkle Rückseite mit gerahmten Systemanforderungen ===== */
-.theme-modern .gog-corner { display: none; }
-.theme-modern .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: 11mm; align-items: center; justify-content: space-between; padding-right: 3.5mm; background: var(--brand, #89268d); z-index: 3; box-shadow: 0 .4mm 1.4mm rgba(0, 0, 0, .35); }
-.theme-modern .gog-bar img { height: 9mm; width: auto; margin-left: 1.5mm; display: block; }
-.theme-modern .gog-bar b { color: var(--on-brand, #fff); font-size: 7.5pt; font-weight: 900; letter-spacing: .35mm; }
-.theme-modern .banner { background: linear-gradient(var(--mid, #2b1842), var(--dark, #190f28)); border-top: .6mm solid var(--brand, #89268d); }
-.theme-modern .banner-title b, .theme-modern .feat span { color: #fff; }
-.theme-modern .banner-title small { color: #cdb7e6; }
-.theme-modern .feat img { filter: invert(1); }
-.theme-modern .panel-back { background: color-mix(in srgb, var(--dark, #140d1e) 94%, transparent); }
-.theme-modern .galaxy { box-shadow: 0 0 0 .25mm var(--accent, #b04fd6); }
-.theme-modern .speccol h4 { display: block; margin: 0 0 1.8mm; padding-bottom: 1mm; border-bottom: .25mm solid var(--brand, #89268d); color: var(--accent, #e6c4ff); font-size: 6.3pt; font-weight: 900; letter-spacing: .3mm; }
-.theme-modern .specs { font-size: 6.9pt; gap: .6em; }
-.theme-modern .specs.dual { font-size: 5.6pt; }
-.theme-modern .specs .k { color: #b9a4d3; }
-.theme-modern .specs .v { color: #fff; }
-.theme-modern .specs .chip { border-color: #b9a4d3; color: #b9a4d3; }
-.theme-modern .specs .chip.rec { color: var(--on-brand, #fff); }
-.theme-modern .copy { color: #a995c2; }
-.theme-modern .logos img { background: #fff; padding: 1mm; border-radius: 1mm; }
-.theme-modern { --sp: var(--dark, #17101f); }
-.theme-modern .spine-head { background: var(--brand, #89268d); padding: 2mm 0; }
-.theme-modern .spine-foot { display: flex; align-items: center; justify-content: center; width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); height: 12mm; flex: none; background: var(--brand, #89268d); color: var(--on-brand, #fff); font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
+/* Bei der Leiste füllt das Frontbild nur den Teil unter der Kopfleiste, damit der obere Teil des Bildes (Titel) nicht verdeckt wird */
+.theme-bar .front { padding-top: var(--bar-h); background-origin: content-box; background-clip: content-box; background-position: center top; }
+
+/* ===== Stil "Leiste": Kopfleiste über die ganze Breite wie bei Handelsspielen (Vorderseite und Rücken) =====
+   Verlauf von barA nach barB, darunter eine Akzentlinie (line), die über den Rücken durchläuft. Gilt für alle Anbieter. */
+.cover { --bar-h: 18.6mm; --bar-line: 1.6mm; }
+.theme-bar .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); align-items: center; justify-content: space-between; padding-right: 4mm; background: linear-gradient(var(--barA), var(--barB)); border-bottom: var(--bar-line) solid var(--line); z-index: 3; }
+.theme-bar .gog-bar img { height: 12.5mm; width: auto; margin-left: 4.5mm; display: block; }
+.has-wm.theme-bar .gog-bar img { width: 12.5mm; }
+.theme-bar .gog-bar .wm { margin-left: 4mm; font-size: 17pt; letter-spacing: 1.1mm; color: var(--on-brand); }
+.theme-bar .gog-bar b { color: var(--on-brand); font-size: 7.5pt; font-weight: 900; letter-spacing: .35mm; opacity: .85; }
+.theme-bar .spine-head { height: var(--bar-h); box-sizing: border-box; align-items: center; justify-content: center; padding: 0; flex-direction: row; background: linear-gradient(var(--barA), var(--barB)); border-bottom: var(--bar-line) solid var(--line); }
+.theme-bar .spine-head .wm { display: none; }
+.theme-bar .spine-logo, .theme-bar.has-wm .spine-logo { width: 9mm; height: auto; max-height: 14mm; }
+.theme-bar.slim .spine-logo, .theme-bar.slim.has-wm .spine-logo { width: 5.5mm; }
+.theme-bar .spine.fill .spine-logo, .theme-bar.has-wm .spine.fill .spine-logo { width: calc(100% - 3mm); height: auto; max-height: 14mm; object-fit: contain; }
+
+/* ===== Steam und Epic Games: dunkler Streifen mit den Spielfunktionen auf der Rückseite (in beiden Stilen) ===== */
+.has-wm .banner { background: linear-gradient(var(--bannerA), var(--bannerB)); border-top: .6mm solid var(--accent); }
+.has-wm .banner-title b, .has-wm .feat span { color: #fff; }
+.has-wm .banner-title small { color: rgba(255, 255, 255, .72); }
+.has-wm .feat img { filter: invert(1); }
 
 /* ===== Druck: nur das Blatt, A4 quer, ohne Ränder ===== */
 @page { size: A4 landscape; margin: 0; }
@@ -275,3 +265,36 @@ dialog .f small { display: block; margin-top: 3px; }
 .reqtabs button.on { background: var(--acc); color: #fff; }
 .recfields:not(.on) { opacity: .5; }
 .shown th { text-align: left; font-size: 11.5px; color: var(--mut); padding: 4px 8px; border-bottom: 1px solid var(--line); }
+
+.saveinfo { font-size: 12.5px; color: var(--mut); white-space: nowrap; }
+.saveinfo.dirty { color: #b54708; }
+.menu kbd { margin-left: 10px; font: 11px/1 ui-monospace, Consolas, monospace; color: var(--mut); }
+
+/* Bild der Vorderseite über den Rücken fortsetzen: dunkle Abdunklung, damit der Titel lesbar bleibt */
+.spine.art { background-repeat: no-repeat; }
+.drop .bgx { flex: none; margin-right: 6px; cursor: pointer; }
+
+.mmprobe { position: absolute; left: 0; top: 0; width: 10mm; height: 0; visibility: hidden; pointer-events: none; }
+
+/* Unterlage hinter dem Publisher-Logo auf der Vorderseite: keine, weiß oder schwarz (hilft bei durchsichtigen Logos auf unruhigem Bild) */
+.front-pub.plate-white, .front-pub.plate-black { box-sizing: content-box; padding: 1.4mm; border-radius: 1.6mm; }
+.front-pub.plate-white { background: #fff; }
+.front-pub.plate-black { background: #111; }
+
+/* Listen für Prozessoren und Grafikkarten im Formular */
+.hwitems { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 6px; }
+.hwrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+.hwrow.off { opacity: .5; }
+.hwrow select { width: auto; max-width: 100%; flex: 0 1 auto; }
+.hwrow input[type=text] { width: 78px; flex: 0 1 auto; }
+.hwrow input.grow { flex: 1 1 140px; width: auto; min-width: 100px; }
+.hwrow input[type=checkbox] { margin: 0 2px; }
+.hwrow button { padding: 3px 8px; margin-left: auto; }
+.hwadd { display: flex; flex-wrap: wrap; gap: 6px; }
+.hwadd button { padding: 4px 10px; }
+.grp .lab i { font-weight: 400; color: var(--mut); }
+.hwrow select, .hwrow input[type=text] { font-size: 13px; padding: 5px 8px; height: auto; }
+.hwrow select { padding-right: 22px; }
+.hwrow input[type=text] { width: 66px; }
+.hwrow input[data-f=gb] { width: 44px; }
+.hwrow { gap: 5px; }

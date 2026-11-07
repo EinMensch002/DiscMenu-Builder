@@ -19,6 +19,8 @@
     get key() { return store.get(KEY_KEY); },
     get proxy() { return store.get(KEY_PROXY); },
     save(key, proxy) { store.set(KEY_KEY, (key || '').trim()); store.set(KEY_PROXY, (proxy || '').trim()); },
+    get brandfetch() { return store.get('brandfetch-id'); },
+    saveBrandfetch(id) { store.set('brandfetch-id', (id || '').trim()); },
   };
 
   const CORS_HINT = 'Die Anfrage wurde vom Browser blockiert oder es gibt keine Verbindung. Meist liegt das an CORS: Der Dienst erlaubt Anfragen aus dem Browser nicht. Trage in den Einstellungen einen eigenen Proxy ein (Anleitung im Repository: docs/steamgriddb.md).';
@@ -113,6 +115,9 @@
     await run('Steam-Shop', async () => { const r = await steamSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
     if (settings.key) await run('SteamGridDB', async () => { const r = await sgSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
     else out.push({ name: 'SteamGridDB', ok: false, text: 'Kein API-Schlüssel eingetragen.' });
+    await run('Wikidata (Publisher-Logos)', async () => { await logoSearch('Valve'); return 'erreichbar'; });
+    if (settings.brandfetch) await run('Brandfetch', async () => { const r = await brandSearch('Valve'); return 'erreichbar, ' + r.length + ' Treffer für den Test'; });
+    else out.push({ name: 'Brandfetch', ok: true, text: 'Keine Client-ID eingetragen (optional).' });
     return out;
   }
 
@@ -188,10 +193,10 @@
     2: 'single_player', 1: 'multi_player', 49: 'multi_player', 24: 'multi_player', 20: 'multi_player',
     36: ['multi_player', 'online'], 38: ['co_op', 'online'], 9: 'co_op', 39: 'co_op',
     47: ['multi_player', 'lan'], 48: ['co_op', 'lan'], 27: 'cross_platform',
-    22: 'achievements', 23: 'cloud_saves', 28: 'controller_support', 18: 'controller_support', 25: 'leaderboards',
+    22: 'achievements', 23: 'cloud_saves', 28: 'controller_support', 18: 'controller_support',
     30: 'mods', 31: 'vr', 53: 'vr', 54: 'vr',
   };
-  const FEATURE_ORDER = Core ? Core.FEATURE_ORDER : ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards', 'mods', 'vr'];
+  const FEATURE_ORDER = Core ? Core.FEATURE_ORDER : ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'controller_support', 'achievements', 'cloud_saves', 'mods', 'vr'];
   function steamFeatures(categories) {
     const found = new Set();
     for (const c of categories || []) if (c && FEATURE_BY_ID[c.id]) [].concat(FEATURE_BY_ID[c.id]).forEach((f) => found.add(f));
@@ -209,25 +214,27 @@
   }
 
   /* Prozessor, Grafik, Speicher usw. einer Anforderungsliste. Prozessor und Grafikkarte kommen möglichst in die Kategorien
-     (Intel, AMD, NVIDIA, Radeon). Passt der Text nicht sauber hinein (z. B. "Pentium III 500 MHz"), bleibt er als Text erhalten. */
+     (Intel, AMD, GeForce, Radeon). Passt der Text nicht sauber hinein (z. B. "Pentium III 500 MHz"), bleibt er als Text erhalten. */
   function fieldsOf(r) {
     const patch = {}, shown = [];
     const add = (label, value, kind) => { if (value) shown.push([label, value, kind || '']); };
-    if (r.processor) {
-      const c = Core && Core.parseCpuText(r.processor);
-      if (c) { patch.cpu = { ...c.cpu, custom: '' }; add('Prozessor', Core.cpuList(c.cpu).join(' / '), 'Kategorie'); }
-      else { patch.cpu = { custom: shorten(r.processor, 110) }; add('Prozessor', patch.cpu.custom, 'Text'); }
-    }
-    if (r.graphics) {
-      const g = Core && Core.parseGpuText(r.graphics);
-      if (g) { patch.gpu = { ...g.gpu, custom: '' }; add('Grafik', Core.gpuList(g.gpu).join(' / '), 'Kategorie'); }
-      else { patch.gpu = { custom: shorten(r.graphics, 110) }; add('Grafik', patch.gpu.custom, 'Text'); }
-    }
+    /* Prozessor und Grafikkarte: Jede Möglichkeit ("or", "oder", "/") wird ein eigener Eintrag. Was in die Auswahlfelder passt, kommt dorthin
+       (GeForce, Radeon, Intel, AMD mit Reihe, Modell, Zusatz und Speicher), der Rest bleibt als Text. */
+    const hw = (type, text, label) => {
+      const items = type === 'cpu' ? Core.parseCpuItems(text) : Core.parseGpuItems(text);
+      if (!items.length) return;
+      patch[type] = { items };
+      const texts = items.map((it) => Core.hwText(type, it)).filter(Boolean);
+      const plain = items.filter((it) => it.kind === 'text').length;
+      add(label, texts.join(' / '), plain === 0 ? 'Kategorie' : plain === items.length ? 'Text' : 'Gemischt');
+    };
+    if (r.processor) hw('cpu', r.processor, 'Prozessor');
+    if (r.graphics) hw('gpu', r.graphics, 'Grafik');
     const ram = parseSize(r.memory); if (ram) { patch.ram = ram; add('Arbeitsspeicher', r.memory); }
     const space = parseSize(r.storage); if (space) { patch.space = space; add('Speicherplatz', r.storage); }
     if (r.directx) { patch.dx = shorten(r.directx, 40); add('DirectX', patch.dx); }
     const other = [r.sound ? (/sound/i.test(r.sound) ? r.sound : 'Soundkarte: ' + r.sound) : '', r.notes].filter(Boolean).join('. ');
-    if (other) { patch.other = shorten(other, 140); add('Sonstiges', patch.other); }
+    if (other) { patch.other = shorten(other, 240); add('Sonstiges', patch.other); }
     return { patch, shown };
   }
 
@@ -256,6 +263,26 @@
     return { patch: { ...com.patch, ...f.patch }, shown, hasRequirements: Object.keys(r).length > 0 };
   }
 
+  /* Altersfreigabe: Steam liefert je nach Spiel die USK (ratings.usk) oder andere Systeme. Bevorzugt die USK, sonst PEGI, ESRB, zuletzt das Steam-Mindestalter.
+     -> { value: '0'|'6'|'12'|'16'|'18', source: Text } oder null, wenn Steam nichts Brauchbares liefert. */
+  function steamUsk(details) {
+    const r = details && details.ratings && typeof details.ratings === 'object' && !Array.isArray(details.ratings) ? details.ratings : {};
+    const num = (x) => { const m = String((x && x.rating) != null ? x.rating : '').match(/\d+/); return m ? parseInt(m[0], 10) : null; };
+    const snap = (n) => (n <= 0 ? '0' : n <= 6 ? '6' : n <= 12 ? '12' : n <= 16 ? '16' : '18');
+    const usk = num(r.usk);
+    if (usk != null && usk <= 18) return { value: snap(usk), source: 'USK laut Steam' };
+    const pegi = num(r.pegi);
+    if (pegi != null && pegi <= 18) return { value: snap(pegi === 3 ? 0 : pegi === 7 ? 6 : pegi), source: 'aus PEGI ' + pegi + ' abgeleitet' };
+    if (r.esrb && r.esrb.rating) {
+      const e = String(r.esrb.rating).toLowerCase();
+      const map = { e: '0', everyone: '0', e10: '6', 'e10+': '6', t: '12', teen: '12', m: '16', mature: '16', ao: '18' };
+      if (map[e] != null) return { value: map[e], source: 'aus ESRB ' + String(r.esrb.rating).toUpperCase() + ' abgeleitet' };
+    }
+    const age = parseInt(details && details.required_age, 10);
+    if (age > 0) return { value: age >= 18 ? '18' : age >= 16 ? '16' : age >= 12 ? '12' : age >= 6 ? '6' : '0', source: 'aus dem Steam-Mindestalter ' + age + ' abgeleitet' };
+    return null;
+  }
+
   /* Mindest- und empfohlene Anforderungen auf einmal: Die Mindestangaben gehen in die normalen Felder, die empfohlenen in "rec".
      Gibt es nur eine Liste, wird sie als Mindestanforderung übernommen und die empfohlene Spalte bleibt aus.
      shown: [Bezeichnung, Minimum, Empfohlen, Art] je Zeile. */
@@ -271,12 +298,13 @@
     const first = (a) => clean(Array.isArray(a) ? a[0] : a);
     const title = clean(details.name), publisher = first(details.publishers), developer = first(details.developers);
     if (title) patch.title = title;
-    if (details.steam_appid) patch.barcode = { text: 's.team/a/' + details.steam_appid };       // Kurzlink zum Spiel für den Barcode
     if (publisher) patch.publisher = publisher;
     if (developer) patch.developer = developer;
+    const usk = steamUsk(details);
+    if (usk) patch.usk = usk.value;
     const put = (label, col, value, kind) => { const row = rows.get(label) || { label, min: '', rec: '', kind: '' }; row[col] = value; if (kind) row.kind = kind; rows.set(label, row); };
     if (title) put('Spieletitel (Rücken)', 'min', title);
-    if (details.steam_appid) put('Barcode-Inhalt (Link)', 'min', 's.team/a/' + details.steam_appid);
+    if (usk) put('USK-Freigabe', 'min', 'ab ' + usk.value + ' Jahren (' + usk.source + ')');
     if (publisher || developer) put('Publisher / Entwickler', 'min', [publisher, developer].filter((x, i, a) => x && a.indexOf(x) === i).join(' / '));
     com.shown.filter((x) => x[0] === 'Läuft auf').forEach(([l, v]) => put(l, 'min', v));
     fm.shown.forEach(([l, v, k]) => put(l, 'min', v, k));
@@ -285,7 +313,7 @@
       /* Jede Angabe der empfohlenen Seite ersetzt die alte, auch wenn Steam sie weglässt (sonst bleibt Alt-Wert vom vorigen Spiel stehen) */
       patch.rec = {
         on: true,
-        cpu: { intel: { on: false }, amd: { on: false }, custom: '' }, gpu: { nvidia: { on: false }, amd: { on: false }, custom: '' },
+        cpu: { items: [] }, gpu: { items: [] },
         ram: '', space: '', dx: '', other: '', ...fr.patch,
       };
       fr.shown.forEach(([l, v, k]) => put(l, 'rec', v, k));
@@ -341,7 +369,31 @@
     return url;
   }
 
-  const api = { logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, SG_KINDS };
+  /* ---------- Publisher-Logos über Brandfetch (zweite Quelle, mit kostenloser Client-ID) ----------
+     Die Brand-Search-API von Brandfetch ist für Browser gedacht: Die Client-ID steht in der Adresse, ein Proxy ist nicht nötig.
+     Sie findet Firmen anhand ihrer Webseite, auch kleine Studios. Antwort: Liste mit Name, Domain und Bild-Adresse (icon). */
+  async function brandSearch(term) {
+    const id = settings.brandfetch;
+    if (!id) throw new Error('Bitte zuerst die Brandfetch-Client-ID in den Einstellungen eintragen.');
+    const url = 'https://api.brandfetch.io/v2/search/' + encodeURIComponent(term) + '?c=' + encodeURIComponent(id);
+    let r;
+    try { r = await fetch(url); }
+    catch (e) {
+      if (!settings.proxy) throw new Error('Brandfetch ist nicht erreichbar. Bitte die Internetverbindung prüfen.');
+      r = await net(url);
+    }
+    if (r.status === 401 || r.status === 403) throw new Error('Die Brandfetch-Client-ID wurde abgelehnt. Bitte in den Einstellungen prüfen.');
+    if (r.status === 429) throw new Error('Brandfetch hat zu viele Anfragen gemeldet. Bitte kurz warten.');
+    if (!r.ok) throw new Error('Brandfetch hat mit Fehler ' + r.status + ' geantwortet.');
+    let list;
+    try { list = await r.json(); } catch (e) { throw new Error('Brandfetch hat keine lesbare Antwort geliefert.'); }
+    return (Array.isArray(list) ? list : []).map((b) => ({
+      id: String(b.brandId || b.domain || b.name || ''), label: String(b.name || b.domain || ''), description: String(b.domain || ''),
+      url: typeof b.icon === 'string' && b.icon ? b.icon : (b.domain ? 'https://cdn.brandfetch.io/' + encodeURIComponent(b.domain) + '/w/400/h/400?c=' + encodeURIComponent(id) : ''),
+    })).filter((x) => x.url && x.label);
+  }
+
+  const api = { brandSearch, logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, steamUsk, SG_KINDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverOnline = api;
 })(typeof window !== 'undefined' ? window : globalThis);

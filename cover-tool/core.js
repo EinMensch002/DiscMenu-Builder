@@ -39,15 +39,18 @@
   }
 
   /* Rückseite: oben das Bild, dann der grüne Streifen, unten die Angaben. */
-  const BACK = { banner: 13, bottom: 46 };
+  const BACK = { banner: 15, bottom: 46 };
 
   /* Größe, in der die Bilder für den Druck angelegt werden sollten */
+  /* Höhe der Kopfleiste (mm): Das Frontbild füllt nur den Teil darunter */
+  const BAR_HEIGHT = 18.6;
   function imageSpecs(caseOrDims) {
     const c = typeof caseOrDims === 'object' ? caseOrDims : (CASES[caseOrDims] || CASES.normal);
     return {
-      front: { w: c.front, h: c.h },
+      front: { w: c.front, h: round1(c.h - BAR_HEIGHT) },
       backTop: { w: c.back, h: round1(c.h - BACK.banner - BACK.bottom) },
       backBottom: { w: c.back, h: BACK.bottom },
+      spineBg: { w: c.spine, h: c.h },
     };
   }
   const round1 = (n) => Math.round(n * 10) / 10;
@@ -59,32 +62,31 @@
       features: 'Spielfunktionen:', featuresNote: 'Einige Funktionen erfordern GOG Galaxy',
       min: 'MINIMUM', rec: 'EMPFOHLEN', short: { ram: 'RAM', space: 'Speicher' }, os: 'Läuft auf', cpu: 'Prozessor', ram: 'Arbeitsspeicher', gpu: 'Grafik', dx: 'DirectX', space: 'Speicherplatz', other: 'Sonstiges',
       ramUnit: 'RAM', spaceUnit: 'freier Speicherplatz', bit64: '64-Bit',
-      galaxy: { title: 'GOG GALAXY 2.0', text: 'Alle deine Spiele und Freunde an einem Ort', join: 'JETZT BEITRETEN', url: 'www.gog.com/galaxy' },
-      feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', online: 'Online', lan: 'LAN', cross_platform: 'Cross-Plattform', mods: 'Mods', vr: 'VR', controller_support: 'Controller Support', achievements: 'Erfolge', cloud_saves: 'Cloud Saves', leaderboards: 'Bestenlisten' },
+      feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', online: 'Online', lan: 'LAN', cross_platform: 'Cross-Plattform', mods: 'Mods', vr: 'VR', controller_support: 'Controller Support', achievements: 'Erfolge', cloud_saves: 'Cloud Saves' },
     },
     en: {
       reqTitle: 'SYSTEM REQUIREMENTS', tag: 'PC · DRM-FREE',
       features: 'Game Features:', featuresNote: 'Some features require GOG Galaxy',
       min: 'MINIMUM', rec: 'RECOMMENDED', short: {}, os: 'Works on', cpu: 'Processor', ram: 'Memory', gpu: 'Graphics', dx: 'DirectX', space: 'Storage', other: 'Other',
       ramUnit: 'RAM', spaceUnit: 'available space', bit64: '64-bit',
-      galaxy: { title: 'GOG GALAXY 2.0', text: 'All your games and friends in one place', join: 'JOIN NOW', url: 'www.gog.com/galaxy' },
-      feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', online: 'Online', lan: 'LAN', cross_platform: 'Cross-Platform', mods: 'Mods', vr: 'VR', controller_support: 'Controller Support', achievements: 'Achievements', cloud_saves: 'Cloud Saves', leaderboards: 'Leaderboards' },
+      feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', online: 'Online', lan: 'LAN', cross_platform: 'Cross-Platform', mods: 'Mods', vr: 'VR', controller_support: 'Controller Support', achievements: 'Achievements', cloud_saves: 'Cloud Saves' },
     },
   };
-  const FEATURE_ORDER = ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards', 'mods', 'vr'];
-  /* Symbole im Linienstil (Lucide, ISC-Lizenz) gibt es für alle Funktionen, die GOG-Originale nur für die ersten sieben */
-  const ORIGINAL_ICONS = ['single_player', 'co_op', 'multi_player', 'controller_support', 'achievements', 'cloud_saves', 'leaderboards'];
-  const ICON_STYLES = { line: 'Linien (neu)', original: 'GOG-Original' };
+  const FEATURE_ORDER = ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'controller_support', 'achievements', 'cloud_saves', 'mods', 'vr'];
   const WIN_VERSIONS = ['XP', 'Vista', '7', '8', '10', '11'];
   const USK_VALUES = ['0', '6', '12', '16', '18'];
   /* Anbieter: Farben und Schriftzug. Es gibt nur Text und Farben, keine Logos (außer dem vorhandenen GOG-Logo). */
   const PROVIDERS = {
-    gog: { name: 'GOG', logo: 'gog_logo.png', wordmark: '', brand: '#89268d', onBrand: '#ffffff', dark: '#17101f', mid: '#2b1842', accent: '#d65cff', bannerA: '#a8e02a', bannerB: '#84c01a', tag: { de: 'PC · DRM-FREI', en: 'PC · DRM-FREE' }, note: { de: 'Einige Funktionen erfordern GOG Galaxy', en: 'Some features require GOG Galaxy' } },
-    epic: { name: 'Epic Games', logo: 'epic_logo.svg', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#111114', mid: '#24242a', accent: '#d6dae4', bannerA: '#eceef3', bannerB: '#c9ccd6', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
-    steam: { name: 'Steam', logo: 'steam_logo.svg', wordmark: 'STEAM', brand: '#1b3a57', onBrand: '#66c0f4', dark: '#0e1722', mid: '#1b2838', accent: '#66c0f4', bannerA: '#7fcbf7', bannerB: '#4a9bc9', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern Steam', en: 'Some features require Steam' } },
+    gog: { name: 'GOG', logo: 'gog_logo.svg', wordmark: '', brand: '#89268d', onBrand: '#ffffff', dark: '#17101f', mid: '#2b1842', accent: '#d65cff', bannerA: '#a8e02a', bannerB: '#84c01a', barA: '#9b32a3', barB: '#6c1c72', line: '#a8e02a', darkBar: { barA: '#37373e', barB: '#1b1b1f', line: '#b45ad1', spine: '#232328' }, tag: { de: 'PC · DRM-FREI', en: 'PC · DRM-FREE' }, note: { de: 'Einige Funktionen erfordern GOG Galaxy', en: 'Some features require GOG Galaxy' } },
+    epic: { name: 'Epic Games', logo: 'epic_logo.svg', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#0f0f12', mid: '#26262b', accent: '#d6dae4', bannerA: '#3a3a42', bannerB: '#222227', barA: '#3a3a42', barB: '#222227', line: '#d6dae4', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
+    steam: { name: 'Steam', logo: 'steam_logo.svg', wordmark: 'STEAM', brand: '#23394c', onBrand: '#e3e9f0', dark: '#06090d', mid: '#1a2939', accent: '#29abe1', bannerA: '#2a465c', bannerB: '#1a2939', barA: '#2a465c', barB: '#1a2939', line: '#29abe1', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern Steam', en: 'Some features require Steam' } },
   };
-  const THEMES = { classic: 'Klassisch (GOG-Original)', modern: 'Modern (Konsolen-Stil)' };
-  const DISCS = { cd: 'cd.png', dvd: 'dvd.png', bluray: 'blu-ray.png' };
+  const THEMES = { bar: 'Leiste, GOG-Farben (Lila mit Grün)', 'bar-dark': 'Leiste, dunkel mit Lila' };
+  /* Auswahl im Stil-Menü: Nur GOG hat zwei Farbvarianten (Lila mit Grün, dunkel mit Lila), bei Steam und Epic sind die Farben ohnehin dunkel. */
+  function styleOptions(provider) {
+    return provider === 'gog' ? [['bar', 'GOG-Farben (Lila mit Grün)'], ['bar-dark', 'Dunkel mit Lila']] : [['bar', 'Leiste']];
+  }
+  const DISCS = { cd: 'cd.svg', dvd: 'dvd.svg', bluray: 'blu-ray.svg' };
 
   /* 0,5 -> "500 MB", 4 -> "4 GB", "4,5" -> "4.5 GB" */
   function formatStorage(value, unit) {
@@ -110,91 +112,136 @@
     return parts.join(' / ');
   }
 
-  /* Prozessor und Grafikkarte: Liste von Alternativen (eine oder zwei Marken) oder ein freier Text */
-  function cpuList(cpu) {
-    if (cpu.custom && cpu.custom.trim()) return [cpu.custom.trim()];
-    const out = [];
-    const i = cpu.intel, a = cpu.amd;
-    if (i && i.on) out.push('Intel ' + i.pre + (i.num.trim() ? (/^Core i\d$/.test(i.pre) ? '-' : ' ') + i.num.trim() + (i.sfx || '') : ''));
-    if (a && a.on) out.push('AMD ' + a.pre + (a.num.trim() ? ' ' + a.num.trim() + (a.sfx || '') : ''));
-    return out;
-  }
-  function gpuList(gpu) {
-    if (gpu.custom && gpu.custom.trim()) return [gpu.custom.trim()];
-    const out = [];
-    const n = gpu.nvidia, a = gpu.amd;
-    if (n && n.on) {
-      const geforce = ['RTX', 'GTX', 'GTS', 'GT'].includes(n.pre);
-      out.push('NVIDIA ' + (geforce ? 'GeForce ' : '') + n.pre + (n.num.trim() ? ' ' + n.num.trim() : '') + (n.sfx ? ' ' + n.sfx : ''));
-    }
-    if (a && a.on) out.push('AMD Radeon ' + a.pre + (a.num.trim() ? ' ' + a.num.trim() : '') + (a.sfx ? ' ' + a.sfx : ''));
-    return out;
+  /* ---------- Prozessoren und Grafikkarten ----------
+     Beide sind Listen mit beliebig vielen Einträgen. Jeder Eintrag lässt sich an- und ausschalten und ist entweder aus Auswahlfeldern aufgebaut
+     (Prozessor: Intel oder AMD mit Reihe, Modell, Zusatz; Grafikkarte: GeForce oder Radeon mit Reihe, Modell, Zusatz, Speicher in GB)
+     oder ein freier Text (z. B. "Arc A380"). Auf dem Cover steht jeder Eintrag in einer eigenen Zeile. */
+  const HW = {
+    cpu: {
+      intel: { label: 'Intel', first: 'Core i5', series: ['Core i3', 'Core i5', 'Core i7', 'Core i9', 'Core Ultra 5', 'Core Ultra 7', 'Core Ultra 9', 'Pentium', 'Celeron', 'Core 2 Duo', 'Core 2 Quad'], sfx: ['', 'K', 'KF', 'F'] },
+      amd: { label: 'AMD', first: 'Ryzen 5', series: ['Ryzen 3', 'Ryzen 5', 'Ryzen 7', 'Ryzen 9', 'Athlon', 'Phenom', 'FX'], sfx: ['', 'X', 'X3D', 'G'] },
+    },
+    gpu: {
+      geforce: { label: 'GeForce', first: 'RTX', series: ['RTX', 'GTX', 'GTS', 'GT', 'Titan', 'Quadro'], sfx: ['', 'Ti', 'SUPER', 'Ti SUPER'] },
+      radeon: { label: 'Radeon', first: 'RX', series: ['RX', 'HD', 'R9', 'R7', 'R5', 'Vega'], sfx: ['', 'XT', 'XTX', 'GRE'] },
+    },
+  };
+  const HW_MAX = 8;
+  const hwKinds = (type) => Object.keys(HW[type]);
+
+  function newHwItem(type, kind) {
+    const spec = HW[type][kind];
+    return { on: true, kind: spec ? kind : 'text', pre: spec ? spec.first : '', num: '', sfx: '', gb: '', text: '' };
   }
 
-  /* ---------- Prozessor- und Grafikkartentexte (z. B. von Steam) in die Kategorien übersetzen ---------- */
-  const clean = (t) => String(t || '').replace(/[®™]|\(R\)|\(TM\)|\(r\)|\(tm\)/g, '').replace(/\([^)]*\)/g, ' ')
+  /* Markennamen vereinheitlichen: "NVIDIA GeForce RTX 3060" -> "GeForce RTX 3060", "AMD Radeon RX 580" -> "Radeon RX 580" */
+  function brandText(t) {
+    return String(t || '').replace(/[®™]/g, '').replace(/\bNVIDIA\s+GeForce\b/gi, 'GeForce').replace(/\bAMD\s+Radeon\b/gi, 'Radeon')
+      .replace(/\b(?:NVIDIA|Nvidia)\s+(?=(?:RTX|GTX|GTS|GT)\b)/g, 'GeForce ').replace(/\s+/g, ' ').trim();
+  }
+  const gbText = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) && n > 0 ? trimNumber(n) + ' GB' : ''; };
+
+  function hwText(type, it) {
+    if (!it) return '';
+    if (it.kind === 'text') return brandText(it.text);
+    const num = String(it.num || '').trim(), sfx = it.sfx || '';
+    if (type === 'cpu') {
+      if (it.kind === 'intel') return 'Intel ' + it.pre + (num ? (/^Core i\d$/.test(it.pre) ? '-' : ' ') + num + sfx : '');
+      return 'AMD ' + it.pre + (num ? ' ' + num + sfx : '');
+    }
+    return [HW.gpu[it.kind].label, it.pre + (num ? ' ' + num : '') + (sfx ? ' ' + sfx : '') + (gbText(it.gb) ? ' ' + gbText(it.gb) : '')].join(' ');
+  }
+  const hwList = (type, x) => ((x && x.items) || []).filter((it) => it && it.on !== false).map((it) => hwText(type, it)).filter(Boolean);
+  const cpuList = (cpu) => hwList('cpu', cpu);
+  const gpuList = (gpu) => hwList('gpu', gpu);
+
+  /* Gespeicherte oder übernommene Daten bereinigen. Ältere Einstellungen (Intel/AMD- bzw. NVIDIA/AMD-Felder, eigener Text) werden in Einträge umgewandelt. */
+  function legacyHw(x, type) {
+    const out = [];
+    if (x.custom && String(x.custom).trim()) return [{ ...newHwItem(type, 'text'), text: String(x.custom).trim() }];
+    const fields = type === 'cpu' ? [['intel', 'intel'], ['amd', 'amd']] : [['nvidia', 'geforce'], ['amd', 'radeon']];
+    for (const [old, kind] of fields) {
+      const o = x[old];
+      if (!o || !o.on) continue;
+      const it = newHwItem(type, kind);
+      it.pre = typeof o.pre === 'string' ? o.pre : it.pre; it.num = typeof o.num === 'string' ? o.num : '';
+      let sfx = typeof o.sfx === 'string' ? o.sfx : '';
+      const m = sfx.match(/(\d+)\s*GB/i);
+      if (m) { it.gb = m[1]; sfx = sfx.replace(m[0], '').trim(); }
+      it.sfx = sfx;
+      out.push(it);
+    }
+    return out;
+  }
+  function normalizeHw(x, type) {
+    let items = [];
+    if (x && Array.isArray(x.items)) items = x.items;
+    else if (x && typeof x === 'object') items = legacyHw(x, type);
+    const str = (v) => (typeof v === 'string' ? v : '');
+    return { items: items.filter((i) => i && typeof i === 'object').slice(0, HW_MAX).map((i) => {
+      const kind = hwKinds(type).includes(i.kind) ? i.kind : 'text', spec = HW[type][kind];
+      return { on: i.on !== false, kind, pre: spec && spec.series.includes(i.pre) ? i.pre : (spec ? spec.first : ''), num: str(i.num), sfx: spec && spec.sfx.includes(i.sfx) ? i.sfx : '', gb: str(i.gb), text: str(i.text) };
+    }) };
+  }
+
+  /* ---------- Texte (z. B. von Steam) in Einträge zerlegen ----------
+     Ein "or" / "oder" / "/" trennt die Möglichkeiten, jede wird ein eigener Eintrag. Was in Auswahlfelder passt, kommt dorthin
+     (z. B. "GeForce GTX 1060 6GB" -> GeForce, GTX, 1060, 6 GB), alles andere bleibt als Text erhalten. */
+  const clean = (t) => String(t || '').replace(/[®™]|\(R\)|\(TM\)|\(r\)|\(tm\)/g, '').replace(/\(\s*(\d+(?:[.,]\d+)?\s*GB)\s*\)/gi, ' $1 ').replace(/\([^)]*\)/g, ' ')
     .replace(/\s+(?:or|oder)\s+(?:better|higher|equivalent|faster|newer|above|similar)\b.*$/i, '').replace(/\s+(?:or|oder)?\s*(?:equivalent|better)\s*$/i, '').replace(/\s+/g, ' ').trim();
   const split = (t) => clean(t).split(/\s+(?:or|oder)\s+|\s*\/\s*|\s*;\s*|,\s*(?=(?:AMD|Intel|NVIDIA|GeForce|Radeon|Ryzen|Core|Athlon|Phenom|FX)\b)/i).map((x) => x.trim()).filter(Boolean);
 
-  /* Ein Prozessor -> { vendor: 'intel'|'amd', pre, num, sfx } oder null, wenn er nicht sauber in die Kategorien passt */
-  function parseCpuOne(alt) {
-    const t = alt.replace(/^(?:Intel|AMD)\s+/i, '');
+  function parseCpuPart(part) {
+    const t = part.replace(/^(?:Intel|AMD)\s+/i, '');
+    const item = (kind, pre, num, sfx) => ({ ...newHwItem('cpu', kind), pre, num, sfx });
     let m = t.match(/^Core\s*(i[3579])\s*-?\s*(\d{3,5})?([A-Z]{0,2})$/i);
     if (m) {
       const suffix = (m[3] || '').toUpperCase(), known = ['K', 'KF', 'F'].includes(suffix);
-      return { vendor: 'intel', pre: 'Core ' + m[1].toLowerCase(), num: (m[2] || '') + (m[2] && !known ? suffix : ''), sfx: known ? suffix : '' };
+      return item('intel', 'Core ' + m[1].toLowerCase(), (m[2] || '') + (m[2] && !known ? suffix : ''), known ? suffix : '');
     }
+    m = t.match(/^Core\s+Ultra\s*([579])\s*(\d{3}[A-Z]{0,2})?$/i);
+    if (m) return item('intel', 'Core Ultra ' + m[1], (m[2] || '').toUpperCase(), '');
     m = t.match(/^(Core 2 Duo|Core 2 Quad|Pentium|Celeron)\s*(.*)$/i);
     if (m && /^[A-Za-z0-9 .+-]*$/.test(m[2]) && !/(?:mhz|ghz)/i.test(m[2])) {
-      const pre = ['Core 2 Duo', 'Core 2 Quad', 'Pentium', 'Celeron'].find((p) => p.toLowerCase() === m[1].toLowerCase());
-      return { vendor: 'intel', pre, num: m[2].trim(), sfx: '' };
+      return item('intel', ['Core 2 Duo', 'Core 2 Quad', 'Pentium', 'Celeron'].find((p) => p.toLowerCase() === m[1].toLowerCase()), m[2].trim(), '');
     }
-    m = t.match(/^Ryzen\s*([3579])\s*(\d{3,5})\s*(X3D|XT|X|G|GE|U|H|HS)?$/i);
+    m = t.match(/^Ryzen\s*([3579])\s*(\d{3,5})?\s*(X3D|XT|X|G|GE|U|H|HS)?$/i);
     if (m) {
       const suffix = (m[3] || '').toUpperCase(), known = ['X', 'X3D', 'G'].includes(suffix);
-      return { vendor: 'amd', pre: 'Ryzen ' + m[1], num: m[2] + (suffix && !known ? suffix : ''), sfx: known ? suffix : '' };
+      return item('amd', 'Ryzen ' + m[1], (m[2] || '') + (m[2] && suffix && !known ? suffix : ''), m[2] && known ? suffix : '');
     }
     m = t.match(/^(Athlon|Phenom|FX)\s*-?\s*(.*)$/i);
-    if (m && /^[A-Za-z0-9 .+-]*$/.test(m[2]) && !/(?:mhz|ghz)/i.test(m[2])) {
-      return { vendor: 'amd', pre: ({ athlon: 'Athlon', phenom: 'Phenom', fx: 'FX' })[m[1].toLowerCase()], num: m[2].trim(), sfx: '' };
-    }
-    return null;
+    if (m && /^[A-Za-z0-9 .+-]*$/.test(m[2]) && !/(?:mhz|ghz)/i.test(m[2])) return item('amd', ({ athlon: 'Athlon', phenom: 'Phenom', fx: 'FX' })[m[1].toLowerCase()], m[2].trim(), '');
+    return { ...newHwItem('cpu', 'text'), text: brandText(part) };
   }
-  const detectCpuVendor = (a) => (/\b(?:amd|ryzen|athlon|phenom|fx|opteron)\b/i.test(a) ? 'amd' : /\b(?:intel|core|pentium|celeron|xeon)\b/i.test(a) ? 'intel' : '');
+  function parseGpuPart(part) {
+    const text = () => ({ ...newHwItem('gpu', 'text'), text: brandText(part) });
+    if (/\b(?:intel|arc)\b/i.test(part)) return text();
+    const t = part.replace(/\b(?:NVIDIA|AMD|ATI|GeForce|Radeon)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+    const mem = '(?:\\s+(\\d+(?:[.,]\\d+)?)\\s?GB)?(?:\\s+VRAM)?$';
+    let m = t.match(new RegExp('^(RTX|GTX|GTS|GT)\\s*(\\d{3,4})\\s*(Ti\\s*SUPER|SUPER|Ti)?' + mem, 'i'));
+    if (m) return { ...newHwItem('gpu', 'geforce'), pre: m[1].toUpperCase(), num: m[2], sfx: m[3] ? (/ti\s*super/i.test(m[3]) ? 'Ti SUPER' : m[3].toLowerCase() === 'ti' ? 'Ti' : 'SUPER') : '', gb: (m[4] || '').replace(',', '.') };
+    m = t.match(new RegExp('^(RX|HD|R9|R7|R5)\\s*(\\d{3,4})\\s*(XTX|XT|GRE)?' + mem, 'i'));
+    if (m) return { ...newHwItem('gpu', 'radeon'), pre: m[1].toUpperCase(), num: m[2], sfx: (m[3] || '').toUpperCase(), gb: (m[4] || '').replace(',', '.') };
+    m = t.match(new RegExp('^Vega\\s*(\\d{2,3})?' + mem, 'i'));
+    if (m) return { ...newHwItem('gpu', 'radeon'), pre: 'Vega', num: m[1] || '', gb: (m[2] || '').replace(',', '.') };
+    return text();
+  }
+  const parseCpuItems = (text) => split(text).slice(0, HW_MAX).map(parseCpuPart);
+  const parseGpuItems = (text) => split(text).slice(0, HW_MAX).map(parseGpuPart);
 
-  /* Prozessor-Text -> { cpu: { intel, amd, custom } } für die Kategorien oder null (dann als Text übernehmen) */
-  function parseCpuText(text) {
-    const alts = split(text);
-    if (!alts.length || alts.length > 2) return null;
-    const out = { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' };
-    for (const a of alts) {
-      const r = parseCpuOne(a);
-      if (!r || out[r.vendor].on || detectCpuVendor(a) && detectCpuVendor(a) !== r.vendor) return null;
-      out[r.vendor] = { on: true, pre: r.pre, num: r.num, sfx: r.sfx };
-    }
-    return { cpu: out };
-  }
-
-  /* Eine Grafikkarte -> { vendor: 'nvidia'|'amd', pre, num, sfx } oder null */
-  function parseGpuOne(alt) {
-    if (/\bintel\b/i.test(alt)) return null;
-    const t = alt.replace(/\b(?:NVIDIA|AMD|ATI|GeForce|Radeon)\b/gi, ' ').replace(/\s+/g, ' ').trim();
-    let m = t.match(/^(RTX|GTX|GTS|GT)\s*(\d{2,4})\s*(Ti|SUPER)?(?:\s+(\d+\s?GB))?$/i);
-    if (m) return { vendor: 'nvidia', pre: m[1].toUpperCase(), num: m[2], sfx: [m[3] ? (m[3].toLowerCase() === 'ti' ? 'Ti' : 'SUPER') : '', (m[4] || '').replace(/\s+/, '').toUpperCase()].filter(Boolean).join(' ') };
-    m = t.match(/^(RX|HD|R9|R7|R5)\s*(\d{3,4})\s*(XTX|XT|GRE)?(?:\s+(\d+\s?GB))?$/i);
-    if (m) return { vendor: 'amd', pre: m[1].toUpperCase(), num: m[2], sfx: [(m[3] || '').toUpperCase(), (m[4] || '').replace(/\s+/, '').toUpperCase()].filter(Boolean).join(' ') };
-    return null;
-  }
-  function parseGpuText(text) {
-    const alts = split(text);
-    if (!alts.length || alts.length > 2) return null;
-    const out = { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' };
-    for (const a of alts) {
-      const r = parseGpuOne(a);
-      if (!r || out[r.vendor].on) return null;
-      out[r.vendor] = { on: true, pre: r.pre, num: r.num, sfx: r.sfx };
-    }
-    return { gpu: out };
+  /* Logo in einen Platz einpassen. across = Platz quer zum Rücken, along = Platz entlang des Rückens (beide in mm), a = Seitenverhältnis (Breite / Höhe).
+     rot: 'auto' | 'no' | 'yes'. Automatisch wird gedreht, wenn das Logo aufrecht kaum lesbar wäre (Höhe unter minH). maxW begrenzt die Breite (mm, 0 = keine Grenze).
+     -> { rotated, w, h } mit w und h in mm als Größe des Bildes (vor dem Drehen), das Ergebnis passt immer in across × along. */
+  function fitLogo(a, rot, across, along, maxW, minH) {
+    a = a > 0.05 ? a : 1;
+    across = Math.max(1, across); along = Math.max(1, along);
+    const upright = () => { let w = Math.min(across, along * a); if (maxW > 0) w = Math.min(w, maxW); return { rotated: false, w, h: w / a }; };
+    const rotated = () => { let l = Math.min(along, across * a); if (maxW > 0) l = Math.min(l, maxW); return { rotated: true, w: l, h: l / a }; };
+    if (rot === 'yes') return rotated();
+    if (rot === 'no') return upright();
+    const up = upright();
+    return up.h >= (minH || 4) ? up : rotated();
   }
 
   /* Zeilen für die Systemanforderungen. Leere Zeilen entfallen. values ist eine Liste von Alternativen. */
@@ -212,6 +259,9 @@
     return rows.map(([key, label, values]) => ({ key, label, values: values.filter(Boolean) })).filter((r) => r.values.length);
   }
 
+  /* "Sonstiges" in einzelne Sätze zerlegen (Zeilenumbruch oder Satzende), Punkt am Ende entfällt */
+  const otherLines = (t) => String(t || '').split(/\n+/).flatMap((l) => l.split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ0-9])/)).map((x) => x.trim().replace(/(?<!\.)\.$/, '').trim()).filter(Boolean);
+
   /* Tabelle für die Rückseite: je Zeile die Mindest- und (wenn eingeschaltet) die empfohlenen Angaben.
      Gleiche Angaben stehen nur einmal da (shared), das Betriebssystem gilt immer für beide. */
   function buildSpecTable(state) {
@@ -225,6 +275,18 @@
     const os = osString(state.os, state.lang);
     if (os) rows.push({ key: 'os', label: L.os, short: L.short.os || L.os, min: [os], rec: [], shared: true });
     for (const [key, label] of [['cpu', L.cpu], ['ram', L.ram], ['gpu', L.gpu], ['dx', L.dx], ['space', L.space], ['other', L.other]]) {
+      if (key === 'other') {                     // Sonstiges: Satz für Satz. Gleiche Sätze stehen einmal in der Mitte, nur abweichende in ihrer Spalte.
+        const ml = otherLines(state.other), rl = r ? otherLines(state.rec.other) : [];
+        if (!ml.length && !rl.length) continue;
+        const low = (x) => x.toLowerCase(), common = ml.filter((l) => rl.some((q) => low(q) === low(l)));
+        const onlyMin = ml.filter((l) => !common.includes(l)), onlyRec = rl.filter((l) => !common.some((c) => low(c) === low(l)));
+        const short = L.short.other || label;
+        if (!r) { rows.push({ key, label, short, min: ml, rec: [], shared: true }); continue; }
+        let first = true;
+        for (const line of common) { rows.push({ key, label: first ? label : '', short: first ? short : '', min: [line], rec: [], shared: true, cont: !first }); first = false; }
+        if (onlyMin.length || onlyRec.length) rows.push({ key, label: first ? label : '', short: first ? short : '', min: onlyMin, rec: onlyRec, shared: false, cont: !first });
+        continue;
+      }
       const min = m[key].filter(Boolean), rec = r ? r[key].filter(Boolean) : [];
       if (!min.length && !rec.length) continue;
       const same = !!rec.length && JSON.stringify(min) === JSON.stringify(rec);
@@ -233,41 +295,27 @@
     return { rows, dual: rows.some((x) => !x.shared), labels: { min: L.min, rec: L.rec } };
   }
 
-  /* ---------- Barcode (Code 128, Zeichensatz B) ----------
-     Liefert die Folge der Striche als Text aus 1 (Strich) und 0 (Lücke), je Modul ein Zeichen, oder null bei ungültigem Text.
-     Code 128 hat eine Prüfziffer, jeder Handy-Scanner liest ihn. Er kodiert Text (ASCII 32 bis 126), kein Link wird automatisch geöffnet. */
-  const CODE128 = ["11011001100", "11001101100", "11001100110", "10010011000", "10010001100", "10001001100", "10011001000", "10011000100", "10001100100", "11001001000", "11001000100", "11000100100", "10110011100", "10011011100", "10011001110", "10111001100", "10011101100", "10011100110", "11001110010", "11001011100", "11001001110", "11011100100", "11001110100", "11101101110", "11101001100", "11100101100", "11100100110", "11101100100", "11100110100", "11100110010", "11011011000", "11011000110", "11000110110", "10100011000", "10001011000", "10001000110", "10110001000", "10001101000", "10001100010", "11010001000", "11000101000", "11000100010", "10110111000", "10110001110", "10001101110", "10111011000", "10111000110", "10001110110", "11101110110", "11010001110", "11000101110", "11011101000", "11011100010", "11011101110", "11101011000", "11101000110", "11100010110", "11101101000", "11101100010", "11100011010", "11101111010", "11001000010", "11110001010", "10100110000", "10100001100", "10010110000", "10010000110", "10000101100", "10000100110", "10110010000", "10110000100", "10011010000", "10011000010", "10000110100", "10000110010", "11000010010", "11001010000", "11110111010", "11000010100", "10001111010", "10100111100", "10010111100", "10010011110", "10111100100", "10011110100", "10011110010", "11110100100", "11110010100", "11110010010", "11011011110", "11011110110", "11110110110", "10101111000", "10100011110", "10001011110", "10111101000", "10111100010", "11110101000", "11110100010", "10111011110", "10111101110", "11101011110", "11110101110", "11010000100", "11010010000", "11010011100", "1100011101011"];
-  function code128(text) {
-    const s = String(text == null ? '' : text);
-    if (!s || s.length > 40 || /[^\x20-\x7e]/.test(s)) return null;
-    const codes = [104];
-    let sum = 104;
-    [...s].forEach((ch, i) => { const v = ch.charCodeAt(0) - 32; codes.push(v); sum += v * (i + 1); });
-    codes.push(sum % 103, 106);
-    return codes.map((k) => CODE128[k]).join('');
-  }
-  /* Mindestbreite eines Moduls in mm, bei der Scanner den Code noch sicher lesen (etwa 0,19 mm) */
-  const BARCODE_MIN_MODULE = 0.19;
-
   /* --- Standardwerte und Speichern --- */
   function defaultState() {
     return {
-      caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'classic', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
+      caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'bar', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       custom: { back: '130', spine: '14', front: '129', h: '183' },
-      usk: '0', uskBack: true, galaxy: true, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
+      usk: '0', uskOpacity: '100', uskBack: true, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
       features: ['single_player'],
       os: { win: ['10', '11'], mac: false, linux: false, x64: true },
-      cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
-      gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
+      cpu: { items: [] },
+      gpu: { items: [] },
       ram: '4', space: '10', dx: '', other: '',
-      iconStyle: 'line', spinePC: true, spineTitle: 'top',
-      barcode: { on: false, text: '' },     /* Barcode (Code 128) unter dem USK-Zeichen, z. B. mit dem Link zum Spiel */
+      frontPubPlate: 'none', spinePubPlate: 'white',          /* Unterlage hinter dem Publisher-Logo: 'none' | 'white' | 'black' */
+      spinePC: true, spineTitle: 'center', spineArt: 'color', spineBgX: '50', spineBgDim: '25', spineUseLogo: true, spinePub: true,
+      spineLogoRot: 'auto', spineLogoSide: '1.5', spineLogoTop: '3', spineLogoBottom: '3',      /* Rückenlogo: Drehung, Abstände (mm) zu den Seiten und zu Kopf und Fuß */
+      spinePubRot: 'auto', spinePubSide: '1.2', spinePubWidth: '',                             /* Publisher am Fuß: Drehung, Abstand zur Seite (mm), eigene Breite (mm, leer = automatisch) */
       publisher: '', developer: '',         /* z. B. von Steam übernommen, Vorgabe für die Suche nach dem Publisher-Logo */
       /* Empfohlene Anforderungen (optional, zusätzlich zu den Mindestanforderungen oben) */
       rec: {
         on: false,
-        cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
-        gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
+        cpu: { items: [] },
+        gpu: { items: [] },
         ram: '8', space: '10', dx: '', other: '',
       },
     };
@@ -285,13 +333,20 @@
       else if (typeof b === 'object') out[key] = mergeObject(b, s);
       else out[key] = typeof s === typeof b ? s : b;
     }
+    out.cpu = normalizeHw(saved.cpu, 'cpu'); out.gpu = normalizeHw(saved.gpu, 'gpu');
+    out.rec.cpu = normalizeHw(saved.rec && saved.rec.cpu, 'cpu'); out.rec.gpu = normalizeHw(saved.rec && saved.rec.gpu, 'gpu');
     if (!CASES[out.caseType] && out.caseType !== 'custom') out.caseType = 'normal';
     if (!DISCS[out.disc]) out.disc = 'dvd';
     if (!LABELS[out.lang]) out.lang = 'de';
-    if (!THEMES[out.theme]) out.theme = 'classic';
+    if (out.theme === 'modern') out.theme = 'bar';             // der frühere Stil "Modern" ist weggefallen, die Leiste kommt ihm am nächsten
+    out.theme = (/-dark$/.test(String(out.theme)) || (saved.gogBar === 'dark' && out.provider === 'gog')) ? 'bar-dark' : 'bar';
+    if (out.provider !== 'gog') out.theme = 'bar';
     if (!PROVIDERS[out.provider]) out.provider = 'gog';
-    if (!ICON_STYLES[out.iconStyle]) out.iconStyle = 'line';
-    if (out.spineTitle !== 'center') out.spineTitle = 'top';
+    for (const k of ['frontPubPlate', 'spinePubPlate']) if (!['none', 'white', 'black'].includes(out[k])) out[k] = k === 'spinePubPlate' ? 'white' : 'none';
+    if (out.spineTitle !== 'top') out.spineTitle = 'center';
+    if (!['image', 'own'].includes(out.spineArt)) out.spineArt = 'color';
+    for (const k of ['spineLogoRot', 'spinePubRot']) if (!['auto', 'no', 'yes'].includes(out[k])) out[k] = 'auto';
+    out.uskOpacity = String(Math.min(100, Math.max(30, parseInt(out.uskOpacity, 10) || 100)));
     if (out.usk !== 'none' && !USK_VALUES.includes(out.usk)) out.usk = '0';
     return out;
   }
@@ -329,7 +384,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, code128, BARCODE_MIN_MODULE, ORIGINAL_ICONS, ICON_STYLES, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { BAR_HEIGHT, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -30,7 +30,7 @@ Der übliche Ablauf für eine Disc: Rezept im **Konfigurator** erstellen, mit de
 
 - **Ein Rezept:** Alles steht in der `menu.json` (mit Assets, als ZIP). Für eine neue Disc wird nichts neu programmiert.
 - **Konfigurator:** Eine Web-App ohne Backend, in der man das Rezept per Maske zusammenstellt, statt die JSON zu schreiben.
-- **Cover-Tool:** Eine zweite Web-App für die Hülle der Disc. Sie druckt Cover, Rücken und Rückseite mit Systemanforderungen im GOG-Stil (Stil Klassisch oder Modern, Deutsch oder Englisch, USK-Kennzeichnung, ohne Barcode).
+- **Cover-Tool:** Eine zweite Web-App für die Hülle der Disc. Sie druckt Cover, Rücken und Rückseite mit Systemanforderungen im GOG-Stil (Leistenstil, Deutsch oder Englisch, USK-Kennzeichnung, ohne Barcode).
 - **Einheitlicher Look, anpassbar:** Layout und Bedienung sind immer gleich, Texte, Cover, Hintergrund und Sounds kommen aus der Rezeptdatei.
 - **Eine oder mehrere Spiele pro Disc:** Bei mehreren Spielen gibt es eine Auswahlseite (Reihenfolge über `index`), bei nur einem Spiel öffnet sich direkt dessen Seite.
 - **Pro Spiel:** Installieren (wahlweise still mit Zielpfad), DLCs/Erweiterungen, Patches (z. B. Sprach- oder Grafikpatches), Extras (Soundtrack, Artbooks, Handbücher). Eigene Tabs (z. B. Mods) sind später geplant.
@@ -102,10 +102,11 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 ### Cover-Tool (Web-App, live unter /cover/)
 
-- [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, Barcode nur auf Wunsch, GOG-Galaxy-Feld, Deutsch oder Englisch
-- [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzlinien (Test im Browser)
-- [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden von Galaxy-Feld oder USK
-- [x] Zweiter Stil "Modern" (Konsolen-Stil) neben dem klassischen GOG-Stil
+- [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, Deutsch oder Englisch
+- [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzmarken (Test im Browser)
+- [x] Prozessoren und Grafikkarten als Listen (mehrere Einträge, an- und ausschaltbar, GeForce/Radeon, Speicher in GB), Import zerlegt "or" in einzelne Zeilen
+- [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden der USK
+- [x] Stil "Leiste" (Kopfleiste wie bei Handelsspielen) für alle Anbieter, bei GOG in zwei Farbvarianten
 - [x] Bilder werden auf Druckgröße verkleinert, Hinweis zur Schärfe (dpi)
 - [x] Tests im Repo (Logik, Druck, feste Plätze, beide Stile, Online-Abläufe) und Veröffentlichung unter `/cover/`
 - [ ] Mit echtem Drucker und echter Hülle prüfen (Maße, Schnittmarken)
@@ -138,6 +139,13 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [ ] Echte GOG-Installer testen: still installieren, Exit-Code, Log, Registry
 - [ ] Test auf echter Disc inklusive AutoPlay
 - [ ] Programm-Symbol und Versionsangaben in der EXE, Signierung (gegen die SmartScreen-Warnung)
+
+### Nächste Schritte der Web-Tools (Reihenfolge)
+
+- [ ] **GOG-Stil überarbeiten** (Vorderseite und Rücken): eigenständiger und weniger Lila-lastig, damit er zu mehr Covern passt (die dunkle Variante ist ein erster Schritt)
+- [ ] **Rückseite frei gestalten:** Konfigurator mit Textfeldern, Bildern und festen Bausteinen, die man selbst anordnet (wie die Steam-Rückseiten mit Beschreibung und Bildleiste)
+- [ ] **Beide Web-Tools zusammenführen:** Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
+- [ ] **Ein-Datei-Build:** Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
 
 ### Später
 

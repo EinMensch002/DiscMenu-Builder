@@ -9,12 +9,16 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 - **Läuft komplett im Browser.** Kein Backend, es wird nichts hochgeladen. Bilder werden lokal verarbeitet.
 - **Live-Vorschau:** Links die Einstellungen, rechts das Blatt in Originalproportionen. Jede Änderung ist sofort sichtbar.
-- **Zwei Stile:** Klassisch (wie die GOG-Originalhüllen) und Modern (angelehnt an Konsolenhüllen).
+- **Ein Stil für alle Anbieter:** die Leiste (Kopfleiste über die ganze Breite, wie bei Handelsspielen). Bei GOG gibt es zwei Farbvarianten.
 - **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben, Logo und Schriftzug (siehe [Anbieter](#anbieter)).
 - **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB, Publisher-Logos von Wikidata (siehe [Daten übernehmen](#daten-übernehmen)).
-- **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional Falzlinien.
+- **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional gestrichelte Falzmarken an den Rückenkanten (ebenfalls außerhalb).
 - **Deutsch oder Englisch:** Die Beschriftung auf dem Cover lässt sich wählen.
-- **USK statt PEGI oder ESRB.** Ein Barcode ist nur auf Wunsch dabei (siehe [Barcode](#barcode)). Die USK-Kennzeichnung steht vorn (35 × 35 mm, 3 mm Abstand) und auf Wunsch kleiner hinten.
+- **USK statt PEGI oder ESRB, ohne Barcode.** Die USK-Kennzeichnung steht vorn (35 × 35 mm, 3 mm Abstand) und auf Wunsch kleiner hinten.
+
+## Standardwerte
+
+Neue Projekte starten mit dem Stil **Leiste in GOG-Farben** (Lila mit grüner Linie), und dem Rückentitel mittig. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
 
 ## Schnellstart
 
@@ -33,7 +37,7 @@ Links stehen die **Einstellungen des Covers**, rechts die Vorschau. Alles, was n
 |---|---|
 | **Zum Konfigurator** | Wechselt zur Menü-Web-App |
 | **Daten übernehmen** | Menü mit "Aus Rezept (ZIP oder `menu.json`)" und "Anforderungen von Steam" |
-| **Projekt** | Menü mit "Projekt exportieren (ZIP)" und "Projekt importieren" |
+| **Projekt** | Menü mit "Im Browser speichern", "Speichern" (Strg+S), "Speichern unter" und "Öffnen". Daneben steht, ob Änderungen noch nicht in der Datei gespeichert sind und wann der Browser zuletzt gesichert hat |
 | **Einstellungen** | SteamGridDB-Schlüssel, Proxy, Verbindungstest und Sicherung der Einstellungen in einer Datei |
 | **Zurücksetzen** | Löscht alle Einstellungen und Bilder |
 | **Drucken** | Öffnet den Druckdialog |
@@ -42,26 +46,38 @@ Die Einstellungen des Covers links:
 
 | Bereich | Inhalt |
 |---|---|
-| Hülle und Disc | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung: Deutsch oder English. USK-Freigabe: 0, 6, 12, 16, 18 oder keine anzeigen, dazu "USK auch auf der Rückseite zeigen" |
-| Bilder | Frontcover, Rückseite oben, Rückseite unten (optional), Publisher-Logo (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
-| Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) und der optionale Barcode |
-| Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Bestenlisten, Mods, VR. Die Reihenfolge auf dem Cover ist fest. Die Symbole gibt es im **Linienstil** (Standard) oder als **GOG-Original** (nur die ersten sieben, die anderen bleiben im Linienstil) |
-| Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessor (Intel, AMD oder eigener Text), Grafikkarte (NVIDIA, AMD Radeon oder eigener Text), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus), Umbruch bei zwei Prozessoren oder Grafikkarten |
-| Darstellung und Druck | Stil, Größe des GOG-Logos auf dem Rücken (fest 7 mm oder Rückenbreite), Titel oben oder mittig auf dem Rücken, "PC" am Fuß des Rückens, GOG-Galaxy-Feld, Schnittmarken, Falzlinien |
+| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite, bis 18 × 9,5 mm groß). Sprache der Beschriftung. Farbvariante (nur bei GOG: GOG-Farben oder dunkel mit Lila) |
+| 2. Titel und Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
+| 3. Bilder | Frontcover, Rückseite oben, Rückseite unten (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
+| 4. Publisher-Logo und Altersfreigabe | Publisher-Logo (Vorderseite, Rückseite und Rücken), **Unterlage dahinter auf der Vorderseite** (keine, weiß oder schwarz), USK-Freigabe (0, 6, 12, 16, 18 oder keine), "USK auch auf der Rückseite zeigen" und Deckkraft der USK vorn (30 bis 100 %) |
+| 5. Rücken | Titel (oben oder mittig), Hintergrund (Farbe, **eigenes Rückenbild** mit wählbarem Ausschnitt und Abdunkeln, oder Frontbild fortsetzen), Größe des Anbieter-Logos, Rückenlogo (statt des Titels) mit Ausrichtung und Abständen, Publisher-Logo am Fuß mit Unterlage, Ausrichtung, Abstand und Breite, "PC" am Fuß |
+| 6. Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Mods, VR. Die Reihenfolge auf dem Cover ist fest, die Symbole sind Linien-SVG |
+| 7. Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessoren und Grafikkarten als Listen mit beliebig vielen Einträgen (siehe unten), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus) |
+| 8. Drucken | Schnittmarken an den Ecken, Falzmarken außerhalb des Covers an den Rückenkanten (gestrichelt), Hinweis zu den Druckeinstellungen |
 
 Einstellungen werden im Browser gemerkt (**ohne Bilder**, die müssen nach dem Neuladen erneut geladen werden). Wer die Bilder behalten will, exportiert das **Projekt** (siehe unten). "Zurücksetzen" löscht Einstellungen und Bilder.
 
 Oben erscheinen Hinweise, wenn etwas fehlt (Frontcover, Titel, Spielfunktionen). Sie blockieren nichts.
 
-### Prozessor und Grafikkarte
+### Prozessoren und Grafikkarten
 
-Die Auswahl erzeugt Texte wie "Intel Core i5-12400F", "AMD Ryzen 5 5600X", "NVIDIA GeForce RTX 3060 Ti" oder "AMD Radeon RX 6700 XT". Das Modell darf fehlen ("Intel Core i5"). Für alte Spiele gibt es das Feld **eigener Text**, das die Auswahl ersetzt (z. B. "Pentium III 500 MHz"). Sind Intel und AMD (oder NVIDIA und AMD) angehakt, stehen beide mit " / " nebeneinander. Ist dafür kein Platz, bricht die zweite Angabe um und der Schrägstrich entfällt. Mit "immer untereinander" lässt sich das erzwingen.
+Beides sind **Listen**: Mit **+ Intel**, **+ AMD** (Prozessor) bzw. **+ GeForce**, **+ Radeon** (Grafikkarte) kommt ein Eintrag hinzu, **+ Eigener Text** ergänzt freien Text (z. B. "Arc A380" oder "Pentium III 500 MHz"). Jeder Eintrag hat einen **Haken** (auf dem Cover zeigen oder ausschalten, ohne ihn zu löschen), die Art, Auswahlfelder und ✕ zum Entfernen. So sieht man auf einen Blick, um welche Karten es geht.
+
+- **Prozessor:** Intel (Core i3 bis i9, Core Ultra, Pentium, Celeron, Core 2) oder AMD (Ryzen, Athlon, Phenom, FX) mit Modell und Zusatz (K, KF, F bzw. X, X3D, G). Ergebnis z. B. "Intel Core i5-12400F", "AMD Ryzen 5 5600X".
+- **Grafikkarte:** GeForce (RTX, GTX, GTS, GT, Titan, Quadro) oder Radeon (RX, HD, R9, R7, R5, Vega) mit Modell, Zusatz (Ti, SUPER, **Ti SUPER**, XT, XTX, GRE) und **Speicher in GB**. Ergebnis z. B. "GeForce GTX 1060 6 GB", "Radeon RX 580 8 GB". Es steht **nur GeForce bzw. Radeon**, nie "NVIDIA GeForce" oder "AMD Radeon", auch nicht bei freiem Text (aus "NVIDIA GeForce 8800 GT" wird "GeForce 8800 GT").
+- **Auf dem Cover steht jeder Eintrag in einer eigenen Zeile**, untereinander wie in einer Liste.
+- **Import (z. B. Steam):** Ein "or", "oder" oder "/" trennt die Möglichkeiten, jede wird ein eigener Eintrag (keine Obergrenze außer 8). Was in die Auswahlfelder passt, kommt dorthin, z. B. "GeForce GTX 1060 6GB or Radeon RX 580 8GB or Arc A380" ergibt GeForce GTX 1060 / 6 GB, Radeon RX 580 / 8 GB und den Text "Arc A380". Was nicht passt, bleibt als Text erhalten, nichts geht verloren. Ein "or better" oder "or equivalent" am Ende entfällt.
+- Ältere gespeicherte Einstellungen (Intel/AMD- und NVIDIA/AMD-Felder) werden beim Laden automatisch in Einträge umgewandelt.
 
 ### Mindest- und empfohlene Anforderungen
 
 Im Formular gibt es bei den Systemanforderungen die Reiter **Mindestanforderungen** und **Empfohlen**. "Läuft auf" (Betriebssystem) gilt für beide. Auf dem Reiter "Empfohlen" schaltet **Empfohlene Anforderungen zusätzlich auf der Hülle zeigen** die zweite Spalte ein. Prozessor, Grafikkarte, Speicher, DirectX und Sonstiges lassen sich dort getrennt eintragen.
 
-Auf der Rückseite entsteht dann eine **Tabelle mit den Spalten Minimum und Empfohlen**. Angaben, die in beiden gleich sind (und das Betriebssystem), stehen nur einmal über beide Spalten, fehlt eine Angabe in einer Spalte, steht dort "–". Damit die Tabelle Platz hat, werden Galaxy-Feld und rechte Spalte etwas schmaler. Ist das Galaxy-Feld aus (Epic, Steam), nimmt die Tabelle seinen Platz mit. Ohne empfohlene Angaben bleibt es bei der einfachen Liste.
+Auf der Rückseite entsteht dann eine **Tabelle mit den Spalten Minimum und Empfohlen**. Angaben, die in beiden gleich sind (und das Betriebssystem), stehen nur einmal über beide Spalten, fehlt eine Angabe in einer Spalte, steht dort "–". Damit die Tabelle Platz hat, wird die rechte Spalte etwas schmaler. Ohne empfohlene Angaben bleibt es bei der einfachen Liste.
+
+**Sonstiges Satz für Satz:** Der Text bei "Sonstiges" wird in einzelne Sätze zerlegt, jeder Satz steht in einer eigenen Zeile. Sätze, die bei Minimum und Empfohlen **gleich** sind, stehen **einmal in der Mitte** über beide Spalten. Abweichende Sätze stehen nur in ihrer Spalte (in der anderen steht "–"). So steht z. B. "SSD required" mittig und ein nur im Minimum genannter Hinweis nur links. Dasselbe gilt für die anderen Zeilen: gleiche Werte (z. B. DirectX) stehen einmal in der Mitte.
+
+**Kopf mittig:** "Minimum" und "Empfohlen" stehen **mittig über dem tatsächlich beschriebenen Bereich** ihrer Spalte, also über der breitesten Zeile, nicht über der ganzen Spaltenbreite.
 
 **Nichts wird abgeschnitten:** Lange Angaben (auch Sonstiges) brechen um, und die Schrift wird bei Platzmangel kleiner (bis 4,4 pt). Alles, was in den Feldern steht, steht auch auf der Hülle. Ein Test prüft das für beide Stile und Anbieter.
 
@@ -83,11 +99,11 @@ Lädt eine Rezept-ZIP aus dem [Konfigurator](configurator.md) oder eine einzelne
 Sucht das Spiel im Steam-Shop und liest die Systemanforderungen aus. Mindest- und empfohlene Anforderungen werden **zusammen** gelesen und nebeneinander angezeigt (Minimum | Empfohlen). Mit **Übernehmen** landen die Mindestangaben in den normalen Feldern und die empfohlenen im Reiter "Empfohlen". Liefert Steam nur eine Liste, wird sie zur Mindestanforderung und die zweite Spalte bleibt aus. Übernommen werden:
 
 - Windows-Versionen (aus "OS", z. B. "Windows 7 / 8 / 10 (64-bit)"), macOS und Linux (aus den Plattformen),
-- **Prozessor** und **Grafikkarte** werden den **Kategorien** zugeordnet (Hersteller, Reihe, Modell, bei Alternativen wie "Core i7-6700 or Ryzen 5 1600" je Marke eine, höchstens zwei). Erkennt das Tool die Angabe nicht (z. B. nur "2.4 GHz"), steht sie stattdessen als Text. In der Vorschau-Tabelle steht je Zeile "in Kategorien" oder "als Text". **Arbeitsspeicher**, **Speicherplatz**, **DirectX**,
-- **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 140 Zeichen gekürzt),
-- die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller und Bestenlisten (aus den Steam-Kategorien).
+- **Prozessor** und **Grafikkarte** werden an "or", "oder" und "/" in einzelne Einträge zerlegt und, wo es passt, in die Auswahlfelder übernommen (Reihe, Modell, Zusatz, Speicher in GB), sonst als Text (siehe [Prozessoren und Grafikkarten](#prozessoren-und-grafikkarten)). In der Vorschau-Tabelle steht je Zeile "in Auswahlfeldern", "teils als Text" oder "als Text",
+- **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 240 Zeichen gekürzt),
+- die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller, Online, LAN, Cross-Plattform, Mods und VR (aus den Steam-Kategorien).
 
-Zusätzlich übernimmt der Steam-Import den **Spielnamen als Titel auf dem Rücken** sowie **Publisher und Entwickler** (als Vorgabe für die Logo-Suche). Ein Haken im Dialog lädt außerdem das **Steam-Cover (Hochformat, 600×900)** als Frontcover. Er ist vorgewählt, wenn noch kein Frontcover geladen ist. Klappt das Laden nicht (CORS oder ein Proxy, der den Host `cdn.akamai.steamstatic.com` nicht erlaubt), sind die Angaben trotzdem übernommen und es erscheint ein Hinweis.
+Zusätzlich übernimmt der Steam-Import die **Altersfreigabe als USK** (die USK, die Steam bei vielen Spielen mitliefert, sonst abgeleitet aus PEGI, ESRB oder dem Steam-Mindestalter, im Dialog steht die Herkunft dabei; liefert Steam nichts, bleibt die USK unverändert), den **Spielnamen als Titel auf dem Rücken** sowie **Publisher und Entwickler** (als Vorgabe für die Logo-Suche). Ein Haken im Dialog lädt außerdem das **Steam-Cover (Hochformat, 600×900)** als Frontcover. Er ist vorgewählt, wenn noch kein Frontcover geladen ist. Klappt das Laden nicht (CORS oder ein Proxy, der den Host `cdn.akamai.steamstatic.com` nicht erlaubt), sind die Angaben trotzdem übernommen und es erscheint ein Hinweis.
 
 Die Angaben kommen auf Englisch, so wie Steam sie liefert. Lange Angaben (z. B. ganze Sätze bei der Grafikkarte) werden für das Cover gekürzt. Hat ein Spiel keine Anforderungen, werden nur Plattformen und Funktionen übernommen. **SteamDB** hat keine offene Schnittstelle und wird deshalb nicht genutzt.
 
@@ -100,7 +116,7 @@ Die Angaben kommen auf Englisch, so wie Steam sie liefert. Lange Angaben (z. B. 
 
 ### Publisher-Logo suchen
 
-Beim Publisher-Logo (🔎 im Bildfeld) sucht das Tool **nicht bei SteamGridDB, sondern bei Wikidata** (Logos kommen von Wikimedia Commons). Das Suchfeld ist mit dem **Publisher aus dem Steam-Import** vorbelegt (z. B. "Valve"), darunter stehen Knöpfe für Publisher und Entwickler (z. B. "CD PROJEKT RED"). Es erscheinen nur Firmen, bei denen ein Logo hinterlegt ist. Aktuelle Logos stehen vorn, ältere (bei Wikidata mit Enddatum) sind als "älteres Logo" gekennzeichnet. Ein Klick wählt das Logo, "Als Publisher-Logo übernehmen" lädt es (als PNG, 800 px breit, transparent). Es ist weder ein Schlüssel noch ein Proxy nötig. Nicht jede Firma hat ein Logo bei Wikidata, dann hilft ein anderer Name oder das Logo als Datei.
+Beim Publisher-Logo (🔎 im Bildfeld) sucht das Tool **nicht bei SteamGridDB, sondern bei Wikidata** (Logos kommen von Wikimedia Commons). Das Suchfeld ist mit dem **Publisher aus dem Steam-Import** vorbelegt (z. B. "Valve"), darunter stehen Knöpfe für Publisher und Entwickler (z. B. "CD PROJEKT RED"). Es erscheinen nur Firmen, bei denen ein Logo hinterlegt ist. Aktuelle Logos stehen vorn, ältere (bei Wikidata mit Enddatum) sind als "älteres Logo" gekennzeichnet. Ein Klick wählt das Logo, "Als Publisher-Logo übernehmen" lädt es (als PNG, 800 px breit, transparent). Es ist weder ein Schlüssel noch ein Proxy nötig. Nicht jede Firma hat ein Logo bei Wikidata (Indie-Studios oft nicht). Dann die **Quelle im Dialog auf Brandfetch** umstellen: Brandfetch findet Firmen über ihre Webseite und liefert das Firmensymbol. Dafür braucht man eine **kostenlose Client-ID** aus dem [Brandfetch-Entwicklerportal](https://developers.brandfetch.com/), die in den Einstellungen eingetragen wird (nur in diesem Browser gespeichert, auch in der Einstellungsdatei sicherbar). Brandfetch liefert meist das **Symbol** der Firma, nicht den langen Schriftzug. Hilft beides nicht, bleibt das Logo als Datei.
 
 ### Bilder von SteamGridDB
 
@@ -124,20 +140,23 @@ GitHub Pages liefert Dateien bis zu 10 Minuten zwischengespeichert. Damit nach e
 
 Über **Projekt** in der oberen Leiste:
 
-- **Projekt exportieren (ZIP):** Speichert alle Einstellungen und die Bilder in einer Datei `<titel>-cover.zip` (in Chrome und Edge mit Dateiauswahl, sonst als Download). Die ZIP enthält `cover.json` mit den Einstellungen und die Bilder unter `images/`. Der SteamGridDB-Schlüssel steht **nicht** darin.
-- **Projekt importieren:** Lädt so eine ZIP und ersetzt das aktuelle Projekt (mit Rückfrage). Fehlt ein Bild in der ZIP, wird der Rest trotzdem geladen und das Fehlende gemeldet. Falsche oder beschädigte Dateien werden abgelehnt, ohne das aktuelle Projekt zu verändern.
+- **Im Browser speichern (automatisch):** Einstellungen **und Bilder** werden kurz nach jeder Änderung im Speicher des Browsers gesichert (Einstellungen in `localStorage`, Bilder in der `IndexedDB`). Nach dem **Neuladen der Seite ist der ganze Stand wieder da**, auch die Bilder, ohne Datei. "Im Browser speichern" sichert sofort. Der Speicher gilt pro Browser und pro Adresse (lokale Datei und GitHub Pages sind getrennt). "Zurücksetzen" leert ihn. Wird er vom Browser gesperrt (z. B. privates Fenster), steht ein Hinweis da. Für Sicherungskopien und zum Weitergeben bleibt "Speichern" in eine Datei.
+- **Speichern (Strg+S):** Schreibt alle Einstellungen und Bilder in eine Datei `<titel>-cover.zip`. In **Chrome und Edge** merkt sich das Tool die Datei: Das erste Speichern fragt nach dem Ort, danach **überschreibt** "Speichern" dieselbe Datei ohne Nachfrage (auch nach "Öffnen"). In anderen Browsern (z. B. Firefox) kann ein Programm keine Datei überschreiben, dort lädt jedes Speichern die ZIP neu herunter. Die ZIP enthält `cover.json` mit den Einstellungen und die Bilder unter `images/`. Der SteamGridDB-Schlüssel steht **nicht** darin.
+- **Speichern unter:** Fragt immer nach einer neuen Datei.
+- **Öffnen:** Lädt so eine ZIP und ersetzt das aktuelle Projekt (mit Rückfrage). In Chrome und Edge überschreibt "Speichern" danach genau diese Datei. Fehlt ein Bild in der ZIP, wird der Rest trotzdem geladen und das Fehlende gemeldet. Falsche oder beschädigte Dateien werden abgelehnt, ohne das aktuelle Projekt zu verändern.
+- **Ungespeichert:** Neben dem Menü steht der Dateiname und "● ungespeichert", sobald sich etwas geändert hat. Beim Schließen der Seite warnt der Browser, wenn Bilder geladen und noch nicht gespeichert sind. Die Einstellungen (ohne Bilder) merkt sich das Tool unabhängig davon automatisch im Browser.
 
 Die Bilder werden dabei unverändert übernommen (nicht erneut verkleinert oder neu kodiert).
 
 ## Anbieter
 
-Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Das Logo steht an denselben Plätzen wie das GOG-Logo: in der Ecke (klassisch) oder im Streifen oben (Modern) auf der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.png`).
+Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games und Steam** ist der Streifen mit den Spielfunktionen auf der Rückseite dunkel statt hell (Steam: Marineblau mit blauer Linie, Epic: Dunkelgrau). Das Logo steht in der Kopfleiste der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Alle Grafiken des Tools (auch die USK-Zeichen, die DVD-/CD-/Blu-ray-Logos und das GOG-Logo, jeweils nur 2 bis 6 KB) sind **SVG**, es gibt keine Rastergrafiken mehr (Voraussetzung für die spätere Ein-Datei-Version). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.svg`).
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
-| **GOG** | Lila | GOG-Logo | Galaxy-Feld, grüner Streifen, im Stil Modern "PC · DRM-FREI" |
-| **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | heller grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
-| **Steam** | Marineblau | Logo und Schriftzug "STEAM" | blauer Streifen, Hinweis "Steam", kein Galaxy-Feld |
+| **GOG** | Lila | GOG-Logo | Grüner Streifen, in der Leiste "PC · DRM-FREI", Leiste in Lila mit grüner Linie |
+| **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | dunkler grauer Streifen, Hinweis "Epic Games Launcher" |
+| **Steam** | Marineblau | Logo und Schriftzug "STEAM" | dunkelblauer Streifen mit blauer Akzentlinie, Hinweis "Steam" |
 
 Der Anbieter wird mit den Einstellungen gemerkt und aus dem Rezept übernommen. Dieselbe Farbzuordnung nutzt das Menü ([player-und-builder.md](player-und-builder.md)).
 
@@ -158,11 +177,10 @@ Ohne Bild für "Rückseite unten" setzt sich das obere Bild hinter den Angaben f
 
 | Element | Fläche |
 |---|---|
-| GOG-Logo-Ecke (Klassisch) | oben links, etwa 22 × 21 mm |
-| Streifen oben (Modern) | oberste 11 mm der Vorderseite |
+| Kopfleiste | oberste 18,6 mm der Vorderseite und des Rückens |
 | USK vorn | 35 × 35 mm, 3 mm vom linken und unteren Rand |
 | Publisher-Logo vorn | bis 32 × 14 mm, 6 mm vom rechten und unteren Rand |
-| Grüner Streifen und Angabenfeld | 13 mm und 46 mm am unteren Rand der Rückseite |
+| Grüner Streifen und Angabenfeld | 15 mm und 46 mm am unteren Rand der Rückseite |
 
 ## Eigene Maße
 
@@ -173,31 +191,29 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 
 **Die Vorlagen sind Richtwerte.** Die Herstellerangaben für Blu-ray-Einleger weichen voneinander ab (Gesamtbreite 262 bis 272 mm, Seitenbreite 126 bis 129 mm, Rücken 11 bis 14 mm). Miss deinen Einleger nach und trage die Werte ein.
 
-## Stile
+## Stil
 
-| Stil | Aussehen |
-|---|---|
-| **Klassisch** (Standard) | Wie die GOG-Originalhüllen: lila Logo-Ecke oben links auf der Vorderseite, grüner Streifen mit Spielfunktionen, helles Feld mit den Angaben, lila Rücken |
-| **Modern** (Konsolen-Stil) | Angelehnt an Hüllen von PlayStation, Switch und Xbox: lila Streifen über die ganze Breite oben auf der Vorderseite mit GOG-Logo und "PC · DRM-FREI", dunkler Rücken mit lila Kopf (Logo) und Fuß ("PC"), dunkler Streifen mit hellen Symbolen, dunkles Feld mit gerahmter Überschrift "Systemanforderungen". Disc- und Publisher-Logo stehen auf weißen Kacheln |
+Es gibt einen Stil für alle Anbieter, die **Leiste**: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten.
 
-Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseite und Rücken das GOG-Logo. Der Stil wird mit den Einstellungen gemerkt.
+Bei **GOG** gibt es zwei Farbvarianten (Feld "Farbvariante"): **GOG-Farben** (Lila mit grüner Linie, Standard) und **Dunkel mit Lila** (Anthrazit mit lila Linie, passt zu den meisten Covern, färbt auch den Rücken). Bei Steam und Epic gibt es nichts zu wählen, die Farben sind ohnehin dunkel.
 
+Beide Anbieter-Farben und die Rückseite (helles Feld mit den Angaben) sind in allen Fällen gleich aufgebaut.
 ## Feste Plätze auf der Rückseite
 
-Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (20 × 24 mm, bewusst klein, damit mehr Platz für die Angaben bleibt), in der Mitte die **Angaben**, rechts **Logos, USK und Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Schaltet man das Galaxy-Feld aus (oder wählt Epic Games oder Steam), **rücken nur die Angaben nach links an den Rand** und nutzen den freien Platz, alles andere bleibt, wo es ist. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
+Die Rückseite hat feste Plätze: links die **Angaben** (am linken Rand, so breit wie möglich), rechts eine **schmale Spalte** mit **Publisher-Logo, Disc-Logo und USK** übereinander, unten in der Mitte das **Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
 
-## Barcode
+## Rücken-Logo, Rückenbild und Publisher
 
-Optional steht unter dem USK-Zeichen auf der Rückseite ein **Barcode (Code 128)**, kein QR-Code. Er ist unter "Texte" einzuschalten, der Inhalt ist frei wählbar. Der Steam-Import trägt den Kurzlink `s.team/a/<App-ID>` ein (z. B. `s.team/a/1091500`), den Barcode schaltet er nie selbst ein.
-
-- **Grenzen:** Ein Barcode liest sich nur, wenn die Striche breit genug sind. Der Platz ist etwa 40 mm breit (mit der Minimum/Empfohlen-Tabelle 31 mm). Ab etwa 0,19 mm je Strich ist er scannbar, das reicht für rund 14 bis 17 Zeichen. Deshalb Kurzlinks wie `s.team/a/70` nehmen, lange Adressen warnt das Tool als zu dicht ab.
-- **Was ein Scanner tut:** Er liest den Text. Ob eine Handy-App daraus einen Link macht, entscheidet die App (Adressen ohne `https://` werden meist als Webadresse erkannt). Die Kodierung ist gegen die Bibliothek JsBarcode geprüft.
-- Erlaubt sind Zeichen ohne Umlaute, höchstens 40.
+- **Logo für den Rücken:** Im Bereich "Bilder" lässt sich ein Spiel-Logo laden (🔎 sucht bei SteamGridDB nach Logos). Es steht dann **statt des Titels**, um 90° gedreht und so groß wie der Rücken es zulässt. Mit dem Haken "Statt des Titels das Rückenlogo zeigen" lässt sich zum Titel zurückschalten. Breite Logos stehen gedreht (Ausrichtung einstellbar). Das Seitenverhältnis bleibt immer erhalten. Einstellbar sind die **Abstände in mm zu den Seiten, zum Kopf (oben) und zum Fuß (unten)**. Ist das Logo kürzer als der Platz, steht es oben bündig oder mittig zwischen den Abständen (je nach Einstellung "Titel auf dem Rücken" oben/mittig). Der **Steam-Import** lädt das Logo auf Wunsch mit (Haken im Dialog, von der Steam-Adresse `…/apps/<ID>/logo.png`). Hat Steam dort keins, steht ein Hinweis da und der Rücken zeigt den Titel.
+- **Eigenes Rückenbild:** Im Bereich "Rücken" lässt sich ein eigenes Bild für den Rückenhintergrund laden (🔎 sucht bei SteamGridDB, am besten unter "Hintergründe"). Es füllt den Rücken zugeschnitten. Mit **"Ausschnitt"** (links ↔ rechts in %) wählst du die Stelle, mit **"Abdunkeln"** die Lesbarkeit für Titel und Logo. So bleibt das Frontbild unverändert, auch wenn es einen Schriftzug in der Mitte hat.
+- **Bild über den Rücken fortsetzen:** Unter "Hintergrund des Rückens" lässt sich statt der Anbieterfarbe das **Frontbild über den Rücken weiterführen**, wie bei Hüllen mit durchgehendem Motiv. Der Rücken wird dafür etwas abgedunkelt, damit Titel und Logo lesbar bleiben. Bei der Leiste beginnt das Bild unter der Kopfleiste.
+- **Publisher-Logo am Fuß:** Ist ein Publisher-Logo geladen, steht es am Fuß des Rückens auf einer weißen Kachel, **"PC" bleibt immer ganz unten an derselben Stelle, das Logo steht darüber**. Der Platz richtet sich nach dem Rücken, nicht nach dem Logo: Ein zu breites Logo macht den Rücken **nie** breiter. Zu breite Logos (aufrecht kleiner als etwa 4 mm hoch) werden **automatisch um 90° gedreht**. Einstellbar sind die **Ausrichtung** (Automatisch, Aufrecht, Gedreht), der **Abstand zur Seite** in mm und eine eigene **Breite** in mm (leer = automatisch; bei gedrehtem Logo ist es die Länge entlang des Rückens). Abschaltbar ("Publisher-Logo am Fuß des Rückens").
+- **Hintergrund transparent machen:** Der Knopf ◧ am Publisher-Logo und am Rückenlogo macht einen einfarbigen Hintergrund (z. B. Weiß bei Logos von Brandfetch) transparent. Er arbeitet vom Rand aus und blendet die Kante weich über. Im Publisher-Dialog geschieht das automatisch (abschaltbar). Bei Farbverläufen oder mehrfarbigen Ecken meldet das Tool, dass nichts erkannt wurde.
 
 ## Rücken
 
 - Das **GOG-Logo** steht oben, entweder in fester Größe (7 mm, Slim 5,5 mm) oder in Rückenbreite.
-- Am Fuß steht **"PC"** (abschaltbar). Beim Stil Modern liegt es auf einem Farbbalken.
+- Am Fuß steht **"PC"** (abschaltbar). 
 - Der **Titel** steht oben unter dem Logo oder **mittig** (Auswahl "Titel auf dem Rücken").
 - Der **Titel** steht senkrecht in normaler Schreibweise. Er wird so groß wie möglich (bis 12 pt, Slim bis 8 pt) und verkleinert sich bei langen Titeln selbst, höchstens bis 5 pt.
 
@@ -205,7 +221,7 @@ Optional steht unter dem USK-Zeichen auf der Rückseite ein **Barcode (Code 128)
 
 1. Auf **Drucken** klicken.
 2. Im Druckdialog: Papier **A4**, Ausrichtung **quer**, Skalierung **100 %** (nicht "Anpassen"), Ränder **Keine**, **Hintergrundgrafiken** einschalten.
-3. Ausdrucken und an den **Schnittmarken** ausschneiden. Die **Falzlinien** am Rücken (gestrichelt, nur wenn eingeschaltet) helfen beim Falten.
+3. Ausdrucken und an den **Schnittmarken** ausschneiden. Die **Falzmarken** (kurze gestrichelte Striche oben und unten außerhalb des Covers, auf Höhe der Rückenkanten; nur wenn eingeschaltet, auch im Druck) helfen beim Falten.
 
 Rücken und Vorderseite überlappen um 0,6 mm, damit beim Drucken keine helle Naht zwischen ihnen entsteht. Flächen ohne Bild bleiben im Druck weiß. Ein Test misst die Naht in der Vorschau bei mehreren Maßstäben.
 
@@ -215,7 +231,7 @@ Das Cover wird in Originalgröße (273 × 183 mm, Slim 266 × 183 mm) mittig auf
 
 ## Symbole
 
-Die Linien-Symbole stammen aus [Lucide](https://lucide.dev/) (ISC-Lizenz, Datei `assets/images/features/line/LICENSE-lucide.txt`) und sind kleine schwarze SVG-Dateien (unter 1 KB), also in jeder Größe scharf. Die GOG-Originale bleiben als Auswahl erhalten.
+Die Symbole der Spielfunktionen stammen aus [Lucide](https://lucide.dev/) (ISC-Lizenz, Datei `assets/images/features/line/LICENSE-lucide.txt`) und sind kleine schwarze SVG-Dateien (unter 1 KB), also in jeder Größe scharf. Das VR-Symbol ist selbst gezeichnet. Die früheren GOG-Original-Symbole (PNG) und die Bestenlisten gibt es nicht mehr.
 
 ## Aufbau der Dateien
 
@@ -258,12 +274,12 @@ Der Stand der Planung steht in der Roadmap in der [README](../README.md).
 Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unter anderem:
 
 - **Schnittmarken** erschienen nie (falscher CSS-Selektor) und saßen im Druck an der falschen Stelle. Jetzt liegen sie am Cover und werden bei jedem Test im Druck geprüft.
-- **Blu-ray-Logo** wurde nicht geladen (Dateiname `blu_ray.png` statt `blu-ray.png`).
+- **Blu-ray-Logo** wurde nicht geladen (Dateiname `blu_ray.svg` statt `blu-ray.svg`).
 - **Leistung:** Die USK-Bilder hatten 5625 × 5625 Pixel (je rund 120 MB im Speicher) und sind jetzt 700 × 700. Hochgeladene Bilder werden auf Druckgröße verkleinert und nicht mehr als riesiger Base64-Text gehalten. Die Weichzeichnung (`backdrop-filter`) ist entfernt.
 - **Schrift:** Lato lag im Archiv, wurde aber nie geladen.
 - **Rücken:** Der Titel steht in normaler Schreibweise (wie bei den GOG-Vorlagen) und verkleinert sich bei langen Titeln von selbst.
 - **Verschieben der Rückseite:** Ausgeblendete Elemente gaben ihren Platz im Layout frei und ließen andere rutschen. Jetzt hat die Rückseite feste Plätze.
-- Hinzugekommen: Live-Vorschau statt Formular-Abschicken, GOG-Galaxy-Feld, Zeile "Sonstiges", Beschriftungen auf Deutsch oder Englisch, Windows XP und Vista, macOS und Linux, eigener Text für Prozessor und Grafikkarte, Bestenlisten-Symbol, Hinweis zur Bildschärfe, zweiter Stil "Modern".
+- Hinzugekommen: Live-Vorschau statt Formular-Abschicken, Zeile "Sonstiges", Beschriftungen auf Deutsch oder Englisch, Windows XP und Vista, macOS und Linux, eigener Text für Prozessor und Grafikkarte, Bestenlisten-Symbol, Hinweis zur Bildschärfe, zweiter Stil "Modern".
 
 ## Tests
 
@@ -273,5 +289,6 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 
 ## Hinweise
 
-- GOG, Epic Games, Steam (Namen und Logos), die USK-Symbole und das GOG-Galaxy-Feld sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
+- GOG, Epic Games, Steam (Namen und Logos) und die USK-Symbole sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
 - Die Schrift Lato steht unter der SIL Open Font License (siehe `cover-tool/assets/fonts/README.txt`).
+

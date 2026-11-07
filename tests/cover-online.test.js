@@ -47,9 +47,9 @@ test('Steam: Auswahl für das Cover-Tool (Anforderungen, Plattformen, Funktionen
   };
   const min = O.steamPatch(details, 'minimum');
   assert.deepEqual(min.patch.os, { win: ['7', '8', '10'], x64: true, mac: false, linux: true });
-  // Prozessor in die Kategorien (Intel und AMD), die alte Grafikkarte passt in keine Kategorie und bleibt Text
-  assert.deepEqual(min.patch.cpu, { intel: { on: true, pre: 'Core 2 Duo', num: 'E6600', sfx: '' }, amd: { on: true, pre: 'Phenom', num: 'X3 8750', sfx: '' }, custom: '' });
-  assert.deepEqual(min.patch.gpu, { custom: 'NVIDIA GeForce 8800 GT' });
+  // Prozessor: je ein Eintrag für Intel und AMD in den Auswahlfeldern, die alte Grafikkarte passt in kein Feld und bleibt Text (ohne NVIDIA davor)
+  assert.deepEqual(min.patch.cpu.items.map((i) => [i.kind, i.pre, i.num]), [['intel', 'Core 2 Duo', 'E6600'], ['amd', 'Phenom', 'X3 8750']]);
+  assert.deepEqual(min.patch.gpu.items.map((i) => [i.kind, i.text]), [['text', 'GeForce 8800 GT']]);
   assert.deepEqual(min.shown.find((r) => r[0] === 'Prozessor'), ['Prozessor', 'Intel Core 2 Duo E6600 / AMD Phenom X3 8750', 'Kategorie']);
   assert.deepEqual(min.shown.find((r) => r[0] === 'Grafik').slice(2), ['Text']);
   assert.equal(min.patch.ram, '2'); assert.equal(min.patch.space, '8'); assert.equal(min.patch.dx, 'Version 9.0c');
@@ -63,22 +63,23 @@ test('Steam: Auswahl für das Cover-Tool (Anforderungen, Plattformen, Funktionen
   assert.deepEqual(none.patch, {}); assert.equal(none.hasRequirements, false);
   // Lange Zusatzangaben werden gekürzt, damit sie auf das Cover passen
   const long = O.steamPatch({ pc_requirements: { minimum: '<ul><li><strong>Additional Notes:</strong> ' + 'x'.repeat(200) + '</li></ul>' } }, 'minimum');
-  assert.ok(long.patch.other.length <= 140);
+  assert.ok(long.patch.other.length <= 240);
 });
 
-test('Steam: Prozessor und Grafikkarte kommen in die Kategorien (Beispiel Cyberpunk 2077)', () => {
+test('Steam: Prozessor und Grafikkarte werden in Einträge zerlegt (Beispiel Cyberpunk 2077)', () => {
   const details = { pc_requirements: { minimum: '<ul><li><strong>OS *:</strong> 64-bit Windows 10<br></li><li><strong>Processor:</strong> Core i7-6700 or Ryzen 5 1600<br></li><li><strong>Memory:</strong> 12 GB RAM<br></li><li><strong>Graphics:</strong> GeForce GTX 1060 6GB or Radeon RX 580 8GB<br></li><li><strong>Storage:</strong> 70 GB available space<br></li><li><strong>Additional Notes:</strong> SSD required. Attention: In this game you will encounter a variety of visual effects that might trigger photosensitivity<br></li></ul>' } };
   const p = O.steamPatch(details, 'minimum').patch;
-  assert.deepEqual(p.cpu.intel, { on: true, pre: 'Core i7', num: '6700', sfx: '' });
-  assert.deepEqual(p.cpu.amd, { on: true, pre: 'Ryzen 5', num: '1600', sfx: '' });
-  assert.deepEqual(p.gpu.nvidia, { on: true, pre: 'GTX', num: '1060', sfx: '6GB' });
-  assert.deepEqual(p.gpu.amd, { on: true, pre: 'RX', num: '580', sfx: '8GB' });
-  assert.equal(p.cpu.custom, ''); assert.equal(p.gpu.custom, '');          // ein früherer eigener Text wird ersetzt
-  assert.ok(p.other.length <= 140, 'Sonstiges ist kurz genug für das Cover');
-  const state = C.mergeState({ ...C.defaultState(), cpu: { ...C.defaultState().cpu, custom: 'alter Text' } });
-  const rows = C.buildSpecs({ ...state, cpu: { ...state.cpu, ...p.cpu }, gpu: { ...state.gpu, ...p.gpu } });
-  assert.deepEqual(rows.find((r) => r.key === 'cpu').values, ['Intel Core i7-6700', 'AMD Ryzen 5 1600']);
-  assert.deepEqual(rows.find((r) => r.key === 'gpu').values, ['NVIDIA GeForce GTX 1060 6GB', 'AMD Radeon RX 580 8GB']);
+  assert.deepEqual(p.cpu.items.map((i) => [i.kind, i.pre, i.num, i.sfx]), [['intel', 'Core i7', '6700', ''], ['amd', 'Ryzen 5', '1600', '']]);
+  assert.deepEqual(p.gpu.items.map((i) => [i.kind, i.pre, i.num, i.gb]), [['geforce', 'GTX', '1060', '6'], ['radeon', 'RX', '580', '8']]);
+  assert.ok(p.other.length <= 240);
+  const state = C.mergeState({ ...C.defaultState(), cpu: { items: [{ kind: 'text', text: 'alter Text' }] } });
+  const merged = C.mergeState({ ...state, ...p });                         // ein früherer Eintrag wird ersetzt
+  assert.deepEqual(C.cpuList(merged.cpu), ['Intel Core i7-6700', 'AMD Ryzen 5 1600']);
+  assert.deepEqual(C.gpuList(merged.gpu), ['GeForce GTX 1060 6 GB', 'Radeon RX 580 8 GB']);
+  // "or" und eine dritte Karte (Arc) trennen in einzelne Zeilen, die Arc-Karte bleibt Text
+  const arc = O.steamPatch({ pc_requirements: { minimum: '<ul><li><strong>Graphics:</strong> GeForce GTX 1060 6GB or Radeon RX 580 8GB or Arc A380<br></li></ul>' } }, 'minimum');
+  assert.deepEqual(C.gpuList(arc.patch.gpu), ['GeForce GTX 1060 6 GB', 'Radeon RX 580 8 GB', 'Arc A380']);
+  assert.equal(arc.shown.find((r) => r[0] === 'Grafik')[2], 'Gemischt');
 });
 
 test('Der Auszug von Steam passt in den Zustand des Cover-Tools', () => {
@@ -184,8 +185,8 @@ test('Steam: Mindest- und empfohlene Anforderungen auf einmal', () => {
   const both = O.steamPatchBoth(details);
   assert.equal(both.hasBoth, true);
   assert.equal(both.patch.rec.on, true);
-  assert.deepEqual(both.patch.cpu.intel, { on: true, pre: 'Core i5', num: '4460', sfx: '' });
-  assert.deepEqual(both.patch.rec.cpu.intel, { on: true, pre: 'Core i7', num: '6700', sfx: '' });
+  assert.deepEqual(both.patch.cpu.items.map((i) => [i.kind, i.pre, i.num]), [['intel', 'Core i5', '4460'], ['amd', 'FX', '6300']]);
+  assert.deepEqual(both.patch.rec.cpu.items.map((i) => [i.kind, i.pre, i.num]), [['intel', 'Core i7', '6700'], ['amd', 'Ryzen 5', '1600']]);
   assert.equal(both.patch.rec.ram, '8'); assert.equal(both.patch.ram, '4');
   assert.equal(both.patch.rec.space, '');            // fehlende Angabe ersetzt einen alten Wert
   const cpuRow = both.shown.find((r) => r.label === 'Prozessor');
@@ -203,7 +204,7 @@ test('Steam: Mindest- und empfohlene Anforderungen auf einmal', () => {
 });
 
 test('Systemanforderungen: Alles aus den Feldern steht auch in der Tabelle der Rückseite', () => {
-  const s = C.mergeState({ ...C.defaultState(), other: 'SSD required', cpu: { intel: { on: true, pre: 'Core i5', num: '4460', sfx: '' }, amd: { on: false }, custom: '' }, dx: '11' });
+  const s = C.mergeState({ ...C.defaultState(), other: 'SSD required', cpu: { items: [{ kind: 'intel', pre: 'Core i5', num: '4460' }] }, dx: '11' });
   let t = C.buildSpecTable(s);
   assert.equal(t.dual, false);                                      // ohne empfohlene Angaben kein Doppelspalt
   assert.deepEqual(t.rows.map((r) => r.key), ['os', 'cpu', 'ram', 'dx', 'space', 'other']);
@@ -213,6 +214,12 @@ test('Systemanforderungen: Alles aus den Feldern steht auch in der Tabelle der R
   assert.deepEqual(t.rows.find((r) => r.key === 'ram'), { key: 'ram', label: 'Arbeitsspeicher', short: 'RAM', min: ['4 GB RAM'], rec: ['8 GB RAM'], shared: false });
   assert.equal(t.rows.find((r) => r.key === 'other').shared, true);
   assert.equal(C.buildSpecTable({ ...s, lang: 'en' }).labels.rec, 'RECOMMENDED');
+  // Sonstiges Satz für Satz: Gleiche Sätze stehen einmal in der Mitte (über beide Spalten), abweichende in ihrer Spalte
+  const o = C.buildSpecTable({ ...s, other: 'SSD required. Attention: this game has flashing lights ...', rec: { ...s.rec, on: true, other: 'SSD required.', ram: '8' } }).rows.filter((r) => r.key === 'other');
+  assert.deepEqual(o.map((r) => [r.label, r.min, r.rec, r.shared, !!r.cont]), [['Sonstiges', ['SSD required'], [], true, false], ['', ['Attention: this game has flashing lights ...'], [], false, true]]);
+  const o2 = C.buildSpecTable({ ...s, other: 'SSD required', rec: { ...s.rec, on: true, other: 'SSD required. 16 GB RAM recommended', ram: '8' } }).rows.filter((r) => r.key === 'other');
+  assert.deepEqual(o2.map((r) => [r.min, r.rec, r.shared]), [[['SSD required'], [], true], [[], ['16 GB RAM recommended'], false]]);
+  assert.deepEqual(C.buildSpecTable({ ...s, other: 'Eins. Zwei! Drei?' }).rows.find((r) => r.key === 'other').min, ['Eins', 'Zwei!', 'Drei?']);          // ohne Empfohlen: jeder Satz eine Zeile
 });
 
 test('Steam: Spielname, Publisher und Entwickler werden übernommen, Wikidata-Logosuche', async () => {
@@ -247,10 +254,53 @@ test('Steam: Spielname, Publisher und Entwickler werden übernommen, Wikidata-Lo
   finally { globalThis.fetch = real; }
 });
 
-test('Steam: neue Funktionen (Online, LAN, Cross-Plattform, Mods, VR) und Kurzlink für den Barcode', () => {
+test('Steam: neue Funktionen (Online, LAN, Cross-Plattform, Mods, VR)', () => {
   assert.deepEqual(O.steamFeatures([{ id: 2 }, { id: 36 }, { id: 48 }, { id: 27 }, { id: 30 }, { id: 53 }, { id: 22 }]),
     ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'achievements', 'mods', 'vr']);
-  const b = O.steamPatchBoth({ name: 'X', steam_appid: 1091500, pc_requirements: [] });
-  assert.deepEqual(b.patch.barcode, { text: 's.team/a/1091500' });
-  assert.equal(C.mergeState({ ...C.defaultState(), ...b.patch }).barcode.on, false);      // Barcode wird nie von selbst eingeschaltet
+  assert.deepEqual(O.steamFeatures([{ id: 25 }]), []);      // Bestenlisten gibt es nicht mehr
+});
+
+test('Steam: Altersfreigabe wird als USK übernommen', () => {
+  assert.deepEqual(O.steamUsk({ ratings: { usk: { rating: '16' }, pegi: { rating: '18' } } }), { value: '16', source: 'USK laut Steam' });       // USK hat Vorrang
+  assert.equal(O.steamUsk({ ratings: { pegi: { rating: '3' } } }).value, '0');
+  assert.equal(O.steamUsk({ ratings: { pegi: { rating: '7' } } }).value, '6');
+  assert.equal(O.steamUsk({ ratings: { esrb: { rating: 'm' } } }).value, '16');
+  assert.equal(O.steamUsk({ required_age: '13' }).value, '12');
+  assert.equal(O.steamUsk({ required_age: 18 }).value, '18');
+  assert.equal(O.steamUsk({ required_age: 0, ratings: [] }), null);                    // nichts Brauchbares: USK bleibt unverändert
+  const b = O.steamPatchBoth({ name: 'X', ratings: { usk: { rating: '12' } }, pc_requirements: [] });
+  assert.equal(b.patch.usk, '12'); assert.match(b.shown.find((r) => r.label === 'USK-Freigabe').min, /ab 12 Jahren \(USK laut Steam\)/);
+  assert.equal(O.steamPatchBoth({ name: 'X', pc_requirements: [] }).patch.usk, undefined);
+  assert.ok(C.USK_VALUES.includes(b.patch.usk));
+});
+
+test('Brandfetch: Suche nach Firmenlogos mit Client-ID', async () => {
+  const mem = new Map();
+  globalThis.localStorage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  const real = globalThis.fetch; let asked = '';
+  try {
+    await assert.rejects(O.brandSearch('Team Cherry'), /Client-ID/);                      // ohne ID kein Versuch
+    O.settings.saveBrandfetch('  ID123 ');
+    assert.equal(O.settings.brandfetch, 'ID123');
+    globalThis.fetch = async (url) => { asked = url; return { ok: true, status: 200, json: async () => [
+      { brandId: 'b1', name: 'Team Cherry', domain: 'teamcherry.com.au', icon: 'https://asset.example/icon.png', claimed: false },
+      { brandId: 'b2', name: 'Ohne Icon', domain: 'x.example' }, { name: '' }, { brandId: 'b3', name: 'Ohne Domain und Bild' }] }; };
+    const res = await O.brandSearch('Team Cherry');
+    assert.equal(asked, 'https://api.brandfetch.io/v2/search/Team%20Cherry?c=ID123');
+    assert.deepEqual(res.map((r) => [r.label, r.url]), [['Team Cherry', 'https://asset.example/icon.png'], ['Ohne Icon', 'https://cdn.brandfetch.io/x.example/w/400/h/400?c=ID123']]);
+    globalThis.fetch = async () => ({ ok: false, status: 401 });
+    await assert.rejects(O.brandSearch('x'), /abgelehnt/);
+    globalThis.fetch = async () => ({ ok: false, status: 429 });
+    await assert.rejects(O.brandSearch('x'), /zu viele/);
+  } finally { globalThis.fetch = real; delete globalThis.localStorage; }
+});
+
+test('Einstellungsdatei: Brandfetch-ID ist optional und stört den Konfigurator nicht', async () => {
+  const F = require('../cover-tool/files.js');
+  const plain = JSON.parse(await F.packSettings({ key: 'k', proxy: 'https://p/?url={url}' }, ''));
+  assert.equal('brandfetchId' in plain, false);                       // ohne ID bleibt die Datei wie beim Konfigurator
+  const text = await F.packSettings({ key: 'k', proxy: '', brandfetch: 'ID1' }, '');
+  assert.deepEqual(await F.unpackSettings(text, ''), { key: 'k', proxy: '', brandfetch: 'ID1' });
+  const enc = await F.packSettings({ key: '', proxy: '', brandfetch: 'ID2' }, 'pw');
+  assert.equal((await F.unpackSettings(enc, 'pw')).brandfetch, 'ID2');
 });

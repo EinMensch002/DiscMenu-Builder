@@ -44,7 +44,76 @@
     else if (el.tagName === 'BUTTON') el.classList.toggle('on', v === el.dataset.v);
     else if (document.activeElement !== el) el.value = v;   // beim Tippen nichts überschreiben
   }
+  /* ---------- Listen für Prozessoren und Grafikkarten ----------
+     Jeder Eintrag ist eine Zeile mit Haken (auf dem Cover zeigen), Art, Auswahlfeldern und Löschen. Mit den Knöpfen darunter kommen weitere Einträge dazu. */
+  const HW_KIND_LABEL = { intel: 'Intel', amd: 'AMD', geforce: 'GeForce', radeon: 'Radeon', text: 'Text' };
+  function hwRow(type, it) {
+    const row = el('div', 'hwrow' + (it.on ? '' : ' off')), spec = C.HW[type][it.kind];
+    const field = (tag, f, props) => { const n = document.createElement(tag); n.dataset.f = f; Object.assign(n, props || {}); return n; };
+    const select = (f, values, current, label) => { const n = field('select', f); values.forEach(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; n.append(o); }); n.value = current; if (label) n.title = label; return n; };
+    const on = field('input', 'on', { type: 'checkbox', checked: it.on, title: 'Auf dem Cover zeigen' });
+    row.append(on, select('kind', [...Object.keys(C.HW[type]), 'text'].map((k) => [k, HW_KIND_LABEL[k]]), it.kind, 'Art'));
+    if (!spec) row.append(field('input', 'text', { type: 'text', value: it.text, placeholder: 'z. B. Arc A380 oder Pentium III 500 MHz', className: 'grow' }));
+    else {
+      row.append(select('pre', spec.series.map((x) => [x, x]), it.pre, 'Reihe'), field('input', 'num', { type: 'text', value: it.num, size: 6, placeholder: type === 'cpu' ? '12400' : '3060', title: 'Modell' }),
+        select('sfx', spec.sfx.map((x) => [x, x || '–']), it.sfx, 'Zusatz'));
+      if (type === 'gpu') row.append(field('input', 'gb', { type: 'text', value: it.gb, size: 3, placeholder: 'GB', title: 'Speicher in GB (z. B. 6)', inputMode: 'decimal' }));
+    }
+    row.append(field('button', 'del', { type: 'button', textContent: '✕', title: 'Eintrag entfernen' }));
+    return row;
+  }
+  function renderHw() {
+    $$('[data-hw]').forEach((box) => {
+      const type = box.dataset.hw, items = get(box.dataset.path).items, sig = JSON.stringify(items);
+      if (box.dataset.sig === sig) return;
+      box.dataset.sig = sig;
+      $('.hwitems', box).replaceChildren(...items.map((it) => hwRow(type, it)));
+    });
+  }
+  function bindHw() {
+    const box = (n) => n.closest('[data-hw]');
+    const edit = (e) => {
+      const n = e.target, b = n.dataset && n.dataset.f ? box(n) : null;
+      if (!b) return;
+      const type = b.dataset.hw, items = get(b.dataset.path).items, row = n.closest('.hwrow'), idx = [...row.parentNode.children].indexOf(row), it = items[idx], f = n.dataset.f;
+      if (!it || f === 'del') return;
+      if (f === 'on') { it.on = n.checked; row.classList.toggle('off', !it.on); }
+      else if (f === 'kind') { Object.assign(it, C.newHwItem(type, n.value), { on: it.on }); b.dataset.sig = ''; }
+      else it[f] = n.value;
+      if (b.dataset.sig !== '') b.dataset.sig = JSON.stringify(items);
+      renderHw(); changed();
+    };
+    $('#form').addEventListener('input', edit);
+    $('#form').addEventListener('change', (e) => { if (e.target.dataset && e.target.dataset.f && e.target.tagName === 'SELECT') edit(e); });
+    $('#form').addEventListener('click', (e) => {
+      const add = e.target.closest('[data-hwadd]'), del = e.target.closest('[data-f=del]');
+      if (add) {
+        const b = box(add), items = get(b.dataset.path).items;
+        if (items.length < C.HW_MAX) items.push(C.newHwItem(b.dataset.hw, add.dataset.hwadd));
+        b.dataset.sig = ''; renderHw(); changed();
+      } else if (del) {
+        const b = box(del), items = get(b.dataset.path).items, row = del.closest('.hwrow');
+        items.splice([...row.parentNode.children].indexOf(row), 1);
+        b.dataset.sig = ''; renderHw(); changed();
+      }
+    });
+  }
+
+  /* Stil-Auswahl: Nur GOG hat zwei Farbvarianten (GOG-Farben oder dunkel). Bei den anderen Anbietern gibt es nichts zu wählen, das Feld ist dann ausgeblendet. */
+  let styleFor = null;
+  function fillStyleOptions() {
+    const sel = $('[data-k=theme]');
+    if (!sel) return;
+    if (state.provider !== 'gog') state.theme = 'bar';
+    if (styleFor === state.provider && sel.options.length) return;
+    styleFor = state.provider;
+    const opts = C.styleOptions(state.provider);
+    sel.replaceChildren(...opts.map(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; return o; }));
+    sel.closest('label').hidden = opts.length < 2;
+  }
   function syncControls() {
+    fillStyleOptions();
+    renderHw();
     $$('[data-k]').forEach(writeControl);
     $$('[data-enable]').forEach((el) => el.classList.toggle('on', !!get(el.dataset.enable)));
   }
@@ -73,14 +142,17 @@
   }
 
   /* Änderungen höchstens einmal pro Bild zeichnen (flüssig auch bei schnellem Tippen) */
+  let changes = 0;                     // zählt alle Änderungen (für "ungespeichert" in der Leiste)
+  const hooks = { change: [], reset: [] };
   function changed() {
+    changes++; hooks.change.forEach((f) => f());
     if (dirty) return;
     dirty = true;
     requestAnimationFrame(() => { dirty = false; render(); save(); });
   }
 
   /* ---------- Bilder: auf Druckgröße verkleinern, als Datei-Adresse statt als Base64-Text halten ---------- */
-  const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900 };
+  const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900, spineLogo: 1200, spineBg: 2000 };
 
   async function loadImage(key, file) {
     let result;
@@ -92,7 +164,7 @@
       const cv = document.createElement('canvas');
       cv.width = size.w; cv.height = size.h;
       const ctx = cv.getContext('2d');
-      const png = key === 'publisher';              // Logos behalten ihre Transparenz
+      const png = key === 'publisher' || key === 'spineLogo';              // Logos behalten ihre Transparenz
       if (!png) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size.w, size.h); }
       ctx.drawImage(bmp, 0, 0, size.w, size.h);
       const blob = await new Promise((res) => cv.toBlob(res, png ? 'image/png' : 'image/jpeg', 0.92));
@@ -104,6 +176,45 @@
     images[key] = result;
     renderDrops();
     changed();
+  }
+  /* Einfarbigen Hintergrund (z. B. Weiß bei Logos von Brandfetch) transparent machen: Vom Rand aus werden alle verbundenen Pixel
+     entfernt, die der Eckfarbe ähneln. Die Kante wird weich übergeblendet. Liefert false, wenn die Ecken nicht einfarbig sind,
+     das Bild schon transparent ist oder fast nichts zu entfernen war. */
+  async function removeBackground(key) {
+    const img = images[key];
+    if (!img || img.svg || !img.blob) return false;
+    const bmp = await createImageBitmap(img.blob), w = bmp.width, h = bmp.height;
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d', { willReadFrequently: true }); ctx.drawImage(bmp, 0, 0); bmp.close();
+    const id = ctx.getImageData(0, 0, w, h), d = id.data, at = (x, y) => (y * w + x) * 4;
+    const corners = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]].map(([x, y]) => d.slice(at(x, y), at(x, y) + 4));
+    if (corners.some((c) => c[3] < 250)) return false;
+    const [r0, g0, b0] = corners[0];
+    if (corners.some((c) => Math.abs(c[0] - r0) + Math.abs(c[1] - g0) + Math.abs(c[2] - b0) > 60)) return false;
+    const TOL = 48, dist = (i) => Math.max(Math.abs(d[i] - r0), Math.abs(d[i + 1] - g0), Math.abs(d[i + 2] - b0));
+    const seen = new Uint8Array(w * h), stack = [];
+    const push = (x, y) => { const k = y * w + x; if (seen[k] || dist(k * 4) > TOL) return; seen[k] = 1; stack.push(k); };
+    for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
+    for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+    while (stack.length) {
+      const k = stack.pop(), x = k % w, y = (k - x) / w;
+      if (x > 0) push(x - 1, y); if (x < w - 1) push(x + 1, y); if (y > 0) push(x, y - 1); if (y < h - 1) push(x, y + 1);
+    }
+    let removed = 0;
+    for (let k = 0; k < w * h; k++) if (seen[k]) { d[k * 4 + 3] = 0; removed++; }
+    if (removed < w * h * 0.02) return false;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {                      // weiche Kante an den Rändern der entfernten Fläche
+      const k = y * w + x; if (seen[k]) continue;
+      if ((x > 0 && seen[k - 1]) || (x < w - 1 && seen[k + 1]) || (y > 0 && seen[k - w]) || (y < h - 1 && seen[k + w])) {
+        const dd = dist(k * 4); if (dd < TOL * 2) d[k * 4 + 3] = Math.round(255 * Math.max(0, Math.min(1, (dd - TOL) / TOL)));
+      }
+    }
+    ctx.putImageData(id, 0, 0);
+    const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
+    URL.revokeObjectURL(img.url);
+    images[key] = { ...img, url: URL.createObjectURL(blob), blob, type: 'image/png', w, h, name: img.name.replace(/\.\w+$/, '') + '.png' };
+    renderDrops(); changed();
+    return true;
   }
   /* Bild aus einer Projektdatei wiederherstellen (ohne es erneut zu verkleinern oder neu zu kodieren) */
   async function restoreImage(key, data, type, name) {
@@ -118,7 +229,7 @@
   }
   /* Wie scharf wird das Bild gedruckt? Das Bild füllt die Fläche (zuschneiden), also entscheidet die knappere Seite. */
   function dpiOf(key, img) {
-    const spec = C.imageSpecs(state.caseType)[key];
+    const spec = C.imageSpecs(C.caseDims(state))[key];
     if (!spec || !img.w) return 0;
     const mmPerPx = Math.max(spec.w / img.w, spec.h / img.h);
     return Math.round(25.4 / mmPerPx);
@@ -151,6 +262,8 @@
       drop.addEventListener('dragleave', () => drop.classList.remove('over'));
       drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); take(e.dataTransfer.files[0]); });
       $('.x', drop).addEventListener('click', () => { clearImage(key); renderDrops(); changed(); });
+      const bgx = $('.bgx', drop);
+      if (bgx) bgx.addEventListener('click', async () => { if (!images[key]) return; if (!(await removeBackground(key))) alert('Es wurde kein einfarbiger Hintergrund erkannt (oder das Bild ist schon transparent).'); });
     });
   }
 
@@ -166,12 +279,11 @@
       n.style.setProperty('--w', c.w + 'mm'); n.style.setProperty('--h', c.h + 'mm');
       n.style.setProperty('--back', c.back + 'mm'); n.style.setProperty('--spine', c.spine + 'mm'); n.style.setProperty('--front', c.front + 'mm');
     }
-    cover.classList.toggle('theme-modern', state.theme === 'modern');
     cover.classList.toggle('slim', c.spine < 10);
     $('#customBox').hidden = state.caseType !== 'custom';
     applyProvider(cover);
     wrap.classList.toggle('marks', state.cropMarks);
-    wrap.classList.toggle('fold', state.foldLines);
+    wrap.classList.toggle('show-fold', state.foldLines);
 
     /* Bilder */
     setBg($('#front'), images.front);
@@ -180,12 +292,14 @@
     $('#backBottom').style.backgroundPosition = images.backBottom ? 'center' : 'center bottom';
     const pubUrl = images.publisher && images.publisher.url;
     setImg($('#frontPub'), pubUrl);
+    $('#frontPub').className = 'front-pub plate-' + state.frontPubPlate;
     setImg($('#backPub'), pubUrl);
 
     /* Alterskennzeichen (USK) */
-    const usk = state.usk === 'none' ? '' : 'assets/images/usk/usk_' + state.usk + '.png';
+    const usk = state.usk === 'none' ? '' : 'assets/images/usk/usk_' + state.usk + '.svg';
     setImg($('#frontUsk'), usk);
     setImg($('#backUsk'), state.uskBack ? usk : '');
+    $('#frontUsk').style.opacity = String(Number(state.uskOpacity) / 100);
     setImg($('#discLogo'), 'assets/images/disc/' + C.DISCS[state.disc]);
 
     /* Rücken */
@@ -193,24 +307,19 @@
     $('#spine').classList.toggle('nopc', !state.spinePC);
     $('#spine').classList.toggle('tcenter', state.spineTitle === 'center');
     $('#spineTitle').textContent = state.title.trim();
-    fitSpineTitle(c);
+    renderSpine(c);
 
-    /* Rückseite: Spielfunktionen, Angaben, GOG-Galaxy-Feld, Copyright */
+    /* Rückseite: Spielfunktionen, Angaben, Copyright */
     $('#featTitle').textContent = L.features;
     $('#featNote').textContent = C.PROVIDERS[state.provider].note[state.lang];
     const feats = $('#feats');
     feats.replaceChildren(...C.FEATURE_ORDER.filter((k) => state.features.includes(k)).map((k) => {
-      const item = el('div', 'feat'), img = el('img'); img.src = (state.iconStyle === 'line' || !C.ORIGINAL_ICONS.includes(k)) ? 'assets/images/features/line/' + k + '.svg' : 'assets/images/features/' + k + '.png'; img.alt = '';
+      const item = el('div', 'feat'), img = el('img'); img.src = 'assets/images/features/line/' + k + '.svg'; img.alt = '';
       item.append(img, el('span', '', L.feat[k])); return item;
     }));
-    $('#galaxy').classList.toggle('off', !(state.galaxy && state.provider === 'gog'));      // das Feld gibt es nur bei GOG
-    $('#galaxyChk').disabled = state.provider !== 'gog';
     $('#reqTitle').textContent = L.reqTitle;
-    $('#gxTitle').textContent = L.galaxy.title; $('#gxText').textContent = L.galaxy.text;
-    $('#gxJoin').textContent = L.galaxy.join; $('#gxUrl').textContent = L.galaxy.url;
     $('#copy').textContent = state.copyright.trim();
     renderSpecs();
-    renderBarcode();
 
     renderDrops();
     renderNotes();
@@ -220,33 +329,27 @@
   /* Farben und Schriftzug des Anbieters. Nur GOG hat ein Logo, bei den anderen steht ein Schriftzug. */
   function applyProvider(cover) {
     const P = C.PROVIDERS[state.provider];
-    const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB };
+    const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line, spineBg: P.brand };
+    if (P.darkBar && state.theme === 'bar-dark') Object.assign(vars, { barA: P.darkBar.barA, barB: P.darkBar.barB, line: P.darkBar.line, spineBg: P.darkBar.spine });
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
     cover.classList.toggle('has-wm', state.provider !== 'gog');
     $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + P.logo; img.alt = P.name; });
-    $('#cornerWm').textContent = P.wordmark;
     $('#barWm').textContent = P.wordmark.replace('\n', ' ');
     $('#spineWm').textContent = P.wordmark.split('\n')[0];
     $('#frontTag').textContent = P.tag[state.lang];
   }
 
   /* Systemanforderungen: Ohne empfohlene Angaben steht links die Bezeichnung und rechts der Wert. Mit empfohlenen Angaben ist es eine
-     Tabelle mit den Spalten Minimum und Empfohlen. Gleiche Angaben (und das Betriebssystem) stehen nur einmal über beide Spalten. */
+     Tabelle mit den Spalten Minimum und Empfohlen. Gleiche Angaben (und das Betriebssystem) stehen nur einmal über beide Spalten.
+     Mehrere Werte (z. B. mehrere Grafikkarten oder Sätze) stehen immer untereinander. */
   function renderSpecs() {
     const list = $('#specs'), table = C.buildSpecTable(state);
     list.classList.toggle('dual', table.dual);
-    const alts = (values) => {
-      const v = el('span', 'v' + (state.breakHw && values.length > 1 ? ' stack' : ''));
-      values.forEach((text, i) => {
-        if (i) v.append(el('span', 'sep', ' / '));
-        v.append(el('span', 'alt', text));
-      });
-      return v;
-    };
-    const cell = (cls, values) => { const c = el('span', 'cell ' + cls); if (values.length) c.append(alts(values)); else c.textContent = '–'; return c; };
+    const stack = (values) => { const v = el('span', 'v stack'); values.forEach((text) => v.append(el('span', 'alt', text))); return v; };
+    const cell = (cls, values) => { const c = el('span', 'cell ' + cls); if (values.length) c.append(stack(values)); else c.textContent = '–'; return c; };
     const rows = table.rows.map((row) => {
-      const li = el('li', row.key === 'other' ? 'other' : '');
-      if (!table.dual) { li.append(el('span', 'k', row.label), el('span', 'vals', '')); li.lastChild.append(alts(row.min)); return li; }
+      const li = el('li', (row.key === 'other' ? 'other' : '') + (row.cont ? ' cont' : ''));
+      if (!table.dual) { li.append(el('span', 'k', row.label), el('span', 'vals', '')); li.lastChild.append(stack(row.min)); return li; }
       li.append(el('span', 'k', row.short));
       if (row.shared) li.append(cell('span2', row.min));
       else li.append(cell('min', row.min), cell('rec', row.rec));
@@ -259,15 +362,28 @@
       rows.unshift(head);
     }
     list.replaceChildren(...rows);
-    const panel = $('.panel-back');
-    panel.classList.toggle('dual', table.dual);
-    panel.classList.toggle('nogx', $('#galaxy').classList.contains('off'));
+    $('.panel-back').classList.toggle('dual', table.dual);
     fitSpecs();
-    /* Beim Umbruch zwischen zwei Alternativen ist der Schrägstrich überflüssig */
-    $$('.sep', list).forEach((sep) => {
-      const a = sep.previousElementSibling, b = sep.nextElementSibling;
-      if (state.breakHw || (a && b && a.offsetTop !== b.offsetTop)) sep.style.display = 'none';
-    });
+    centerHeads(list);
+  }
+
+  /* "Minimum" und "Empfohlen" stehen mittig über dem tatsächlich beschriebenen Bereich der Spalte (breiteste Zeile), nicht über der ganzen Spaltenbreite */
+  function centerHeads(list) {
+    if (!list.classList.contains('dual')) return;
+    const k = Number(getComputedStyle($('#preview')).getPropertyValue('--k')) || 1;
+    for (const col of ['min', 'rec']) {
+      const chip = $('.chip.' + col, list);
+      if (!chip) continue;
+      chip.style.marginLeft = '0px';
+      let maxW = 0;
+      $$('.cell.' + col + ' .alt', list).forEach((alt) => {
+        const r = document.createRange(), left = alt.parentNode.parentNode.getBoundingClientRect().left;
+        r.selectNodeContents(alt);
+        for (const q of r.getClientRects()) maxW = Math.max(maxW, q.right - left);
+      });
+      const chipW = chip.getBoundingClientRect().width;
+      chip.style.marginLeft = Math.max(0, (maxW - chipW) / 2 / k) + 'px';
+    }
   }
 
   /* Die Angaben müssen vollständig in das Feld passen: Ist die Liste höher als der Platz, wird die Schrift kleiner (bis 4,4 pt).
@@ -277,7 +393,76 @@
     list.style.fontSize = '';
     const titleH = getComputedStyle(title).display === 'none' ? 0 : title.offsetHeight + parseFloat(getComputedStyle(title).marginBottom || 0);
     let pt = parseFloat(getComputedStyle(list).fontSize) * 72 / 96;
-    while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
+    while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight - 1) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
+  }
+
+  /* Rücken: Bild der Vorderseite fortsetzen, Logo statt Titel, Publisher-Logo am Fuß */
+  function renderSpine(c) {
+    const spine = $('#spine'), front = $('#front'), barH = C.BAR_HEIGHT, f = images.front;
+    const art = state.spineArt === 'image' && f && f.w > 0 && f.h > 0;
+    spine.classList.toggle('art', !!art);
+    if (art) {
+      /* Das Bild wird wie bei "cover" auf Rücken und Vorderseite zusammen skaliert und mittig zugeschnitten (oben bündig unter der Leiste),
+         jede Fläche zeigt ihren Ausschnitt. Der Rücken ragt 0,6 mm in die Nachbarn (--ov), das ist in der Position berücksichtigt. */
+      const W = c.spine + c.front, H = c.h - barH, k = Math.max(W / f.w, H / f.h), sw = f.w * k, sh = f.h * k;
+      const offX = (sw - W) / 2, offY = 0, ov = 0.6, mm = (n) => n.toFixed(3) + 'mm';
+      front.style.backgroundSize = mm(sw) + ' ' + mm(sh);
+      front.style.backgroundPosition = mm(-(offX + c.spine)) + ' ' + mm(-offY);
+      spine.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.3)), url("' + f.url + '")';
+      spine.style.backgroundSize = '100% 100%, ' + mm(sw) + ' ' + mm(sh);
+      spine.style.backgroundPosition = '0 0, ' + mm(ov - offX) + ' ' + mm(barH - offY);
+    } else if (state.spineArt === 'own' && images.spineBg) {
+      /* Eigenes Rückenbild: füllt den Rücken (zugeschnitten), der Ausschnitt ist links/rechts wählbar, optional abgedunkelt */
+      const dim = num(state.spineBgDim, 25, 0, 80) / 100, x = num(state.spineBgX, 50, 0, 100);
+      spine.classList.add('art');
+      front.style.backgroundSize = ''; front.style.backgroundPosition = '';
+      spine.style.backgroundImage = 'linear-gradient(rgba(0,0,0,' + dim + '), rgba(0,0,0,' + dim + ')), url("' + images.spineBg.url + '")';
+      spine.style.backgroundSize = '100% 100%, cover';
+      spine.style.backgroundPosition = '0 0, ' + x + '% 50%';
+    } else {
+      front.style.backgroundSize = ''; front.style.backgroundPosition = '';
+      spine.style.backgroundImage = ''; spine.style.backgroundSize = ''; spine.style.backgroundPosition = '';
+    }
+    const sl = images.spineLogo, useLogo = !!(state.spineUseLogo && sl), pub = images.publisher, showPub = !!(state.spinePub && pub);
+    setImg($('#spineLogoImg'), useLogo ? sl.url : '');
+    spine.classList.toggle('usingLogo', useLogo);
+    setImg($('#spinePubImg'), showPub ? pub.url : '');
+    spine.classList.toggle('nopub', !showPub);
+    $('#spinePubBox').hidden = !showPub;
+    $('#spinePubBox').className = 'spine-pubbox plate-' + state.spinePubPlate;
+    refitSpine();
+  }
+  function refitSpine() { fitSpinePub(); fitSpineTitle(C.caseDims(state)); fitSpineLogo(); }
+  const num = (v, d, lo, hi) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+  const aspectOf = (img, el) => (el.naturalWidth && el.naturalHeight ? el.naturalWidth / el.naturalHeight : (img && img.w && img.h ? img.w / img.h : 1.6));
+
+  /* Publisher-Logo am Fuß: Der Platz richtet sich nach dem Rücken, nicht nach dem Logo. Zu breite Logos werden automatisch gedreht
+     (oder per Auswahl), die Breite lässt sich von Hand festlegen. Das Logo sitzt auf einer weißen Kachel über "PC". */
+  function fitSpinePub() {
+    const box = $('#spinePubBox'), el = $('#spinePubImg'), pub = images.publisher;
+    box.hidden = !(state.spinePub && pub);
+    if (box.hidden) return;
+    const c = C.caseDims(state), pad = 0.6;
+    const side = num(state.spinePubSide, 1.2, 0, Math.max(0, c.spine / 2 - 2)), manual = num(state.spinePubWidth, 0, 0, 60);
+    const across = Math.max(2, c.spine - 2 * side) - 2 * pad;
+    const fit = C.fitLogo(aspectOf(pub, el), state.spinePubRot, across, 30, manual > 0 ? manual - 2 * pad : 0, 4);
+    const w = fit.w, h = fit.h, mm = (n) => n.toFixed(2) + 'mm';
+    box.style.width = mm((fit.rotated ? h : w) + 2 * pad); box.style.height = mm((fit.rotated ? w : h) + 2 * pad);
+    el.style.width = mm(w); el.style.height = mm(h);
+    el.style.transform = 'translate(-50%, -50%)' + (fit.rotated ? ' rotate(90deg)' : '');
+  }
+  /* Rückenlogo (statt des Titels): Abstände zu den Seiten, zum Kopf und zum Fuß sind einstellbar. Breite Logos stehen gedreht (Leserichtung wie beim Titel). */
+  function fitSpineLogo() {
+    const box = $('#spineBox'), li = $('#spineLogoImg'), sl = images.spineLogo;
+    if (li.hidden || !sl) return;
+    const c = C.caseDims(state), probe = $('#mmProbe'), k = probe.offsetWidth / 10 || 3.78;          // Pixel je mm (unabhängig von der Vorschaugröße)
+    const side = num(state.spineLogoSide, 1.5, 0, Math.max(0, c.spine / 2 - 2)), top = num(state.spineLogoTop, 3, 0, 60), bottom = num(state.spineLogoBottom, 3, 0, 60);
+    const along = Math.max(5, box.clientHeight / k - top - bottom), across = Math.max(2, c.spine - 2 * side);
+    const a = aspectOf(sl, li), fit = C.fitLogo(a, state.spineLogoRot === 'auto' ? (a > 1.4 ? 'yes' : 'no') : state.spineLogoRot, across, along, 0, 0);
+    li.style.width = (fit.w * k) + 'px'; li.style.height = (fit.h * k) + 'px';
+    const len = fit.rotated ? fit.w : fit.h;                       // Länge des Logos entlang des Rückens
+    li.style.top = ((top + (state.spineTitle === 'top' ? len / 2 : along / 2)) * k) + 'px'; li.style.left = '50%';       // wie der Titel: oben bündig oder mittig zwischen den Abständen
+    li.style.transform = 'translate(-50%, -50%)' + (fit.rotated ? ' rotate(90deg)' : '');
   }
 
   /* Titel auf dem Rücken so groß wie möglich, ohne über die Hülle hinauszuragen */
@@ -289,32 +474,6 @@
     while (pt > 5 && title.scrollHeight > box.clientHeight - 2) { pt -= 0.25; title.style.fontSize = pt + 'pt'; }
   }
 
-  /* Barcode (Code 128) unter dem USK-Zeichen. Die Strichbreite richtet sich nach dem Platz (höchstens 40 mm),
-     ist sie zu schmal zum Scannen, steht ein Hinweis bei den Notizen. */
-  /* Platz für den Barcode: die rechte Spalte ist 41 mm breit, mit der Tabelle Minimum/Empfohlen nur 33 mm */
-  const maxBarcodeMm = () => ($('.panel-back').classList.contains('dual') ? 31 : 40);
-  function barcodeInfo() {
-    if (!state.barcode.on) return null;
-    const bits = C.code128(state.barcode.text.trim());
-    if (!bits) return { bits: null };
-    const modules = bits.length + 20;                       // je 10 Module Ruhezone links und rechts
-    return { bits, modules, module: Math.min(0.4, maxBarcodeMm() / modules) };
-  }
-  function renderBarcode() {
-    const info = barcodeInfo(), box = $('#barcode');
-    box.hidden = !(info && info.bits);
-    if (box.hidden) return;
-    const svg = $('#barcodeSvg');
-    let d = '', run = 0;
-    [...info.bits, '0'].forEach((b, i) => { if (b === '1') run++; else { if (run) d += 'M' + (i - run + 10) + ' 0h' + run + 'v1h-' + run + 'z'; run = 0; } });
-    svg.setAttribute('viewBox', '0 0 ' + info.modules + ' 1');
-    svg.style.width = (info.modules * info.module).toFixed(2) + 'mm';
-    svg.replaceChildren();
-    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', d); p.setAttribute('fill', '#000');
-    svg.append(p);
-    $('#barcodeText').textContent = state.barcode.text.trim();
-  }
-
   /* Hinweise zur Vorlage (blockieren nichts) */
   function renderNotes() {
     const notes = [];
@@ -322,9 +481,6 @@
     if (!state.title.trim()) notes.push('Der Spieletitel für den Rücken fehlt.');
     const dims = C.caseDims(state);
     if (dims.adjusted) notes.push('Die eigenen Maße wurden angepasst (erlaubt: Rückseite und Vorderseite 100–150 mm, Rücken 3–30 mm, Höhe 100–198 mm, insgesamt höchstens ' + C.MAX_W + ' mm breit). Verwendet wird: ' + dims.back + ' + ' + dims.spine + ' + ' + dims.front + ' × ' + dims.h + ' mm.');
-    const bc = barcodeInfo();
-    if (bc && !bc.bits) notes.push('Der Barcode-Inhalt fehlt oder ist ungültig (erlaubt: Buchstaben, Ziffern und Satzzeichen ohne Umlaute, höchstens 40 Zeichen).');
-    else if (bc && bc.module < C.BARCODE_MIN_MODULE) notes.push('Der Barcode ist sehr dicht (' + bc.module.toFixed(2) + ' mm je Strich) und lässt sich vielleicht nicht scannen. Kürze den Inhalt (z. B. s.team/a/70 statt langer Adressen).');
     if (!state.features.length) notes.push('Es ist keine Spielfunktion gewählt, der grüne Streifen bleibt leer.');
     $('#notes').replaceChildren(...notes.map((t) => el('p', '', t)));
   }
@@ -344,6 +500,8 @@
   function init() {
     const ver = $('#ver'); if (ver && /__/.test(ver.textContent)) ver.textContent = 'lokal';
     bindControls();
+    bindHw();
+    ['spineLogoImg', 'spinePubImg'].forEach((id) => $('#' + id).addEventListener('load', refitSpine));
     bindDrops();
     syncControls();
     $('#bPrint').addEventListener('click', () => window.print());
@@ -351,6 +509,7 @@
       if (!confirm('Alle Einstellungen und Bilder zurücksetzen?')) return;
       Object.keys(images).forEach(clearImage);
       state = C.defaultState();
+      hooks.reset.forEach((f) => f());
       syncControls();
       render(); save();
     });
@@ -370,6 +529,11 @@
   }
   window.CoverApp = {
     get state() { return state; },
+    get changes() { return changes; },
+    get hasImages() { return Object.keys(images).length > 0; },
+    onChange(f) { hooks.change.push(f); },
+    removeBackground(key) { return removeBackground(key); },
+    onReset(f) { hooks.reset.push(f); },
     /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
     patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },
     /* Aktuelle Einstellungen und Bilder (für den Projektexport) */

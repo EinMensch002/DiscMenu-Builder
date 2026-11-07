@@ -82,17 +82,30 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 
 ## Ausdruck
 
-- [ ] **Naht:** Im Ausdruck ist zwischen Rücken und Vorderseite kein heller Strich zu sehen (besonders an der GOG-Logo-Ecke).
+- [ ] **Naht:** Im Ausdruck ist zwischen Rücken und Vorderseite kein heller Strich zu sehen (besonders an der Kopfleiste).
 - [ ] **Minimum und Empfohlen:** Steam-Spiel mit beiden Listen übernehmen. Die Tabelle auf der Rückseite zeigt beide Spalten, nichts ist abgeschnitten. Ausdrucken und prüfen, ob die kleine Schrift gut lesbar ist.
-- [ ] **Steam-Übernahme:** Prozessor und Grafikkarte erscheinen in den Kategorien (z. B. Cyberpunk 2077), die Angaben passen in das Feld.
+- [ ] **Steam-Übernahme:** Prozessor und Grafikkarte erscheinen als einzelne Einträge in den Auswahlfeldern (z. B. Cyberpunk 2077: GeForce GTX 1060 6 GB, Radeon RX 580 8 GB, Arc A380 als Text), jeder in einer eigenen Zeile.
 - [ ] Hülle drucken (A4 quer, 100 %, Ränder "Keine", Hintergrundgrafiken an) und nachmessen: Cover 273 × 183 mm, Rücken 14 mm, Schnittmarken an den Ecken.
-- [ ] Schnittmarken und Falzlinien treffen die Kanten der echten Hülle.
+- [ ] Schnittmarken und Falzmarken treffen die Kanten der echten Hülle.
 - [ ] **Slim:** 266 × 183 mm mit 7 mm Rücken.
 - [ ] **Blu-ray-Vorlage:** Die Richtwerte (269 × 148 mm, 14 mm Rücken) passen zu deinem Einleger, sonst eigene Maße notieren und das Ergebnis melden.
 - [ ] Der Titel auf dem Rücken liest sich in der Hülle richtig herum, USK vorn (35 mm) und das Motiv sind nicht abgeschnitten.
-- [ ] Beide Stile (Klassisch und Modern) und alle drei Anbieter sehen gedruckt gut aus (Farben, Lesbarkeit der Angaben auf dem dunklen Feld).
+- [ ] Die Leiste und alle drei Anbieter (GOG in beiden Farbvarianten) sehen gedruckt gut aus (Farben, Lesbarkeit). Bei der Leiste: Die Akzentlinie läuft sauber über den Rücken, das Logo oben ragt nirgends heraus.
 
 - [ ] **Steam-Import mit Titel und Cover:** Nach dem Übernehmen steht der Spielname auf dem Rücken und das Steam-Hochformat-Cover vorn. Falls das Cover nicht lädt: Meldung lesen (ggf. `cdn.akamai.steamstatic.com` im Proxy erlauben).
 - [ ] **Publisher-Logo (Wikidata):** 🔎 beim Publisher-Logo zeigt den Publisher aus dem Steam-Import vorbelegt, Logos erscheinen und lassen sich übernehmen (z. B. Valve, CD PROJEKT RED).
-- [ ] **Barcode:** Mit einem Handy-Scanner den gedruckten Barcode (z. B. `s.team/a/70`) lesen. Der gelesene Text muss stimmen. Falls er nicht erkannt wird: kürzeren Inhalt wählen oder größer drucken.
 - [ ] **Symbole und Rücken:** Linien-Symbole, "PC" am Rückenfuß, mittiger Titel und das etwas größere Logo auf dem Ausdruck ansehen.
+- [ ] **Steam und Epic Games:** Die dunkle Kopfleiste vorn (Logo, Schriftzug, Akzentlinie) und der dunkle Streifen mit den Spielfunktionen hinten gefallen auf dem Ausdruck, in beiden Stilen.
+- [ ] **Speichern:** In Chrome/Edge: Speichern, etwas ändern, Strg+S, die Datei wird überschrieben (nicht neu angelegt) und wieder ladbar. In Firefox: Speichern lädt jedes Mal neu herunter.
+- [ ] **Brandfetch:** Client-ID eintragen, im Publisher-Dialog die Quelle Brandfetch wählen (z. B. "Team Cherry"). Treffer erscheinen und das Logo lässt sich übernehmen. (Antwortformat und Bilder von Brandfetch wurden nur nachgebaut geprüft.)
+- [ ] **GOG-Leiste:** Dunkle Leiste mit lila Linie auf dem Ausdruck zu verschiedenen Covern ansehen, ggf. auf Lila umstellen.
+- [ ] **Rückenlogo und Publisher am Fuß:** Auf dem Ausdruck sind das gedrehte Logo und das Publisher-Logo unter "PC" gut lesbar. Bei einem Spiel mit Steam-Logo (`logo.png`) zeigt der Import es auf dem Rücken.
+- [ ] **Bild über den Rücken:** Das Motiv geht an den Falzkanten ohne Sprung weiter, der Rücken ist nicht zu dunkel.
+- [ ] **Hintergrund transparent (◧):** Bei Logos von Brandfetch verschwindet der weiße Hintergrund, die Kante hat keinen hellen Saum.
+- [ ] **Breites Publisher-Logo (z. B. Valve):** Der Rücken bleibt 14 mm breit, das Logo steht gedreht über "PC", "PC" bleibt bei jedem Logo an derselben Stelle. Auf der Rückseite ragen Disc- und Publisher-Logo nicht unter den Rücken.
+- [ ] **Falzmarken:** Die Falzmarken einschalten, das Blatt bleibt sichtbar (Vorschau und Druckansicht), kurze gestrichelte Striche stehen oben und unten außerhalb des Covers auf Höhe der Rückenkanten (nicht auf dem Cover).
+- [ ] **Unterlage hinter dem Publisher-Logo:** Bei einem durchsichtigen Logo auf unruhigem Frontbild hilft Weiß oder Schwarz, auf dem Ausdruck gut lesbar.
+- [ ] **Browser-Speicher:** Bilder laden, Seite neu laden, alles ist wieder da. Zurücksetzen leert ihn. (In Firefox und Safari ebenfalls prüfen.)
+- [ ] **Rückenbild:** Ein breites Bild (SteamGridDB-Hintergrund) als Rückenbild laden, Ausschnitt und Abdunkeln einstellen, auf dem Ausdruck gut lesbar.
+- [ ] **Rückseite:** Die schmale Spalte mit Publisher, Disc und USK wirkt aufgeräumt, die Angaben sind groß genug lesbar.
+- [ ] **Minimum/Empfohlen:** "Minimum" und "Empfohlen" stehen mittig über ihrem Text, gleiche Sätze bei "Sonstiges" mittig über beiden Spalten, die Schrift ist gedruckt lesbar.

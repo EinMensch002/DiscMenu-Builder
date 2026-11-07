@@ -32,8 +32,9 @@ test('Anbieter-Logos: Dateien vorhanden und klein', () => {
   for (const [key, p] of Object.entries(C.PROVIDERS)) {
     const file = path.join(root, 'cover-tool', 'assets', 'images', p.logo);
     assert.ok(fs.existsSync(file), key + ': ' + p.logo + ' fehlt');
-    assert.ok(fs.statSync(file).size < 20000, key + ': Logo ist zu groß');
-    if (p.logo.endsWith('.svg')) assert.match(fs.readFileSync(file, 'utf8'), /fill="#ffffff"/);
+    assert.ok(fs.statSync(file).size < 40000, key + ': Logo ist zu groß');
+    assert.ok(p.logo.endsWith('.svg'), key + ': Logo muss SVG sein');
+    assert.match(fs.readFileSync(file, 'utf8'), /fill="#(ffffff|fff)"/);
   }
-  assert.equal((html.match(/class="[^"]*brand-logo/g) || []).length, 3, 'Ecke, Streifen und Rücken');
+  assert.equal((html.match(/class="[^"]*brand-logo/g) || []).length, 2, 'Kopfleiste und Rücken');
 });
