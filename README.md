@@ -120,6 +120,9 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Obere Leiste für alles, was nicht das Cover selbst einstellt (Daten übernehmen, Projekt, Einstellungen)
 - [x] Steam-Suche robuster: verständliche Fehlermeldungen, Steam-Adresse oder App-ID statt Suche, gekürzte Angaben
 - [x] Eigene Hüllenmaße mit Vorlagen für Blu-ray (Richtwerte, nachmessen)
+- [x] **Publisher-Logos** über Wikidata (ohne Schlüssel) und Brandfetch (Client-ID als Passwortfeld), Hintergrund transparent machen, Verbindungstest prüft alle Dienste (mit nachgebauten Antworten getestet)
+- [x] **Alle Grafiken als SVG** (USK, DVD, CD, Blu-ray, GOG, Anbieter, Symbole): keine Rastergrafiken mehr, jede Datei nur wenige KB, in jeder Größe scharf (Test sorgt dafür)
+- [x] Falzmarken als gestrichelte Striche außerhalb des Covers an den Rückenkanten, mehr Platz im Funktionsstreifen
 - [ ] **SteamGridDB und Steam mit den echten Diensten prüfen** und nachbessern ([Checkliste](docs/manuelle-pruefung.md))
 - [ ] Anforderungen und Funktionen aus dem GOG-Katalog übernehmen
 - [ ] Eigener PDF-Export (bis dahin: im Druckdialog "Als PDF speichern")
@@ -145,7 +148,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [ ] **GOG-Stil überarbeiten** (Vorderseite und Rücken): eigenständiger und weniger Lila-lastig, damit er zu mehr Covern passt (die dunkle Variante ist ein erster Schritt)
 - [ ] **Rückseite frei gestalten:** Konfigurator mit Textfeldern, Bildern und festen Bausteinen, die man selbst anordnet (wie die Steam-Rückseiten mit Beschreibung und Bildleiste)
 - [ ] **Beide Web-Tools zusammenführen:** Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
-- [ ] **Ein-Datei-Build:** Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
+- [ ] **Ein-Datei-Build** (Vorarbeit erledigt: alle Grafiken sind SVG, nur die Schrift Lato ist noch eine Binärdatei): Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
 
 ### Später
 
