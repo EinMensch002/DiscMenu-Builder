@@ -85,7 +85,13 @@
     epic: { name: 'Epic Games', logo: 'epic_logo.svg', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#0f0f12', mid: '#26262b', accent: '#d6dae4', bannerA: '#3a3a42', bannerB: '#222227', barA: '#3a3a42', barB: '#222227', line: '#d6dae4', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
     steam: { name: 'Steam', logo: 'steam_logo.svg', wordmark: 'STEAM', brand: '#23394c', onBrand: '#e3e9f0', dark: '#06090d', mid: '#1a2939', accent: '#29abe1', bannerA: '#2a465c', bannerB: '#1a2939', barA: '#2a465c', barB: '#1a2939', line: '#29abe1', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern Steam', en: 'Some features require Steam' } },
   };
-  const THEMES = { classic: 'Klassisch (Logo-Ecke)', bar: 'Leiste (wie bei Handelsspielen)' };
+  const THEMES = { classic: 'Klassisch (Logo-Ecke)', bar: 'Leiste (wie bei Handelsspielen)', 'classic-dark': 'Klassisch, dunkel mit Lila', 'bar-dark': 'Leiste, dunkel mit Lila' };
+  /* Auswahl im Stil-Menü: Nur GOG hat zusätzlich die dunklen Varianten (Anthrazit mit lila Linie), bei Steam und Epic sind die Farben ohnehin dunkel. */
+  function styleOptions(provider) {
+    return provider === 'gog'
+      ? [['bar', 'Leiste, GOG-Farben (Lila mit Grün)'], ['bar-dark', 'Leiste, dunkel mit Lila'], ['classic', 'Klassisch (Logo-Ecke), GOG-Farben'], ['classic-dark', 'Klassisch (Logo-Ecke), dunkel mit Lila']]
+      : [['bar', 'Leiste (wie bei Handelsspielen)'], ['classic', 'Klassisch (Logo-Ecke)']];
+  }
   const DISCS = { cd: 'cd.png', dvd: 'dvd.png', bluray: 'blu-ray.png' };
 
   /* 0,5 -> "500 MB", 4 -> "4 GB", "4,5" -> "4.5 GB" */
@@ -238,7 +244,7 @@
   /* --- Standardwerte und Speichern --- */
   function defaultState() {
     return {
-      caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'bar', gogBar: 'dark', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
+      caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'bar', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       custom: { back: '130', spine: '14', front: '129', h: '183' },
       usk: '0', uskOpacity: '100', uskBack: true, galaxy: false, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
       features: ['single_player'],
@@ -246,7 +252,7 @@
       cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
       gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
       ram: '4', space: '10', dx: '', other: '',
-      iconStyle: 'line', spinePC: true, spineTitle: 'center',
+      iconStyle: 'line', spinePC: true, spineTitle: 'center', spineArt: 'color', spineUseLogo: true, spinePub: true,
       publisher: '', developer: '',         /* z. B. von Steam übernommen, Vorgabe für die Suche nach dem Publisher-Logo */
       /* Empfohlene Anforderungen (optional, zusätzlich zu den Mindestanforderungen oben) */
       rec: {
@@ -273,12 +279,14 @@
     if (!CASES[out.caseType] && out.caseType !== 'custom') out.caseType = 'normal';
     if (!DISCS[out.disc]) out.disc = 'dvd';
     if (!LABELS[out.lang]) out.lang = 'de';
-    if (out.gogBar !== 'purple') out.gogBar = 'dark';
     if (out.theme === 'modern') out.theme = 'bar';             // der frühere Stil "Modern" ist weggefallen, die Leiste kommt ihm am nächsten
     if (!THEMES[out.theme]) out.theme = 'bar';
+    if (saved.gogBar === 'dark' && out.provider === 'gog' && /^(bar|classic)$/.test(out.theme)) out.theme += '-dark';       // Vorläufer: eigene Einstellung für die dunkle GOG-Leiste
+    if (out.provider !== 'gog') out.theme = out.theme.replace('-dark', '');
     if (!PROVIDERS[out.provider]) out.provider = 'gog';
     if (!ICON_STYLES[out.iconStyle]) out.iconStyle = 'line';
     if (out.spineTitle !== 'top') out.spineTitle = 'center';
+    if (out.spineArt !== 'image') out.spineArt = 'color';
     out.uskOpacity = String(Math.min(100, Math.max(30, parseInt(out.uskOpacity, 10) || 100)));
     if (out.usk !== 'none' && !USK_VALUES.includes(out.usk)) out.usk = '0';
     return out;
@@ -317,7 +325,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { BAR_HEIGHT, parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, ORIGINAL_ICONS, ICON_STYLES, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { BAR_HEIGHT, styleOptions, parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, ORIGINAL_ICONS, ICON_STYLES, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

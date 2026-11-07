@@ -87,7 +87,9 @@
       <div class="drop" data-img="backBottom"><input type="file" accept="image/*" aria-label="Rückseite unten"><div class="thumb"></div>
         <div class="dt"><b>Rückseite unten <i>(optional)</i></b><span class="spec"></span><span class="info">Ohne Bild setzt sich das obere Bild hinter den Angaben fort.</span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <div class="drop" data-img="publisher"><input type="file" accept="image/*" aria-label="Publisher-Logo"><div class="thumb"></div>
-        <div class="dt"><b>Publisher-Logo <i>(optional)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, etwa 2:1</span><span class="info"></span></div><button type="button" class="sg" title="Publisher-Logo suchen (Wikidata)">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+        <div class="dt"><b>Publisher-Logo <i>(optional)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, etwa 2:1</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Publisher-Logo suchen (Wikidata)">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <div class="drop" data-img="spineLogo"><input type="file" accept="image/*" aria-label="Rückenlogo"><div class="thumb"></div>
+        <div class="dt"><b>Logo für den Rücken <i>(optional, statt des Titels)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, breiter als hoch (wird gedreht)</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Spiel-Logo bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
     </details>
 
     <details class="sec" open>
@@ -229,13 +231,15 @@
     <details class="sec" open>
       <summary>Darstellung und Druck</summary>
       <label class="f"><span class="lab">Stil</span>
-        <select data-k="theme"><option value="classic">Klassisch (Logo-Ecke)</option><option value="bar">Leiste (wie bei Handelsspielen)</option></select></label>
-      <label class="f"><span class="lab">Farbe der Leiste bei GOG</span>
-        <select data-k="gogBar"><option value="dark">Dunkel mit lila Linie (passt zu den meisten Covern)</option><option value="purple">Lila mit grüner Linie (GOG-Farben)</option></select></label>
+        <select data-k="theme"></select></label>
       <label class="f"><span class="lab">GOG-Logo auf dem Rücken</span>
         <select data-k="spineLogo"><option value="fixed">Feste Größe (7 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
       <label class="f"><span class="lab">Titel auf dem Rücken</span>
         <select data-k="spineTitle"><option value="top">Oben (unter dem Logo)</option><option value="center">Mittig</option></select></label>
+      <label class="f"><span class="lab">Hintergrund des Rückens</span>
+        <select data-k="spineArt"><option value="color">Farbe des Anbieters</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
+      <label class="chk"><input type="checkbox" data-k="spineUseLogo"> Statt des Titels das Rückenlogo zeigen (wenn eins geladen ist)</label>
+      <label class="chk"><input type="checkbox" data-k="spinePub"> Publisher-Logo am Fuß des Rückens (unter "PC")</label>
       <label class="chk"><input type="checkbox" data-k="spinePC"> "PC" am Fuß des Rückens</label>
       <label class="chk"><input type="checkbox" data-k="galaxy" id="galaxyChk"> GOG-Galaxy-Feld auf der Rückseite (nur bei GOG, der Platz bleibt reserviert)</label>
       <label class="chk"><input type="checkbox" data-k="cropMarks"> Schnittmarken an den Ecken</label>
@@ -276,8 +280,8 @@
 
             <section class="spine" id="spine">
               <div class="spine-head"><img class="spine-logo brand-logo" id="spineLogo" src="assets/images/gog_logo.png" alt="GOG"><span class="wm" id="spineWm"></span></div>
-              <div class="spine-box" id="spineBox"><span class="spine-title" id="spineTitle"></span></div>
-              <div class="spine-foot" id="spineFoot">PC</div>
+              <div class="spine-box" id="spineBox"><span class="spine-title" id="spineTitle"></span><img class="spine-art" id="spineLogoImg" alt="" hidden></div>
+              <div class="spine-foot" id="spineFoot"><span class="pc">PC</span><img class="spine-pub" id="spinePubImg" alt="" hidden></div>
             </section>
 
             <section class="front" id="front">

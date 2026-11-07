@@ -179,3 +179,23 @@ test('Alle Grafiken, die das Tool lädt, sind vorhanden und nicht übergroß', (
     assert.equal(b.readUInt32BE(16) <= 1000 && b.readUInt32BE(20) <= 1000, true, 'Bild zu hoch aufgelöst: ' + f);   // PNG-Kopf: Breite und Höhe
   }
 });
+
+test('Stil-Auswahl: GOG hat vier Möglichkeiten, die anderen Anbieter zwei', () => {
+  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['bar', 'bar-dark', 'classic', 'classic-dark']);
+  assert.deepEqual(C.styleOptions('steam').map((o) => o[0]), ['bar', 'classic']);
+  assert.equal(C.defaultState().theme, 'bar');                                   // Standard: Leiste in GOG-Farben
+  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar-dark' }).theme, 'bar-dark');
+  assert.equal(C.mergeState({ provider: 'steam', theme: 'bar-dark' }).theme, 'bar');           // dunkle Variante gibt es nur bei GOG
+  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar', gogBar: 'dark' }).theme, 'bar-dark');   // Vorläufer-Einstellung
+  const s = C.defaultState();
+  assert.equal(s.spineArt, 'color'); assert.equal(s.spineUseLogo, true); assert.equal(s.spinePub, true);
+  assert.equal(C.mergeState({ spineArt: 'komisch' }).spineArt, 'color'); assert.equal(C.mergeState({ spineArt: 'image' }).spineArt, 'image');
+});
+
+test('Projektdatei: Rückenlogo wird mitgespeichert', async () => {
+  const F = require('../cover-tool/files.js'), Z = require('../cover-tool/zip.js');
+  assert.ok(F.IMAGE_KEYS.includes('spineLogo'));
+  const png = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3]);
+  const out = F.unpackProject(await Z.read(F.packProject(C.defaultState(), { spineLogo: { data: png, type: 'image/png', name: 'logo.png' } })));
+  assert.deepEqual([...out.images.spineLogo.data.slice(0, 4)], [137, 80, 78, 71]);
+});

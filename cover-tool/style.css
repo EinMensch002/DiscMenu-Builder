@@ -85,7 +85,7 @@ input[type=text]:focus, input[type=password]:focus, select:focus { outline: 2px 
 .custom { margin-top: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: #fafbfc; }
 .four { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .four .f { margin-bottom: 4px; }
-.drop .sg { position: relative; z-index: 2; padding: 3px 8px; }
+.drop .sg, .drop .bgx { position: relative; z-index: 2; padding: 3px 8px; }
 dialog { border: 1px solid var(--line); border-radius: 14px; padding: 18px; width: min(760px, 94vw); max-height: 90vh; overflow: auto; background: var(--panel); color: var(--txt); box-shadow: 0 20px 60px rgba(0, 0, 0, .4); }
 dialog::backdrop { background: rgba(10, 12, 20, .55); }
 .dh { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -119,7 +119,7 @@ dialog .f small { display: block; margin-top: 3px; }
 /* ===== Blatt und Cover (alle Maße in Millimetern, damit der Druck stimmt) ===== */
 .sheet { width: 297mm; height: 210mm; background: #fff; display: grid; place-items: center; transform: scale(var(--k, .8)); transform-origin: 0 0; }
 .wrap { position: relative; width: var(--w); height: var(--h); }
-.cover { --sp: var(--brand, #89268d); position: relative; width: var(--w); height: var(--h); display: grid; grid-template-columns: var(--back) var(--spine) var(--front); background: var(--sp); overflow: hidden; font-family: Lato, "Segoe UI", sans-serif; color: #111; }
+.cover { --sp: var(--spineBg, var(--brand, #89268d)); position: relative; width: var(--w); height: var(--h); display: grid; grid-template-columns: var(--back) var(--spine) var(--front); background: var(--sp); overflow: hidden; font-family: Lato, "Segoe UI", sans-serif; color: #111; }
 .cover img[hidden] { display: none; }
 .ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #b9bec9; font-weight: 700; font-size: 12pt; background: #f4f5f8; z-index: 0; }
 .has-img > .ph { display: none; }
@@ -198,8 +198,13 @@ dialog .f small { display: block; margin-top: 3px; }
 .cover { --ov: .6mm; }
 .spine { position: relative; z-index: 2; margin: 0 calc(-1 * var(--ov)); padding: 0 var(--ov); background: var(--sp, var(--brand, #89268d)); display: flex; flex-direction: column; align-items: center; min-width: 0; overflow: hidden; }
 .spine-head { width: calc(100% + 2 * var(--ov)); margin: 0 calc(-1 * var(--ov)); display: flex; justify-content: center; padding-top: 2mm; flex: none; }
-.spine-foot { display: flex; align-items: center; justify-content: center; width: 100%; height: 8mm; flex: none; color: #fff; font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
-.spine.nopc .spine-foot { display: none; }
+.spine-foot { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2mm; width: 100%; min-height: 8mm; padding-bottom: 2mm; flex: none; color: #fff; font-weight: 900; font-size: 7pt; letter-spacing: .3mm; }
+.spine.nopc .spine-foot .pc { display: none; }
+.spine.nopc.nopub .spine-foot { display: none; }
+.spine-pub { max-width: calc(100% - 2.5mm); max-height: 9mm; object-fit: contain; background: #fff; padding: .7mm; border-radius: .9mm; box-sizing: content-box; }
+.spine-box { position: relative; }
+.spine-art { position: absolute; left: 50%; top: 50%; object-fit: contain; max-width: none; }
+.spine.usingLogo .spine-title { visibility: hidden; }
 .spine.tcenter .spine-box { align-items: center; }
 .spine-logo { display: block; width: 7mm; height: auto; }
 .cover.slim .spine-logo { width: 5.5mm; }
@@ -209,7 +214,7 @@ dialog .f small { display: block; margin-top: 3px; }
 
 /* Vorderseite */
 .front { position: relative; background: #f4f5f8 center / cover no-repeat; overflow: hidden; }
-.gog-corner { position: absolute; left: 0; top: 0; z-index: 3; padding: 2mm; background: var(--brand, #89268d); border-radius: 0 0 2.6mm 0; }
+.gog-corner { position: absolute; left: 0; top: 0; z-index: 3; padding: 2mm; background: var(--spineBg, var(--brand, #89268d)); border-radius: 0 0 2.6mm 0; }
 .gog-corner img { display: block; height: 17mm; width: auto; }
 .gog-bar { display: none; }
 /* Epic Games und Steam: Logo (Vektorgrafik) mit dem Schriftzug darunter, gleiche Plätze wie beim GOG-Logo */
@@ -235,7 +240,6 @@ dialog .f small { display: block; margin-top: 3px; }
 /* ===== Stil "Leiste": Kopfleiste über die ganze Breite wie bei Handelsspielen (Vorderseite und Rücken) =====
    Verlauf von barA nach barB, darunter eine Akzentlinie (line), die über den Rücken durchläuft. Gilt für alle Anbieter. */
 .cover { --bar-h: 18.6mm; --bar-line: 1.6mm; }
-.theme-bar { --sp: var(--spineBg, var(--brand, #89268d)); }
 .theme-bar .gog-corner { display: none; }
 .theme-bar .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); align-items: center; justify-content: space-between; padding-right: 4mm; background: linear-gradient(var(--barA), var(--barB)); border-bottom: var(--bar-line) solid var(--line); z-index: 3; }
 .theme-bar .gog-bar img { height: 12.5mm; width: auto; margin-left: 4.5mm; display: block; }
@@ -277,3 +281,7 @@ dialog .f small { display: block; margin-top: 3px; }
 .saveinfo { font-size: 12.5px; color: var(--mut); white-space: nowrap; }
 .saveinfo.dirty { color: #b54708; }
 .menu kbd { margin-left: 10px; font: 11px/1 ui-monospace, Consolas, monospace; color: var(--mut); }
+
+/* Bild der Vorderseite über den Rücken fortsetzen: dunkle Abdunklung, damit der Titel lesbar bleibt */
+.spine.art { background-repeat: no-repeat; }
+.drop .bgx { flex: none; margin-right: 6px; cursor: pointer; }

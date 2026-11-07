@@ -223,7 +223,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   assert.ok(Math.abs(g.titleTop - g.titleBottom) < 8, 'Titel steht mittig: ' + g.titleTop + ' / ' + g.titleBottom);
   await page.selectOption('[data-k=spineTitle]', 'top');
   await page.uncheck('[data-k=spinePC]'); await page.waitForTimeout(100);
-  assert.equal((await geoNow()).foot, 'none'); await page.check('[data-k=spinePC]');
+  assert.equal(await page.locator('#spineFoot .pc').evaluate((e) => getComputedStyle(e).display), 'none', '"PC" ist abschaltbar'); await page.check('[data-k=spinePC]');
   await page.fill('[data-k=title]', keep.title); await page.fill('[data-k=copyright]', keep.copyright);
   // Symbole: Linienstil für alle Funktionen, Original nur für die ersten sieben
   await page.evaluate(() => CoverApp.patch({ features: ['single_player', 'vr'] })); await page.waitForTimeout(100);

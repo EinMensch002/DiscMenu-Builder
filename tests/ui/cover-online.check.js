@@ -171,7 +171,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.match(await page.locator('#dlg .shown tr', { hasText: 'Arbeitsspeicher' }).innerText(), /2 GB RAM[\s\S]*4 GB RAM/);
   assert.match(shown, /USK-Freigabe[\s\S]*ab 12 Jahren/);
   assert.match(shown, /Spieletitel[\s\S]*Half-Life/); assert.match(shown, /Publisher \/ Entwickler[\s\S]*Valve/);
-  assert.equal(await page.locator('#dlg input[type=checkbox]').isChecked(), true, 'Steam-Cover ist ohne vorhandenes Frontcover vorgewählt');
+  assert.equal(await page.locator('#dlg input[type=checkbox]').first().isChecked(), true, 'Steam-Cover ist ohne vorhandenes Frontcover vorgewählt');
   await page.click('#dlg button:has-text("Übernehmen")');
   await page.waitForFunction(() => document.querySelector('[data-k="cpu.intel.on"]').checked && document.querySelector('[data-k=title]').value === 'Half-Life');
   // Titel (Rücken) und Cover kommen von Steam
@@ -179,6 +179,9 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => document.querySelector('#spineTitle').textContent === 'Half-Life');
   await page.waitForFunction(() => document.querySelector('[data-img=front]').classList.contains('has'));
   assert.ok(cdnCalls.some((u) => /steam\/apps\/70\/library_600x900_2x\.jpg/.test(u)), 'Steam-Cover (Hochformat) wurde geladen');
+  await page.waitForFunction(() => document.querySelector('[data-img=spineLogo]').classList.contains('has'));
+  assert.ok(cdnCalls.some((u) => /steam\/apps\/70\/logo\.png/.test(u)), 'Spiel-Logo für den Rücken wurde geladen');
+  assert.equal(await page.locator('#spineLogoImg').isVisible(), true, 'Rücken zeigt das Logo statt des Titels');
   assert.deepEqual(await page.evaluate(() => [CoverApp.state.publisher, CoverApp.state.developer]), ['Valve', 'Valve']);
   await page.waitForFunction(() => document.querySelector('#frontUsk').getAttribute('src') === 'assets/images/usk/usk_12.png');      // Altersfreigabe von Steam
   assert.equal(await page.inputValue('[data-k=usk]'), '12');

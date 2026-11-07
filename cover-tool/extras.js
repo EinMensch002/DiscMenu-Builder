@@ -251,22 +251,28 @@
       const table = h('table', { class: 'shown' });
       const note = h('p', { class: 'dmsg' });
       let current = null;
-      const hasFront = !!App.snapshot().images.front;
-      const coverChk = h('input', { type: 'checkbox', checked: !hasFront });
+      const have = App.snapshot().images;
+      const coverChk = h('input', { type: 'checkbox', checked: !have.front });
+      const logoChk = h('input', { type: 'checkbox', checked: !have.spineLogo });
+      const CDN = 'https://cdn.akamai.steamstatic.com/steam/apps/' + encodeURIComponent(item.id) + '/';
+      const firstBlob = async (names) => { let err; for (const n of names) { try { return await O.fetchBlob(CDN + n); } catch (e) { err = e; } } throw err; };
       const apply = async () => {
         App.patch(current.patch);
-        if (!coverChk.checked) { closeDlg(); return; }
-        ok.disabled = true; say(note, 'Steam-Cover wird geladen ...');
-        try {
-          let blob;
-          try { blob = await O.fetchBlob('https://cdn.akamai.steamstatic.com/steam/apps/' + encodeURIComponent(item.id) + '/library_600x900_2x.jpg'); }
-          catch (e) { blob = await O.fetchBlob('https://cdn.akamai.steamstatic.com/steam/apps/' + encodeURIComponent(item.id) + '/library_600x900.jpg'); }
-          await App.setImage('front', new File([blob], 'steam-' + item.id + '.jpg', { type: blob.type || 'image/jpeg' }));
-          closeDlg();
-        } catch (e) {
-          say(note, 'Die Angaben sind übernommen, das Cover nicht: ' + e.message + ' (Mit dem Proxy muss der Host cdn.akamai.steamstatic.com erlaubt sein, sonst das Cover über die Bildsuche oder per Datei laden.)', true);
-          ok.disabled = false;
+        if (!coverChk.checked && !logoChk.checked) { closeDlg(); return; }
+        ok.disabled = true; const problems = [];
+        if (coverChk.checked) {
+          say(note, 'Steam-Cover wird geladen ...');
+          try { const blob = await firstBlob(['library_600x900_2x.jpg', 'library_600x900.jpg']); await App.setImage('front', new File([blob], 'steam-' + item.id + '.jpg', { type: blob.type || 'image/jpeg' })); }
+          catch (e) { problems.push('das Cover (' + e.message + ')'); }
         }
+        if (logoChk.checked) {
+          say(note, 'Spiel-Logo wird geladen ...');
+          try { const blob = await firstBlob(['logo.png', 'library_logo.png']); await App.setImage('spineLogo', new File([blob], 'steam-logo-' + item.id + '.png', { type: blob.type || 'image/png' })); }
+          catch (e) { problems.push('das Spiel-Logo für den Rücken (Steam hat für dieses Spiel keins unter der bekannten Adresse oder es ist nicht ladbar; der Rücken zeigt dann den Titel. Alternativ per 🔎 bei SteamGridDB suchen)'); }
+        }
+        if (!problems.length) { closeDlg(); return; }
+        say(note, 'Die Angaben sind übernommen, nicht geladen wurde ' + problems.join(' und ') + '. (Mit dem Proxy muss der Host cdn.akamai.steamstatic.com erlaubt sein.)', true);
+        ok.disabled = false;
       };
       const ok = h('button', { type: 'button', class: 'pri', onclick: apply }, 'Übernehmen');
       const draw = () => {
@@ -282,6 +288,7 @@
         h('div', { class: 'drow' }, h('button', { type: 'button', onclick: openSteam }, '← Andere Suche')),
         table, note,
         h('label', { class: 'chk' }, coverChk, ' Steam-Cover (Hochformat) als Frontcover laden'),
+        h('label', { class: 'chk' }, logoChk, ' Spiel-Logo für den Rücken laden (statt des Titels, wenn Steam eins hat)'),
         h('p', { class: 'dmsg' }, 'Prozessor und Grafikkarte werden, wo es passt, in die Kategorien übernommen (Intel, AMD, NVIDIA, Radeon mit Modell). Was nicht hineinpasst, steht als eigener Text und ersetzt dann die Auswahl. Lange Angaben werden gekürzt. Alles lässt sich danach ändern.'),
         h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
       draw();
@@ -289,8 +296,8 @@
   }
 
   /* ---------- Bildsuche bei SteamGridDB ---------- */
-  const DEFAULT_KIND = { front: 'cover', backTop: 'hero', backBottom: 'hero', publisher: 'logo' };
-  const TARGET_NAME = { front: 'Frontcover', backTop: 'Rückseite oben', backBottom: 'Rückseite unten', publisher: 'Publisher-Logo' };
+  const DEFAULT_KIND = { front: 'cover', backTop: 'hero', backBottom: 'hero', publisher: 'logo', spineLogo: 'logo' };
+  const TARGET_NAME = { front: 'Frontcover', backTop: 'Rückseite oben', backBottom: 'Rückseite unten', publisher: 'Publisher-Logo', spineLogo: 'Rückenlogo' };
 
   function openSteamGridDB(key) {
     const input = h('input', { type: 'text', placeholder: 'Spieltitel, z. B. Stronghold' }); input.value = App.state.title || '';
@@ -347,6 +354,7 @@
     const st = App.state, input = h('input', { type: 'text', placeholder: 'Firma, z. B. Valve oder Team Cherry' });
     input.value = st.publisher || st.developer || '';
     const source = h('select', {}, h('option', { value: 'wikidata' }, 'Wikidata (ohne Schlüssel)'), h('option', { value: 'brandfetch' }, 'Brandfetch (mit Client-ID, findet auch kleine Studios)'));
+    const bgChk = h('input', { type: 'checkbox', checked: true });
     const msg = h('p', { class: 'dmsg' }, 'Vorgabe ist der Publisher aus dem Steam-Import. Findet Wikidata nichts (z. B. bei Indie-Studios), die Quelle auf Brandfetch umstellen.');
     const gal = h('div', { class: 'gal' });
     let chosen = null;
@@ -354,7 +362,9 @@
       ok.disabled = true; say(msg, 'Logo wird übernommen ...');
       try {
         const blob = await O.fetchBlob(chosen.file ? await O.commonsImageUrl(chosen.file, 800) : chosen.url);
-        await App.setImage('publisher', new File([blob], 'logo-' + chosen.id.replace(/[^\w-]+/g, '') + '.' + ((blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg')), { type: blob.type || 'image/png' })); closeDlg();
+        await App.setImage('publisher', new File([blob], 'logo-' + chosen.id.replace(/[^\w-]+/g, '') + '.' + ((blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('svg+xml', 'svg')), { type: blob.type || 'image/png' }));
+        if (bgChk.checked) await App.removeBackground('publisher');
+        closeDlg();
       } catch (e) { say(msg, e.message, true); ok.disabled = false; }
     } }, 'Als Publisher-Logo übernehmen');
     const pick = (e, c) => { gal.querySelectorAll('button').forEach((b) => b.classList.remove('sel')); e.currentTarget.classList.add('sel'); chosen = c; ok.disabled = false; };
@@ -381,6 +391,7 @@
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
     const quick = [['Publisher', st.publisher], ['Entwickler', st.developer]].filter(([, v]) => v).map(([l, v]) => h('button', { type: 'button', onclick: () => { input.value = v; go(); } }, l + ': ' + v));
     openDlg('Publisher-Logo suchen', h('div', { class: 'drow' }, input, h('button', { type: 'button', class: 'pri', onclick: go }, 'Suchen')), h('div', { class: 'drow' }, source),
+      h('label', { class: 'chk' }, bgChk, ' Einfarbigen Hintergrund (z. B. Weiß) automatisch transparent machen'),
       quick.length ? h('div', { class: 'drow' }, ...quick) : null, msg, gal,
       h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
     if (input.value) go();

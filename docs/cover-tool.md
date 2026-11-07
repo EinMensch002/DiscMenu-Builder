@@ -18,7 +18,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 ## Standardwerte
 
-Neue Projekte starten mit dem Stil **Leiste**, der dunklen GOG-Leiste, dem Rückentitel mittig und ohne GOG-Galaxy-Feld. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
+Neue Projekte starten mit dem Stil **Leiste in GOG-Farben** (Lila mit grüner Linie), dem Rückentitel mittig und ohne GOG-Galaxy-Feld. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
 
 ## Schnellstart
 
@@ -184,13 +184,20 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 | Stil | Aussehen |
 |---|---|
 | **Klassisch** (Standard) | Wie die GOG-Originalhüllen: lila Logo-Ecke oben links auf der Vorderseite, grüner Streifen mit Spielfunktionen, helles Feld mit den Angaben, lila Rücken |
-| **Leiste** | Wie Handelsspiele im Laden: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten. Die Rückseite bleibt wie beim klassischen Stil. Bei GOG ist die Leiste standardmäßig **dunkel (Anthrazit mit lila Linie)**, weil Lila zu den meisten Covern nicht passt. Unter "Farbe der Leiste bei GOG" lässt sich auf **Lila mit grüner Linie** (GOG-Farben) umstellen |
+| **Leiste** | Wie Handelsspiele im Laden: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten. Die Rückseite bleibt wie beim klassischen Stil. Bei GOG gibt es im Stil-Menü vier Auswahlmöglichkeiten: **Leiste, GOG-Farben** (Lila mit grüner Linie, Standard), **Leiste, dunkel mit Lila** (Anthrazit mit lila Linie, passt zu den meisten Covern), **Klassisch, GOG-Farben** und **Klassisch, dunkel mit Lila**. Die dunkle Variante färbt auch den Rücken und die Logo-Ecke. Bei Steam und Epic gibt es zwei Stile (Leiste, Klassisch), deren Farben sind ohnehin dunkel |
 
 Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseite und Rücken das GOG-Logo. Der Stil wird mit den Einstellungen gemerkt. Der frühere Stil "Modern" (dunkle Rückseite) ist entfallen, gespeicherte Projekte damit öffnen sich im Stil Leiste.
 
 ## Feste Plätze auf der Rückseite
 
 Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (20 × 24 mm, bewusst klein, damit mehr Platz für die Angaben bleibt), in der Mitte die **Angaben**, rechts **Logos, USK und Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Schaltet man das Galaxy-Feld aus (oder wählt Epic Games oder Steam), **rücken nur die Angaben nach links an den Rand** und nutzen den freien Platz, alles andere bleibt, wo es ist. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
+
+## Rücken-Logo, Rückenbild und Publisher
+
+- **Logo für den Rücken:** Im Bereich "Bilder" lässt sich ein Spiel-Logo laden (🔎 sucht bei SteamGridDB nach Logos). Es steht dann **statt des Titels**, um 90° gedreht und so groß wie der Rücken es zulässt. Mit dem Haken "Statt des Titels das Rückenlogo zeigen" lässt sich zum Titel zurückschalten. Der **Steam-Import** lädt das Logo auf Wunsch mit (Haken im Dialog, von der Steam-Adresse `…/apps/<ID>/logo.png`). Hat Steam dort keins, steht ein Hinweis da und der Rücken zeigt den Titel.
+- **Bild über den Rücken fortsetzen:** Unter "Hintergrund des Rückens" lässt sich statt der Anbieterfarbe das **Frontbild über den Rücken weiterführen**, wie bei Hüllen mit durchgehendem Motiv. Der Rücken wird dafür etwas abgedunkelt, damit Titel und Logo lesbar bleiben. Bei der Leiste beginnt das Bild unter der Kopfleiste.
+- **Publisher-Logo am Fuß:** Ist ein Publisher-Logo geladen, steht es am Fuß des Rückens auf einer weißen Kachel, **"PC" steht darüber, das Logo ganz unten**. Abschaltbar ("Publisher-Logo am Fuß des Rückens").
+- **Hintergrund transparent machen:** Der Knopf ◧ am Publisher-Logo und am Rückenlogo macht einen einfarbigen Hintergrund (z. B. Weiß bei Logos von Brandfetch) transparent. Er arbeitet vom Rand aus und blendet die Kante weich über. Im Publisher-Dialog geschieht das automatisch (abschaltbar). Bei Farbverläufen oder mehrfarbigen Ecken meldet das Tool, dass nichts erkannt wurde.
 
 ## Rücken
 

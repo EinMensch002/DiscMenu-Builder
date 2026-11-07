@@ -25,10 +25,19 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload();
 
-  // Standardwerte: Stil Leiste, dunkle GOG-Leiste, Titel mittig, Galaxy-Feld aus, USK voll deckend
+  // Standardwerte: Stil Leiste in GOG-Farben (Lila mit Grün), Titel mittig, Galaxy-Feld aus, USK voll deckend
   assert.equal(await page.inputValue('[data-k=theme]'), 'bar');
-  assert.equal(await page.inputValue('[data-k=gogBar]'), 'dark');
+  assert.deepEqual(await page.locator('[data-k=theme] option').allTextContents(), ['Leiste, GOG-Farben (Lila mit Grün)', 'Leiste, dunkel mit Lila', 'Klassisch (Logo-Ecke), GOG-Farben', 'Klassisch (Logo-Ecke), dunkel mit Lila']);
+  assert.equal(await page.locator('#cover').evaluate((e) => getComputedStyle(e).getPropertyValue('--barB').trim()), '#6c1c72');
+  await page.selectOption('[data-k=theme]', 'bar-dark'); await page.waitForTimeout(150);       // dunkle Variante: Anthrazit mit lila Linie, auch auf dem Rücken
   assert.equal(await page.locator('#cover').evaluate((e) => getComputedStyle(e).getPropertyValue('--barB').trim()), '#1b1b1f');
+  assert.equal(await page.locator('#spine').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(35, 35, 40)');
+  await page.selectOption('[data-k=theme]', 'classic-dark'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('.gog-corner').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(35, 35, 40)');
+  await page.selectOption('[data-k=provider]', 'steam'); await page.waitForTimeout(150);                       // andere Anbieter: nur zwei Stile, dunkle Variante entfällt
+  assert.equal(await page.locator('[data-k=theme] option').count(), 2);
+  assert.equal(await page.inputValue('[data-k=theme]'), 'classic');
+  await page.selectOption('[data-k=provider]', 'gog'); await page.selectOption('[data-k=theme]', 'bar');
   assert.equal(await page.inputValue('[data-k=spineTitle]'), 'center');
   assert.equal(await page.locator('[data-k=galaxy]').isChecked(), false);
   assert.equal(await page.locator('#galaxy').evaluate((e) => getComputedStyle(e).visibility), 'hidden');

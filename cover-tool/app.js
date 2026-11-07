@@ -44,7 +44,18 @@
     else if (el.tagName === 'BUTTON') el.classList.toggle('on', v === el.dataset.v);
     else if (document.activeElement !== el) el.value = v;   // beim Tippen nichts überschreiben
   }
+  /* Stil-Auswahl: GOG hat vier Möglichkeiten (Leiste oder Klassisch, jeweils in GOG-Farben oder dunkel), die anderen Anbieter zwei */
+  let styleFor = null;
+  function fillStyleOptions() {
+    const sel = $('[data-k=theme]');
+    if (!sel) return;
+    if (state.provider !== 'gog') state.theme = state.theme.replace('-dark', '');
+    if (styleFor === state.provider && sel.options.length) return;
+    styleFor = state.provider;
+    sel.replaceChildren(...C.styleOptions(state.provider).map(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; return o; }));
+  }
   function syncControls() {
+    fillStyleOptions();
     $$('[data-k]').forEach(writeControl);
     $$('[data-enable]').forEach((el) => el.classList.toggle('on', !!get(el.dataset.enable)));
   }
@@ -83,7 +94,7 @@
   }
 
   /* ---------- Bilder: auf Druckgröße verkleinern, als Datei-Adresse statt als Base64-Text halten ---------- */
-  const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900 };
+  const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900, spineLogo: 1200 };
 
   async function loadImage(key, file) {
     let result;
@@ -95,7 +106,7 @@
       const cv = document.createElement('canvas');
       cv.width = size.w; cv.height = size.h;
       const ctx = cv.getContext('2d');
-      const png = key === 'publisher';              // Logos behalten ihre Transparenz
+      const png = key === 'publisher' || key === 'spineLogo';              // Logos behalten ihre Transparenz
       if (!png) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size.w, size.h); }
       ctx.drawImage(bmp, 0, 0, size.w, size.h);
       const blob = await new Promise((res) => cv.toBlob(res, png ? 'image/png' : 'image/jpeg', 0.92));
@@ -107,6 +118,45 @@
     images[key] = result;
     renderDrops();
     changed();
+  }
+  /* Einfarbigen Hintergrund (z. B. Weiß bei Logos von Brandfetch) transparent machen: Vom Rand aus werden alle verbundenen Pixel
+     entfernt, die der Eckfarbe ähneln. Die Kante wird weich übergeblendet. Liefert false, wenn die Ecken nicht einfarbig sind,
+     das Bild schon transparent ist oder fast nichts zu entfernen war. */
+  async function removeBackground(key) {
+    const img = images[key];
+    if (!img || img.svg || !img.blob) return false;
+    const bmp = await createImageBitmap(img.blob), w = bmp.width, h = bmp.height;
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d', { willReadFrequently: true }); ctx.drawImage(bmp, 0, 0); bmp.close();
+    const id = ctx.getImageData(0, 0, w, h), d = id.data, at = (x, y) => (y * w + x) * 4;
+    const corners = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]].map(([x, y]) => d.slice(at(x, y), at(x, y) + 4));
+    if (corners.some((c) => c[3] < 250)) return false;
+    const [r0, g0, b0] = corners[0];
+    if (corners.some((c) => Math.abs(c[0] - r0) + Math.abs(c[1] - g0) + Math.abs(c[2] - b0) > 60)) return false;
+    const TOL = 48, dist = (i) => Math.max(Math.abs(d[i] - r0), Math.abs(d[i + 1] - g0), Math.abs(d[i + 2] - b0));
+    const seen = new Uint8Array(w * h), stack = [];
+    const push = (x, y) => { const k = y * w + x; if (seen[k] || dist(k * 4) > TOL) return; seen[k] = 1; stack.push(k); };
+    for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
+    for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
+    while (stack.length) {
+      const k = stack.pop(), x = k % w, y = (k - x) / w;
+      if (x > 0) push(x - 1, y); if (x < w - 1) push(x + 1, y); if (y > 0) push(x, y - 1); if (y < h - 1) push(x, y + 1);
+    }
+    let removed = 0;
+    for (let k = 0; k < w * h; k++) if (seen[k]) { d[k * 4 + 3] = 0; removed++; }
+    if (removed < w * h * 0.02) return false;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {                      // weiche Kante an den Rändern der entfernten Fläche
+      const k = y * w + x; if (seen[k]) continue;
+      if ((x > 0 && seen[k - 1]) || (x < w - 1 && seen[k + 1]) || (y > 0 && seen[k - w]) || (y < h - 1 && seen[k + w])) {
+        const dd = dist(k * 4); if (dd < TOL * 2) d[k * 4 + 3] = Math.round(255 * Math.max(0, Math.min(1, (dd - TOL) / TOL)));
+      }
+    }
+    ctx.putImageData(id, 0, 0);
+    const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
+    URL.revokeObjectURL(img.url);
+    images[key] = { ...img, url: URL.createObjectURL(blob), blob, type: 'image/png', w, h, name: img.name.replace(/\.\w+$/, '') + '.png' };
+    renderDrops(); changed();
+    return true;
   }
   /* Bild aus einer Projektdatei wiederherstellen (ohne es erneut zu verkleinern oder neu zu kodieren) */
   async function restoreImage(key, data, type, name) {
@@ -154,6 +204,8 @@
       drop.addEventListener('dragleave', () => drop.classList.remove('over'));
       drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); take(e.dataTransfer.files[0]); });
       $('.x', drop).addEventListener('click', () => { clearImage(key); renderDrops(); changed(); });
+      const bgx = $('.bgx', drop);
+      if (bgx) bgx.addEventListener('click', async () => { if (!images[key]) return; if (!(await removeBackground(key))) alert('Es wurde kein einfarbiger Hintergrund erkannt (oder das Bild ist schon transparent).'); });
     });
   }
 
@@ -169,7 +221,7 @@
       n.style.setProperty('--w', c.w + 'mm'); n.style.setProperty('--h', c.h + 'mm');
       n.style.setProperty('--back', c.back + 'mm'); n.style.setProperty('--spine', c.spine + 'mm'); n.style.setProperty('--front', c.front + 'mm');
     }
-    cover.classList.toggle('theme-bar', state.theme === 'bar');
+    cover.classList.toggle('theme-bar', state.theme.startsWith('bar'));
     cover.classList.toggle('slim', c.spine < 10);
     $('#customBox').hidden = state.caseType !== 'custom';
     applyProvider(cover);
@@ -197,7 +249,7 @@
     $('#spine').classList.toggle('nopc', !state.spinePC);
     $('#spine').classList.toggle('tcenter', state.spineTitle === 'center');
     $('#spineTitle').textContent = state.title.trim();
-    fitSpineTitle(c);
+    renderSpine(c);
 
     /* Rückseite: Spielfunktionen, Angaben, GOG-Galaxy-Feld, Copyright */
     $('#featTitle').textContent = L.features;
@@ -224,7 +276,7 @@
   function applyProvider(cover) {
     const P = C.PROVIDERS[state.provider];
     const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line, spineBg: P.brand };
-    if (P.darkBar && state.gogBar === 'dark') Object.assign(vars, { barA: P.darkBar.barA, barB: P.darkBar.barB, line: P.darkBar.line, spineBg: P.darkBar.spine });
+    if (P.darkBar && /-dark$/.test(state.theme)) Object.assign(vars, { barA: P.darkBar.barA, barB: P.darkBar.barB, line: P.darkBar.line, spineBg: P.darkBar.spine });
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
     cover.classList.toggle('has-wm', state.provider !== 'gog');
     $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + P.logo; img.alt = P.name; });
@@ -284,6 +336,44 @@
     while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
   }
 
+  /* Rücken: Bild der Vorderseite fortsetzen, Logo statt Titel, Publisher-Logo am Fuß */
+  function renderSpine(c) {
+    const spine = $('#spine'), front = $('#front'), bar = state.theme.startsWith('bar'), barH = bar ? C.BAR_HEIGHT : 0, f = images.front;
+    const art = state.spineArt === 'image' && f && f.w > 0 && f.h > 0;
+    spine.classList.toggle('art', !!art);
+    if (art) {
+      /* Das Bild wird wie bei "cover" auf Rücken und Vorderseite zusammen skaliert und mittig zugeschnitten (bei der Leiste oben bündig unter der Leiste),
+         jede Fläche zeigt ihren Ausschnitt. Der Rücken ragt 0,6 mm in die Nachbarn (--ov), das ist in der Position berücksichtigt. */
+      const W = c.spine + c.front, H = c.h - barH, k = Math.max(W / f.w, H / f.h), sw = f.w * k, sh = f.h * k;
+      const offX = (sw - W) / 2, offY = bar ? 0 : (sh - H) / 2, ov = 0.6, mm = (n) => n.toFixed(3) + 'mm';
+      front.style.backgroundSize = mm(sw) + ' ' + mm(sh);
+      front.style.backgroundPosition = mm(-(offX + c.spine)) + ' ' + mm(-offY);
+      spine.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.3)), url("' + f.url + '")';
+      spine.style.backgroundSize = '100% 100%, ' + mm(sw) + ' ' + mm(sh);
+      spine.style.backgroundPosition = '0 0, ' + mm(ov - offX) + ' ' + mm(barH - offY);
+    } else {
+      front.style.backgroundSize = ''; front.style.backgroundPosition = '';
+      spine.style.backgroundImage = ''; spine.style.backgroundSize = ''; spine.style.backgroundPosition = '';
+    }
+    const sl = images.spineLogo, useLogo = !!(state.spineUseLogo && sl), pub = images.publisher, showPub = !!(state.spinePub && pub);
+    setImg($('#spineLogoImg'), useLogo ? sl.url : '');
+    spine.classList.toggle('usingLogo', useLogo);
+    setImg($('#spinePubImg'), showPub ? pub.url : '');
+    spine.classList.toggle('nopub', !showPub);
+    refitSpine();
+  }
+  function refitSpine() { fitSpineTitle(C.caseDims(state)); fitSpineLogo(); }
+  /* Das Rückenlogo wird um 90° gedreht (Leserichtung wie beim Titel) und füllt die Länge des Rückens */
+  function fitSpineLogo() {
+    const box = $('#spineBox'), li = $('#spineLogoImg');
+    if (li.hidden) return;
+    const cs = getComputedStyle(box), pt = parseFloat(cs.paddingTop) || 0, pb = parseFloat(cs.paddingBottom) || 0;
+    const availH = Math.max(10, box.clientHeight - pt - pb), availW = Math.max(6, box.clientWidth * 0.84);
+    li.style.width = availH + 'px'; li.style.height = availW + 'px';
+    li.style.top = (pt + availH / 2) + 'px'; li.style.left = '50%';
+    li.style.transform = 'translate(-50%, -50%) rotate(90deg)';
+  }
+
   /* Titel auf dem Rücken so groß wie möglich, ohne über die Hülle hinauszuragen */
   function fitSpineTitle(c) {
     const title = $('#spineTitle'), box = $('#spineBox');
@@ -319,6 +409,7 @@
   function init() {
     const ver = $('#ver'); if (ver && /__/.test(ver.textContent)) ver.textContent = 'lokal';
     bindControls();
+    ['spineLogoImg', 'spinePubImg'].forEach((id) => $('#' + id).addEventListener('load', refitSpine));
     bindDrops();
     syncControls();
     $('#bPrint').addEventListener('click', () => window.print());
@@ -349,6 +440,7 @@
     get changes() { return changes; },
     get hasImages() { return Object.keys(images).length > 0; },
     onChange(f) { hooks.change.push(f); },
+    removeBackground(key) { return removeBackground(key); },
     onReset(f) { hooks.reset.push(f); },
     /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
     patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },
