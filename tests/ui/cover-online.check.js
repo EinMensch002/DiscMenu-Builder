@@ -74,7 +74,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   const openMenu = (name) => page.click('.menu summary:has-text("' + name + '")');
   const download = async (action) => { const [dl] = await Promise.all([page.waitForEvent('download'), action()]); return { name: dl.suggestedFilename(), buffer: fs.readFileSync(await dl.path()) }; };
   await page.goto(url);
-  await page.evaluate(() => localStorage.clear()); await page.reload(); await page.selectOption('[data-k=theme]', 'classic');
+  await page.evaluate(() => localStorage.clear()); await page.reload();
 
   // ---- Obere Leiste: alles, was nicht das Cover einstellt, steht dort und nicht im Formular ----
   assert.equal(await page.locator('header.top #bSettings').isVisible(), true);
@@ -93,30 +93,24 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   // ---- Anbieter-Stile ----
   const css = (sel, prop) => page.evaluate(([s, p]) => getComputedStyle(document.querySelector(s)).getPropertyValue(p).trim(), [sel, prop]);
   assert.equal(await css('#cover', '--brand'), '#89268d');
-  assert.equal(await page.locator('#cornerWm').isVisible(), false);
   await page.selectOption('[data-k=provider]', 'epic');
   await page.waitForFunction(() => document.querySelector('#cover').classList.contains('has-wm'));
   assert.equal(await css('#cover', '--brand'), '#2d2d33');
-  assert.equal(await page.locator('#cornerWm').textContent(), 'EPIC GAMES');
-  // Epic-Logo in der Ecke (klassisch) und auf dem Rücken, geladen und sichtbar; die Leiste gibt es nur im Stil "Leiste"
-  assert.equal(await page.locator('.gog-corner img').isVisible(), true);
-  assert.equal(await page.locator('.gog-bar').isVisible(), false);
-  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.brand-logo')].map((i) => [i.getAttribute('src'), i.naturalWidth > 0])), [['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true]]);
+  // Epic-Logo und Schriftzug in der Kopfleiste und das Logo auf dem Rücken, geladen und sichtbar
+  assert.equal(await page.locator('#barWm').innerText(), 'EPIC GAMES');
+  assert.equal(await page.locator('.gog-bar').isVisible(), true);
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.brand-logo')].map((i) => [i.getAttribute('src'), i.naturalWidth > 0])), [['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true]]);
   assert.equal(await page.locator('#spineLogo').isVisible(), true);
   assert.match(await page.locator('#featNote').textContent(), /Epic Games Launcher/);
+  assert.equal(await page.locator('[data-k=theme]').isVisible(), false, 'Bei Epic und Steam gibt es keine Farbvariante zur Auswahl');
   await page.selectOption('[data-k=provider]', 'steam');
-  await page.waitForFunction(() => document.querySelector('#cornerWm').textContent === 'STEAM');
+  await page.waitForFunction(() => document.querySelector('#barWm').textContent === 'STEAM');
   assert.equal(await css('#cover', '--brand'), '#23394c');
-  assert.equal(await page.locator('.gog-corner img').getAttribute('src'), 'assets/images/steam_logo.svg');
-  assert.equal(await page.locator('.gog-corner img').evaluate((i) => i.naturalWidth > 0), true);
-  await page.selectOption('[data-k=theme]', 'bar');
-  await page.waitForFunction(() => document.querySelector('#cover').classList.contains('theme-bar'));
-  assert.equal(await page.locator('#barWm').innerText(), 'STEAM');
-  assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/steam_logo.svg', 'Im Streifen steht das Steam-Logo');
-  assert.equal(await page.locator('.gog-bar img').isVisible(), true);
+  assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/steam_logo.svg', 'In der Leiste steht das Steam-Logo');
+  assert.equal(await page.locator('.gog-bar img').evaluate((i) => i.naturalWidth > 0), true);
   assert.equal(await page.locator('#spineLogo').isVisible(), true);
   assert.equal(await page.locator('#frontTag').textContent(), 'PC');
-  await page.selectOption('[data-k=theme]', 'classic');
+ 
   await page.selectOption('[data-k=provider]', 'gog');
   await page.waitForFunction(() => !document.querySelector('#cover').classList.contains('has-wm'));
   assert.equal(await page.locator('#frontTag').textContent(), 'PC · DRM-FREI');
@@ -162,7 +156,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.locator('#dlg .dlist button', { hasText: /^Half-Life\s+\(App 70\)$/ }).click();
   await page.waitForSelector('#dlg .shown');
   const shown = await page.locator('#dlg .shown').innerText();
-  assert.match(shown, /Windows \(7, 8, 10\) \/ Linux/); assert.match(shown, /NVIDIA GeForce 8800 GT/); assert.match(shown, /Version 9\.0c/);
+  assert.match(shown, /Windows \(7, 8, 10\) \/ Linux/); assert.match(shown, /GeForce 8800 GT/); assert.match(shown, /Version 9\.0c/);
   // Beide Spalten auf einmal: Minimum 2 GB, Empfohlen 4 GB
   assert.match(await page.locator('#dlg .shown').innerText(), /Minimum[\s\S]*Empfohlen/);
   assert.match(await page.locator('#dlg .shown tr', { hasText: 'Arbeitsspeicher' }).innerText(), /2 GB RAM[\s\S]*4 GB RAM/);
@@ -170,7 +164,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.match(shown, /Spieletitel[\s\S]*Half-Life/); assert.match(shown, /Publisher \/ Entwickler[\s\S]*Valve/);
   assert.equal(await page.locator('#dlg input[type=checkbox]').first().isChecked(), true, 'Steam-Cover ist ohne vorhandenes Frontcover vorgewählt');
   await page.click('#dlg button:has-text("Übernehmen")');
-  await page.waitForFunction(() => document.querySelector('[data-k="cpu.intel.on"]').checked && document.querySelector('[data-k=title]').value === 'Half-Life');
+  await page.waitForFunction(() => document.querySelectorAll('[data-pane=min] [data-hw=cpu] .hwrow').length === 1 && document.querySelector('[data-k=title]').value === 'Half-Life');
   // Titel (Rücken) und Cover kommen von Steam
   assert.equal(await page.inputValue('[data-k=title]'), 'Half-Life');
   await page.waitForFunction(() => document.querySelector('#spineTitle').textContent === 'Half-Life');
@@ -182,11 +176,13 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.deepEqual(await page.evaluate(() => [CoverApp.state.publisher, CoverApp.state.developer]), ['Valve', 'Valve']);
   await page.waitForFunction(() => document.querySelector('#frontUsk').getAttribute('src') === 'assets/images/usk/usk_12.png');      // Altersfreigabe von Steam
   assert.equal(await page.inputValue('[data-k=usk]'), '12');
-  // Prozessor in der Kategorie Intel mit Modell (AMD bleibt aus), die alte Grafikkarte bleibt Text
-  assert.equal(await page.locator('[data-k="cpu.amd.on"]').isChecked(), false);
-  assert.equal(await page.inputValue('[data-k="cpu.intel.pre"]'), 'Core 2 Duo'); assert.equal(await page.inputValue('[data-k="cpu.intel.num"]'), 'E6600');
-  assert.equal(await page.inputValue('[data-k="cpu.custom"]'), '');
-  assert.equal(await page.inputValue('[data-k="gpu.custom"]'), 'NVIDIA GeForce 8800 GT');
+  // Prozessor: ein Intel-Eintrag in den Auswahlfeldern, die alte Grafikkarte bleibt Text (ohne NVIDIA davor)
+  const cpuRows = page.locator('[data-pane=min] [data-hw=cpu] .hwrow'), gpuRows = page.locator('[data-pane=min] [data-hw=gpu] .hwrow');
+  assert.equal(await cpuRows.count(), 1);
+  assert.equal(await cpuRows.nth(0).locator('[data-f=kind]').inputValue(), 'intel');
+  assert.equal(await cpuRows.nth(0).locator('[data-f=pre]').inputValue(), 'Core 2 Duo'); assert.equal(await cpuRows.nth(0).locator('[data-f=num]').inputValue(), 'E6600');
+  assert.equal(await gpuRows.count(), 1); assert.equal(await gpuRows.nth(0).locator('[data-f=kind]').inputValue(), 'text');
+  assert.equal(await gpuRows.nth(0).locator('[data-f=text]').inputValue(), 'GeForce 8800 GT');
   assert.equal(await page.inputValue('input[type=text][data-k=ram]'), '2');
   assert.equal(await page.inputValue('[data-k=dx]'), 'Version 9.0c');
   assert.equal(await page.locator('[data-k=features][value=achievements]').isChecked(), true);
@@ -322,17 +318,19 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.fill('#dlg input[type=text]', '1091500'); await page.press('#dlg input[type=text]', 'Enter');
   await page.waitForSelector('#dlg .shown');
   const cpRows = await page.locator('#dlg .shown tr').allInnerTexts();
-  assert.ok(cpRows.some((r) => /Prozessor\s+Intel Core i7-6700 \/ AMD Ryzen 5 1600\s+in Kategorien/.test(r)), cpRows.join(' | '));
-  assert.ok(cpRows.some((r) => /Grafik\s+NVIDIA GeForce GTX 1060 6GB \/ AMD Radeon RX 580 8GB\s+in Kategorien/.test(r)), cpRows.join(' | '));
+  assert.ok(cpRows.some((r) => /Prozessor\s+Intel Core i7-6700 \/ AMD Ryzen 5 1600\s+in Auswahlfeldern/.test(r)), cpRows.join(' | '));
+  assert.ok(cpRows.some((r) => /Grafik\s+GeForce GTX 1060 6 GB \/ Radeon RX 580 8 GB\s+in Auswahlfeldern/.test(r)), cpRows.join(' | '));
   await page.click('#dlg button:has-text("Übernehmen")');
-  await page.waitForFunction(() => document.querySelector('[data-k="gpu.nvidia.on"]').checked);
-  assert.equal(await page.inputValue('[data-k="cpu.intel.pre"]'), 'Core i7'); assert.equal(await page.inputValue('[data-k="cpu.intel.num"]'), '6700');
-  assert.equal(await page.inputValue('[data-k="cpu.amd.pre"]'), 'Ryzen 5'); assert.equal(await page.inputValue('[data-k="cpu.amd.num"]'), '1600');
-  assert.equal(await page.inputValue('[data-k="cpu.custom"]'), '', 'Ein früherer eigener Text wird ersetzt');
-  assert.equal(await page.inputValue('[data-k="gpu.nvidia.pre"]'), 'GTX'); assert.equal(await page.inputValue('[data-k="gpu.nvidia.num"]'), '1060');
-  assert.equal(await page.inputValue('[data-k="gpu.amd.pre"]'), 'RX'); assert.equal(await page.inputValue('[data-k="gpu.amd.num"]'), '580');
+  await page.waitForFunction(() => document.querySelectorAll('[data-pane=min] [data-hw=gpu] .hwrow').length === 2);
+  const cr = page.locator('[data-pane=min] [data-hw=cpu] .hwrow'), gr = page.locator('[data-pane=min] [data-hw=gpu] .hwrow');
+  assert.equal(await cr.count(), 2, 'Ein früherer Eintrag wird ersetzt');
+  assert.equal(await cr.nth(0).locator('[data-f=pre]').inputValue(), 'Core i7'); assert.equal(await cr.nth(0).locator('[data-f=num]').inputValue(), '6700');
+  assert.equal(await cr.nth(1).locator('[data-f=pre]').inputValue(), 'Ryzen 5'); assert.equal(await cr.nth(1).locator('[data-f=num]').inputValue(), '1600');
+  assert.equal(await gr.nth(0).locator('[data-f=kind]').inputValue(), 'geforce'); assert.equal(await gr.nth(0).locator('[data-f=pre]').inputValue(), 'GTX');
+  assert.equal(await gr.nth(0).locator('[data-f=num]').inputValue(), '1060'); assert.equal(await gr.nth(0).locator('[data-f=gb]').inputValue(), '6');
+  assert.equal(await gr.nth(1).locator('[data-f=kind]').inputValue(), 'radeon'); assert.equal(await gr.nth(1).locator('[data-f=num]').inputValue(), '580'); assert.equal(await gr.nth(1).locator('[data-f=gb]').inputValue(), '8');
   await page.waitForTimeout(150);
-  assert.match(await page.locator('#specs').innerText(), /Intel Core i7-6700[\s\S]*AMD Ryzen 5 1600[\s\S]*NVIDIA GeForce GTX 1060 6GB[\s\S]*AMD Radeon RX 580 8GB/);
+  assert.match(await page.locator('#specs').innerText(), /Intel Core i7-6700[\s\S]*AMD Ryzen 5 1600[\s\S]*GeForce GTX 1060 6 GB[\s\S]*Radeon RX 580 8 GB/);
   // Die lange Zusatzangabe passt in das Feld: Die Liste endet innerhalb der Rückseite
   assert.ok(await page.evaluate(() => { const p = document.querySelector('.panel-back').getBoundingClientRect(), s = document.querySelector('#specs').getBoundingClientRect(); return s.bottom <= p.bottom && s.top >= p.top; }), 'Angaben ragen aus dem Feld');
 
@@ -342,7 +340,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     const blob = await new Promise((r) => cv.toBlob(r, type)); const dt = new DataTransfer(); dt.items.add(new File([blob], key + '.png', { type }));
     const input = document.querySelector('[data-img=' + key + '] input[type=file]'); input.files = dt.files; input.dispatchEvent(new Event('change', { bubbles: true }));
   }, { key, w, h, type });
-  await page.fill('[data-k=title]', 'Größen-Test'); await page.selectOption('[data-k=provider]', 'steam'); await page.selectOption('[data-k=theme]', 'bar');
+  await page.fill('[data-k=title]', 'Größen-Test'); await page.selectOption('[data-k=provider]', 'steam');
   await page.check('[data-k=caseType][value=custom]'); await page.fill('[data-k="custom.back"]', '120'); await page.check('[data-k=features][value=mods]');
   await giveImage('publisher', 400, 200, 'image/png');
   await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));

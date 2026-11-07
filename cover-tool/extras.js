@@ -317,7 +317,7 @@
         current = O.steamPatchBoth(details);
         const two = current.hasBoth;
         table.replaceChildren(h('tr', { class: 'head' }, h('th', {}, ''), h('th', {}, two ? 'Minimum' : 'Angaben'), h('th', {}, two ? 'Empfohlen' : ''), h('th', {}, '')),
-          ...current.shown.map((r) => h('tr', {}, h('td', {}, r.label), h('td', {}, r.min), h('td', {}, r.rec || (two && r.rec === '' ? '–' : '')), h('td', { class: 'kind' }, r.kind ? (r.kind === 'Kategorie' ? 'in Kategorien' : 'als Text') : ''))));
+          ...current.shown.map((r) => h('tr', {}, h('td', {}, r.label), h('td', {}, r.min), h('td', {}, r.rec || (two && r.rec === '' ? '–' : '')), h('td', { class: 'kind' }, r.kind ? ({ Kategorie: 'in Auswahlfeldern', Gemischt: 'teils als Text' }[r.kind] || 'als Text') : ''))));
         note.textContent = current.hasRequirements ? '' : 'Steam hat zu diesem Spiel keine Systemanforderungen. Es werden nur Plattformen und Funktionen übernommen.';
         ok.disabled = !Object.keys(current.patch).length;
         if (ok.disabled) note.textContent = 'Zu diesem Spiel liefert Steam nichts, was sich übernehmen lässt.';
@@ -327,7 +327,7 @@
         table, note,
         h('label', { class: 'chk' }, coverChk, ' Steam-Cover (Hochformat) als Frontcover laden'),
         h('label', { class: 'chk' }, logoChk, ' Spiel-Logo für den Rücken laden (statt des Titels, wenn Steam eins hat)'),
-        h('p', { class: 'dmsg' }, 'Prozessor und Grafikkarte werden, wo es passt, in die Kategorien übernommen (Intel, AMD, NVIDIA, Radeon mit Modell). Was nicht hineinpasst, steht als eigener Text und ersetzt dann die Auswahl. Lange Angaben werden gekürzt. Alles lässt sich danach ändern.'),
+        h('p', { class: 'dmsg' }, 'Prozessor und Grafikkarte werden bei "or" bzw. "/" in einzelne Einträge zerlegt (jeder steht auf dem Cover in einer eigenen Zeile). Was in die Auswahlfelder passt (Intel, AMD, GeForce, Radeon mit Modell und Speicher), kommt dorthin, der Rest bleibt als Text. Lange Angaben werden gekürzt. Alles lässt sich danach ändern.'),
         h('div', { class: 'drow' }, ok, h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
       draw();
     }
@@ -425,7 +425,7 @@
           h('img', { src: O.commonsUrl(file, 240), alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), h('small', {}, r.label + (r.description ? ' · ' + r.description : '') + (r.old.includes(file) ? ' · älteres Logo' : ''))))));
       } catch (e) { if (me === run) say(msg, e.message, true); }
     };
-    source.addEventListener('change', () => { if (source.value === 'brandfetch' && !O.settings.brandfetch) say(msg, 'Für Brandfetch fehlt noch die kostenlose Client-ID. Sie gehört in die Einstellungen (Knopf oben in der Leiste).', true); else go(); });
+    source.addEventListener('change', () => { run++; gal.replaceChildren(); if (source.value === 'brandfetch' && !O.settings.brandfetch) say(msg, 'Für Brandfetch fehlt noch die kostenlose Client-ID. Sie gehört in die Einstellungen (Knopf oben in der Leiste).', true); else go(); });
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
     const quick = [['Publisher', st.publisher], ['Entwickler', st.developer]].filter(([, v]) => v).map(([l, v]) => h('button', { type: 'button', onclick: () => { input.value = v; go(); } }, l + ': ' + v));
     openDlg('Publisher-Logo suchen', h('div', { class: 'drow' }, input, h('button', { type: 'button', class: 'pri', onclick: go }, 'Suchen')), h('div', { class: 'drow' }, source),

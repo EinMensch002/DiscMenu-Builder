@@ -211,25 +211,27 @@
   }
 
   /* Prozessor, Grafik, Speicher usw. einer Anforderungsliste. Prozessor und Grafikkarte kommen möglichst in die Kategorien
-     (Intel, AMD, NVIDIA, Radeon). Passt der Text nicht sauber hinein (z. B. "Pentium III 500 MHz"), bleibt er als Text erhalten. */
+     (Intel, AMD, GeForce, Radeon). Passt der Text nicht sauber hinein (z. B. "Pentium III 500 MHz"), bleibt er als Text erhalten. */
   function fieldsOf(r) {
     const patch = {}, shown = [];
     const add = (label, value, kind) => { if (value) shown.push([label, value, kind || '']); };
-    if (r.processor) {
-      const c = Core && Core.parseCpuText(r.processor);
-      if (c) { patch.cpu = { ...c.cpu, custom: '' }; add('Prozessor', Core.cpuList(c.cpu).join(' / '), 'Kategorie'); }
-      else { patch.cpu = { custom: shorten(r.processor, 110) }; add('Prozessor', patch.cpu.custom, 'Text'); }
-    }
-    if (r.graphics) {
-      const g = Core && Core.parseGpuText(r.graphics);
-      if (g) { patch.gpu = { ...g.gpu, custom: '' }; add('Grafik', Core.gpuList(g.gpu).join(' / '), 'Kategorie'); }
-      else { patch.gpu = { custom: shorten(r.graphics, 110) }; add('Grafik', patch.gpu.custom, 'Text'); }
-    }
+    /* Prozessor und Grafikkarte: Jede Möglichkeit ("or", "oder", "/") wird ein eigener Eintrag. Was in die Auswahlfelder passt, kommt dorthin
+       (GeForce, Radeon, Intel, AMD mit Reihe, Modell, Zusatz und Speicher), der Rest bleibt als Text. */
+    const hw = (type, text, label) => {
+      const items = type === 'cpu' ? Core.parseCpuItems(text) : Core.parseGpuItems(text);
+      if (!items.length) return;
+      patch[type] = { items };
+      const texts = items.map((it) => Core.hwText(type, it)).filter(Boolean);
+      const plain = items.filter((it) => it.kind === 'text').length;
+      add(label, texts.join(' / '), plain === 0 ? 'Kategorie' : plain === items.length ? 'Text' : 'Gemischt');
+    };
+    if (r.processor) hw('cpu', r.processor, 'Prozessor');
+    if (r.graphics) hw('gpu', r.graphics, 'Grafik');
     const ram = parseSize(r.memory); if (ram) { patch.ram = ram; add('Arbeitsspeicher', r.memory); }
     const space = parseSize(r.storage); if (space) { patch.space = space; add('Speicherplatz', r.storage); }
     if (r.directx) { patch.dx = shorten(r.directx, 40); add('DirectX', patch.dx); }
     const other = [r.sound ? (/sound/i.test(r.sound) ? r.sound : 'Soundkarte: ' + r.sound) : '', r.notes].filter(Boolean).join('. ');
-    if (other) { patch.other = shorten(other, 140); add('Sonstiges', patch.other); }
+    if (other) { patch.other = shorten(other, 240); add('Sonstiges', patch.other); }
     return { patch, shown };
   }
 
@@ -308,7 +310,7 @@
       /* Jede Angabe der empfohlenen Seite ersetzt die alte, auch wenn Steam sie weglässt (sonst bleibt Alt-Wert vom vorigen Spiel stehen) */
       patch.rec = {
         on: true,
-        cpu: { intel: { on: false }, amd: { on: false }, custom: '' }, gpu: { nvidia: { on: false }, amd: { on: false }, custom: '' },
+        cpu: { items: [] }, gpu: { items: [] },
         ram: '', space: '', dx: '', other: '', ...fr.patch,
       };
       fr.shown.forEach(([l, v, k]) => put(l, 'rec', v, k));

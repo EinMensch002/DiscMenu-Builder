@@ -35,5 +35,5 @@ test('Anbieter-Logos: Dateien vorhanden und klein', () => {
     assert.ok(fs.statSync(file).size < 20000, key + ': Logo ist zu groß');
     if (p.logo.endsWith('.svg')) assert.match(fs.readFileSync(file, 'utf8'), /fill="#ffffff"/);
   }
-  assert.equal((html.match(/class="[^"]*brand-logo/g) || []).length, 3, 'Ecke, Streifen und Rücken');
+  assert.equal((html.match(/class="[^"]*brand-logo/g) || []).length, 2, 'Kopfleiste und Rücken');
 });

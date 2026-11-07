@@ -23,7 +23,6 @@ async function image(page, key, w, h, draw, type = 'image/png') {
   const dialogs = []; page.on('dialog', (d) => { dialogs.push(d.message()); d.accept(); });
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload();
-  await page.selectOption('[data-k=theme]', 'classic');
 
   // ---- Einfarbigen Hintergrund transparent machen ----
   await image(page, 'publisher', 200, 100, "ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.fillStyle='#d00';ctx.beginPath();ctx.arc(100,50,40,0,7);ctx.fill();");
@@ -70,8 +69,7 @@ async function image(page, key, w, h, draw, type = 'image/png') {
 
   // ---- Bild der Vorderseite über den Rücken fortsetzen: Der Farbverlauf geht an der Kante ohne Sprung weiter ----
   const grad = "for(let x=0;x<w;x++){ctx.fillStyle='hsl('+(x/w*300)+',90%,50%)';ctx.fillRect(x,0,1,h);}";
-  for (const theme of ['classic', 'bar']) {
-    await page.selectOption('[data-k=theme]', theme);
+  for (const theme of ['bar']) {
     await image(page, 'front', 1200, 1600, grad, 'image/png');
     await page.selectOption('[data-k=spineArt]', 'image'); await page.waitForTimeout(300);
     const edge = await page.evaluate(() => { const f = document.querySelector('#front').getBoundingClientRect(); return { x: f.left, y: f.top + f.height * 0.6 }; });

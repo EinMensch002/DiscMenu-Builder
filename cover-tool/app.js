@@ -44,18 +44,76 @@
     else if (el.tagName === 'BUTTON') el.classList.toggle('on', v === el.dataset.v);
     else if (document.activeElement !== el) el.value = v;   // beim Tippen nichts überschreiben
   }
-  /* Stil-Auswahl: GOG hat vier Möglichkeiten (Leiste oder Klassisch, jeweils in GOG-Farben oder dunkel), die anderen Anbieter zwei */
+  /* ---------- Listen für Prozessoren und Grafikkarten ----------
+     Jeder Eintrag ist eine Zeile mit Haken (auf dem Cover zeigen), Art, Auswahlfeldern und Löschen. Mit den Knöpfen darunter kommen weitere Einträge dazu. */
+  const HW_KIND_LABEL = { intel: 'Intel', amd: 'AMD', geforce: 'GeForce', radeon: 'Radeon', text: 'Text' };
+  function hwRow(type, it) {
+    const row = el('div', 'hwrow' + (it.on ? '' : ' off')), spec = C.HW[type][it.kind];
+    const field = (tag, f, props) => { const n = document.createElement(tag); n.dataset.f = f; Object.assign(n, props || {}); return n; };
+    const select = (f, values, current, label) => { const n = field('select', f); values.forEach(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; n.append(o); }); n.value = current; if (label) n.title = label; return n; };
+    const on = field('input', 'on', { type: 'checkbox', checked: it.on, title: 'Auf dem Cover zeigen' });
+    row.append(on, select('kind', [...Object.keys(C.HW[type]), 'text'].map((k) => [k, HW_KIND_LABEL[k]]), it.kind, 'Art'));
+    if (!spec) row.append(field('input', 'text', { type: 'text', value: it.text, placeholder: 'z. B. Arc A380 oder Pentium III 500 MHz', className: 'grow' }));
+    else {
+      row.append(select('pre', spec.series.map((x) => [x, x]), it.pre, 'Reihe'), field('input', 'num', { type: 'text', value: it.num, size: 6, placeholder: type === 'cpu' ? '12400' : '3060', title: 'Modell' }),
+        select('sfx', spec.sfx.map((x) => [x, x || '–']), it.sfx, 'Zusatz'));
+      if (type === 'gpu') row.append(field('input', 'gb', { type: 'text', value: it.gb, size: 3, placeholder: 'GB', title: 'Speicher in GB (z. B. 6)', inputMode: 'decimal' }));
+    }
+    row.append(field('button', 'del', { type: 'button', textContent: '✕', title: 'Eintrag entfernen' }));
+    return row;
+  }
+  function renderHw() {
+    $$('[data-hw]').forEach((box) => {
+      const type = box.dataset.hw, items = get(box.dataset.path).items, sig = JSON.stringify(items);
+      if (box.dataset.sig === sig) return;
+      box.dataset.sig = sig;
+      $('.hwitems', box).replaceChildren(...items.map((it) => hwRow(type, it)));
+    });
+  }
+  function bindHw() {
+    const box = (n) => n.closest('[data-hw]');
+    const edit = (e) => {
+      const n = e.target, b = n.dataset && n.dataset.f ? box(n) : null;
+      if (!b) return;
+      const type = b.dataset.hw, items = get(b.dataset.path).items, row = n.closest('.hwrow'), idx = [...row.parentNode.children].indexOf(row), it = items[idx], f = n.dataset.f;
+      if (!it || f === 'del') return;
+      if (f === 'on') { it.on = n.checked; row.classList.toggle('off', !it.on); }
+      else if (f === 'kind') { Object.assign(it, C.newHwItem(type, n.value), { on: it.on }); b.dataset.sig = ''; }
+      else it[f] = n.value;
+      if (b.dataset.sig !== '') b.dataset.sig = JSON.stringify(items);
+      renderHw(); changed();
+    };
+    $('#form').addEventListener('input', edit);
+    $('#form').addEventListener('change', (e) => { if (e.target.dataset && e.target.dataset.f && e.target.tagName === 'SELECT') edit(e); });
+    $('#form').addEventListener('click', (e) => {
+      const add = e.target.closest('[data-hwadd]'), del = e.target.closest('[data-f=del]');
+      if (add) {
+        const b = box(add), items = get(b.dataset.path).items;
+        if (items.length < C.HW_MAX) items.push(C.newHwItem(b.dataset.hw, add.dataset.hwadd));
+        b.dataset.sig = ''; renderHw(); changed();
+      } else if (del) {
+        const b = box(del), items = get(b.dataset.path).items, row = del.closest('.hwrow');
+        items.splice([...row.parentNode.children].indexOf(row), 1);
+        b.dataset.sig = ''; renderHw(); changed();
+      }
+    });
+  }
+
+  /* Stil-Auswahl: Nur GOG hat zwei Farbvarianten (GOG-Farben oder dunkel). Bei den anderen Anbietern gibt es nichts zu wählen, das Feld ist dann ausgeblendet. */
   let styleFor = null;
   function fillStyleOptions() {
     const sel = $('[data-k=theme]');
     if (!sel) return;
-    if (state.provider !== 'gog') state.theme = state.theme.replace('-dark', '');
+    if (state.provider !== 'gog') state.theme = 'bar';
     if (styleFor === state.provider && sel.options.length) return;
     styleFor = state.provider;
-    sel.replaceChildren(...C.styleOptions(state.provider).map(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; return o; }));
+    const opts = C.styleOptions(state.provider);
+    sel.replaceChildren(...opts.map(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; return o; }));
+    sel.closest('label').hidden = opts.length < 2;
   }
   function syncControls() {
     fillStyleOptions();
+    renderHw();
     $$('[data-k]').forEach(writeControl);
     $$('[data-enable]').forEach((el) => el.classList.toggle('on', !!get(el.dataset.enable)));
   }
@@ -171,13 +229,13 @@
   }
   /* Wie scharf wird das Bild gedruckt? Das Bild füllt die Fläche (zuschneiden), also entscheidet die knappere Seite. */
   function dpiOf(key, img) {
-    const spec = C.imageSpecs(C.caseDims(state), state.theme)[key];
+    const spec = C.imageSpecs(C.caseDims(state))[key];
     if (!spec || !img.w) return 0;
     const mmPerPx = Math.max(spec.w / img.w, spec.h / img.h);
     return Math.round(25.4 / mmPerPx);
   }
   function renderDrops() {
-    const specs = C.imageSpecs(C.caseDims(state), state.theme);
+    const specs = C.imageSpecs(C.caseDims(state));
     $$('.drop').forEach((drop) => {
       const key = drop.dataset.img, img = images[key], spec = specs[key];
       drop.classList.toggle('has', !!img);
@@ -221,7 +279,6 @@
       n.style.setProperty('--w', c.w + 'mm'); n.style.setProperty('--h', c.h + 'mm');
       n.style.setProperty('--back', c.back + 'mm'); n.style.setProperty('--spine', c.spine + 'mm'); n.style.setProperty('--front', c.front + 'mm');
     }
-    cover.classList.toggle('theme-bar', state.theme.startsWith('bar'));
     cover.classList.toggle('slim', c.spine < 10);
     $('#customBox').hidden = state.caseType !== 'custom';
     applyProvider(cover);
@@ -273,33 +330,26 @@
   function applyProvider(cover) {
     const P = C.PROVIDERS[state.provider];
     const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line, spineBg: P.brand };
-    if (P.darkBar && /-dark$/.test(state.theme)) Object.assign(vars, { barA: P.darkBar.barA, barB: P.darkBar.barB, line: P.darkBar.line, spineBg: P.darkBar.spine });
+    if (P.darkBar && state.theme === 'bar-dark') Object.assign(vars, { barA: P.darkBar.barA, barB: P.darkBar.barB, line: P.darkBar.line, spineBg: P.darkBar.spine });
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
     cover.classList.toggle('has-wm', state.provider !== 'gog');
     $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + P.logo; img.alt = P.name; });
-    $('#cornerWm').textContent = P.wordmark;
     $('#barWm').textContent = P.wordmark.replace('\n', ' ');
     $('#spineWm').textContent = P.wordmark.split('\n')[0];
     $('#frontTag').textContent = P.tag[state.lang];
   }
 
   /* Systemanforderungen: Ohne empfohlene Angaben steht links die Bezeichnung und rechts der Wert. Mit empfohlenen Angaben ist es eine
-     Tabelle mit den Spalten Minimum und Empfohlen. Gleiche Angaben (und das Betriebssystem) stehen nur einmal über beide Spalten. */
+     Tabelle mit den Spalten Minimum und Empfohlen. Gleiche Angaben (und das Betriebssystem) stehen nur einmal über beide Spalten.
+     Mehrere Werte (z. B. mehrere Grafikkarten oder Sätze) stehen immer untereinander. */
   function renderSpecs() {
     const list = $('#specs'), table = C.buildSpecTable(state);
     list.classList.toggle('dual', table.dual);
-    const alts = (values) => {
-      const v = el('span', 'v' + (state.breakHw && values.length > 1 ? ' stack' : ''));
-      values.forEach((text, i) => {
-        if (i) v.append(el('span', 'sep', ' / '));
-        v.append(el('span', 'alt', text));
-      });
-      return v;
-    };
-    const cell = (cls, values) => { const c = el('span', 'cell ' + cls); if (values.length) c.append(alts(values)); else c.textContent = '–'; return c; };
+    const stack = (values) => { const v = el('span', 'v stack'); values.forEach((text) => v.append(el('span', 'alt', text))); return v; };
+    const cell = (cls, values) => { const c = el('span', 'cell ' + cls); if (values.length) c.append(stack(values)); else c.textContent = '–'; return c; };
     const rows = table.rows.map((row) => {
-      const li = el('li', row.key === 'other' ? 'other' : '');
-      if (!table.dual) { li.append(el('span', 'k', row.label), el('span', 'vals', '')); li.lastChild.append(alts(row.min)); return li; }
+      const li = el('li', (row.key === 'other' ? 'other' : '') + (row.cont ? ' cont' : ''));
+      if (!table.dual) { li.append(el('span', 'k', row.label), el('span', 'vals', '')); li.lastChild.append(stack(row.min)); return li; }
       li.append(el('span', 'k', row.short));
       if (row.shared) li.append(cell('span2', row.min));
       else li.append(cell('min', row.min), cell('rec', row.rec));
@@ -312,14 +362,28 @@
       rows.unshift(head);
     }
     list.replaceChildren(...rows);
-    const panel = $('.panel-back');
-    panel.classList.toggle('dual', table.dual);
+    $('.panel-back').classList.toggle('dual', table.dual);
     fitSpecs();
-    /* Beim Umbruch zwischen zwei Alternativen ist der Schrägstrich überflüssig */
-    $$('.sep', list).forEach((sep) => {
-      const a = sep.previousElementSibling, b = sep.nextElementSibling;
-      if (state.breakHw || (a && b && a.offsetTop !== b.offsetTop)) sep.style.display = 'none';
-    });
+    centerHeads(list);
+  }
+
+  /* "Minimum" und "Empfohlen" stehen mittig über dem tatsächlich beschriebenen Bereich der Spalte (breiteste Zeile), nicht über der ganzen Spaltenbreite */
+  function centerHeads(list) {
+    if (!list.classList.contains('dual')) return;
+    const k = Number(getComputedStyle($('#preview')).getPropertyValue('--k')) || 1;
+    for (const col of ['min', 'rec']) {
+      const chip = $('.chip.' + col, list);
+      if (!chip) continue;
+      chip.style.marginLeft = '0px';
+      let maxW = 0;
+      $$('.cell.' + col + ' .alt', list).forEach((alt) => {
+        const r = document.createRange(), left = alt.parentNode.parentNode.getBoundingClientRect().left;
+        r.selectNodeContents(alt);
+        for (const q of r.getClientRects()) maxW = Math.max(maxW, q.right - left);
+      });
+      const chipW = chip.getBoundingClientRect().width;
+      chip.style.marginLeft = Math.max(0, (maxW - chipW) / 2 / k) + 'px';
+    }
   }
 
   /* Die Angaben müssen vollständig in das Feld passen: Ist die Liste höher als der Platz, wird die Schrift kleiner (bis 4,4 pt).
@@ -329,19 +393,19 @@
     list.style.fontSize = '';
     const titleH = getComputedStyle(title).display === 'none' ? 0 : title.offsetHeight + parseFloat(getComputedStyle(title).marginBottom || 0);
     let pt = parseFloat(getComputedStyle(list).fontSize) * 72 / 96;
-    while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
+    while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight - 1) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
   }
 
   /* Rücken: Bild der Vorderseite fortsetzen, Logo statt Titel, Publisher-Logo am Fuß */
   function renderSpine(c) {
-    const spine = $('#spine'), front = $('#front'), bar = state.theme.startsWith('bar'), barH = bar ? C.BAR_HEIGHT : 0, f = images.front;
+    const spine = $('#spine'), front = $('#front'), barH = C.BAR_HEIGHT, f = images.front;
     const art = state.spineArt === 'image' && f && f.w > 0 && f.h > 0;
     spine.classList.toggle('art', !!art);
     if (art) {
-      /* Das Bild wird wie bei "cover" auf Rücken und Vorderseite zusammen skaliert und mittig zugeschnitten (bei der Leiste oben bündig unter der Leiste),
+      /* Das Bild wird wie bei "cover" auf Rücken und Vorderseite zusammen skaliert und mittig zugeschnitten (oben bündig unter der Leiste),
          jede Fläche zeigt ihren Ausschnitt. Der Rücken ragt 0,6 mm in die Nachbarn (--ov), das ist in der Position berücksichtigt. */
       const W = c.spine + c.front, H = c.h - barH, k = Math.max(W / f.w, H / f.h), sw = f.w * k, sh = f.h * k;
-      const offX = (sw - W) / 2, offY = bar ? 0 : (sh - H) / 2, ov = 0.6, mm = (n) => n.toFixed(3) + 'mm';
+      const offX = (sw - W) / 2, offY = 0, ov = 0.6, mm = (n) => n.toFixed(3) + 'mm';
       front.style.backgroundSize = mm(sw) + ' ' + mm(sh);
       front.style.backgroundPosition = mm(-(offX + c.spine)) + ' ' + mm(-offY);
       spine.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.3)), url("' + f.url + '")';
@@ -436,6 +500,7 @@
   function init() {
     const ver = $('#ver'); if (ver && /__/.test(ver.textContent)) ver.textContent = 'lokal';
     bindControls();
+    bindHw();
     ['spineLogoImg', 'spinePubImg'].forEach((id) => $('#' + id).addEventListener('load', refitSpine));
     bindDrops();
     syncControls();

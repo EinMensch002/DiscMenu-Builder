@@ -180,37 +180,10 @@
 
       <div class="reqtabs" role="tablist"><button type="button" class="on" data-reqtab="min" role="tab">Mindestanforderungen</button><button type="button" data-reqtab="rec" role="tab">Empfohlen</button></div>
       <div class="reqpane" data-pane="min">
-      <div class="grp"><span class="lab">Prozessor</span>
-        <div class="gen" data-enable="cpu.intel.on">
-          <label class="chk brand"><input type="checkbox" data-k="cpu.intel.on"> Intel</label>
-          <div class="row"><select data-k="cpu.intel.pre"><option>Core i3</option><option>Core i5</option><option>Core i7</option><option>Core i9</option><option>Pentium</option><option>Celeron</option><option>Core 2 Duo</option><option>Core 2 Quad</option></select>
-            <input type="text" data-k="cpu.intel.num" placeholder="12400" size="6">
-            <span class="sfx"><button type="button" data-k="cpu.intel.sfx" data-v="K">K</button><button type="button" data-k="cpu.intel.sfx" data-v="KF">KF</button><button type="button" data-k="cpu.intel.sfx" data-v="F">F</button></span></div>
-        </div>
-        <div class="gen" data-enable="cpu.amd.on">
-          <label class="chk brand"><input type="checkbox" data-k="cpu.amd.on"> AMD</label>
-          <div class="row"><select data-k="cpu.amd.pre"><option>Ryzen 3</option><option>Ryzen 5</option><option>Ryzen 7</option><option>Ryzen 9</option><option>Athlon</option><option>Phenom</option><option>FX</option></select>
-            <input type="text" data-k="cpu.amd.num" placeholder="5600" size="6">
-            <span class="sfx"><button type="button" data-k="cpu.amd.sfx" data-v="X">X</button><button type="button" data-k="cpu.amd.sfx" data-v="X3D">X3D</button><button type="button" data-k="cpu.amd.sfx" data-v="G">G</button></span></div>
-        </div>
-        <label class="f"><span class="lab">Oder eigener Text (ersetzt die Auswahl oben)</span><input type="text" data-k="cpu.custom" placeholder="z. B. Pentium III oder AMD Athlon 500 MHz"></label>
-      </div>
-
-      <div class="grp"><span class="lab">Grafikkarte</span>
-        <div class="gen" data-enable="gpu.nvidia.on">
-          <label class="chk brand"><input type="checkbox" data-k="gpu.nvidia.on"> NVIDIA</label>
-          <div class="row"><select data-k="gpu.nvidia.pre"><option>RTX</option><option>GTX</option><option>GTS</option><option>GT</option><option>Titan</option><option>Quadro</option></select>
-            <input type="text" data-k="gpu.nvidia.num" placeholder="3060" size="6">
-            <span class="sfx"><button type="button" data-k="gpu.nvidia.sfx" data-v="Ti">Ti</button><button type="button" data-k="gpu.nvidia.sfx" data-v="SUPER">SUPER</button></span></div>
-        </div>
-        <div class="gen" data-enable="gpu.amd.on">
-          <label class="chk brand"><input type="checkbox" data-k="gpu.amd.on"> AMD Radeon</label>
-          <div class="row"><select data-k="gpu.amd.pre"><option>RX</option><option>HD</option><option>R9</option><option>R7</option><option>R5</option></select>
-            <input type="text" data-k="gpu.amd.num" placeholder="6700" size="6">
-            <span class="sfx"><button type="button" data-k="gpu.amd.sfx" data-v="XT">XT</button><button type="button" data-k="gpu.amd.sfx" data-v="XTX">XTX</button><button type="button" data-k="gpu.amd.sfx" data-v="GRE">GRE</button></span></div>
-        </div>
-        <label class="f"><span class="lab">Oder eigener Text (ersetzt die Auswahl oben)</span><input type="text" data-k="gpu.custom" placeholder="z. B. 32 MB Direct3D-kompatible Grafikkarte"></label>
-      </div>
+      <div class="grp hw" data-hw="cpu" data-path="cpu"><span class="lab">Prozessoren <i>(jeder Eintrag steht auf dem Cover in einer eigenen Zeile)</i></span><div class="hwitems"></div>
+        <div class="hwadd"><button type="button" data-hwadd="intel">+ Intel</button><button type="button" data-hwadd="amd">+ AMD</button><button type="button" data-hwadd="text">+ Eigener Text</button></div></div>
+      <div class="grp hw" data-hw="gpu" data-path="gpu"><span class="lab">Grafikkarten <i>(jeder Eintrag in einer eigenen Zeile, ein Haken schaltet ihn ein oder aus)</i></span><div class="hwitems"></div>
+        <div class="hwadd"><button type="button" data-hwadd="geforce">+ GeForce</button><button type="button" data-hwadd="radeon">+ Radeon</button><button type="button" data-hwadd="text">+ Eigener Text (z. B. Arc A380)</button></div></div>
 
       <div class="two">
         <div class="f"><span class="lab">Arbeitsspeicher (GB)</span>
@@ -226,37 +199,10 @@
       <div class="reqpane" data-pane="rec" hidden>
         <label class="chk"><input type="checkbox" data-k="rec.on"> Empfohlene Anforderungen zusätzlich auf der Hülle zeigen</label>
         <div class="recfields" data-enable="rec.on">
-      <div class="grp"><span class="lab">Prozessor</span>
-        <div class="gen" data-enable="rec.cpu.intel.on">
-          <label class="chk brand"><input type="checkbox" data-k="rec.cpu.intel.on"> Intel</label>
-          <div class="row"><select data-k="rec.cpu.intel.pre"><option>Core i3</option><option>Core i5</option><option>Core i7</option><option>Core i9</option><option>Pentium</option><option>Celeron</option><option>Core 2 Duo</option><option>Core 2 Quad</option></select>
-            <input type="text" data-k="rec.cpu.intel.num" placeholder="12400" size="6">
-            <span class="sfx"><button type="button" data-k="rec.cpu.intel.sfx" data-v="K">K</button><button type="button" data-k="rec.cpu.intel.sfx" data-v="KF">KF</button><button type="button" data-k="rec.cpu.intel.sfx" data-v="F">F</button></span></div>
-        </div>
-        <div class="gen" data-enable="rec.cpu.amd.on">
-          <label class="chk brand"><input type="checkbox" data-k="rec.cpu.amd.on"> AMD</label>
-          <div class="row"><select data-k="rec.cpu.amd.pre"><option>Ryzen 3</option><option>Ryzen 5</option><option>Ryzen 7</option><option>Ryzen 9</option><option>Athlon</option><option>Phenom</option><option>FX</option></select>
-            <input type="text" data-k="rec.cpu.amd.num" placeholder="5600" size="6">
-            <span class="sfx"><button type="button" data-k="rec.cpu.amd.sfx" data-v="X">X</button><button type="button" data-k="rec.cpu.amd.sfx" data-v="X3D">X3D</button><button type="button" data-k="rec.cpu.amd.sfx" data-v="G">G</button></span></div>
-        </div>
-        <label class="f"><span class="lab">Oder eigener Text (ersetzt die Auswahl oben)</span><input type="text" data-k="rec.cpu.custom" placeholder="z. B. Pentium III oder AMD Athlon 500 MHz"></label>
-      </div>
-
-      <div class="grp"><span class="lab">Grafikkarte</span>
-        <div class="gen" data-enable="rec.gpu.nvidia.on">
-          <label class="chk brand"><input type="checkbox" data-k="rec.gpu.nvidia.on"> NVIDIA</label>
-          <div class="row"><select data-k="rec.gpu.nvidia.pre"><option>RTX</option><option>GTX</option><option>GTS</option><option>GT</option><option>Titan</option><option>Quadro</option></select>
-            <input type="text" data-k="rec.gpu.nvidia.num" placeholder="3060" size="6">
-            <span class="sfx"><button type="button" data-k="rec.gpu.nvidia.sfx" data-v="Ti">Ti</button><button type="button" data-k="rec.gpu.nvidia.sfx" data-v="SUPER">SUPER</button></span></div>
-        </div>
-        <div class="gen" data-enable="rec.gpu.amd.on">
-          <label class="chk brand"><input type="checkbox" data-k="rec.gpu.amd.on"> AMD Radeon</label>
-          <div class="row"><select data-k="rec.gpu.amd.pre"><option>RX</option><option>HD</option><option>R9</option><option>R7</option><option>R5</option></select>
-            <input type="text" data-k="rec.gpu.amd.num" placeholder="6700" size="6">
-            <span class="sfx"><button type="button" data-k="rec.gpu.amd.sfx" data-v="XT">XT</button><button type="button" data-k="rec.gpu.amd.sfx" data-v="XTX">XTX</button><button type="button" data-k="rec.gpu.amd.sfx" data-v="GRE">GRE</button></span></div>
-        </div>
-        <label class="f"><span class="lab">Oder eigener Text (ersetzt die Auswahl oben)</span><input type="text" data-k="rec.gpu.custom" placeholder="z. B. 32 MB Direct3D-kompatible Grafikkarte"></label>
-      </div>
+      <div class="grp hw" data-hw="cpu" data-path="rec.cpu"><span class="lab">Prozessoren <i>(jeder Eintrag steht auf dem Cover in einer eigenen Zeile)</i></span><div class="hwitems"></div>
+        <div class="hwadd"><button type="button" data-hwadd="intel">+ Intel</button><button type="button" data-hwadd="amd">+ AMD</button><button type="button" data-hwadd="text">+ Eigener Text</button></div></div>
+      <div class="grp hw" data-hw="gpu" data-path="rec.gpu"><span class="lab">Grafikkarten <i>(jeder Eintrag in einer eigenen Zeile, ein Haken schaltet ihn ein oder aus)</i></span><div class="hwitems"></div>
+        <div class="hwadd"><button type="button" data-hwadd="geforce">+ GeForce</button><button type="button" data-hwadd="radeon">+ Radeon</button><button type="button" data-hwadd="text">+ Eigener Text (z. B. Arc A380)</button></div></div>
 
       <div class="two">
         <div class="f"><span class="lab">Arbeitsspeicher (GB)</span>
@@ -270,7 +216,6 @@
       </div>
         </div>
       </div>
-      <label class="chk"><input type="checkbox" data-k="breakHw"> Bei zwei Prozessoren oder Grafikkarten immer untereinander zeigen</label>
     </details>
 
     <details class="sec" open>
@@ -288,7 +233,7 @@
         <div class="wrap" id="wrap">
           <span class="mark tl-v"></span><span class="mark tl-h"></span><span class="mark tr-v"></span><span class="mark tr-h"></span>
           <span class="mark bl-v"></span><span class="mark bl-h"></span><span class="mark br-v"></span><span class="mark br-h"></span>
-          <div class="cover" id="cover">
+          <div class="cover theme-bar" id="cover">
 
             <section class="back" id="back">
               <div class="back-top" id="backTop"><span class="ph">Rückseite oben</span></div>
@@ -316,7 +261,6 @@
 
             <section class="front" id="front">
               <span class="ph">Frontcover</span>
-              <div class="gog-corner"><img class="brand-logo" src="assets/images/gog_logo.png" alt="GOG"><span class="wm" id="cornerWm"></span></div>
               <div class="gog-bar"><img class="brand-logo" src="assets/images/gog_logo.png" alt="GOG"><span class="wm" id="barWm"></span><b id="frontTag"></b></div>
               <img class="usk" id="frontUsk" alt="">
               <img class="front-pub" id="frontPub" alt="">

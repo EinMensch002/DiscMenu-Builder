@@ -159,8 +159,9 @@ dialog .f small { display: block; margin-top: 3px; }
 .specs .vals { display: block; min-width: 0; }
 .specs .v { color: #111; font-weight: 400; overflow-wrap: anywhere; min-width: 0; }   /* nichts wird abgeschnitten, lange Angaben brechen um */
 .specs .v.stack { display: flex; flex-direction: column; }
-.sep { white-space: pre; }
-.alt { display: inline-block; max-width: 100%; }
+.specs li.cont { margin-top: -.62em; }                 /* weitere Sätze unter "Sonstiges" rücken an die erste Zeile heran */
+.specs.dual li.cont { margin-top: -.38em; }
+.alt { display: block; max-width: 100%; }
 /* Mit empfohlenen Angaben: Tabelle mit den Spalten Minimum und Empfohlen. Die rechte Spalte wird dafür etwas schmaler. */
 .panel-back.dual { gap: 3mm; }
 .panel-back.dual .logos img { min-width: 0; }
@@ -207,15 +208,9 @@ dialog .f small { display: block; margin-top: 3px; }
 
 /* Vorderseite */
 .front { position: relative; background: #f4f5f8 center / cover no-repeat; overflow: hidden; }
-.gog-corner { position: absolute; left: 0; top: 0; z-index: 3; padding: 2mm; background: var(--spineBg, var(--brand, #89268d)); border-radius: 0 0 2.6mm 0; }
-.gog-corner img { display: block; height: 17mm; width: auto; }
-.gog-bar { display: none; }
 /* Epic Games und Steam: Logo (Vektorgrafik) mit dem Schriftzug darunter, gleiche Plätze wie beim GOG-Logo */
 .wm { display: none; font-weight: 900; color: var(--on-brand, #fff); text-align: center; white-space: pre-line; letter-spacing: .2mm; line-height: 1.05; }
 .has-wm .wm { display: flex; }
-.has-wm .gog-corner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2mm; width: 21.8mm; height: 21mm; padding: 0; }
-.has-wm .gog-corner img { height: 11.5mm; width: 11.5mm; }
-.gog-corner .wm { font-size: 5.6pt; letter-spacing: .3mm; }
 .has-wm .gog-bar img { height: 7.5mm; width: 7.5mm; margin-left: 2.5mm; }
 .gog-bar .wm { margin-left: 2.5mm; font-size: 8pt; letter-spacing: .4mm; margin-right: auto; }
 .has-wm .spine-head { flex-direction: column; align-items: center; gap: .8mm; }
@@ -233,7 +228,6 @@ dialog .f small { display: block; margin-top: 3px; }
 /* ===== Stil "Leiste": Kopfleiste über die ganze Breite wie bei Handelsspielen (Vorderseite und Rücken) =====
    Verlauf von barA nach barB, darunter eine Akzentlinie (line), die über den Rücken durchläuft. Gilt für alle Anbieter. */
 .cover { --bar-h: 18.6mm; --bar-line: 1.6mm; }
-.theme-bar .gog-corner { display: none; }
 .theme-bar .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); align-items: center; justify-content: space-between; padding-right: 4mm; background: linear-gradient(var(--barA), var(--barB)); border-bottom: var(--bar-line) solid var(--line); z-index: 3; }
 .theme-bar .gog-bar img { height: 12.5mm; width: auto; margin-left: 4.5mm; display: block; }
 .has-wm.theme-bar .gog-bar img { width: 12.5mm; }
@@ -285,3 +279,21 @@ dialog .f small { display: block; margin-top: 3px; }
 .front-pub.plate-white, .front-pub.plate-black { box-sizing: content-box; padding: 1.4mm; border-radius: 1.6mm; }
 .front-pub.plate-white { background: #fff; }
 .front-pub.plate-black { background: #111; }
+
+/* Listen für Prozessoren und Grafikkarten im Formular */
+.hwitems { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 6px; }
+.hwrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+.hwrow.off { opacity: .5; }
+.hwrow select { width: auto; max-width: 100%; flex: 0 1 auto; }
+.hwrow input[type=text] { width: 78px; flex: 0 1 auto; }
+.hwrow input.grow { flex: 1 1 140px; width: auto; min-width: 100px; }
+.hwrow input[type=checkbox] { margin: 0 2px; }
+.hwrow button { padding: 3px 8px; margin-left: auto; }
+.hwadd { display: flex; flex-wrap: wrap; gap: 6px; }
+.hwadd button { padding: 4px 10px; }
+.grp .lab i { font-weight: 400; color: var(--mut); }
+.hwrow select, .hwrow input[type=text] { font-size: 13px; padding: 5px 8px; height: auto; }
+.hwrow select { padding-right: 22px; }
+.hwrow input[type=text] { width: 66px; }
+.hwrow input[data-f=gb] { width: 44px; }
+.hwrow { gap: 5px; }

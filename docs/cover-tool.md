@@ -9,7 +9,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 - **Läuft komplett im Browser.** Kein Backend, es wird nichts hochgeladen. Bilder werden lokal verarbeitet.
 - **Live-Vorschau:** Links die Einstellungen, rechts das Blatt in Originalproportionen. Jede Änderung ist sofort sichtbar.
-- **Zwei Stile für alle Anbieter:** Klassisch (Logo-Ecke wie bei den GOG-Originalhüllen) und Leiste (Kopfleiste über die ganze Breite wie bei Handelsspielen).
+- **Ein Stil für alle Anbieter:** die Leiste (Kopfleiste über die ganze Breite, wie bei Handelsspielen). Bei GOG gibt es zwei Farbvarianten.
 - **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben, Logo und Schriftzug (siehe [Anbieter](#anbieter)).
 - **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB, Publisher-Logos von Wikidata (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional Falzlinien.
@@ -46,28 +46,38 @@ Die Einstellungen des Covers links:
 
 | Bereich | Inhalt |
 |---|---|
-| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung. Stil (Leiste oder Klassisch, bei GOG je in GOG-Farben oder dunkel) |
+| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung. Farbvariante (nur bei GOG: GOG-Farben oder dunkel mit Lila) |
 | 2. Titel und Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
 | 3. Bilder | Frontcover, Rückseite oben, Rückseite unten (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
 | 4. Publisher-Logo und Altersfreigabe | Publisher-Logo (Vorderseite, Rückseite und Rücken), **Unterlage dahinter auf der Vorderseite** (keine, weiß oder schwarz), USK-Freigabe (0, 6, 12, 16, 18 oder keine), "USK auch auf der Rückseite zeigen" und Deckkraft der USK vorn (30 bis 100 %) |
 | 5. Rücken | Titel (oben oder mittig), Hintergrund (Farbe, **eigenes Rückenbild** mit wählbarem Ausschnitt und Abdunkeln, oder Frontbild fortsetzen), Größe des Anbieter-Logos, Rückenlogo (statt des Titels) mit Ausrichtung und Abständen, Publisher-Logo am Fuß mit Unterlage, Ausrichtung, Abstand und Breite, "PC" am Fuß |
 | 6. Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Mods, VR. Die Reihenfolge auf dem Cover ist fest, die Symbole sind Linien-SVG |
-| 7. Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessor (Intel, AMD oder eigener Text), Grafikkarte (NVIDIA, AMD Radeon oder eigener Text), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus), Umbruch bei zwei Prozessoren oder Grafikkarten |
+| 7. Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessoren und Grafikkarten als Listen mit beliebig vielen Einträgen (siehe unten), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus) |
 | 8. Drucken | Schnittmarken an den Ecken, Falzlinien am Rücken (gestrichelt), Hinweis zu den Druckeinstellungen |
 
 Einstellungen werden im Browser gemerkt (**ohne Bilder**, die müssen nach dem Neuladen erneut geladen werden). Wer die Bilder behalten will, exportiert das **Projekt** (siehe unten). "Zurücksetzen" löscht Einstellungen und Bilder.
 
 Oben erscheinen Hinweise, wenn etwas fehlt (Frontcover, Titel, Spielfunktionen). Sie blockieren nichts.
 
-### Prozessor und Grafikkarte
+### Prozessoren und Grafikkarten
 
-Die Auswahl erzeugt Texte wie "Intel Core i5-12400F", "AMD Ryzen 5 5600X", "NVIDIA GeForce RTX 3060 Ti" oder "AMD Radeon RX 6700 XT". Das Modell darf fehlen ("Intel Core i5"). Für alte Spiele gibt es das Feld **eigener Text**, das die Auswahl ersetzt (z. B. "Pentium III 500 MHz"). Sind Intel und AMD (oder NVIDIA und AMD) angehakt, stehen beide mit " / " nebeneinander. Ist dafür kein Platz, bricht die zweite Angabe um und der Schrägstrich entfällt. Mit "immer untereinander" lässt sich das erzwingen.
+Beides sind **Listen**: Mit **+ Intel**, **+ AMD** (Prozessor) bzw. **+ GeForce**, **+ Radeon** (Grafikkarte) kommt ein Eintrag hinzu, **+ Eigener Text** ergänzt freien Text (z. B. "Arc A380" oder "Pentium III 500 MHz"). Jeder Eintrag hat einen **Haken** (auf dem Cover zeigen oder ausschalten, ohne ihn zu löschen), die Art, Auswahlfelder und ✕ zum Entfernen. So sieht man auf einen Blick, um welche Karten es geht.
+
+- **Prozessor:** Intel (Core i3 bis i9, Core Ultra, Pentium, Celeron, Core 2) oder AMD (Ryzen, Athlon, Phenom, FX) mit Modell und Zusatz (K, KF, F bzw. X, X3D, G). Ergebnis z. B. "Intel Core i5-12400F", "AMD Ryzen 5 5600X".
+- **Grafikkarte:** GeForce (RTX, GTX, GTS, GT, Titan, Quadro) oder Radeon (RX, HD, R9, R7, R5, Vega) mit Modell, Zusatz (Ti, SUPER, **Ti SUPER**, XT, XTX, GRE) und **Speicher in GB**. Ergebnis z. B. "GeForce GTX 1060 6 GB", "Radeon RX 580 8 GB". Es steht **nur GeForce bzw. Radeon**, nie "NVIDIA GeForce" oder "AMD Radeon", auch nicht bei freiem Text (aus "NVIDIA GeForce 8800 GT" wird "GeForce 8800 GT").
+- **Auf dem Cover steht jeder Eintrag in einer eigenen Zeile**, untereinander wie in einer Liste.
+- **Import (z. B. Steam):** Ein "or", "oder" oder "/" trennt die Möglichkeiten, jede wird ein eigener Eintrag (keine Obergrenze außer 8). Was in die Auswahlfelder passt, kommt dorthin, z. B. "GeForce GTX 1060 6GB or Radeon RX 580 8GB or Arc A380" ergibt GeForce GTX 1060 / 6 GB, Radeon RX 580 / 8 GB und den Text "Arc A380". Was nicht passt, bleibt als Text erhalten, nichts geht verloren. Ein "or better" oder "or equivalent" am Ende entfällt.
+- Ältere gespeicherte Einstellungen (Intel/AMD- und NVIDIA/AMD-Felder) werden beim Laden automatisch in Einträge umgewandelt.
 
 ### Mindest- und empfohlene Anforderungen
 
 Im Formular gibt es bei den Systemanforderungen die Reiter **Mindestanforderungen** und **Empfohlen**. "Läuft auf" (Betriebssystem) gilt für beide. Auf dem Reiter "Empfohlen" schaltet **Empfohlene Anforderungen zusätzlich auf der Hülle zeigen** die zweite Spalte ein. Prozessor, Grafikkarte, Speicher, DirectX und Sonstiges lassen sich dort getrennt eintragen.
 
 Auf der Rückseite entsteht dann eine **Tabelle mit den Spalten Minimum und Empfohlen**. Angaben, die in beiden gleich sind (und das Betriebssystem), stehen nur einmal über beide Spalten, fehlt eine Angabe in einer Spalte, steht dort "–". Damit die Tabelle Platz hat, wird die rechte Spalte etwas schmaler. Ohne empfohlene Angaben bleibt es bei der einfachen Liste.
+
+**Sonstiges Satz für Satz:** Der Text bei "Sonstiges" wird in einzelne Sätze zerlegt, jeder Satz steht in einer eigenen Zeile. Sätze, die bei Minimum und Empfohlen **gleich** sind, stehen **einmal in der Mitte** über beide Spalten. Abweichende Sätze stehen nur in ihrer Spalte (in der anderen steht "–"). So steht z. B. "SSD required" mittig und ein nur im Minimum genannter Hinweis nur links. Dasselbe gilt für die anderen Zeilen: gleiche Werte (z. B. DirectX) stehen einmal in der Mitte.
+
+**Kopf mittig:** "Minimum" und "Empfohlen" stehen **mittig über dem tatsächlich beschriebenen Bereich** ihrer Spalte, also über der breitesten Zeile, nicht über der ganzen Spaltenbreite.
 
 **Nichts wird abgeschnitten:** Lange Angaben (auch Sonstiges) brechen um, und die Schrift wird bei Platzmangel kleiner (bis 4,4 pt). Alles, was in den Feldern steht, steht auch auf der Hülle. Ein Test prüft das für beide Stile und Anbieter.
 
@@ -89,8 +99,8 @@ Lädt eine Rezept-ZIP aus dem [Konfigurator](configurator.md) oder eine einzelne
 Sucht das Spiel im Steam-Shop und liest die Systemanforderungen aus. Mindest- und empfohlene Anforderungen werden **zusammen** gelesen und nebeneinander angezeigt (Minimum | Empfohlen). Mit **Übernehmen** landen die Mindestangaben in den normalen Feldern und die empfohlenen im Reiter "Empfohlen". Liefert Steam nur eine Liste, wird sie zur Mindestanforderung und die zweite Spalte bleibt aus. Übernommen werden:
 
 - Windows-Versionen (aus "OS", z. B. "Windows 7 / 8 / 10 (64-bit)"), macOS und Linux (aus den Plattformen),
-- **Prozessor** und **Grafikkarte** werden den **Kategorien** zugeordnet (Hersteller, Reihe, Modell, bei Alternativen wie "Core i7-6700 or Ryzen 5 1600" je Marke eine, höchstens zwei). Erkennt das Tool die Angabe nicht (z. B. nur "2.4 GHz"), steht sie stattdessen als Text. In der Vorschau-Tabelle steht je Zeile "in Kategorien" oder "als Text". **Arbeitsspeicher**, **Speicherplatz**, **DirectX**,
-- **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 140 Zeichen gekürzt),
+- **Prozessor** und **Grafikkarte** werden an "or", "oder" und "/" in einzelne Einträge zerlegt und, wo es passt, in die Auswahlfelder übernommen (Reihe, Modell, Zusatz, Speicher in GB), sonst als Text (siehe [Prozessoren und Grafikkarten](#prozessoren-und-grafikkarten)). In der Vorschau-Tabelle steht je Zeile "in Auswahlfeldern", "teils als Text" oder "als Text",
+- **Sonstiges** aus Soundkarte und Zusatzhinweisen (auf etwa 240 Zeichen gekürzt),
 - die **Spielfunktionen**: Single-Player, Mehrspieler, Co-op, Erfolge, Cloud Saves, Controller, Online, LAN, Cross-Plattform, Mods und VR (aus den Steam-Kategorien).
 
 Zusätzlich übernimmt der Steam-Import die **Altersfreigabe als USK** (die USK, die Steam bei vielen Spielen mitliefert, sonst abgeleitet aus PEGI, ESRB oder dem Steam-Mindestalter, im Dialog steht die Herkunft dabei; liefert Steam nichts, bleibt die USK unverändert), den **Spielnamen als Titel auf dem Rücken** sowie **Publisher und Entwickler** (als Vorgabe für die Logo-Suche). Ein Haken im Dialog lädt außerdem das **Steam-Cover (Hochformat, 600×900)** als Frontcover. Er ist vorgewählt, wenn noch kein Frontcover geladen ist. Klappt das Laden nicht (CORS oder ein Proxy, der den Host `cdn.akamai.steamstatic.com` nicht erlaubt), sind die Angaben trotzdem übernommen und es erscheint ein Hinweis.
@@ -140,7 +150,7 @@ Die Bilder werden dabei unverändert übernommen (nicht erneut verkleinert oder 
 
 ## Anbieter
 
-Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games und Steam** ist der Streifen mit den Spielfunktionen auf der Rückseite dunkel statt hell (Steam: Marineblau mit blauer Linie, Epic: Dunkelgrau). Das Logo steht in der Ecke (Stil Klassisch) bzw. in der Kopfleiste (Stil Leiste) auf der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.png`).
+Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games und Steam** ist der Streifen mit den Spielfunktionen auf der Rückseite dunkel statt hell (Steam: Marineblau mit blauer Linie, Epic: Dunkelgrau). Das Logo steht in der Kopfleiste der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.png`).
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
@@ -167,8 +177,7 @@ Ohne Bild für "Rückseite unten" setzt sich das obere Bild hinter den Angaben f
 
 | Element | Fläche |
 |---|---|
-| GOG-Logo-Ecke (Klassisch) | oben links, etwa 22 × 21 mm |
-| Kopfleiste (Stil Leiste) | oberste 18,6 mm der Vorderseite und des Rückens |
+| Kopfleiste | oberste 18,6 mm der Vorderseite und des Rückens |
 | USK vorn | 35 × 35 mm, 3 mm vom linken und unteren Rand |
 | Publisher-Logo vorn | bis 32 × 14 mm, 6 mm vom rechten und unteren Rand |
 | Grüner Streifen und Angabenfeld | 13 mm und 46 mm am unteren Rand der Rückseite |
@@ -182,15 +191,13 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 
 **Die Vorlagen sind Richtwerte.** Die Herstellerangaben für Blu-ray-Einleger weichen voneinander ab (Gesamtbreite 262 bis 272 mm, Seitenbreite 126 bis 129 mm, Rücken 11 bis 14 mm). Miss deinen Einleger nach und trage die Werte ein.
 
-## Stile
+## Stil
 
-| Stil | Aussehen |
-|---|---|
-| **Klassisch** (Standard) | Wie die GOG-Originalhüllen: lila Logo-Ecke oben links auf der Vorderseite, grüner Streifen mit Spielfunktionen, helles Feld mit den Angaben, lila Rücken |
-| **Leiste** | Wie Handelsspiele im Laden: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten. Die Rückseite bleibt wie beim klassischen Stil. Bei GOG gibt es im Stil-Menü vier Auswahlmöglichkeiten: **Leiste, GOG-Farben** (Lila mit grüner Linie, Standard), **Leiste, dunkel mit Lila** (Anthrazit mit lila Linie, passt zu den meisten Covern), **Klassisch, GOG-Farben** und **Klassisch, dunkel mit Lila**. Die dunkle Variante färbt auch den Rücken und die Logo-Ecke. Bei Steam und Epic gibt es zwei Stile (Leiste, Klassisch), deren Farben sind ohnehin dunkel |
+Es gibt einen Stil für alle Anbieter, die **Leiste**: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten.
 
-Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseite und Rücken das GOG-Logo. Der Stil wird mit den Einstellungen gemerkt. Der frühere Stil "Modern" (dunkle Rückseite) ist entfallen, gespeicherte Projekte damit öffnen sich im Stil Leiste.
+Bei **GOG** gibt es zwei Farbvarianten (Feld "Farbvariante"): **GOG-Farben** (Lila mit grüner Linie, Standard) und **Dunkel mit Lila** (Anthrazit mit lila Linie, passt zu den meisten Covern, färbt auch den Rücken). Bei Steam und Epic gibt es nichts zu wählen, die Farben sind ohnehin dunkel.
 
+Beide Anbieter-Farben und die Rückseite (helles Feld mit den Angaben) sind in allen Fällen gleich aufgebaut.
 ## Feste Plätze auf der Rückseite
 
 Die Rückseite hat feste Plätze: links die **Angaben** (am linken Rand, so breit wie möglich), rechts eine **schmale Spalte** mit **Publisher-Logo, Disc-Logo und USK** übereinander, unten in der Mitte das **Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.

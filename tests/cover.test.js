@@ -30,37 +30,50 @@ test('Eigene Maße: Grenzen, Anpassung und Vorlagen', () => {
   assert.equal(C.caseDims(st(C.PRESETS.blurayslim)).w, 262);
   // Bildmaße folgen den eigenen Maßen
   const sp = C.imageSpecs(C.caseDims(st(C.PRESETS.bluray)));
-  assert.deepEqual(sp.front, { w: 127.5, h: 148 });
+  assert.deepEqual(sp.front, { w: 127.5, h: 148 - C.BAR_HEIGHT });          // unter der Kopfleiste
   assert.equal(sp.backTop.h, 148 - C.BACK.banner - C.BACK.bottom);
   // gespeichert und wieder geladen
   assert.equal(C.mergeState({ caseType: 'custom', custom: { back: '120' } }).custom.back, '120');
   assert.equal(C.mergeState({ caseType: 'custom', custom: { spine: 5 } }).custom.spine, '14');   // Zahl statt Text: Standard
 });
 
-test('Prozessor- und Grafikkartentexte werden den Kategorien zugeordnet', () => {
-  const cpu = (t) => { const r = C.parseCpuText(t); return r ? C.cpuList(r.cpu) : null; };
-  const gpu = (t) => { const r = C.parseGpuText(t); return r ? C.gpuList(r.gpu) : null; };
+test('Prozessor- und Grafikkartentexte werden in Einträge zerlegt', () => {
+  const cpu = (t) => C.parseCpuItems(t).map((i) => C.hwText('cpu', i));
+  const gpu = (t) => C.parseGpuItems(t).map((i) => C.hwText('gpu', i));
+  // "or", "oder" und "/" trennen die Möglichkeiten, jede wird ein eigener Eintrag (keine Grenze auf zwei)
   assert.deepEqual(cpu('Core i7-6700 or Ryzen 5 1600'), ['Intel Core i7-6700', 'AMD Ryzen 5 1600']);
   assert.deepEqual(cpu('Intel® Core™ i5-4460 or AMD FX-6300'), ['Intel Core i5-4460', 'AMD FX 6300']);
+  assert.deepEqual(cpu('Core i3 or Core i5 or Ryzen 3'), ['Intel Core i3', 'Intel Core i5', 'AMD Ryzen 3']);
   assert.deepEqual(cpu('Intel Core i7-6700K'), ['Intel Core i7-6700K']);
   assert.deepEqual(cpu('AMD Ryzen 5 5600X (3.7 GHz) or better'), ['AMD Ryzen 5 5600X']);
-  assert.deepEqual(cpu('Intel Core 2 Duo E6600 or AMD Phenom X3 8750'), ['Intel Core 2 Duo E6600', 'AMD Phenom X3 8750']);
-  assert.deepEqual(cpu('Intel Core i5'), ['Intel Core i5']);
-  assert.deepEqual(cpu('Pentium III'), ['Intel Pentium III']);
-  // Was nicht sauber passt, bleibt eigener Text (null): Taktangaben, zwei Prozessoren derselben Marke, mehr als zwei, Unbekanntes
-  for (const t of ['Pentium III 500 MHz', 'Intel Core i5 2.4 GHz', 'Core i5-4460 or Core i7-6700', 'Core i3 or Core i5 or Ryzen 3', '2.33 GHz or faster x86-compatible processor', '']) assert.equal(cpu(t), null, t);
-  assert.deepEqual(gpu('GeForce GTX 1060 6GB or Radeon RX 580 8GB'), ['NVIDIA GeForce GTX 1060 6GB', 'AMD Radeon RX 580 8GB']);
-  assert.deepEqual(gpu('NVIDIA GeForce RTX 3060 Ti'), ['NVIDIA GeForce RTX 3060 Ti']);
-  assert.deepEqual(gpu('GTX 1660 Ti 6GB'), ['NVIDIA GeForce GTX 1660 Ti 6GB']);
-  assert.deepEqual(gpu('Radeon RX 6700 XT'), ['AMD Radeon RX 6700 XT']);
-  assert.deepEqual(gpu('NVIDIA GeForce GTX 560 Ti (1 GB) or AMD Radeon HD 6870'), ['NVIDIA GeForce GTX 560 Ti', 'AMD Radeon HD 6870']);
-  for (const t of ['Intel HD Graphics 520', 'GeForce 8800 GT', 'DirectX 11 compatible graphics card with 2GB VRAM', 'GTX 1060 or GTX 1070']) assert.equal(gpu(t), null, t);
+  assert.deepEqual(cpu('Intel Core 2 Duo E6600 oder AMD Phenom X3 8750'), ['Intel Core 2 Duo E6600', 'AMD Phenom X3 8750']);
+  assert.deepEqual(cpu('Core Ultra 5 245'), ['Intel Core Ultra 5 245']);
+  // Was nicht in die Auswahlfelder passt, bleibt als Text erhalten (nichts geht verloren)
+  assert.deepEqual(cpu('Pentium III 500 MHz'), ['Pentium III 500 MHz']);
+  assert.deepEqual(C.parseCpuItems('Pentium III 500 MHz').map((i) => i.kind), ['text']);
+  assert.deepEqual(cpu('2.33 GHz or faster x86-compatible processor'), ['2.33 GHz']);
+  assert.deepEqual(cpu(''), []);
+  // Grafikkarten: "GeForce" und "Radeon" ohne NVIDIA/AMD davor, Speicher als eigenes Feld, Zusätze wie Ti und SUPER
+  assert.deepEqual(gpu('GeForce GTX 1060 6GB or Radeon RX 580 8GB'), ['GeForce GTX 1060 6 GB', 'Radeon RX 580 8 GB']);
+  assert.deepEqual(gpu('NVIDIA GeForce RTX 3060 Ti'), ['GeForce RTX 3060 Ti']);
+  assert.deepEqual(gpu('Nvidia GTX 650'), ['GeForce GTX 650']);
+  assert.deepEqual(gpu('GTX 1660 SUPER 6GB'), ['GeForce GTX 1660 SUPER 6 GB']);
+  assert.deepEqual(gpu('RTX 2060 Ti Super'), ['GeForce RTX 2060 Ti SUPER']);
+  assert.deepEqual(gpu('AMD Radeon RX 6700 XT'), ['Radeon RX 6700 XT']);
+  assert.deepEqual(gpu('NVIDIA GeForce GTX 560 Ti (1 GB) or AMD Radeon HD 6870'), ['GeForce GTX 560 Ti 1 GB', 'Radeon HD 6870']);
+  assert.deepEqual(gpu('GeForce GTX 1060 6GB or Radeon RX 580 8GB or Arc A380'), ['GeForce GTX 1060 6 GB', 'Radeon RX 580 8 GB', 'Arc A380']);
+  const arc = C.parseGpuItems('Arc A380')[0]; assert.equal(arc.kind, 'text');
+  const g = C.parseGpuItems('GeForce GTX 1060 6GB')[0];
+  assert.deepEqual([g.kind, g.pre, g.num, g.sfx, g.gb], ['geforce', 'GTX', '1060', '', '6']);
+  assert.deepEqual(gpu('NVIDIA GeForce 8800 GT'), ['GeForce 8800 GT']);               // passt in kein Feld: Text, aber ohne NVIDIA
+  assert.deepEqual(gpu('Intel HD Graphics 520'), ['Intel HD Graphics 520']);
+  assert.deepEqual(gpu('GTX 1060 or GTX 1070'), ['GeForce GTX 1060', 'GeForce GTX 1070']);
 });
 
 test('Bildmaße: oben, grüner Streifen und unten ergeben die Höhe', () => {
   const s = C.imageSpecs('normal');
   assert.equal(s.backTop.h + C.BACK.banner + C.BACK.bottom, 183);
-  assert.deepEqual(s.front, { w: 129, h: 183 });
+  assert.deepEqual(s.front, { w: 129, h: 164.4 });
   assert.deepEqual(s.backBottom, { w: 130, h: C.BACK.bottom });
   assert.equal(C.imageSpecs('slim').front.w, 129.5);
 });
@@ -81,20 +94,28 @@ test('Betriebssysteme', () => {
   assert.equal(C.osString({ win: [] }, 'de'), '');
 });
 
-test('Prozessor und Grafikkarte', () => {
-  const cpu = { intel: { on: true, pre: 'Core i5', num: '12400', sfx: 'F' }, amd: { on: true, pre: 'Ryzen 5', num: '5600', sfx: 'X' }, custom: '' };
-  assert.deepEqual(C.cpuList(cpu), ['Intel Core i5-12400F', 'AMD Ryzen 5 5600X']);
-  assert.deepEqual(C.cpuList({ ...cpu, custom: ' Pentium III ' }), ['Pentium III']);
-  assert.deepEqual(C.cpuList({ intel: { on: true, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false } , custom: ''}), ['Intel Core i5']);
-  const gpu = { nvidia: { on: true, pre: 'RTX', num: '3060', sfx: 'Ti' }, amd: { on: true, pre: 'RX', num: '6700', sfx: 'XT' }, custom: '' };
-  assert.deepEqual(C.gpuList(gpu), ['NVIDIA GeForce RTX 3060 Ti', 'AMD Radeon RX 6700 XT']);
-  assert.deepEqual(C.gpuList({ nvidia: { on: true, pre: 'Quadro', num: 'K2000', sfx: '' }, amd: { on: false }, custom: '' }), ['NVIDIA Quadro K2000']);
-  assert.deepEqual(C.gpuList({ nvidia: { on: false }, amd: { on: false }, custom: '' }), []);
+test('Prozessor und Grafikkarte: Einträge an- und ausschalten, Namen ohne NVIDIA und AMD vor GeForce und Radeon', () => {
+  const it = (type, kind, over) => ({ ...C.newHwItem(type, kind), ...over });
+  const cpu = { items: [it('cpu', 'intel', { pre: 'Core i5', num: '12400', sfx: 'F' }), it('cpu', 'amd', { pre: 'Ryzen 5', num: '5600', sfx: 'X' }), it('cpu', 'text', { text: ' Pentium III ' })] };
+  assert.deepEqual(C.cpuList(cpu), ['Intel Core i5-12400F', 'AMD Ryzen 5 5600X', 'Pentium III']);
+  cpu.items[1].on = false;                                                         // ausgeschalteter Eintrag steht nicht auf dem Cover
+  assert.deepEqual(C.cpuList(cpu), ['Intel Core i5-12400F', 'Pentium III']);
+  assert.deepEqual(C.cpuList({ items: [it('cpu', 'intel', { num: '' })] }), ['Intel Core i5']);
+  const gpu = { items: [it('gpu', 'geforce', { pre: 'RTX', num: '3060', sfx: 'Ti', gb: '12' }), it('gpu', 'radeon', { pre: 'RX', num: '6700', sfx: 'XT' }), it('gpu', 'text', { text: 'NVIDIA GeForce 8800 GT' }), it('gpu', 'text', { text: 'AMD Radeon HD 5870' })] };
+  assert.deepEqual(C.gpuList(gpu), ['GeForce RTX 3060 Ti 12 GB', 'Radeon RX 6700 XT', 'GeForce 8800 GT', 'Radeon HD 5870']);
+  assert.deepEqual(C.gpuList({ items: [it('gpu', 'geforce', { pre: 'Titan', num: '', sfx: 'Ti SUPER', gb: '6,5' })] }), ['GeForce Titan Ti SUPER 6.5 GB']);
+  assert.deepEqual(C.gpuList({ items: [] }), []);
+  // Ältere Einstellungen (Intel/AMD- und NVIDIA/AMD-Felder, eigener Text) werden umgewandelt
+  const old = C.mergeState({ cpu: { intel: { on: true, pre: 'Core i7', num: '6700', sfx: 'K' }, amd: { on: false }, custom: '' }, gpu: { nvidia: { on: true, pre: 'GTX', num: '1060', sfx: 'Ti 6GB' }, amd: { on: true, pre: 'RX', num: '580', sfx: '8GB' }, custom: '' } });
+  assert.deepEqual(C.cpuList(old.cpu), ['Intel Core i7-6700K']); assert.deepEqual(C.gpuList(old.gpu), ['GeForce GTX 1060 Ti 6 GB', 'Radeon RX 580 8 GB']);
+  assert.deepEqual(C.cpuList(C.mergeState({ cpu: { custom: 'Pentium 4' } }).cpu), ['Pentium 4']);
+  assert.equal(C.mergeState({ cpu: { items: Array.from({ length: 20 }, () => ({ kind: 'intel' })) } }).cpu.items.length, C.HW_MAX);   // Obergrenze
+  assert.deepEqual(C.mergeState({ gpu: { items: [{ kind: 'quatsch', text: 'x' }, 5, null] } }).gpu.items.map((i) => i.kind), ['text']);
 });
 
 test('Zeilen der Systemanforderungen: leere entfallen, Sprache wählbar', () => {
   const s = C.defaultState();
-  s.cpu.custom = 'Pentium 4'; s.dx = 'Version 9.0c'; s.other = '';
+  s.cpu.items = [{ ...C.newHwItem('cpu', 'text'), text: 'Pentium 4' }]; s.dx = 'Version 9.0c'; s.other = '';
   const rows = C.buildSpecs(s);
   assert.deepEqual(rows.map((r) => r.key), ['os', 'cpu', 'ram', 'dx', 'space']);   // Grafik und Sonstiges sind leer
   assert.equal(rows[0].label, 'Läuft auf');
@@ -116,7 +137,7 @@ test('Gespeicherte Einstellungen: kaputte oder alte Daten stören nicht', () => 
   const d = C.defaultState();
   assert.deepEqual(C.mergeState(null), d);
   assert.deepEqual(C.mergeState('quatsch'), d);
-  const m = C.mergeState({ caseType: 'riesig', disc: 'bluray', usk: '99', lang: 'fr', title: 5, features: ['co_op', 7], os: { win: ['7'], mac: 'ja' }, cpu: { intel: { on: true, pre: 'Core i9' } }, unbekannt: 1 });
+  const m = C.mergeState({ caseType: 'riesig', disc: 'bluray', usk: '99', lang: 'fr', title: 5, features: ['co_op', 7], os: { win: ['7'], mac: 'ja' }, cpu: { items: [{ kind: 'intel', pre: 'Core i9' }] }, unbekannt: 1 });
   assert.equal(m.caseType, 'normal');
   assert.equal(m.disc, 'bluray');
   assert.equal(m.usk, '0');
@@ -129,9 +150,9 @@ test('Gespeicherte Einstellungen: kaputte oder alte Daten stören nicht', () => 
   assert.deepEqual(m.features, ['co_op']);
   assert.deepEqual(m.os.win, ['7']);
   assert.equal(m.os.mac, false);
-  assert.equal(m.cpu.intel.on, true);
-  assert.equal(m.cpu.intel.pre, 'Core i9');
-  assert.equal(m.cpu.intel.num, '');
+  assert.equal(m.cpu.items.length, 1);
+  assert.equal(m.cpu.items[0].pre, 'Core i9');
+  assert.equal(m.cpu.items[0].num, '');
   assert.equal(m.unbekannt, undefined);
   assert.equal(C.mergeState({ usk: 'none' }).usk, 'none');
 });
@@ -178,13 +199,14 @@ test('Alle Grafiken, die das Tool lädt, sind vorhanden und nicht übergroß', (
   }
 });
 
-test('Stil-Auswahl: GOG hat vier Möglichkeiten, die anderen Anbieter zwei', () => {
-  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['bar', 'bar-dark', 'classic', 'classic-dark']);
-  assert.deepEqual(C.styleOptions('steam').map((o) => o[0]), ['bar', 'classic']);
+test('Stil-Auswahl: GOG hat zwei Farbvarianten, die anderen Anbieter nur die Leiste', () => {
+  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['bar', 'bar-dark']);
+  assert.deepEqual(C.styleOptions('steam').map((o) => o[0]), ['bar']);
   assert.equal(C.defaultState().theme, 'bar');                                   // Standard: Leiste in GOG-Farben
   assert.equal(C.mergeState({ provider: 'gog', theme: 'bar-dark' }).theme, 'bar-dark');
   assert.equal(C.mergeState({ provider: 'steam', theme: 'bar-dark' }).theme, 'bar');           // dunkle Variante gibt es nur bei GOG
   assert.equal(C.mergeState({ provider: 'gog', theme: 'bar', gogBar: 'dark' }).theme, 'bar-dark');   // Vorläufer-Einstellung
+  assert.equal(C.mergeState({ provider: 'gog', theme: 'alt-dark' }).theme, 'bar-dark');             // alte Stile werden zur Leiste
   const s = C.defaultState();
   assert.equal(s.spineArt, 'color'); assert.equal(s.spineUseLogo, true); assert.equal(s.spinePub, true);
   assert.equal(C.mergeState({ spineArt: 'komisch' }).spineArt, 'color'); assert.equal(C.mergeState({ spineArt: 'image' }).spineArt, 'image');

@@ -82,15 +82,15 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 
 ## Ausdruck
 
-- [ ] **Naht:** Im Ausdruck ist zwischen Rücken und Vorderseite kein heller Strich zu sehen (besonders an der GOG-Logo-Ecke).
+- [ ] **Naht:** Im Ausdruck ist zwischen Rücken und Vorderseite kein heller Strich zu sehen (besonders an der Kopfleiste).
 - [ ] **Minimum und Empfohlen:** Steam-Spiel mit beiden Listen übernehmen. Die Tabelle auf der Rückseite zeigt beide Spalten, nichts ist abgeschnitten. Ausdrucken und prüfen, ob die kleine Schrift gut lesbar ist.
-- [ ] **Steam-Übernahme:** Prozessor und Grafikkarte erscheinen in den Kategorien (z. B. Cyberpunk 2077), die Angaben passen in das Feld.
+- [ ] **Steam-Übernahme:** Prozessor und Grafikkarte erscheinen als einzelne Einträge in den Auswahlfeldern (z. B. Cyberpunk 2077: GeForce GTX 1060 6 GB, Radeon RX 580 8 GB, Arc A380 als Text), jeder in einer eigenen Zeile.
 - [ ] Hülle drucken (A4 quer, 100 %, Ränder "Keine", Hintergrundgrafiken an) und nachmessen: Cover 273 × 183 mm, Rücken 14 mm, Schnittmarken an den Ecken.
 - [ ] Schnittmarken und Falzlinien treffen die Kanten der echten Hülle.
 - [ ] **Slim:** 266 × 183 mm mit 7 mm Rücken.
 - [ ] **Blu-ray-Vorlage:** Die Richtwerte (269 × 148 mm, 14 mm Rücken) passen zu deinem Einleger, sonst eigene Maße notieren und das Ergebnis melden.
 - [ ] Der Titel auf dem Rücken liest sich in der Hülle richtig herum, USK vorn (35 mm) und das Motiv sind nicht abgeschnitten.
-- [ ] Beide Stile (Klassisch und Leiste) und alle drei Anbieter sehen gedruckt gut aus (Farben, Lesbarkeit). Bei der Leiste: Die Akzentlinie läuft sauber über den Rücken, das Logo oben ragt nirgends heraus.
+- [ ] Die Leiste und alle drei Anbieter (GOG in beiden Farbvarianten) sehen gedruckt gut aus (Farben, Lesbarkeit). Bei der Leiste: Die Akzentlinie läuft sauber über den Rücken, das Logo oben ragt nirgends heraus.
 
 - [ ] **Steam-Import mit Titel und Cover:** Nach dem Übernehmen steht der Spielname auf dem Rücken und das Steam-Hochformat-Cover vorn. Falls das Cover nicht lädt: Meldung lesen (ggf. `cdn.akamai.steamstatic.com` im Proxy erlauben).
 - [ ] **Publisher-Logo (Wikidata):** 🔎 beim Publisher-Logo zeigt den Publisher aus dem Steam-Import vorbelegt, Logos erscheinen und lassen sich übernehmen (z. B. Valve, CD PROJEKT RED).
@@ -108,3 +108,4 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 - [ ] **Browser-Speicher:** Bilder laden, Seite neu laden, alles ist wieder da. Zurücksetzen leert ihn. (In Firefox und Safari ebenfalls prüfen.)
 - [ ] **Rückenbild:** Ein breites Bild (SteamGridDB-Hintergrund) als Rückenbild laden, Ausschnitt und Abdunkeln einstellen, auf dem Ausdruck gut lesbar.
 - [ ] **Rückseite:** Die schmale Spalte mit Publisher, Disc und USK wirkt aufgeräumt, die Angaben sind groß genug lesbar.
+- [ ] **Minimum/Empfohlen:** "Minimum" und "Empfohlen" stehen mittig über ihrem Text, gleiche Sätze bei "Sonstiges" mittig über beiden Spalten, die Schrift ist gedruckt lesbar.

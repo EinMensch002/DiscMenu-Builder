@@ -42,12 +42,12 @@
   const BACK = { banner: 13, bottom: 46 };
 
   /* Größe, in der die Bilder für den Druck angelegt werden sollten */
-  /* Höhe der Kopfleiste im Stil "Leiste" (mm): Das Frontbild füllt nur den Teil darunter */
+  /* Höhe der Kopfleiste (mm): Das Frontbild füllt nur den Teil darunter */
   const BAR_HEIGHT = 18.6;
-  function imageSpecs(caseOrDims, theme) {
+  function imageSpecs(caseOrDims) {
     const c = typeof caseOrDims === 'object' ? caseOrDims : (CASES[caseOrDims] || CASES.normal);
     return {
-      front: { w: c.front, h: theme === 'bar' ? round1(c.h - BAR_HEIGHT) : c.h },
+      front: { w: c.front, h: round1(c.h - BAR_HEIGHT) },
       backTop: { w: c.back, h: round1(c.h - BACK.banner - BACK.bottom) },
       backBottom: { w: c.back, h: BACK.bottom },
       spineBg: { w: c.spine, h: c.h },
@@ -81,12 +81,10 @@
     epic: { name: 'Epic Games', logo: 'epic_logo.svg', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#0f0f12', mid: '#26262b', accent: '#d6dae4', bannerA: '#3a3a42', bannerB: '#222227', barA: '#3a3a42', barB: '#222227', line: '#d6dae4', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
     steam: { name: 'Steam', logo: 'steam_logo.svg', wordmark: 'STEAM', brand: '#23394c', onBrand: '#e3e9f0', dark: '#06090d', mid: '#1a2939', accent: '#29abe1', bannerA: '#2a465c', bannerB: '#1a2939', barA: '#2a465c', barB: '#1a2939', line: '#29abe1', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern Steam', en: 'Some features require Steam' } },
   };
-  const THEMES = { classic: 'Klassisch (Logo-Ecke)', bar: 'Leiste (wie bei Handelsspielen)', 'classic-dark': 'Klassisch, dunkel mit Lila', 'bar-dark': 'Leiste, dunkel mit Lila' };
-  /* Auswahl im Stil-Menü: Nur GOG hat zusätzlich die dunklen Varianten (Anthrazit mit lila Linie), bei Steam und Epic sind die Farben ohnehin dunkel. */
+  const THEMES = { bar: 'Leiste, GOG-Farben (Lila mit Grün)', 'bar-dark': 'Leiste, dunkel mit Lila' };
+  /* Auswahl im Stil-Menü: Nur GOG hat zwei Farbvarianten (Lila mit Grün, dunkel mit Lila), bei Steam und Epic sind die Farben ohnehin dunkel. */
   function styleOptions(provider) {
-    return provider === 'gog'
-      ? [['bar', 'Leiste, GOG-Farben (Lila mit Grün)'], ['bar-dark', 'Leiste, dunkel mit Lila'], ['classic', 'Klassisch (Logo-Ecke), GOG-Farben'], ['classic-dark', 'Klassisch (Logo-Ecke), dunkel mit Lila']]
-      : [['bar', 'Leiste (wie bei Handelsspielen)'], ['classic', 'Klassisch (Logo-Ecke)']];
+    return provider === 'gog' ? [['bar', 'GOG-Farben (Lila mit Grün)'], ['bar-dark', 'Dunkel mit Lila']] : [['bar', 'Leiste']];
   }
   const DISCS = { cd: 'cd.png', dvd: 'dvd.png', bluray: 'blu-ray.png' };
 
@@ -114,92 +112,123 @@
     return parts.join(' / ');
   }
 
-  /* Prozessor und Grafikkarte: Liste von Alternativen (eine oder zwei Marken) oder ein freier Text */
-  function cpuList(cpu) {
-    if (cpu.custom && cpu.custom.trim()) return [cpu.custom.trim()];
-    const out = [];
-    const i = cpu.intel, a = cpu.amd;
-    if (i && i.on) out.push('Intel ' + i.pre + (i.num.trim() ? (/^Core i\d$/.test(i.pre) ? '-' : ' ') + i.num.trim() + (i.sfx || '') : ''));
-    if (a && a.on) out.push('AMD ' + a.pre + (a.num.trim() ? ' ' + a.num.trim() + (a.sfx || '') : ''));
-    return out;
-  }
-  function gpuList(gpu) {
-    if (gpu.custom && gpu.custom.trim()) return [gpu.custom.trim()];
-    const out = [];
-    const n = gpu.nvidia, a = gpu.amd;
-    if (n && n.on) {
-      const geforce = ['RTX', 'GTX', 'GTS', 'GT'].includes(n.pre);
-      out.push('NVIDIA ' + (geforce ? 'GeForce ' : '') + n.pre + (n.num.trim() ? ' ' + n.num.trim() : '') + (n.sfx ? ' ' + n.sfx : ''));
-    }
-    if (a && a.on) out.push('AMD Radeon ' + a.pre + (a.num.trim() ? ' ' + a.num.trim() : '') + (a.sfx ? ' ' + a.sfx : ''));
-    return out;
+  /* ---------- Prozessoren und Grafikkarten ----------
+     Beide sind Listen mit beliebig vielen Einträgen. Jeder Eintrag lässt sich an- und ausschalten und ist entweder aus Auswahlfeldern aufgebaut
+     (Prozessor: Intel oder AMD mit Reihe, Modell, Zusatz; Grafikkarte: GeForce oder Radeon mit Reihe, Modell, Zusatz, Speicher in GB)
+     oder ein freier Text (z. B. "Arc A380"). Auf dem Cover steht jeder Eintrag in einer eigenen Zeile. */
+  const HW = {
+    cpu: {
+      intel: { label: 'Intel', first: 'Core i5', series: ['Core i3', 'Core i5', 'Core i7', 'Core i9', 'Core Ultra 5', 'Core Ultra 7', 'Core Ultra 9', 'Pentium', 'Celeron', 'Core 2 Duo', 'Core 2 Quad'], sfx: ['', 'K', 'KF', 'F'] },
+      amd: { label: 'AMD', first: 'Ryzen 5', series: ['Ryzen 3', 'Ryzen 5', 'Ryzen 7', 'Ryzen 9', 'Athlon', 'Phenom', 'FX'], sfx: ['', 'X', 'X3D', 'G'] },
+    },
+    gpu: {
+      geforce: { label: 'GeForce', first: 'RTX', series: ['RTX', 'GTX', 'GTS', 'GT', 'Titan', 'Quadro'], sfx: ['', 'Ti', 'SUPER', 'Ti SUPER'] },
+      radeon: { label: 'Radeon', first: 'RX', series: ['RX', 'HD', 'R9', 'R7', 'R5', 'Vega'], sfx: ['', 'XT', 'XTX', 'GRE'] },
+    },
+  };
+  const HW_MAX = 8;
+  const hwKinds = (type) => Object.keys(HW[type]);
+
+  function newHwItem(type, kind) {
+    const spec = HW[type][kind];
+    return { on: true, kind: spec ? kind : 'text', pre: spec ? spec.first : '', num: '', sfx: '', gb: '', text: '' };
   }
 
-  /* ---------- Prozessor- und Grafikkartentexte (z. B. von Steam) in die Kategorien übersetzen ---------- */
-  const clean = (t) => String(t || '').replace(/[®™]|\(R\)|\(TM\)|\(r\)|\(tm\)/g, '').replace(/\([^)]*\)/g, ' ')
+  /* Markennamen vereinheitlichen: "NVIDIA GeForce RTX 3060" -> "GeForce RTX 3060", "AMD Radeon RX 580" -> "Radeon RX 580" */
+  function brandText(t) {
+    return String(t || '').replace(/[®™]/g, '').replace(/\bNVIDIA\s+GeForce\b/gi, 'GeForce').replace(/\bAMD\s+Radeon\b/gi, 'Radeon')
+      .replace(/\b(?:NVIDIA|Nvidia)\s+(?=(?:RTX|GTX|GTS|GT)\b)/g, 'GeForce ').replace(/\s+/g, ' ').trim();
+  }
+  const gbText = (v) => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) && n > 0 ? trimNumber(n) + ' GB' : ''; };
+
+  function hwText(type, it) {
+    if (!it) return '';
+    if (it.kind === 'text') return brandText(it.text);
+    const num = String(it.num || '').trim(), sfx = it.sfx || '';
+    if (type === 'cpu') {
+      if (it.kind === 'intel') return 'Intel ' + it.pre + (num ? (/^Core i\d$/.test(it.pre) ? '-' : ' ') + num + sfx : '');
+      return 'AMD ' + it.pre + (num ? ' ' + num + sfx : '');
+    }
+    return [HW.gpu[it.kind].label, it.pre + (num ? ' ' + num : '') + (sfx ? ' ' + sfx : '') + (gbText(it.gb) ? ' ' + gbText(it.gb) : '')].join(' ');
+  }
+  const hwList = (type, x) => ((x && x.items) || []).filter((it) => it && it.on !== false).map((it) => hwText(type, it)).filter(Boolean);
+  const cpuList = (cpu) => hwList('cpu', cpu);
+  const gpuList = (gpu) => hwList('gpu', gpu);
+
+  /* Gespeicherte oder übernommene Daten bereinigen. Ältere Einstellungen (Intel/AMD- bzw. NVIDIA/AMD-Felder, eigener Text) werden in Einträge umgewandelt. */
+  function legacyHw(x, type) {
+    const out = [];
+    if (x.custom && String(x.custom).trim()) return [{ ...newHwItem(type, 'text'), text: String(x.custom).trim() }];
+    const fields = type === 'cpu' ? [['intel', 'intel'], ['amd', 'amd']] : [['nvidia', 'geforce'], ['amd', 'radeon']];
+    for (const [old, kind] of fields) {
+      const o = x[old];
+      if (!o || !o.on) continue;
+      const it = newHwItem(type, kind);
+      it.pre = typeof o.pre === 'string' ? o.pre : it.pre; it.num = typeof o.num === 'string' ? o.num : '';
+      let sfx = typeof o.sfx === 'string' ? o.sfx : '';
+      const m = sfx.match(/(\d+)\s*GB/i);
+      if (m) { it.gb = m[1]; sfx = sfx.replace(m[0], '').trim(); }
+      it.sfx = sfx;
+      out.push(it);
+    }
+    return out;
+  }
+  function normalizeHw(x, type) {
+    let items = [];
+    if (x && Array.isArray(x.items)) items = x.items;
+    else if (x && typeof x === 'object') items = legacyHw(x, type);
+    const str = (v) => (typeof v === 'string' ? v : '');
+    return { items: items.filter((i) => i && typeof i === 'object').slice(0, HW_MAX).map((i) => {
+      const kind = hwKinds(type).includes(i.kind) ? i.kind : 'text', spec = HW[type][kind];
+      return { on: i.on !== false, kind, pre: spec && spec.series.includes(i.pre) ? i.pre : (spec ? spec.first : ''), num: str(i.num), sfx: spec && spec.sfx.includes(i.sfx) ? i.sfx : '', gb: str(i.gb), text: str(i.text) };
+    }) };
+  }
+
+  /* ---------- Texte (z. B. von Steam) in Einträge zerlegen ----------
+     Ein "or" / "oder" / "/" trennt die Möglichkeiten, jede wird ein eigener Eintrag. Was in Auswahlfelder passt, kommt dorthin
+     (z. B. "GeForce GTX 1060 6GB" -> GeForce, GTX, 1060, 6 GB), alles andere bleibt als Text erhalten. */
+  const clean = (t) => String(t || '').replace(/[®™]|\(R\)|\(TM\)|\(r\)|\(tm\)/g, '').replace(/\(\s*(\d+(?:[.,]\d+)?\s*GB)\s*\)/gi, ' $1 ').replace(/\([^)]*\)/g, ' ')
     .replace(/\s+(?:or|oder)\s+(?:better|higher|equivalent|faster|newer|above|similar)\b.*$/i, '').replace(/\s+(?:or|oder)?\s*(?:equivalent|better)\s*$/i, '').replace(/\s+/g, ' ').trim();
   const split = (t) => clean(t).split(/\s+(?:or|oder)\s+|\s*\/\s*|\s*;\s*|,\s*(?=(?:AMD|Intel|NVIDIA|GeForce|Radeon|Ryzen|Core|Athlon|Phenom|FX)\b)/i).map((x) => x.trim()).filter(Boolean);
 
-  /* Ein Prozessor -> { vendor: 'intel'|'amd', pre, num, sfx } oder null, wenn er nicht sauber in die Kategorien passt */
-  function parseCpuOne(alt) {
-    const t = alt.replace(/^(?:Intel|AMD)\s+/i, '');
+  function parseCpuPart(part) {
+    const t = part.replace(/^(?:Intel|AMD)\s+/i, '');
+    const item = (kind, pre, num, sfx) => ({ ...newHwItem('cpu', kind), pre, num, sfx });
     let m = t.match(/^Core\s*(i[3579])\s*-?\s*(\d{3,5})?([A-Z]{0,2})$/i);
     if (m) {
       const suffix = (m[3] || '').toUpperCase(), known = ['K', 'KF', 'F'].includes(suffix);
-      return { vendor: 'intel', pre: 'Core ' + m[1].toLowerCase(), num: (m[2] || '') + (m[2] && !known ? suffix : ''), sfx: known ? suffix : '' };
+      return item('intel', 'Core ' + m[1].toLowerCase(), (m[2] || '') + (m[2] && !known ? suffix : ''), known ? suffix : '');
     }
+    m = t.match(/^Core\s+Ultra\s*([579])\s*(\d{3}[A-Z]{0,2})?$/i);
+    if (m) return item('intel', 'Core Ultra ' + m[1], (m[2] || '').toUpperCase(), '');
     m = t.match(/^(Core 2 Duo|Core 2 Quad|Pentium|Celeron)\s*(.*)$/i);
     if (m && /^[A-Za-z0-9 .+-]*$/.test(m[2]) && !/(?:mhz|ghz)/i.test(m[2])) {
-      const pre = ['Core 2 Duo', 'Core 2 Quad', 'Pentium', 'Celeron'].find((p) => p.toLowerCase() === m[1].toLowerCase());
-      return { vendor: 'intel', pre, num: m[2].trim(), sfx: '' };
+      return item('intel', ['Core 2 Duo', 'Core 2 Quad', 'Pentium', 'Celeron'].find((p) => p.toLowerCase() === m[1].toLowerCase()), m[2].trim(), '');
     }
-    m = t.match(/^Ryzen\s*([3579])\s*(\d{3,5})\s*(X3D|XT|X|G|GE|U|H|HS)?$/i);
+    m = t.match(/^Ryzen\s*([3579])\s*(\d{3,5})?\s*(X3D|XT|X|G|GE|U|H|HS)?$/i);
     if (m) {
       const suffix = (m[3] || '').toUpperCase(), known = ['X', 'X3D', 'G'].includes(suffix);
-      return { vendor: 'amd', pre: 'Ryzen ' + m[1], num: m[2] + (suffix && !known ? suffix : ''), sfx: known ? suffix : '' };
+      return item('amd', 'Ryzen ' + m[1], (m[2] || '') + (m[2] && suffix && !known ? suffix : ''), m[2] && known ? suffix : '');
     }
     m = t.match(/^(Athlon|Phenom|FX)\s*-?\s*(.*)$/i);
-    if (m && /^[A-Za-z0-9 .+-]*$/.test(m[2]) && !/(?:mhz|ghz)/i.test(m[2])) {
-      return { vendor: 'amd', pre: ({ athlon: 'Athlon', phenom: 'Phenom', fx: 'FX' })[m[1].toLowerCase()], num: m[2].trim(), sfx: '' };
-    }
-    return null;
+    if (m && /^[A-Za-z0-9 .+-]*$/.test(m[2]) && !/(?:mhz|ghz)/i.test(m[2])) return item('amd', ({ athlon: 'Athlon', phenom: 'Phenom', fx: 'FX' })[m[1].toLowerCase()], m[2].trim(), '');
+    return { ...newHwItem('cpu', 'text'), text: brandText(part) };
   }
-  const detectCpuVendor = (a) => (/\b(?:amd|ryzen|athlon|phenom|fx|opteron)\b/i.test(a) ? 'amd' : /\b(?:intel|core|pentium|celeron|xeon)\b/i.test(a) ? 'intel' : '');
-
-  /* Prozessor-Text -> { cpu: { intel, amd, custom } } für die Kategorien oder null (dann als Text übernehmen) */
-  function parseCpuText(text) {
-    const alts = split(text);
-    if (!alts.length || alts.length > 2) return null;
-    const out = { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' };
-    for (const a of alts) {
-      const r = parseCpuOne(a);
-      if (!r || out[r.vendor].on || detectCpuVendor(a) && detectCpuVendor(a) !== r.vendor) return null;
-      out[r.vendor] = { on: true, pre: r.pre, num: r.num, sfx: r.sfx };
-    }
-    return { cpu: out };
+  function parseGpuPart(part) {
+    const text = () => ({ ...newHwItem('gpu', 'text'), text: brandText(part) });
+    if (/\b(?:intel|arc)\b/i.test(part)) return text();
+    const t = part.replace(/\b(?:NVIDIA|AMD|ATI|GeForce|Radeon)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+    const mem = '(?:\\s+(\\d+(?:[.,]\\d+)?)\\s?GB)?(?:\\s+VRAM)?$';
+    let m = t.match(new RegExp('^(RTX|GTX|GTS|GT)\\s*(\\d{3,4})\\s*(Ti\\s*SUPER|SUPER|Ti)?' + mem, 'i'));
+    if (m) return { ...newHwItem('gpu', 'geforce'), pre: m[1].toUpperCase(), num: m[2], sfx: m[3] ? (/ti\s*super/i.test(m[3]) ? 'Ti SUPER' : m[3].toLowerCase() === 'ti' ? 'Ti' : 'SUPER') : '', gb: (m[4] || '').replace(',', '.') };
+    m = t.match(new RegExp('^(RX|HD|R9|R7|R5)\\s*(\\d{3,4})\\s*(XTX|XT|GRE)?' + mem, 'i'));
+    if (m) return { ...newHwItem('gpu', 'radeon'), pre: m[1].toUpperCase(), num: m[2], sfx: (m[3] || '').toUpperCase(), gb: (m[4] || '').replace(',', '.') };
+    m = t.match(new RegExp('^Vega\\s*(\\d{2,3})?' + mem, 'i'));
+    if (m) return { ...newHwItem('gpu', 'radeon'), pre: 'Vega', num: m[1] || '', gb: (m[2] || '').replace(',', '.') };
+    return text();
   }
-
-  /* Eine Grafikkarte -> { vendor: 'nvidia'|'amd', pre, num, sfx } oder null */
-  function parseGpuOne(alt) {
-    if (/\bintel\b/i.test(alt)) return null;
-    const t = alt.replace(/\b(?:NVIDIA|AMD|ATI|GeForce|Radeon)\b/gi, ' ').replace(/\s+/g, ' ').trim();
-    let m = t.match(/^(RTX|GTX|GTS|GT)\s*(\d{2,4})\s*(Ti|SUPER)?(?:\s+(\d+\s?GB))?$/i);
-    if (m) return { vendor: 'nvidia', pre: m[1].toUpperCase(), num: m[2], sfx: [m[3] ? (m[3].toLowerCase() === 'ti' ? 'Ti' : 'SUPER') : '', (m[4] || '').replace(/\s+/, '').toUpperCase()].filter(Boolean).join(' ') };
-    m = t.match(/^(RX|HD|R9|R7|R5)\s*(\d{3,4})\s*(XTX|XT|GRE)?(?:\s+(\d+\s?GB))?$/i);
-    if (m) return { vendor: 'amd', pre: m[1].toUpperCase(), num: m[2], sfx: [(m[3] || '').toUpperCase(), (m[4] || '').replace(/\s+/, '').toUpperCase()].filter(Boolean).join(' ') };
-    return null;
-  }
-  function parseGpuText(text) {
-    const alts = split(text);
-    if (!alts.length || alts.length > 2) return null;
-    const out = { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' };
-    for (const a of alts) {
-      const r = parseGpuOne(a);
-      if (!r || out[r.vendor].on) return null;
-      out[r.vendor] = { on: true, pre: r.pre, num: r.num, sfx: r.sfx };
-    }
-    return { gpu: out };
-  }
+  const parseCpuItems = (text) => split(text).slice(0, HW_MAX).map(parseCpuPart);
+  const parseGpuItems = (text) => split(text).slice(0, HW_MAX).map(parseGpuPart);
 
   /* Logo in einen Platz einpassen. across = Platz quer zum Rücken, along = Platz entlang des Rückens (beide in mm), a = Seitenverhältnis (Breite / Höhe).
      rot: 'auto' | 'no' | 'yes'. Automatisch wird gedreht, wenn das Logo aufrecht kaum lesbar wäre (Höhe unter minH). maxW begrenzt die Breite (mm, 0 = keine Grenze).
@@ -230,6 +259,9 @@
     return rows.map(([key, label, values]) => ({ key, label, values: values.filter(Boolean) })).filter((r) => r.values.length);
   }
 
+  /* "Sonstiges" in einzelne Sätze zerlegen (Zeilenumbruch oder Satzende), Punkt am Ende entfällt */
+  const otherLines = (t) => String(t || '').split(/\n+/).flatMap((l) => l.split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ0-9])/)).map((x) => x.trim().replace(/(?<!\.)\.$/, '').trim()).filter(Boolean);
+
   /* Tabelle für die Rückseite: je Zeile die Mindest- und (wenn eingeschaltet) die empfohlenen Angaben.
      Gleiche Angaben stehen nur einmal da (shared), das Betriebssystem gilt immer für beide. */
   function buildSpecTable(state) {
@@ -243,6 +275,18 @@
     const os = osString(state.os, state.lang);
     if (os) rows.push({ key: 'os', label: L.os, short: L.short.os || L.os, min: [os], rec: [], shared: true });
     for (const [key, label] of [['cpu', L.cpu], ['ram', L.ram], ['gpu', L.gpu], ['dx', L.dx], ['space', L.space], ['other', L.other]]) {
+      if (key === 'other') {                     // Sonstiges: Satz für Satz. Gleiche Sätze stehen einmal in der Mitte, nur abweichende in ihrer Spalte.
+        const ml = otherLines(state.other), rl = r ? otherLines(state.rec.other) : [];
+        if (!ml.length && !rl.length) continue;
+        const low = (x) => x.toLowerCase(), common = ml.filter((l) => rl.some((q) => low(q) === low(l)));
+        const onlyMin = ml.filter((l) => !common.includes(l)), onlyRec = rl.filter((l) => !common.some((c) => low(c) === low(l)));
+        const short = L.short.other || label;
+        if (!r) { rows.push({ key, label, short, min: ml, rec: [], shared: true }); continue; }
+        let first = true;
+        for (const line of common) { rows.push({ key, label: first ? label : '', short: first ? short : '', min: [line], rec: [], shared: true, cont: !first }); first = false; }
+        if (onlyMin.length || onlyRec.length) rows.push({ key, label: first ? label : '', short: first ? short : '', min: onlyMin, rec: onlyRec, shared: false, cont: !first });
+        continue;
+      }
       const min = m[key].filter(Boolean), rec = r ? r[key].filter(Boolean) : [];
       if (!min.length && !rec.length) continue;
       const same = !!rec.length && JSON.stringify(min) === JSON.stringify(rec);
@@ -259,8 +303,8 @@
       usk: '0', uskOpacity: '100', uskBack: true, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
       features: ['single_player'],
       os: { win: ['10', '11'], mac: false, linux: false, x64: true },
-      cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
-      gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
+      cpu: { items: [] },
+      gpu: { items: [] },
       ram: '4', space: '10', dx: '', other: '',
       frontPubPlate: 'none', spinePubPlate: 'white',          /* Unterlage hinter dem Publisher-Logo: 'none' | 'white' | 'black' */
       spinePC: true, spineTitle: 'center', spineArt: 'color', spineBgX: '50', spineBgDim: '25', spineUseLogo: true, spinePub: true,
@@ -270,8 +314,8 @@
       /* Empfohlene Anforderungen (optional, zusätzlich zu den Mindestanforderungen oben) */
       rec: {
         on: false,
-        cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
-        gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
+        cpu: { items: [] },
+        gpu: { items: [] },
         ram: '8', space: '10', dx: '', other: '',
       },
     };
@@ -289,13 +333,14 @@
       else if (typeof b === 'object') out[key] = mergeObject(b, s);
       else out[key] = typeof s === typeof b ? s : b;
     }
+    out.cpu = normalizeHw(saved.cpu, 'cpu'); out.gpu = normalizeHw(saved.gpu, 'gpu');
+    out.rec.cpu = normalizeHw(saved.rec && saved.rec.cpu, 'cpu'); out.rec.gpu = normalizeHw(saved.rec && saved.rec.gpu, 'gpu');
     if (!CASES[out.caseType] && out.caseType !== 'custom') out.caseType = 'normal';
     if (!DISCS[out.disc]) out.disc = 'dvd';
     if (!LABELS[out.lang]) out.lang = 'de';
     if (out.theme === 'modern') out.theme = 'bar';             // der frühere Stil "Modern" ist weggefallen, die Leiste kommt ihm am nächsten
-    if (!THEMES[out.theme]) out.theme = 'bar';
-    if (saved.gogBar === 'dark' && out.provider === 'gog' && /^(bar|classic)$/.test(out.theme)) out.theme += '-dark';       // Vorläufer: eigene Einstellung für die dunkle GOG-Leiste
-    if (out.provider !== 'gog') out.theme = out.theme.replace('-dark', '');
+    out.theme = (/-dark$/.test(String(out.theme)) || (saved.gogBar === 'dark' && out.provider === 'gog')) ? 'bar-dark' : 'bar';
+    if (out.provider !== 'gog') out.theme = 'bar';
     if (!PROVIDERS[out.provider]) out.provider = 'gog';
     for (const k of ['frontPubPlate', 'spinePubPlate']) if (!['none', 'white', 'black'].includes(out[k])) out[k] = k === 'spinePubPlate' ? 'white' : 'none';
     if (out.spineTitle !== 'top') out.spineTitle = 'center';
@@ -339,7 +384,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { BAR_HEIGHT, fitLogo, styleOptions, parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { BAR_HEIGHT, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
