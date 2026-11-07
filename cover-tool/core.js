@@ -205,6 +205,20 @@
     return { gpu: out };
   }
 
+  /* Logo in einen Platz einpassen. across = Platz quer zum Rücken, along = Platz entlang des Rückens (beide in mm), a = Seitenverhältnis (Breite / Höhe).
+     rot: 'auto' | 'no' | 'yes'. Automatisch wird gedreht, wenn das Logo aufrecht kaum lesbar wäre (Höhe unter minH). maxW begrenzt die Breite (mm, 0 = keine Grenze).
+     -> { rotated, w, h } mit w und h in mm als Größe des Bildes (vor dem Drehen), das Ergebnis passt immer in across × along. */
+  function fitLogo(a, rot, across, along, maxW, minH) {
+    a = a > 0.05 ? a : 1;
+    across = Math.max(1, across); along = Math.max(1, along);
+    const upright = () => { let w = Math.min(across, along * a); if (maxW > 0) w = Math.min(w, maxW); return { rotated: false, w, h: w / a }; };
+    const rotated = () => { let l = Math.min(along, across * a); if (maxW > 0) l = Math.min(l, maxW); return { rotated: true, w: l, h: l / a }; };
+    if (rot === 'yes') return rotated();
+    if (rot === 'no') return upright();
+    const up = upright();
+    return up.h >= (minH || 4) ? up : rotated();
+  }
+
   /* Zeilen für die Systemanforderungen. Leere Zeilen entfallen. values ist eine Liste von Alternativen. */
   function buildSpecs(state) {
     const L = LABELS[state.lang] || LABELS.de;
@@ -253,6 +267,8 @@
       gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
       ram: '4', space: '10', dx: '', other: '',
       iconStyle: 'line', spinePC: true, spineTitle: 'center', spineArt: 'color', spineUseLogo: true, spinePub: true,
+      spineLogoRot: 'auto', spineLogoSide: '1.5', spineLogoTop: '3', spineLogoBottom: '3',      /* Rückenlogo: Drehung, Abstände (mm) zu den Seiten und zu Kopf und Fuß */
+      spinePubRot: 'auto', spinePubSide: '1.2', spinePubWidth: '',                             /* Publisher am Fuß: Drehung, Abstand zur Seite (mm), eigene Breite (mm, leer = automatisch) */
       publisher: '', developer: '',         /* z. B. von Steam übernommen, Vorgabe für die Suche nach dem Publisher-Logo */
       /* Empfohlene Anforderungen (optional, zusätzlich zu den Mindestanforderungen oben) */
       rec: {
@@ -287,6 +303,7 @@
     if (!ICON_STYLES[out.iconStyle]) out.iconStyle = 'line';
     if (out.spineTitle !== 'top') out.spineTitle = 'center';
     if (out.spineArt !== 'image') out.spineArt = 'color';
+    for (const k of ['spineLogoRot', 'spinePubRot']) if (!['auto', 'no', 'yes'].includes(out[k])) out[k] = 'auto';
     out.uskOpacity = String(Math.min(100, Math.max(30, parseInt(out.uskOpacity, 10) || 100)));
     if (out.usk !== 'none' && !USK_VALUES.includes(out.usk)) out.usk = '0';
     return out;
@@ -325,7 +342,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { BAR_HEIGHT, styleOptions, parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, ORIGINAL_ICONS, ICON_STYLES, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { BAR_HEIGHT, fitLogo, styleOptions, parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, ORIGINAL_ICONS, ICON_STYLES, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

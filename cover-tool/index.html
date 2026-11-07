@@ -239,7 +239,22 @@
       <label class="f"><span class="lab">Hintergrund des Rückens</span>
         <select data-k="spineArt"><option value="color">Farbe des Anbieters</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
       <label class="chk"><input type="checkbox" data-k="spineUseLogo"> Statt des Titels das Rückenlogo zeigen (wenn eins geladen ist)</label>
-      <label class="chk"><input type="checkbox" data-k="spinePub"> Publisher-Logo am Fuß des Rückens (unter "PC")</label>
+      <label class="chk"><input type="checkbox" data-k="spinePub"> Publisher-Logo am Fuß des Rückens (über "PC", "PC" bleibt immer ganz unten)</label>
+      <div class="two">
+        <label class="f"><span class="lab">Publisher-Logo: Ausrichtung</span>
+          <select data-k="spinePubRot"><option value="auto">Automatisch (gedreht, wenn zu breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
+        <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spinePubSide" size="4" inputmode="decimal"></label>
+      </div>
+      <label class="f"><span class="lab">Publisher-Logo: Breite in mm (leer = automatisch)</span><input type="text" data-k="spinePubWidth" size="4" inputmode="decimal" placeholder="automatisch"></label>
+      <div class="two">
+        <label class="f"><span class="lab">Rückenlogo: Ausrichtung</span>
+          <select data-k="spineLogoRot"><option value="auto">Automatisch (gedreht, wenn breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
+        <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spineLogoSide" size="4" inputmode="decimal"></label>
+      </div>
+      <div class="two">
+        <label class="f"><span class="lab">Rückenlogo: Abstand zum Kopf oben (mm)</span><input type="text" data-k="spineLogoTop" size="4" inputmode="decimal"></label>
+        <label class="f"><span class="lab">Abstand zum Fuß unten (mm)</span><input type="text" data-k="spineLogoBottom" size="4" inputmode="decimal"></label>
+      </div>
       <label class="chk"><input type="checkbox" data-k="spinePC"> "PC" am Fuß des Rückens</label>
       <label class="chk"><input type="checkbox" data-k="galaxy" id="galaxyChk"> GOG-Galaxy-Feld auf der Rückseite (nur bei GOG, der Platz bleibt reserviert)</label>
       <label class="chk"><input type="checkbox" data-k="cropMarks"> Schnittmarken an den Ecken</label>
@@ -280,8 +295,8 @@
 
             <section class="spine" id="spine">
               <div class="spine-head"><img class="spine-logo brand-logo" id="spineLogo" src="assets/images/gog_logo.png" alt="GOG"><span class="wm" id="spineWm"></span></div>
-              <div class="spine-box" id="spineBox"><span class="spine-title" id="spineTitle"></span><img class="spine-art" id="spineLogoImg" alt="" hidden></div>
-              <div class="spine-foot" id="spineFoot"><span class="pc">PC</span><img class="spine-pub" id="spinePubImg" alt="" hidden></div>
+              <div class="spine-box" id="spineBox"><i class="mmprobe" id="mmProbe"></i><span class="spine-title" id="spineTitle"></span><img class="spine-art" id="spineLogoImg" alt="" hidden></div>
+              <div class="spine-foot" id="spineFoot"><span class="spine-pubbox" id="spinePubBox" hidden><img class="spine-pub" id="spinePubImg" alt="" hidden></span><span class="pc">PC</span></div>
             </section>
 
             <section class="front" id="front">

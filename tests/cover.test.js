@@ -199,3 +199,25 @@ test('Projektdatei: Rückenlogo wird mitgespeichert', async () => {
   const out = F.unpackProject(await Z.read(F.packProject(C.defaultState(), { spineLogo: { data: png, type: 'image/png', name: 'logo.png' } })));
   assert.deepEqual([...out.images.spineLogo.data.slice(0, 4)], [137, 80, 78, 71]);
 });
+
+test('Logo-Anpassung: Zu breite Logos werden gedreht, das Ergebnis passt immer in den Platz', () => {
+  const fit = C.fitLogo;
+  // Rücken 14 mm, Rand 1,2 mm: quer 11,6 mm. Ein breites Logo (3,8 : 1) wäre aufrecht nur 3 mm hoch -> automatisch gedreht
+  let r = fit(3.8, 'auto', 11.6, 30, 0, 4);
+  assert.equal(r.rotated, true); assert.ok(r.h <= 11.6 + 1e-9 && r.w <= 30 + 1e-9);
+  r = fit(1.2, 'auto', 11.6, 30, 0, 4);                       // fast quadratisch: bleibt aufrecht
+  assert.equal(r.rotated, false); assert.ok(Math.abs(r.w - 11.6) < 1e-9);
+  assert.equal(fit(3.8, 'no', 11.6, 30, 0, 4).rotated, false);          // von Hand aufrecht
+  assert.equal(fit(1.2, 'yes', 11.6, 30, 0, 4).rotated, true);          // von Hand gedreht
+  r = fit(2, 'no', 11.6, 30, 6, 4);                           // eigene Breite
+  assert.ok(Math.abs(r.w - 6) < 1e-9 && Math.abs(r.h - 3) < 1e-9);
+  r = fit(0.4, 'no', 11.6, 12, 0, 4);                         // sehr hohes Logo: durch die Länge begrenzt
+  assert.ok(r.h <= 12 + 1e-9 && r.w <= 11.6 + 1e-9);
+  for (const a of [0.2, 0.7, 1, 2.5, 8]) for (const rot of ['auto', 'no', 'yes']) {
+    const f = fit(a, rot, 10, 25, 0, 4), across = f.rotated ? f.h : f.w, along = f.rotated ? f.w : f.h;
+    assert.ok(across <= 10 + 1e-9 && along <= 25 + 1e-9, a + '/' + rot);
+  }
+  const s = C.defaultState();
+  assert.equal(s.spinePubRot, 'auto'); assert.equal(s.spineLogoRot, 'auto'); assert.equal(s.spinePubWidth, '');
+  assert.equal(C.mergeState({ spinePubRot: 'schräg' }).spinePubRot, 'auto');
+});

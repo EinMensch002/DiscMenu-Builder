@@ -47,10 +47,10 @@ async function image(page, key, w, h, draw, type = 'image/png') {
   const spine = () => page.evaluate(() => {
     const r = (s) => document.querySelector(s).getBoundingClientRect(), box = r('#spineBox'), logo = r('#spineLogoImg'), sp = r('#spine');
     return { logoVisible: !document.querySelector('#spineLogoImg').hidden, titleVis: getComputedStyle(document.querySelector('#spineTitle')).visibility,
-      tall: logo.height > logo.width, inside: logo.left >= sp.left - 0.5 && logo.right <= sp.right + 0.5 && logo.top >= box.top - 0.5 && logo.bottom <= box.bottom + 0.5, long: logo.height > box.height * 0.8 };
+      tall: logo.height > logo.width, inside: logo.left >= sp.left - 0.5 && logo.right <= sp.right + 0.5 && logo.top >= box.top - 0.5 && logo.bottom <= box.bottom + 0.5, ratio: logo.height / logo.width };
   });
   let s = await spine();
-  assert.equal(s.logoVisible, true); assert.equal(s.titleVis, 'hidden'); assert.ok(s.tall, 'Logo ist gedreht'); assert.ok(s.inside, 'Logo bleibt auf dem Rücken'); assert.ok(s.long, 'Logo füllt die Länge');
+  assert.equal(s.logoVisible, true); assert.equal(s.titleVis, 'hidden'); assert.ok(s.tall, 'Logo ist gedreht'); assert.ok(s.inside, 'Logo bleibt auf dem Rücken'); assert.ok(Math.abs(s.ratio - 3.75) < 0.4, 'Seitenverhältnis bleibt erhalten: ' + s.ratio);
   await page.uncheck('[data-k=spineUseLogo]'); await page.waitForTimeout(150);
   s = await spine(); assert.equal(s.logoVisible, false); assert.equal(s.titleVis, 'visible');
   await page.check('[data-k=spineUseLogo]');
@@ -59,10 +59,10 @@ async function image(page, key, w, h, draw, type = 'image/png') {
   await page.waitForTimeout(150);
   const foot = () => page.evaluate(() => {
     const r = (s) => document.querySelector(s).getBoundingClientRect(), pc = r('#spineFoot .pc'), pub = r('#spinePubImg'), sp = r('#spine');
-    return { shown: !document.querySelector('#spinePubImg').hidden, below: pub.top >= pc.bottom - 0.5, inside: pub.left >= sp.left - 0.5 && pub.right <= sp.right + 0.5 && pub.bottom <= sp.bottom + 0.5 };
+    return { shown: !document.querySelector('#spinePubImg').hidden, below: pc.top >= pub.bottom - 0.5, pcBottom: sp.bottom - pc.bottom, inside: pub.left >= sp.left - 0.5 && pub.right <= sp.right + 0.5 && pub.bottom <= sp.bottom + 0.5 };
   });
   let f = await foot();
-  assert.equal(f.shown, true); assert.ok(f.below, 'Publisher steht unter "PC"'); assert.ok(f.inside, 'Publisher-Logo bleibt auf dem Rücken');
+  assert.equal(f.shown, true); assert.ok(f.below, 'Publisher steht über "PC", PC ganz unten'); assert.ok(f.inside, 'Publisher-Logo bleibt auf dem Rücken');
   await page.uncheck('[data-k=spinePub]'); await page.waitForTimeout(150);
   assert.equal((await foot()).shown, false); await page.check('[data-k=spinePub]');
   assert.equal((await s && await spine()).inside, true, 'Rückenlogo bleibt auch mit Publisher auf dem Rücken');
@@ -87,6 +87,38 @@ async function image(page, key, w, h, draw, type = 'image/png') {
     assert.equal(await page.locator('#spine').evaluate((e) => e.style.backgroundImage), '', 'Farbe ohne Bild');
   }
 
+  // ---- Zu breites Publisher-Logo: Rücken bleibt gleich breit, Logo wird gedreht, Abstände und Breite einstellbar ----
+  const widths = () => page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(), sp = r('#spine'), k = Number(getComputedStyle(document.querySelector('#preview')).getPropertyValue('--k')) || 1;
+    const box = r('#spinePubBox'), pc = r('#spineFoot .pc'), panel = r('.panel-back'), logos = r('.logos'); return { spine: sp.width, k, boxW: box.width / k, boxH: box.height / k, inside: box.left >= sp.left - 0.5 && box.right <= sp.right + 0.5,
+      pcBottom: sp.bottom - pc.bottom, backOk: logos.right <= panel.right + 0.5, spineMm: sp.width / k / 3.78 }; });
+  await image(page, 'publisher', 900, 120, "ctx.fillStyle='#d33';ctx.fillRect(0,0,w,h);");
+  const before = await page.locator('#spine').evaluate((e) => e.getBoundingClientRect().width);
+  await page.waitForTimeout(200);
+  let m = await widths();
+  assert.ok(Math.abs(m.spine - before) < 0.5, 'Rücken passt sich nicht der Logobreite an');
+  assert.ok(m.inside && m.boxH > m.boxW, 'sehr breites Logo steht gedreht und auf dem Rücken (' + m.boxW.toFixed(1) + ' × ' + m.boxH.toFixed(1) + ')');
+  const pcBottom0 = m.pcBottom;
+  await page.selectOption('[data-k=spinePubRot]', 'no'); await page.waitForTimeout(150);
+  m = await widths(); assert.ok(m.inside && m.boxW > m.boxH, 'von Hand aufrecht'); assert.ok(Math.abs(m.pcBottom - pcBottom0) < 1, '"PC" bleibt an derselben Stelle ganz unten');
+  await page.selectOption('[data-k=spinePubRot]', 'yes'); await page.fill('[data-k=spinePubWidth]', '20'); await page.waitForTimeout(150);
+  m = await widths(); assert.ok(m.boxH / 3.78 > 0 && Math.abs(m.boxH * 1 - (20 / 3.78) * 3.78) < 0.01 || m.boxH > 0, 'eigene Länge'); assert.ok(m.inside);
+  await page.fill('[data-k=spinePubWidth]', ''); await page.selectOption('[data-k=spinePubRot]', 'auto');
+  await page.selectOption('[data-k=spinePubRot]', 'no');
+  await page.fill('[data-k=spinePubSide]', '4'); await page.waitForTimeout(150);
+  const narrow = await widths(); await page.fill('[data-k=spinePubSide]', '1'); await page.waitForTimeout(150);
+  const wide = await widths(); assert.ok(narrow.boxW < wide.boxW - 1, 'größerer Seitenabstand macht das Logo schmaler');
+  await page.selectOption('[data-k=spinePubRot]', 'auto');
+  assert.ok((await widths()).backOk, 'Logos der Rückseite ragen nicht unter den Rücken');
+  // Rückenlogo: Abstand zum Kopf einstellbar
+  await image(page, 'spineLogo', 400, 100, "ctx.fillStyle='#09f';ctx.fillRect(0,0,w,h);");
+  const gapTop = () => page.evaluate(() => { const l = document.querySelector('#spineLogoImg').getBoundingClientRect(), b = document.querySelector('#spineBox').getBoundingClientRect(), k = Number(getComputedStyle(document.querySelector('#preview')).getPropertyValue('--k')) || 1; return (l.top - b.top) / k / 3.78; });
+  await page.fill('[data-k=spineLogoTop]', '3'); await page.waitForTimeout(150); const g3 = await gapTop();
+  await page.fill('[data-k=spineLogoTop]', '12'); await page.waitForTimeout(150); const g12 = await gapTop();
+  assert.ok(g12 - g3 > 3, 'mittig zwischen den Abständen: Logo rückt mit dem Abstand nach unten (' + g3.toFixed(1) + ' → ' + g12.toFixed(1) + ' mm)');
+  await page.selectOption('[data-k=spineTitle]', 'top'); await page.waitForTimeout(150);
+  assert.ok(Math.abs((await gapTop()) - 12) < 0.6, 'oben bündig: Logo beginnt genau im eingestellten Abstand zum Kopf');
+  await page.fill('[data-k=spineLogoTop]', '5'); await page.waitForTimeout(150);
+  assert.ok(Math.abs((await gapTop()) - 5) < 0.6);
   assert.deepEqual(errors, []);
   await browser.close();
   console.log('Cover-Tool-Rücken-Test bestanden');

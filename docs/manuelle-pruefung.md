@@ -102,3 +102,4 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 - [ ] **Rückenlogo und Publisher am Fuß:** Auf dem Ausdruck sind das gedrehte Logo und das Publisher-Logo unter "PC" gut lesbar. Bei einem Spiel mit Steam-Logo (`logo.png`) zeigt der Import es auf dem Rücken.
 - [ ] **Bild über den Rücken:** Das Motiv geht an den Falzkanten ohne Sprung weiter, der Rücken ist nicht zu dunkel.
 - [ ] **Hintergrund transparent (◧):** Bei Logos von Brandfetch verschwindet der weiße Hintergrund, die Kante hat keinen hellen Saum.
+- [ ] **Breites Publisher-Logo (z. B. Valve):** Der Rücken bleibt 14 mm breit, das Logo steht gedreht über "PC", "PC" bleibt bei jedem Logo an derselben Stelle. Auf der Rückseite ragen Disc- und Publisher-Logo nicht unter den Rücken.

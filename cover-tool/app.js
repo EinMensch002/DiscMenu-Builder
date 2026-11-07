@@ -360,18 +360,40 @@
     spine.classList.toggle('usingLogo', useLogo);
     setImg($('#spinePubImg'), showPub ? pub.url : '');
     spine.classList.toggle('nopub', !showPub);
+    $('#spinePubBox').hidden = !showPub;
     refitSpine();
   }
-  function refitSpine() { fitSpineTitle(C.caseDims(state)); fitSpineLogo(); }
-  /* Das Rückenlogo wird um 90° gedreht (Leserichtung wie beim Titel) und füllt die Länge des Rückens */
+  function refitSpine() { fitSpinePub(); fitSpineTitle(C.caseDims(state)); fitSpineLogo(); }
+  const num = (v, d, lo, hi) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+  const aspectOf = (img, el) => (el.naturalWidth && el.naturalHeight ? el.naturalWidth / el.naturalHeight : (img && img.w && img.h ? img.w / img.h : 1.6));
+
+  /* Publisher-Logo am Fuß: Der Platz richtet sich nach dem Rücken, nicht nach dem Logo. Zu breite Logos werden automatisch gedreht
+     (oder per Auswahl), die Breite lässt sich von Hand festlegen. Das Logo sitzt auf einer weißen Kachel über "PC". */
+  function fitSpinePub() {
+    const box = $('#spinePubBox'), el = $('#spinePubImg'), pub = images.publisher;
+    box.hidden = !(state.spinePub && pub);
+    if (box.hidden) return;
+    const c = C.caseDims(state), pad = 0.6;
+    const side = num(state.spinePubSide, 1.2, 0, Math.max(0, c.spine / 2 - 2)), manual = num(state.spinePubWidth, 0, 0, 60);
+    const across = Math.max(2, c.spine - 2 * side) - 2 * pad;
+    const fit = C.fitLogo(aspectOf(pub, el), state.spinePubRot, across, 30, manual > 0 ? manual - 2 * pad : 0, 4);
+    const w = fit.w, h = fit.h, mm = (n) => n.toFixed(2) + 'mm';
+    box.style.width = mm((fit.rotated ? h : w) + 2 * pad); box.style.height = mm((fit.rotated ? w : h) + 2 * pad);
+    el.style.width = mm(w); el.style.height = mm(h);
+    el.style.transform = 'translate(-50%, -50%)' + (fit.rotated ? ' rotate(90deg)' : '');
+  }
+  /* Rückenlogo (statt des Titels): Abstände zu den Seiten, zum Kopf und zum Fuß sind einstellbar. Breite Logos stehen gedreht (Leserichtung wie beim Titel). */
   function fitSpineLogo() {
-    const box = $('#spineBox'), li = $('#spineLogoImg');
-    if (li.hidden) return;
-    const cs = getComputedStyle(box), pt = parseFloat(cs.paddingTop) || 0, pb = parseFloat(cs.paddingBottom) || 0;
-    const availH = Math.max(10, box.clientHeight - pt - pb), availW = Math.max(6, box.clientWidth * 0.84);
-    li.style.width = availH + 'px'; li.style.height = availW + 'px';
-    li.style.top = (pt + availH / 2) + 'px'; li.style.left = '50%';
-    li.style.transform = 'translate(-50%, -50%) rotate(90deg)';
+    const box = $('#spineBox'), li = $('#spineLogoImg'), sl = images.spineLogo;
+    if (li.hidden || !sl) return;
+    const c = C.caseDims(state), probe = $('#mmProbe'), k = probe.offsetWidth / 10 || 3.78;          // Pixel je mm (unabhängig von der Vorschaugröße)
+    const side = num(state.spineLogoSide, 1.5, 0, Math.max(0, c.spine / 2 - 2)), top = num(state.spineLogoTop, 3, 0, 60), bottom = num(state.spineLogoBottom, 3, 0, 60);
+    const along = Math.max(5, box.clientHeight / k - top - bottom), across = Math.max(2, c.spine - 2 * side);
+    const a = aspectOf(sl, li), fit = C.fitLogo(a, state.spineLogoRot === 'auto' ? (a > 1.4 ? 'yes' : 'no') : state.spineLogoRot, across, along, 0, 0);
+    li.style.width = (fit.w * k) + 'px'; li.style.height = (fit.h * k) + 'px';
+    const len = fit.rotated ? fit.w : fit.h;                       // Länge des Logos entlang des Rückens
+    li.style.top = ((top + (state.spineTitle === 'top' ? len / 2 : along / 2)) * k) + 'px'; li.style.left = '50%';       // wie der Titel: oben bündig oder mittig zwischen den Abständen
+    li.style.transform = 'translate(-50%, -50%)' + (fit.rotated ? ' rotate(90deg)' : '');
   }
 
   /* Titel auf dem Rücken so groß wie möglich, ohne über die Hülle hinauszuragen */
