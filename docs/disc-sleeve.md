@@ -250,6 +250,10 @@ Unter **Daten übernehmen > Daten von GOG …** sucht DiscSleeve im **GOG-Katalo
 
 **Wichtig zur Auflösung:** GOG liefert Cover nur in **etwa 342 × 482 Pixel** (bei älteren Spielen sogar nur 171 × 241). Das sind auf einer Hülle nur rund 67 dpi. Das GOG-Cover ist deshalb **nicht vorangekreuzt**. Logo und Hintergrund dagegen sind hochauflösend und eignen sich gut für Rücken und Rückseite. Gesucht werden Spiele und **Ausgaben** (viele Hauptspiele wie Cyberpunk 2077 führt GOG als Ausgabe), die Treffer sind nach Ähnlichkeit zum eingegebenen Titel sortiert. Die Suche und die Daten gehen wie bei Steam über den **Proxy** (GOG erlaubt Anfragen im Browser nur von gog.com), die Bilder von `images.gog-statics.com` erlauben Anfragen von überall und werden direkt geladen. Der Proxy-Worker erlaubt `catalog.gog.com` und `api.gog.com` bereits.
 
+**Selbst gesetzte Funktionen bleiben:** Beim Übernehmen von Steam oder GOG ersetzt die Funktionsliste des Ladens die bisherige. Nur **"Mods"** bleibt erhalten, wenn Du es selbst eingeschaltet hast (die Läden kennen Mods von Disc-Zusätzen nicht, z. B. ein später installiertes Mod-Menü).
+
+**Verbindung testen** (Einstellungen) prüft jeden Dienst einzeln: Steam-Shop, SteamGridDB, GOG-Katalog, GOG-Spieldaten, GOG-Bilder, Wikidata und Brandfetch. Der **Konfigurator** testet ebenfalls einzeln: SteamGridDB, Steam-Shop, GOG-Katalog, GOG-Spieldaten, Epic Games Store und die Übersetzung (MyMemory).
+
 ### Woher kommen scharfe Cover?
 
 | Quelle | Hochformat-Cover | Hinweis |

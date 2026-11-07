@@ -100,11 +100,12 @@ test('Steam: Fehler des Proxys werden in verständliche Meldungen übersetzt', a
   await run(reply(200, '<html>keine JSON-Antwort</html>'), () => assert.rejects(O.steamSearch('x'), /unerwartete Antwort/));
   await run(reply(200, '{"620":{"success":false}}'), () => assert.rejects(O.steamDetails('620'), /keine Daten/));
   // Verbindungstest: jeder Dienst einzeln
-  const ok = (url) => { const t = new URL(url).searchParams.get('url'); return /storesearch/.test(t) ? { items: [{ id: 70, name: 'Half-Life' }] } : { success: true, data: [{ id: 1 }] }; };
+  const gogFix = require('./fixtures/gog-witcher-v2.json');
+  const ok = (url) => { if (!/proxy\.example/.test(url)) return {}; const t = new URL(url).searchParams.get('url'); return /storesearch/.test(t) ? { items: [{ id: 70, name: 'Half-Life' }] } : /api\.gog\.com\/v2/.test(t) ? gogFix : { success: true, data: [{ id: 1 }] }; };
   O.settings.save('KEY', 'https://proxy.example/?url={url}');
-  const good = await run(async (u) => { const b = ok(u); return { ok: true, status: 200, json: async () => b, text: async () => '' }; }, () => O.testConnection());
-  assert.deepEqual(good.map((r) => [r.name, r.ok]), [['Steam-Shop', true], ['SteamGridDB', true], ['GOG-Katalog', true], ['Wikidata (Publisher-Logos)', true], ['Brandfetch', true]]);
-  assert.match(good[4].text, /optional/);                                   // ohne Client-ID: kein Fehler
+  const good = await run(async (u) => { const b = ok(u); return { ok: true, status: 200, json: async () => b, text: async () => '', blob: async () => ({ size: 1 }) }; }, () => O.testConnection());
+  assert.deepEqual(good.map((r) => [r.name, r.ok]), [['Steam-Shop', true], ['SteamGridDB', true], ['GOG-Katalog', true], ['GOG-Spieldaten', true], ['GOG-Bilder', true], ['Wikidata (Publisher-Logos)', true], ['Brandfetch', true]]);
+  assert.match(good[3].text, /The Witcher/); assert.match(good[6].text, /optional/);                                   // ohne Client-ID: kein Fehler
   O.settings.saveBrandfetch('ID1');
   const bfOk = await run(async (u) => ({ ok: true, status: 200, json: async () => (/brandfetch/.test(u) ? [{ brandId: 'b', name: 'Valve', domain: 'valve.com' }] : { search: [] }), text: async () => '' }), () => O.testConnection());
   assert.deepEqual(bfOk.slice(-2).map((r) => [r.name, r.ok]), [['Wikidata (Publisher-Logos)', true], ['Brandfetch', true]]); assert.match(bfOk[bfOk.length - 1].text, /1 Treffer/);
@@ -113,6 +114,6 @@ test('Steam: Fehler des Proxys werden in verständliche Meldungen übersetzt', a
   O.settings.saveBrandfetch('');
   O.settings.save('', '');
   const none = await run(async () => { throw new TypeError('x'); }, () => O.testConnection());
-  assert.deepEqual(none.map((r) => [r.name, r.ok]), [['Proxy', false], ['Steam-Shop', false], ['SteamGridDB', false], ['GOG-Katalog', false], ['Wikidata (Publisher-Logos)', false], ['Brandfetch', true]]);
+  assert.deepEqual(none.map((r) => [r.name, r.ok]), [['Proxy', false], ['Steam-Shop', false], ['SteamGridDB', false], ['GOG-Katalog', false], ['GOG-Spieldaten', false], ['GOG-Bilder', false], ['Wikidata (Publisher-Logos)', false], ['Brandfetch', true]]);
   assert.match(none[0].text, /Kein Proxy/); assert.match(none[2].text, /Kein API-Schlüssel/);
 });

@@ -639,11 +639,32 @@ if (typeof module !== 'undefined') module.exports = CORE;
   }
   function closeDlg(){ if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open'); }
 
+  /* Verbindungstest: jeder Dienst, den der Konfigurator nutzt, einzeln (SteamGridDB, Steam, GOG, Epic Games, Übersetzung), damit man sieht, woran es liegt */
+  async function testServices(){
+    const out = [];
+    const run = async (name, fn) => { try { out.push({name, ok: true, text: await fn()}); } catch (e) { out.push({name, ok: false, text: e.message || String(e)}); } };
+    const get = async (url, what) => {
+      const r = await net(url);
+      if (r.status === 403 && /Host/i.test(await r.clone().text().catch(() => ''))) throw new Error('Der Proxy erlaubt ' + what + ' nicht. Der Worker-Code ist wahrscheinlich veraltet, bitte den aktuellen aus docs/steamgriddb.md einspielen.');
+      return r;
+    };
+    if (!cfg.proxy) out.push({name: 'Proxy', ok: false, text: 'Kein Proxy eingetragen. Ohne Proxy blockiert der Browser die Anfragen meist (CORS).'});
+    if (cfg.key) await run('SteamGridDB', async () => { const r = await sgGet('/search/autocomplete/' + encodeURIComponent('Half-Life')); return r.length + ' Treffer für den Test'; });
+    else out.push({name: 'SteamGridDB', ok: false, text: 'Kein API-Schlüssel eingetragen.'});
+    await run('Steam-Shop', async () => { const r = await get('https://store.steampowered.com/api/storesearch/?l=german&cc=DE&term=Half-Life', 'Steam'); if (!r.ok) throw new Error('Steam hat mit Fehler ' + r.status + ' geantwortet.'); const j = await r.json(); return (j.items || []).length + ' Treffer für den Test'; });
+    await run('GOG-Katalog', async () => { const r = await get('https://catalog.gog.com/v1/catalog?limit=3&query=like%3AWitcher&productType=in%3Agame%2Cpack&countryCode=DE&locale=de-DE', 'GOG'); if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.'); const j = await r.json(); return (j.products || []).length + ' Treffer für den Test'; });
+    await run('GOG-Spieldaten', async () => { const r = await get('https://api.gog.com/products/1207658924?expand=description&locale=de-DE', 'GOG'); if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.'); await r.json(); return 'erreichbar'; });
+    await run('Epic Games Store', async () => { const r = await get('https://store-content.ak.epicgames.com/api/de/content/products/rocket-league', 'Epic Games'); if (r.status >= 500 || r.status === 403) throw new Error('Epic Games hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
+    await run('Übersetzung (MyMemory)', async () => { let r; try { r = await fetch('https://api.mymemory.translated.net/get?langpair=en%7Cde&q=Hello'); } catch (e) { throw new Error('Der Übersetzungsdienst ist nicht erreichbar. Bitte die Internetverbindung prüfen.'); } if (!r.ok) throw new Error('Der Übersetzungsdienst hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
+    return out;
+  }
+
   function openSettings(){
     const key = h('input', {type:'password', autocomplete:'off', placeholder:'API-Schlüssel', value: cfg.key});
     const pw = h('input', {type:'password', autocomplete:'new-password', placeholder:'Passwort (optional)'});
     const proxy = h('input', {type:'text', placeholder:'https://mein-proxy.example.workers.dev/?url={url}', value: cfg.proxy});
     const msg = h('p', {class:'hint'});
+    const tests = h('div', {class:'hint', id:'sgTests'});
     const msg2 = h('p', {class:'hint', id:'sgMsg2'});
     const fin = h('input', {type:'file', accept:'.json,application/json', hidden:true, onchange: async () => {
       const f = fin.files[0]; fin.value = ''; if (!f) return;
@@ -665,13 +686,14 @@ if (typeof module !== 'undefined') module.exports = CORE;
       wrap('API-Schlüssel', key),
       wrap('Proxy-Adresse (optional)', proxy, 'Nur nötig, wenn der Browser Anfragen direkt blockiert (CORS). {url} wird durch die Zieladresse ersetzt.'),
       h('p', {class:'hint'}, 'Proxy einrichten: ', docLink('Anleitung', 'steamgriddb.md', 'proxy-einrichten-cloudflare-worker'), ' · ', ext('Cloudflare öffnen', LINKS.cf), ' · ', ext('Worker-Code', LINKS.worker), ' · ', docLink('Proxy absichern', 'steamgriddb.md', 'proxy-auf-die-eigene-seite-beschränken-empfohlen')),
-      msg,
+      msg, tests,
       h('div', {class:'row'},
         h('button', {type:'button', class:'pri', onclick: () => { if (saveCfg()){ closeDlg(); toast('SteamGridDB-Einstellungen gespeichert.'); } }}, 'Speichern'),
         h('button', {type:'button', onclick: async () => {
-          if (!saveCfg()) return; msg.textContent = 'Teste die Verbindung ...';
-          try { const r = await sgGet('/search/autocomplete/' + encodeURIComponent('Half-Life')); msg.textContent = 'Verbindung in Ordnung (' + r.length + ' Treffer für den Test).'; }
-          catch (e) { showMsg(msg, e.message); }
+          if (!saveCfg()) return; msg.textContent = 'Teste die Verbindung ...'; tests.replaceChildren();
+          const res = await testServices();
+          msg.textContent = res.every(r => r.ok) ? 'Alle Verbindungen in Ordnung.' : 'Mindestens eine Verbindung funktioniert nicht, Details unten.';
+          tests.replaceChildren(...res.map(r => h('div', {class: r.ok ? '' : 'err'}, (r.ok ? '✓ ' : '✗ ') + r.name + ': ' + r.text)));
         }}, 'Verbindung testen'),
         h('button', {type:'button', class:'danger', onclick: () => { store.set('sgdb-key',''); store.set('sgdb-proxy',''); key.value = ''; proxy.value = ''; msg.textContent = 'Gespeicherte Werte gelöscht.'; }}, 'Löschen')),
       h('h3', {}, 'Einstellungen sichern'),

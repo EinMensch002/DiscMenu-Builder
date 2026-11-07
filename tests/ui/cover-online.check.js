@@ -36,6 +36,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
 
+  await page.route('https://images.gog-statics.com/**', (route) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'image/png' }, body: PNG }));
   // Nachgebaute Dienste: alles geht über https://proxy.test/?url=...
   const calls = [];
   await page.route('https://proxy.test/**', async (route) => {
@@ -44,6 +45,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     const target = new URL(req.url()).searchParams.get('url'); calls.push({ target, auth: req.headers().authorization });
     const ok = (body) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if (/catalog\.gog\.com/.test(target)) return ok({ products: [{ id: '1', title: 'Beispiel' }] });
+    if (/api\.gog\.com\/v2\/games/.test(target)) return ok(JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'fixtures', 'gog-witcher-v2.json'), 'utf8')));
     if (/storesearch/.test(target)) return ok({ items: [{ id: 70, name: 'Half-Life' }, { id: 71, name: 'Half-Life 2' }] });
     if (/appdetails\?l=english&appids=1091500/.test(target)) return ok({ 1091500: { success: true, data: { name: 'Cyberpunk 2077', pc_requirements: { minimum: STEAM_CP }, platforms: { windows: true, mac: false, linux: false }, categories: [{ id: 2 }, { id: 22 }, { id: 28 }] } } });
     if (/appdetails/.test(target)) return ok({ 70: { success: true, data: { name: 'Half-Life', publishers: ['Valve'], developers: ['Valve'], ratings: { usk: { rating: '12' } }, pc_requirements: { minimum: STEAM_MIN, recommended: '<ul><li><strong>Memory:</strong> 4 GB RAM<br></li></ul>' }, platforms: { windows: true, mac: false, linux: true }, categories: [{ id: 2 }, { id: 1 }, { id: 22 }, { id: 28 }] } } });
@@ -295,7 +297,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   // Verbindungstest: beide Dienste einzeln
   await page.click('#dlg button:has-text("Verbindung testen")');
   await page.waitForFunction(() => /Alle Verbindungen in Ordnung/.test(document.querySelector('#dlg').textContent));
-  assert.match(await page.locator('#dlg').innerText(), /✓ Steam-Shop[\s\S]*✓ SteamGridDB[\s\S]*✓ GOG-Katalog/);
+  assert.match(await page.locator('#dlg').innerText(), /✓ Steam-Shop[\s\S]*✓ SteamGridDB[\s\S]*✓ GOG-Katalog[\s\S]*✓ GOG-Spieldaten[\s\S]*✓ GOG-Bilder/);
   const blocked = (route) => route.fulfill({ status: 403, headers: CORS, body: 'Dieser Host ist nicht erlaubt.' });
   await page.route('https://proxy.test/**', blocked);
   await page.click('#dlg button:has-text("Verbindung testen")');

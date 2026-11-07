@@ -344,3 +344,11 @@ test('GOG: Spiel-Daten werden wie die von Steam ausgewertet (Anforderungen, Funk
   const bare = O.gogDetails({ _embedded: { product: { id: 1, title: 'X' } }, _links: {} });
   assert.equal(O.steamPatchBoth(bare).hasRequirements, false); assert.deepEqual(O.gogImages({}), { cover: '', logo: '', background: '' });
 });
+
+test('Import: selbst gesetzte Funktionen, die die Läden nicht kennen (Mods), bleiben erhalten', () => {
+  const p = { title: 'X', features: ['single_player', 'achievements'] };
+  assert.deepEqual(O.keepManualFeatures(p, ['single_player', 'mods', 'co_op']).features, ['single_player', 'achievements', 'mods']);   // Co-op fällt weg (Laden kennt es besser), Mods bleibt
+  assert.deepEqual(O.keepManualFeatures(p, ['co_op']).features, ['single_player', 'achievements']);
+  assert.equal(O.keepManualFeatures({ title: 'X' }, ['mods']).features, undefined);                                                      // ohne Funktionsliste im Ergebnis nichts anfassen
+  assert.deepEqual(O.keepManualFeatures({ features: ['mods', 'vr'] }, ['mods']).features, ['mods', 'vr']);
+});

@@ -260,6 +260,9 @@
     'GOG liefert Cover nur in kleiner Größe (etwa 342 × 482 Pixel, das sind auf der Hülle rund 67 dpi). Logo und Hintergrund sind dagegen hochauflösend.': 'GOG only supplies covers in a small size (about 342 × 482 pixels, which is roughly 67 dpi on the case). Logo and background, however, are high resolution.',
     'GOG liefert zu diesem Spiel keine Daten.': 'GOG returns no data for this game.',
     'GOG-Katalog': 'GOG catalog',
+    'GOG-Spieldaten': 'GOG game data',
+    'GOG-Bilder': 'GOG images',
+    'GOG hat keine Bild-Adresse geliefert.': 'GOG returned no image address.',
     /* SteamGridDB-Suche */
     'Spieltitel, z. B. Stronghold': 'Game title, e.g. Stronghold',
     'Keine Treffer. Anderen Titel versuchen.': 'No results. Try another title.',
@@ -361,6 +364,7 @@
     'Das Bild konnte nicht gelesen werden: ': 'The image could not be read: ',
     'Steam-App ': 'Steam app ',
     ' · mit Cover': ' · with cover',
+    'Antwort ohne Titel': 'response without title',
     ' · älteres Logo': ' · older logo',
     'Bild bei SteamGridDB suchen: ': 'Search an image on SteamGridDB: ',
     'Die Angaben sind übernommen, nicht geladen wurde ': 'The data was imported, but not loaded: ',

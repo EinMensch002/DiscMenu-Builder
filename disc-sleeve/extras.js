@@ -295,7 +295,7 @@
       const CDN = 'https://cdn.akamai.steamstatic.com/steam/apps/' + encodeURIComponent(item.id) + '/';
       const firstBlob = async (names) => { let err; for (const n of names) { try { return await O.fetchBlob(CDN + n); } catch (e) { err = e; } } throw err; };
       const apply = async () => {
-        App.patch(current.patch);
+        App.patch(O.keepManualFeatures(current.patch, App.state.features));
         if (!coverChk.checked && !logoChk.checked) { closeDlg(); return; }
         ok.disabled = true; const problems = [];
         if (coverChk.checked) {
@@ -366,7 +366,7 @@
       const coverChk = h('input', { type: 'checkbox', checked: false });
       let current = null;
       const apply = async () => {
-        App.patch(current.patch);
+        App.patch(O.keepManualFeatures(current.patch, App.state.features));
         const jobs = [[logoChk, 'spineLogo', img.logo, 'das GOG-Logo', 'png'], [bgChk, 'backTop', img.background, 'das Hintergrundbild', 'jpg'], [coverChk, 'front', img.cover, 'das Cover', 'jpg']].filter((j) => j[0].checked && j[2]);
         if (!jobs.length) { closeDlg(); return; }
         ok.disabled = true; const problems = [];
