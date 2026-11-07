@@ -145,7 +145,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [ ] **GOG-Stil überarbeiten** (Vorderseite und Rücken): eigenständiger und weniger Lila-lastig, damit er zu mehr Covern passt (die dunkle Variante ist ein erster Schritt)
 - [ ] **Rückseite frei gestalten:** Konfigurator mit Textfeldern, Bildern und festen Bausteinen, die man selbst anordnet (wie die Steam-Rückseiten mit Beschreibung und Bildleiste)
 - [ ] **Beide Web-Tools zusammenführen:** Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
-- [ ] **Ein-Datei-Build:** Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, PNG als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
+- [ ] **Ein-Datei-Build:** Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
 
 ### Später
 

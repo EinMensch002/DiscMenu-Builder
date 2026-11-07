@@ -46,7 +46,7 @@ Die Einstellungen des Covers links:
 
 | Bereich | Inhalt |
 |---|---|
-| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung. Farbvariante (nur bei GOG: GOG-Farben oder dunkel mit Lila) |
+| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite, bis 18 × 9,5 mm groß). Sprache der Beschriftung. Farbvariante (nur bei GOG: GOG-Farben oder dunkel mit Lila) |
 | 2. Titel und Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
 | 3. Bilder | Frontcover, Rückseite oben, Rückseite unten (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
 | 4. Publisher-Logo und Altersfreigabe | Publisher-Logo (Vorderseite, Rückseite und Rücken), **Unterlage dahinter auf der Vorderseite** (keine, weiß oder schwarz), USK-Freigabe (0, 6, 12, 16, 18 oder keine), "USK auch auf der Rückseite zeigen" und Deckkraft der USK vorn (30 bis 100 %) |
