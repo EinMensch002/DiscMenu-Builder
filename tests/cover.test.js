@@ -181,7 +181,8 @@ test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
   const root = path.join(__dirname, '..', 'cover-tool', 'assets', 'images');
   const need = [
     'gog_logo.svg',
-    ...C.USK_VALUES.map((v) => `usk/usk_${v}.svg`),
+    ...C.USK_VALUES.flatMap((v) => [`usk/usk_${v}.svg`, `usk/usk_${v}_bg.svg`]),          // Raute und Hintergrund (Kachel mit Rand) getrennt
+    ...Object.values(C.PROVIDERS.gog.variants).filter((v) => v.logo).map((v) => v.logo),
     ...Object.values(C.DISCS).map((f) => `disc/${f}`),
   ];
   for (const f of C.FEATURE_ORDER) {                         // Linien-Symbole: alle Funktionen, klein und schwarz

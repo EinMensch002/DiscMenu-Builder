@@ -220,7 +220,8 @@ dialog .f small { display: block; margin-top: 3px; }
 .has-wm .spine.fill .spine-logo { width: calc(100% - 4mm); height: auto; }
 .spine-head .wm { width: 100%; justify-content: center; font-size: 4.4pt; letter-spacing: .1mm; padding: 0 0 1mm; }
 .cover.slim .spine-head .wm { font-size: 3.2pt; letter-spacing: 0; }
-.usk { position: absolute; left: 3mm; bottom: 3mm; width: 35mm; height: 35mm; object-fit: contain; z-index: 3; }
+.usk { position: absolute; left: 3mm; bottom: 3mm; width: 35mm; height: 35mm; z-index: 3; }
+.usk img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; }
 .front-pub { position: absolute; right: 6mm; bottom: 6mm; max-width: 32mm; max-height: 14mm; object-fit: contain; z-index: 3; }
 
 /* Bei der Leiste füllt das Frontbild nur den Teil unter der Kopfleiste, damit der obere Teil des Bildes (Titel) nicht verdeckt wird */
@@ -229,12 +230,12 @@ dialog .f small { display: block; margin-top: 3px; }
 /* ===== Stil "Leiste": Kopfleiste über die ganze Breite wie bei Handelsspielen (Vorderseite und Rücken) =====
    Verlauf von barA nach barB, darunter eine Akzentlinie (line), die über den Rücken durchläuft. Gilt für alle Anbieter. */
 .cover { --bar-h: 18.6mm; --bar-line: 1.6mm; }
-.theme-bar .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); align-items: center; justify-content: space-between; padding-right: 4mm; background: linear-gradient(var(--barA), var(--barB)); border-bottom: var(--bar-line) solid var(--line); z-index: 3; }
+.theme-bar .gog-bar { display: flex; position: absolute; left: 0; right: 0; top: 0; height: var(--bar-h); align-items: center; justify-content: space-between; padding-right: 4mm; background: var(--barGrad); border-bottom: var(--bar-line) solid var(--line); z-index: 3; }
 .theme-bar .gog-bar img { height: 12.5mm; width: auto; margin-left: 4.5mm; display: block; }
 .has-wm.theme-bar .gog-bar img { width: 12.5mm; }
 .theme-bar .gog-bar .wm { margin-left: 4mm; font-size: 17pt; letter-spacing: 1.1mm; color: var(--on-brand); }
 .theme-bar .gog-bar b { color: var(--on-brand); font-size: 7.5pt; font-weight: 900; letter-spacing: .35mm; opacity: .85; }
-.theme-bar .spine-head { height: var(--bar-h); box-sizing: border-box; align-items: center; justify-content: center; padding: 0; flex-direction: row; background: linear-gradient(var(--barA), var(--barB)); border-bottom: var(--bar-line) solid var(--line); }
+.theme-bar .spine-head { height: var(--bar-h); box-sizing: border-box; align-items: center; justify-content: center; padding: 0; flex-direction: row; background: var(--barGrad); border-bottom: var(--bar-line) solid var(--line); }
 .theme-bar .spine-head .wm { display: none; }
 .theme-bar .spine-logo, .theme-bar.has-wm .spine-logo { width: 9mm; height: auto; max-height: 14mm; }
 .theme-bar.slim .spine-logo, .theme-bar.slim.has-wm .spine-logo { width: 5.5mm; }
@@ -251,7 +252,7 @@ dialog .f small { display: block; margin-top: 3px; }
 .cover.gog.theme-bar .spine.fill .spine-logo { width: calc(100% - 3mm); height: auto; max-height: calc(var(--bar-h) - 3mm); object-fit: contain; }
 .gog-tint .brand-logo { filter: brightness(0) opacity(.88); }
 .cover.bar-over.theme-bar .front { padding-top: 0; }
-.gog-dk .banner { background: linear-gradient(var(--bannerA), var(--bannerB)); border-top: .6mm solid var(--accent); }
+.gog-dk .banner { background: linear-gradient(var(--bannerA), var(--bannerB)); }
 .gog-dk .banner-title b, .gog-dk .feat span { color: #fff; }
 .gog-dk .banner-title small { color: rgba(255, 255, 255, .72); }
 .gog-dk .feat img { filter: invert(1); }

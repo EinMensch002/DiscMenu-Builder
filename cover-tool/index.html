@@ -86,6 +86,13 @@
       <p class="hint">Bilder werden beim Laden auf Druckgröße (etwa 300 dpi) verkleinert. Die Vorschau zeigt, wie scharf sie gedruckt werden.</p>
       <div class="drop" data-img="front"><input type="file" accept="image/*" aria-label="Frontcover"><div class="thumb"></div>
         <div class="dt"><b>Frontcover</b><span class="spec"></span><span class="info"></span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <label class="f"><span class="lab">Frontbild einpassen</span>
+        <select data-k="frontFit"><option value="stretch">Strecken (das ganze Bild füllt die Fläche)</option><option value="crop">Zuschneiden (Zoom und Ausschnitt)</option></select></label>
+      <div id="frontCropBox" hidden>
+        <label class="f"><span class="lab">Zoom (%)</span><div class="slide"><input type="range" data-k="frontZoom" min="100" max="300" step="5"><input type="text" data-k="frontZoom" size="4"></div></label>
+        <label class="f"><span class="lab">Ausschnitt waagerecht (0 = links, 100 = rechts)</span><div class="slide"><input type="range" data-k="frontX" min="0" max="100" step="1"><input type="text" data-k="frontX" size="4"></div></label>
+        <label class="f"><span class="lab">Ausschnitt senkrecht (0 = oben, 100 = unten)</span><div class="slide"><input type="range" data-k="frontY" min="0" max="100" step="1"><input type="text" data-k="frontY" size="4"></div></label>
+      </div>
       <div class="drop" data-img="backTop"><input type="file" accept="image/*" aria-label="Rückseite oben"><div class="thumb"></div>
         <div class="dt"><b>Rückseite oben</b><span class="spec"></span><span class="info"></span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <div class="drop" data-img="backBottom"><input type="file" accept="image/*" aria-label="Rückseite unten"><div class="thumb"></div>
@@ -102,8 +109,8 @@
       <label class="f"><span class="lab">USK-Altersfreigabe</span>
         <select data-k="usk"><option value="none">Keine anzeigen</option><option value="0">ab 0 Jahren</option><option value="6">ab 6 Jahren</option><option value="12">ab 12 Jahren</option><option value="16">ab 16 Jahren</option><option value="18">ab 18 Jahren</option></select></label>
       <label class="chk"><input type="checkbox" data-k="uskBack"> USK auch auf der Rückseite zeigen</label>
-      <label class="f"><span class="lab">Deckkraft der USK auf der Vorderseite</span>
-        <div class="slide"><input type="range" data-k="uskOpacity" min="30" max="100" step="5"><input type="text" data-k="uskOpacity" size="4"></div></label>
+      <label class="f"><span class="lab">Hintergrund der USK auf der Vorderseite (Deckkraft, 0 % = nur die Raute)</span>
+        <div class="slide"><input type="range" data-k="uskOpacity" min="0" max="100" step="5"><input type="text" data-k="uskOpacity" size="4"></div></label>
     </details>
 
     <details class="sec" open>
@@ -264,7 +271,7 @@
             <section class="front" id="front">
               <span class="ph">Frontcover</span>
               <div class="gog-bar"><img class="brand-logo" src="assets/images/gog_logo.svg" alt="GOG"><span class="wm" id="barWm"></span><b id="frontTag"></b></div>
-              <img class="usk" id="frontUsk" alt="">
+              <div class="usk"><img id="frontUskBg" alt=""><img id="frontUsk" alt=""></div>
               <img class="front-pub" id="frontPub" alt="">
             </section>
 

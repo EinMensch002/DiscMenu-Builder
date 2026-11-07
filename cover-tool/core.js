@@ -81,9 +81,9 @@
     gog: { name: 'GOG', logo: 'gog_logo.svg', wordmark: 'GOG.COM', brand: '#2b2b31', onBrand: '#ffffff', dark: '#17171b', mid: '#2b2b31', accent: '#b45ad1', bannerA: '#3a3a42', bannerB: '#222227', barA: '#303036', barB: '#18181c', line: '#b45ad1',
       /* Leisten-Varianten: Weiß, Dunkel und Dunkel durchscheinend (die Leiste liegt über dem Bild, mit Verlauf nach unten). fg = Farbe von Schrift in der Leiste */
       variants: {
-        white: { barA: '#ffffff', barB: '#ececf0', fg: '#1c1c22', line: 'rgba(0,0,0,.18)', barLine: '.25mm', spine: '#2b2b31', bannerA: '#e6e6ec', bannerB: '#d1d1da', tint: true, dk: false, over: false },
-        dark: { barA: '#323238', barB: '#18181c', fg: '#ffffff', line: '#b45ad1', barLine: '.5mm', spine: '#232328', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: false },
-        glass: { barA: 'rgba(12,12,16,.92)', barB: 'rgba(12,12,16,.38)', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#232328', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: true },
+        white: { logo: 'gog_logo_outline.svg', barA: '#ffffff', barB: '#ececf0', fg: '#1c1c22', line: 'rgba(0,0,0,.18)', barLine: '.25mm', spine: '#2b2b31', bannerA: '#e6e6ec', bannerB: '#d1d1da', tint: true, dk: false, over: false },
+        dark: { barA: '#323238', barB: '#18181c', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#232328', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: false },
+        glass: { barA: 'rgba(12,12,16,.9)', barB: 'rgba(12,12,16,0)', grad: 'linear-gradient(rgba(12,12,16,.9), rgba(12,12,16,.7) 45%, rgba(12,12,16,0))', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#232328', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: true },
       },
       tag: { de: 'PC · DRM-FREI', en: 'PC · DRM-FREE' }, note: { de: 'Einige Funktionen erfordern GOG Galaxy', en: 'Some features require GOG Galaxy' } },
     epic: { name: 'Epic Games', logo: 'epic_logo.svg', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#0f0f12', mid: '#26262b', accent: '#d6dae4', bannerA: '#3a3a42', bannerB: '#222227', barA: '#3a3a42', barB: '#222227', line: '#d6dae4', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
@@ -315,7 +315,7 @@
     return {
       caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'dark', gogText: true, provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       custom: { back: '130', spine: '14', front: '129', h: '183' },
-      usk: '0', uskOpacity: '100', uskBack: true, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
+      usk: '0', uskOpacity: '100', frontFit: 'stretch', frontZoom: '100', frontX: '50', frontY: '50', uskBack: true, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
       features: ['single_player'],
       os: { win: ['10', '11'], mac: false, linux: false, x64: true },
       cpu: { items: [] },
@@ -361,7 +361,10 @@
     if (out.spineTitle !== 'top') out.spineTitle = 'center';
     if (!['image', 'own'].includes(out.spineArt)) out.spineArt = 'color';
     for (const k of ['spineLogoRot', 'spinePubRot']) if (!['auto', 'no', 'yes'].includes(out[k])) out[k] = 'auto';
-    out.uskOpacity = String(Math.min(100, Math.max(30, parseInt(out.uskOpacity, 10) || 100)));
+    out.uskOpacity = String(Math.min(100, Math.max(0, Number.isNaN(parseInt(out.uskOpacity, 10)) ? 100 : parseInt(out.uskOpacity, 10))));     // Deckkraft des Hintergrunds hinter der Raute (0 = nur die Raute)
+    if (!['stretch', 'crop'].includes(out.frontFit)) out.frontFit = 'stretch';
+    out.frontZoom = String(Math.min(300, Math.max(100, parseInt(out.frontZoom, 10) || 100)));
+    for (const k of ['frontX', 'frontY']) { const n = parseInt(out[k], 10); out[k] = String(Math.min(100, Math.max(0, Number.isNaN(n) ? 50 : n))); }
     if (out.usk !== 'none' && !USK_VALUES.includes(out.usk)) out.usk = '0';
     return out;
   }

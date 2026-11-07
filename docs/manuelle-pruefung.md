@@ -109,3 +109,5 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 - [ ] **Rückenbild:** Ein breites Bild (SteamGridDB-Hintergrund) als Rückenbild laden, Ausschnitt und Abdunkeln einstellen, auf dem Ausdruck gut lesbar.
 - [ ] **Rückseite:** Die schmale Spalte mit Publisher, Disc und USK wirkt aufgeräumt, die Angaben sind groß genug lesbar.
 - [ ] **Minimum/Empfohlen:** "Minimum" und "Empfohlen" stehen mittig über ihrem Text, gleiche Sätze bei "Sonstiges" mittig über beiden Spalten, die Schrift ist gedruckt lesbar.
+- [ ] **Frontbild einpassen:** Auf einer Blu-ray-Hülle (148 mm hoch) mit einem Hochformat-Cover: "Strecken" füllt die Fläche, "Zuschneiden" mit Zoom und Ausschnitt sieht gedruckt gut aus.
+- [ ] **USK-Hintergrund:** Bei 0 % steht nur die Raute (kein roter Rand), bei 100 % wie gewohnt. Auf der Rückseite nur die Raute.

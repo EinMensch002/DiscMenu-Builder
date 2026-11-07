@@ -299,9 +299,13 @@
 
     /* Alterskennzeichen (USK) */
     const usk = state.usk === 'none' ? '' : 'assets/images/usk/usk_' + state.usk + '.svg';
+    /* Die Raute (usk_N.svg) ist immer voll sichtbar. Der Regler stellt nur den Hintergrund dahinter ein (usk_N_bg.svg, Kachel mit Rand): 0 % = nur die Raute.
+       Auf der Rückseite steht immer nur die Raute. */
     setImg($('#frontUsk'), usk);
+    setImg($('#frontUskBg'), usk && Number(state.uskOpacity) > 0 ? usk.replace(/\.svg$/, '_bg.svg') : '');
+    $('#frontUskBg').style.opacity = String(Number(state.uskOpacity) / 100);
     setImg($('#backUsk'), state.uskBack ? usk : '');
-    $('#frontUsk').style.opacity = String(Number(state.uskOpacity) / 100);
+    $('#frontCropBox').hidden = state.frontFit !== 'crop';
     setImg($('#discLogo'), 'assets/images/disc/' + C.DISCS[state.disc]);
 
     /* Rücken */
@@ -333,8 +337,8 @@
     const P = C.PROVIDERS[state.provider];
     const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line, spineBg: P.brand };
     const V = P.variants && P.variants[state.theme];
-    if (V) Object.assign(vars, { barA: V.barA, barB: V.barB, line: V.line, spineBg: V.spine, bannerA: V.bannerA, bannerB: V.bannerB, barFg: V.fg, 'bar-h': C.barHeight(state) + 'mm', 'bar-line': V.barLine });
-    else Object.assign(vars, { barFg: P.onBrand, 'bar-h': C.BAR_HEIGHT + 'mm', 'bar-line': '1.6mm' });
+    if (V) Object.assign(vars, { barA: V.barA, barB: V.barB, line: V.line, spineBg: V.spine, bannerA: V.bannerA, bannerB: V.bannerB, barFg: V.fg, barGrad: V.grad || 'linear-gradient(' + V.barA + ', ' + V.barB + ')', 'bar-h': C.barHeight(state) + 'mm', 'bar-line': V.barLine });
+    else Object.assign(vars, { barFg: P.onBrand, barGrad: 'linear-gradient(' + P.barA + ', ' + P.barB + ')', 'bar-h': C.BAR_HEIGHT + 'mm', 'bar-line': '1.6mm' });
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
     cover.classList.toggle('has-wm', state.provider !== 'gog');
     cover.classList.toggle('gog', state.provider === 'gog');
@@ -342,7 +346,7 @@
     cover.classList.toggle('gog-tint', !!(V && V.tint));
     cover.classList.toggle('gog-dk', !!(V && V.dk));
     cover.classList.toggle('bar-over', !!(V && V.over));
-    $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + P.logo; img.alt = P.name; });
+    $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + ((V && V.logo) || P.logo); img.alt = P.name; });
     $('#barWm').textContent = P.wordmark.replace('\n', ' ');
     $('#spineWm').textContent = P.wordmark.split('\n')[0];
     $('#frontTag').textContent = P.tag[state.lang];
@@ -405,6 +409,18 @@
     while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight - 1) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
   }
 
+  /* Frontbild einpassen: Standard ist "Strecken" (das ganze Bild füllt die Fläche, bei anderem Seitenverhältnis leicht gestaucht). "Zuschneiden" füllt
+     die Fläche ohne Verzerrung, mit Zoom (100 bis 300 %) und Ausschnitt (X, Y in %). Die Fläche beginnt unter der Leiste (bei GOG durchscheinend ganz oben). */
+  function fitFront(front, c) {
+    const f = images.front;
+    if (!f || !(f.w > 0 && f.h > 0)) { front.style.backgroundSize = ''; front.style.backgroundPosition = ''; return; }
+    if (state.frontFit !== 'crop') { front.style.backgroundSize = '100% 100%'; front.style.backgroundPosition = '0 0'; return; }
+    const W = c.front, H = c.h - C.frontTop(state), z = num(state.frontZoom, 100, 100, 300) / 100, x = num(state.frontX, 50, 0, 100) / 100, y = num(state.frontY, 50, 0, 100) / 100;
+    const k = Math.max(W / f.w, H / f.h) * z, sw = f.w * k, sh = f.h * k, mm = (n) => n.toFixed(3) + 'mm';
+    front.style.backgroundSize = mm(sw) + ' ' + mm(sh);
+    front.style.backgroundPosition = mm(-(sw - W) * x) + ' ' + mm(-(sh - H) * y);
+  }
+
   /* Rücken: Bild der Vorderseite fortsetzen, Logo statt Titel, Publisher-Logo am Fuß */
   function renderSpine(c) {
     const spine = $('#spine'), front = $('#front'), barH = C.frontTop(state), f = images.front;
@@ -424,12 +440,12 @@
       /* Eigenes Rückenbild: füllt den Rücken (zugeschnitten), der Ausschnitt ist links/rechts wählbar, optional abgedunkelt */
       const dim = num(state.spineBgDim, 25, 0, 80) / 100, x = num(state.spineBgX, 50, 0, 100);
       spine.classList.add('art');
-      front.style.backgroundSize = ''; front.style.backgroundPosition = '';
+      fitFront(front, c);
       spine.style.backgroundImage = 'linear-gradient(rgba(0,0,0,' + dim + '), rgba(0,0,0,' + dim + ')), url("' + images.spineBg.url + '")';
       spine.style.backgroundSize = '100% 100%, cover';
       spine.style.backgroundPosition = '0 0, ' + x + '% 50%';
     } else {
-      front.style.backgroundSize = ''; front.style.backgroundPosition = '';
+      fitFront(front, c);
       spine.style.backgroundImage = ''; spine.style.backgroundSize = ''; spine.style.backgroundPosition = '';
     }
     const sl = images.spineLogo, useLogo = !!(state.spineUseLogo && sl), pub = images.publisher, showPub = !!(state.spinePub && pub);

@@ -60,13 +60,47 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
   assert.equal(await page.inputValue('[data-k=spineTitle]'), 'center');
   assert.equal(await page.inputValue('input[type=text][data-k=uskOpacity]'), '100');
 
-  // USK-Deckkraft wirkt nur auf die Vorderseite
+  // USK: Der Regler stellt nur den Hintergrund (Kachel mit Rand) hinter der Raute ein, die Raute bleibt voll sichtbar, auf der Rückseite steht nur die Raute
   await page.fill('input[type=text][data-k=uskOpacity]', '55'); await page.waitForTimeout(150);
-  assert.equal(await page.locator('#frontUsk').evaluate((e) => e.style.opacity), '0.55');
-  assert.notEqual(await page.locator('#backUsk').evaluate((e) => e.style.opacity), '0.55');
-  await page.fill('input[type=text][data-k=uskOpacity]', '10'); await page.waitForTimeout(150);
-  assert.equal(await page.inputValue('[data-k=uskOpacity] >> nth=0'), '30', 'Deckkraft hat eine Untergrenze von 30 %');
+  assert.equal(await page.locator('#frontUskBg').evaluate((e) => e.style.opacity), '0.55');
+  assert.equal(await page.locator('#frontUsk').evaluate((e) => e.style.opacity), '', 'Die Raute selbst bleibt voll deckend');
+  assert.match(await page.locator('#frontUskBg').getAttribute('src'), /usk_0_bg\.svg$/);
+  assert.equal(await page.locator('#backUsk').evaluate((e) => e.style.opacity), '');
+  await page.fill('input[type=text][data-k=uskOpacity]', '0'); await page.waitForTimeout(150);
+  assert.equal(await page.inputValue('[data-k=uskOpacity] >> nth=0'), '0', '0 % ist möglich: dann bleibt nur die Raute');
+  assert.equal(await page.locator('#frontUskBg').isVisible(), false); assert.equal(await page.locator('#frontUsk').isVisible(), true);
   await page.fill('input[type=text][data-k=uskOpacity]', '100');
+
+  // Frontbild einpassen: Standard strecken (das ganze Bild füllt die Fläche), alternativ zuschneiden mit Zoom und Ausschnitt
+  await page.evaluate(async () => { const cv = document.createElement('canvas'); cv.width = 400; cv.height = 200; cv.getContext('2d').fillRect(0, 0, 400, 200); const b = await new Promise((r) => cv.toBlob(r, 'image/png')); await CoverApp.setImage('front', new File([b], 'f.png', { type: 'image/png' })); });
+  await page.waitForTimeout(300);
+  assert.equal(await page.inputValue('[data-k=frontFit]'), 'stretch');
+  assert.equal(await page.locator('#frontCropBox').isVisible(), false);
+  assert.equal(await page.locator('#front').evaluate((e) => e.style.backgroundSize), '100% 100%', 'Querformat-Bild wird auf die Fläche gestaucht statt abgeschnitten');
+  await page.selectOption('[data-k=frontFit]', 'crop'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('#frontCropBox').isVisible(), true);
+  const sz = () => page.locator('#front').evaluate((e) => ({ s: e.style.backgroundSize.split(' ').map(parseFloat), p: e.style.backgroundPosition.split(' ').map(parseFloat) }));
+  let g = await sz(); assert.ok(Math.abs(g.s[1] - 173) < 0.01 && g.s[0] > 340, 'füllt die Höhe, die Breite wird zugeschnitten (' + g.s + ')');
+  assert.ok(Math.abs(g.p[0] + (g.s[0] - 129) / 2) < 0.01, 'mittig');
+  await page.fill('input[type=text][data-k=frontZoom]', '200'); await page.fill('input[type=text][data-k=frontX]', '0'); await page.waitForTimeout(150);
+  g = await sz(); assert.ok(Math.abs(g.s[1] - 346) < 0.01, 'Zoom 200 %'); assert.equal(g.p[0], 0, 'Ausschnitt links');
+  await page.fill('input[type=text][data-k=frontX]', '100'); await page.waitForTimeout(150);
+  g = await sz(); assert.ok(Math.abs(g.p[0] + (g.s[0] - 129)) < 0.01, 'Ausschnitt rechts');
+  await page.selectOption('[data-k=frontFit]', 'stretch'); await page.waitForTimeout(100);
+  assert.equal(await page.locator('#front').evaluate((e) => e.style.backgroundSize), '100% 100%');
+
+  // GOG Weiß: das andere Logo (Rahmen), nicht das Kachel-Logo; Dunkel: keine lila Linie
+  assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/gog_logo.svg');
+  assert.equal(await cv('--line'), 'transparent');
+  await page.selectOption('[data-k=theme]', 'white'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/gog_logo_outline.svg');
+  assert.equal(await page.locator('#spineLogo').getAttribute('src'), 'assets/images/gog_logo_outline.svg');
+  await page.selectOption('[data-k=theme]', 'dark'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/gog_logo.svg');
+  // Durchscheinend: weicher Verlauf ohne harte Unterkante (läuft bis ganz durchsichtig aus)
+  await page.selectOption('[data-k=theme]', 'glass'); await page.waitForTimeout(150);
+  assert.match(await cv('--barGrad'), /rgba\(12, ?12, ?16, ?0\)\)?$/);
+  await page.selectOption('[data-k=theme]', 'dark'); await page.waitForTimeout(100);
 
   // Speichern: erst Dateiauswahl, danach wird dieselbe Datei überschrieben
   await page.fill('[data-k=title]', 'Mein Spiel'); await page.waitForTimeout(100);

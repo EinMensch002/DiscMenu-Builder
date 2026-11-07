@@ -49,7 +49,7 @@ Die Einstellungen des Covers links:
 | 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite, bis 18 × 9,5 mm groß). Sprache der Beschriftung. Stil (nur bei GOG: Weiß, Dunkel, Dunkel durchscheinend) und Haken "GOG.COM" zeigen |
 | 2. Titel und Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
 | 3. Bilder | Frontcover, Rückseite oben, Rückseite unten (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
-| 4. Publisher-Logo und Altersfreigabe | Publisher-Logo (Vorderseite, Rückseite und Rücken), **Unterlage dahinter auf der Vorderseite** (keine, weiß oder schwarz), USK-Freigabe (0, 6, 12, 16, 18 oder keine), "USK auch auf der Rückseite zeigen" und Deckkraft der USK vorn (30 bis 100 %) |
+| 4. Publisher-Logo und Altersfreigabe | Publisher-Logo (Vorderseite, Rückseite und Rücken), **Unterlage dahinter auf der Vorderseite** (keine, weiß oder schwarz), USK-Freigabe (0, 6, 12, 16, 18 oder keine), "USK auch auf der Rückseite zeigen" und Hintergrund der USK vorn (Deckkraft 0 bis 100 %, 0 = nur die Raute) |
 | 5. Rücken | Titel (oben oder mittig), Hintergrund (Farbe, **eigenes Rückenbild** mit wählbarem Ausschnitt und Abdunkeln, oder Frontbild fortsetzen), Größe des Anbieter-Logos, Rückenlogo (statt des Titels) mit Ausrichtung und Abständen, Publisher-Logo am Fuß mit Unterlage, Ausrichtung, Abstand und Breite, "PC" am Fuß |
 | 6. Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Mods, VR. Die Reihenfolge auf dem Cover ist fest, die Symbole sind Linien-SVG |
 | 7. Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessoren und Grafikkarten als Listen mit beliebig vielen Einträgen (siehe unten), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus) |
@@ -154,7 +154,7 @@ Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games u
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
-| **GOG** | Weiß, Dunkel oder Dunkel durchscheinend (neutral, mit feiner lila Linie bei Dunkel) | GOG-Logo (immer sichtbar) und optional "GOG.COM" | Streifen hell (Weiß) oder dunkel (Dunkel, durchscheinend), in der Leiste "PC · DRM-FREI" |
+| **GOG** | Weiß, Dunkel oder Dunkel durchscheinend (neutral, ohne Lila) | GOG-Logo (immer sichtbar) und optional "GOG.COM" | Streifen hell (Weiß) oder dunkel (Dunkel, durchscheinend), in der Leiste "PC · DRM-FREI" |
 | **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | dunkler grauer Streifen, Hinweis "Epic Games Launcher" |
 | **Steam** | Marineblau | Logo und Schriftzug "STEAM" | dunkelblauer Streifen mit blauer Akzentlinie, Hinweis "Steam" |
 
@@ -197,13 +197,19 @@ Es gibt einen Stil für alle Anbieter, die **Leiste**: Kopfleiste mit Farbverlau
 
 Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, damit auf Blu-ray-Hüllen Platz für das Bild bleibt, und es gibt drei Varianten (Feld "Stil"):
 
-- **Weiß:** helle Leiste mit dunklem Logo und dunkler Schrift, der Rücken ist anthrazit. Der Streifen mit den Spielfunktionen ist hellgrau.
-- **Dunkel** (Standard): anthrazitfarbene Leiste mit feiner lila Linie, weißes Logo, dunkler Streifen mit den Spielfunktionen. Passt zu den meisten Covern.
-- **Dunkel, durchscheinend:** wie Dunkel, aber ohne Linie, die Leiste liegt als **Verlauf (nach unten durchscheinend) über dem Bild**. Das Frontbild beginnt dann ganz oben (Bildmaß z. B. 129 × 183 mm statt 173 mm).
+- **Weiß:** helle Leiste mit dem **Rahmen-Logo** (`gog_logo_outline.svg`, dunkel gezeichnet) und dunkler Schrift, der Rücken ist anthrazit. Der Streifen mit den Spielfunktionen ist hellgrau.
+- **Dunkel** (Standard): anthrazitfarbene Leiste ohne Linie, weißes Logo, dunkler Streifen mit den Spielfunktionen. Passt zu den meisten Covern.
+- **Dunkel, durchscheinend:** wie Dunkel, aber die Leiste liegt als **weicher Verlauf (läuft nach unten ganz durchsichtig aus, ohne harte Kante) über dem Bild**. Das Frontbild beginnt dann ganz oben (Bildmaß z. B. 129 × 183 mm statt 173 mm).
 
-Das **GOG-Logo ist immer zu sehen**. Der Schriftzug **"GOG.COM"** daneben lässt sich mit dem Haken "GOG.COM neben dem Logo zeigen" ein- und ausschalten. Rechts in der Leiste steht immer **"PC · DRM-FREI"**. Frühere Stile (GOG-Farben mit Lila und Grün, Dunkel mit Lila) werden beim Laden zu **Dunkel**. Bei Steam und Epic gibt es nichts zu wählen.
+Das **GOG-Logo ist immer zu sehen** (bei Dunkel und durchscheinend die weiße Kachel `gog_logo.svg`, bei Weiß das Rahmen-Logo). Der Schriftzug **"GOG.COM"** daneben lässt sich mit dem Haken "GOG.COM neben dem Logo zeigen" ein- und ausschalten. Rechts in der Leiste steht immer **"PC · DRM-FREI"**. Frühere Stile (GOG-Farben mit Lila und Grün, Dunkel mit Lila) werden beim Laden zu **Dunkel**. Bei Steam und Epic gibt es nichts zu wählen.
 
 Beide Anbieter-Farben und die Rückseite (helles Feld mit den Angaben) sind in allen Fällen gleich aufgebaut.
+
+### Frontbild einpassen und USK-Hintergrund
+
+- **Frontbild einpassen** (Bereich "Bilder", unter dem Frontcover): **Strecken** ist der Standard, das ganze Bild füllt die Fläche, bei einem anderen Seitenverhältnis (z. B. Blu-ray-Hülle) wird es leicht gestaucht, nichts fehlt. **Zuschneiden** füllt die Fläche ohne Verzerrung: **Zoom** (100 bis 300 %) und **Ausschnitt** waagerecht und senkrecht (0 bis 100 %) bestimmen, welcher Teil zu sehen ist. Bei "Bild über den Rücken fortsetzen" bleibt es beim Zuschneiden über Rücken und Vorderseite.
+- **USK-Hintergrund:** Das USK-Zeichen besteht aus der **Raute** (immer voll sichtbar) und dem **Hintergrund** dahinter (abgerundetes Quadrat mit farbigem Rand). Der Regler "Hintergrund der USK auf der Vorderseite" stellt **nur den Hintergrund** ein: 100 % wie bisher, **0 % zeigt nur die Raute** ohne den farbigen Rand. Auf der **Rückseite steht immer nur die Raute**. Die Dateien liegen als `usk_<Wert>.svg` (Raute) und `usk_<Wert>_bg.svg` (Hintergrund) in `assets/images/usk/`.
+
 ## Feste Plätze auf der Rückseite
 
 Die Rückseite hat feste Plätze: links die **Angaben** (am linken Rand, so breit wie möglich), rechts eine **schmale Spalte** mit **Publisher-Logo, Disc-Logo und USK** übereinander, unten in der Mitte das **Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
