@@ -119,6 +119,36 @@ async function image(page, key, w, h, draw, type = 'image/png') {
   assert.ok(Math.abs((await gapTop()) - 12) < 0.6, 'oben bündig: Logo beginnt genau im eingestellten Abstand zum Kopf');
   await page.fill('[data-k=spineLogoTop]', '5'); await page.waitForTimeout(150);
   assert.ok(Math.abs((await gapTop()) - 5) < 0.6);
+  // ---- Unterlage hinter dem Publisher-Logo (Vorderseite und Rücken): keine, weiß, schwarz ----
+  await image(page, 'publisher', 400, 120, "ctx.fillStyle='rgba(255,0,0,0.5)';ctx.fillRect(0,0,w,h);");
+  const bg = (sel) => page.locator(sel).evaluate((e) => getComputedStyle(e).backgroundColor);
+  assert.equal(await bg('#frontPub'), 'rgba(0, 0, 0, 0)', 'vorn standardmäßig keine Unterlage');
+  await page.selectOption('[data-k=frontPubPlate]', 'white'); await page.waitForTimeout(150);
+  assert.equal(await bg('#frontPub'), 'rgb(255, 255, 255)');
+  await page.selectOption('[data-k=frontPubPlate]', 'black'); await page.waitForTimeout(150);
+  assert.equal(await bg('#frontPub'), 'rgb(17, 17, 17)');
+  assert.equal(await bg('#spinePubBox'), 'rgb(255, 255, 255)', 'auf dem Rücken standardmäßig weiß');
+  await page.selectOption('[data-k=spinePubPlate]', 'black'); await page.waitForTimeout(150);
+  assert.equal(await bg('#spinePubBox'), 'rgb(17, 17, 17)');
+  await page.selectOption('[data-k=spinePubPlate]', 'none'); await page.waitForTimeout(150);
+  assert.equal(await bg('#spinePubBox'), 'rgba(0, 0, 0, 0)');
+  const sheet = async () => page.evaluate(() => { const r = document.querySelector('#wrap').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
+  const sizeBefore = await sheet();
+
+  // ---- Falzlinien: Das Blatt bleibt sichtbar (früher verschwand es), die Linien erscheinen, auch im Druck ----
+  await page.check('[data-k=foldLines]'); await page.waitForTimeout(200);
+  assert.deepEqual(await sheet(), sizeBefore, 'Blatt behält seine Größe');
+  assert.equal(await page.locator('.fold').first().isVisible(), true);
+  assert.equal(await page.locator('#cover').isVisible(), true);
+  await page.emulateMedia({ media: 'print' });
+  assert.equal(await page.locator('.fold').first().isVisible(), true, 'Falzlinien auch im Druck');
+  assert.equal(await page.locator('#cover').isVisible(), true, 'Blatt im Druck sichtbar');
+  assert.ok((await page.locator('#cover').boundingBox()).width > 300, 'Blatt im Druck nicht eingedrückt');
+  await page.emulateMedia({ media: 'screen' });
+  await page.uncheck('[data-k=foldLines]'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('.fold').first().isVisible(), false);
+  assert.deepEqual(await sheet(), sizeBefore);
+
   assert.deepEqual(errors, []);
   await browser.close();
   console.log('Cover-Tool-Rücken-Test bestanden');

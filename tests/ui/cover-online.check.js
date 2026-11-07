@@ -104,8 +104,6 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.brand-logo')].map((i) => [i.getAttribute('src'), i.naturalWidth > 0])), [['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true], ['assets/images/epic_logo.svg', true]]);
   assert.equal(await page.locator('#spineLogo').isVisible(), true);
   assert.match(await page.locator('#featNote').textContent(), /Epic Games Launcher/);
-  assert.equal(await page.locator('#galaxyChk').isDisabled(), true, 'Das Galaxy-Feld gibt es nur bei GOG');
-  assert.equal(await page.locator('#galaxy').evaluate((e) => getComputedStyle(e).visibility), 'hidden');
   await page.selectOption('[data-k=provider]', 'steam');
   await page.waitForFunction(() => document.querySelector('#cornerWm').textContent === 'STEAM');
   assert.equal(await css('#cover', '--brand'), '#23394c');
@@ -121,7 +119,6 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.selectOption('[data-k=theme]', 'classic');
   await page.selectOption('[data-k=provider]', 'gog');
   await page.waitForFunction(() => !document.querySelector('#cover').classList.contains('has-wm'));
-  assert.equal(await page.locator('#galaxyChk').isDisabled(), false);
   assert.equal(await page.locator('#frontTag').textContent(), 'PC · DRM-FREI');
   assert.match(await page.locator('#featNote').textContent(), /GOG Galaxy/);
 

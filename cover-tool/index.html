@@ -38,7 +38,7 @@
   <form class="panel no-print" id="form" autocomplete="off" onsubmit="return false">
 
     <details class="sec" open>
-      <summary>Hülle und Disc</summary>
+      <summary>Hülle und Stil</summary>
       <label class="f"><span class="lab">Anbieter (Farben und Schriftzug auf der Hülle)</span>
         <select data-k="provider"><option value="gog">GOG</option><option value="epic">Epic Games</option><option value="steam">Steam</option></select></label>
       <div class="grp"><span class="lab">Hülle</span>
@@ -66,15 +66,16 @@
           <label class="tile"><input type="radio" name="disc" data-k="disc" value="bluray"><span>Blu-ray</span></label>
         </div>
       </div>
-      <div class="two">
-        <label class="f"><span class="lab">Sprache der Beschriftung</span>
-          <select data-k="lang"><option value="de">Deutsch</option><option value="en">English</option></select></label>
-        <label class="f"><span class="lab">USK-Altersfreigabe</span>
-          <select data-k="usk"><option value="none">Keine anzeigen</option><option value="0">ab 0 Jahren</option><option value="6">ab 6 Jahren</option><option value="12">ab 12 Jahren</option><option value="16">ab 16 Jahren</option><option value="18">ab 18 Jahren</option></select></label>
-      </div>
-      <label class="chk"><input type="checkbox" data-k="uskBack"> USK auch auf der Rückseite zeigen</label>
-      <label class="f"><span class="lab">Deckkraft der USK auf der Vorderseite</span>
-        <div class="slide"><input type="range" data-k="uskOpacity" min="30" max="100" step="5"><input type="text" data-k="uskOpacity" size="4"></div></label>
+      <label class="f"><span class="lab">Sprache der Beschriftung</span>
+        <select data-k="lang"><option value="de">Deutsch</option><option value="en">English</option></select></label>
+      <label class="f"><span class="lab">Stil</span>
+        <select data-k="theme"></select></label>
+    </details>
+
+    <details class="sec" open>
+      <summary>Titel und Texte</summary>
+      <label class="f"><span class="lab">Spieletitel (Rücken)</span><input type="text" data-k="title" placeholder="z. B. The Witcher: Enhanced Edition"></label>
+      <label class="f"><span class="lab">Copyright-Text (unten auf der Rückseite, mittig)</span><input type="text" data-k="copyright"></label>
     </details>
 
     <details class="sec" open>
@@ -86,22 +87,56 @@
         <div class="dt"><b>Rückseite oben</b><span class="spec"></span><span class="info"></span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <div class="drop" data-img="backBottom"><input type="file" accept="image/*" aria-label="Rückseite unten"><div class="thumb"></div>
         <div class="dt"><b>Rückseite unten <i>(optional)</i></b><span class="spec"></span><span class="info">Ohne Bild setzt sich das obere Bild hinter den Angaben fort.</span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
-      <div class="drop" data-img="publisher"><input type="file" accept="image/*" aria-label="Publisher-Logo"><div class="thumb"></div>
-        <div class="dt"><b>Publisher-Logo <i>(optional)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, etwa 2:1</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Publisher-Logo suchen (Wikidata)">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
-      <div class="drop" data-img="spineLogo"><input type="file" accept="image/*" aria-label="Rückenlogo"><div class="thumb"></div>
-        <div class="dt"><b>Logo für den Rücken <i>(optional, statt des Titels)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, breiter als hoch (wird gedreht)</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Spiel-Logo bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
     </details>
 
     <details class="sec" open>
-      <summary>Texte</summary>
-      <label class="f"><span class="lab">Spieletitel (Rücken)</span><input type="text" data-k="title" placeholder="z. B. The Witcher: Enhanced Edition"></label>
-      <label class="f"><span class="lab">Copyright-Text (unten auf der Rückseite, mittig)</span><input type="text" data-k="copyright"></label>
+      <summary>Publisher-Logo und Altersfreigabe</summary>
+      <div class="drop" data-img="publisher"><input type="file" accept="image/*" aria-label="Publisher-Logo"><div class="thumb"></div>
+        <div class="dt"><b>Publisher-Logo <i>(optional)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, etwa 2:1</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Publisher-Logo suchen (Wikidata)">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <label class="f"><span class="lab">Unterlage hinter dem Publisher-Logo auf der Vorderseite</span>
+        <select data-k="frontPubPlate"><option value="none">Keine</option><option value="white">Weiß</option><option value="black">Schwarz</option></select></label>
+      <p class="hint">Eine Unterlage hilft bei durchsichtigen Logos auf unruhigem Bild: weiß für dunkle, schwarz für helle Logos.</p>
+      <label class="f"><span class="lab">USK-Altersfreigabe</span>
+        <select data-k="usk"><option value="none">Keine anzeigen</option><option value="0">ab 0 Jahren</option><option value="6">ab 6 Jahren</option><option value="12">ab 12 Jahren</option><option value="16">ab 16 Jahren</option><option value="18">ab 18 Jahren</option></select></label>
+      <label class="chk"><input type="checkbox" data-k="uskBack"> USK auch auf der Rückseite zeigen</label>
+      <label class="f"><span class="lab">Deckkraft der USK auf der Vorderseite</span>
+        <div class="slide"><input type="range" data-k="uskOpacity" min="30" max="100" step="5"><input type="text" data-k="uskOpacity" size="4"></div></label>
+    </details>
+
+    <details class="sec" open>
+      <summary>Rücken</summary>
+      <label class="f"><span class="lab">Titel auf dem Rücken</span>
+        <select data-k="spineTitle"><option value="top">Oben (unter dem Logo)</option><option value="center">Mittig</option></select></label>
+      <label class="f"><span class="lab">Hintergrund des Rückens</span>
+        <select data-k="spineArt"><option value="color">Farbe des Anbieters</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
+      <label class="f"><span class="lab">Anbieter-Logo oben auf dem Rücken</span>
+        <select data-k="spineLogo"><option value="fixed">Feste Größe (7 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
+      <div class="drop" data-img="spineLogo"><input type="file" accept="image/*" aria-label="Rückenlogo"><div class="thumb"></div>
+        <div class="dt"><b>Logo für den Rücken <i>(optional, statt des Titels)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, breiter als hoch (wird gedreht)</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Spiel-Logo bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <label class="chk"><input type="checkbox" data-k="spineUseLogo"> Statt des Titels das Rückenlogo zeigen (wenn eins geladen ist)</label>
+      <div class="two">
+        <label class="f"><span class="lab">Rückenlogo: Ausrichtung</span>
+          <select data-k="spineLogoRot"><option value="auto">Automatisch (gedreht, wenn breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
+        <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spineLogoSide" size="4" inputmode="decimal"></label>
+      </div>
+      <div class="two">
+        <label class="f"><span class="lab">Rückenlogo: Abstand zum Kopf oben (mm)</span><input type="text" data-k="spineLogoTop" size="4" inputmode="decimal"></label>
+        <label class="f"><span class="lab">Abstand zum Fuß unten (mm)</span><input type="text" data-k="spineLogoBottom" size="4" inputmode="decimal"></label>
+      </div>
+      <label class="chk"><input type="checkbox" data-k="spinePub"> Publisher-Logo am Fuß des Rückens anzeigen (über "PC", das immer ganz unten steht)</label>
+      <label class="f"><span class="lab">Unterlage hinter dem Publisher-Logo auf dem Rücken</span>
+        <select data-k="spinePubPlate"><option value="white">Weiß</option><option value="black">Schwarz</option><option value="none">Keine</option></select></label>
+      <div class="two">
+        <label class="f"><span class="lab">Publisher-Logo: Ausrichtung</span>
+          <select data-k="spinePubRot"><option value="auto">Automatisch (gedreht, wenn zu breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
+        <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spinePubSide" size="4" inputmode="decimal"></label>
+      </div>
+      <label class="f"><span class="lab">Publisher-Logo: Breite in mm (leer = automatisch)</span><input type="text" data-k="spinePubWidth" size="4" inputmode="decimal" placeholder="automatisch"></label>
+      <label class="chk"><input type="checkbox" data-k="spinePC"> "PC" am Fuß des Rückens</label>
     </details>
 
     <details class="sec" open>
       <summary>Spielfunktionen</summary>
-      <label class="f"><span class="lab">Symbole</span>
-        <select data-k="iconStyle"><option value="line">Linien (neu, alle Funktionen)</option><option value="original">GOG-Original (nur die ersten sieben)</option></select></label>
       <div class="tiles three">
         <label class="tile"><input type="checkbox" data-k="features" data-list value="single_player"><span>Single-Player</span></label>
         <label class="tile"><input type="checkbox" data-k="features" data-list value="co_op"><span>Co-op</span></label>
@@ -229,34 +264,7 @@
     </details>
 
     <details class="sec" open>
-      <summary>Darstellung und Druck</summary>
-      <label class="f"><span class="lab">Stil</span>
-        <select data-k="theme"></select></label>
-      <label class="f"><span class="lab">GOG-Logo auf dem Rücken</span>
-        <select data-k="spineLogo"><option value="fixed">Feste Größe (7 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
-      <label class="f"><span class="lab">Titel auf dem Rücken</span>
-        <select data-k="spineTitle"><option value="top">Oben (unter dem Logo)</option><option value="center">Mittig</option></select></label>
-      <label class="f"><span class="lab">Hintergrund des Rückens</span>
-        <select data-k="spineArt"><option value="color">Farbe des Anbieters</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
-      <label class="chk"><input type="checkbox" data-k="spineUseLogo"> Statt des Titels das Rückenlogo zeigen (wenn eins geladen ist)</label>
-      <label class="chk"><input type="checkbox" data-k="spinePub"> Publisher-Logo am Fuß des Rückens (über "PC", "PC" bleibt immer ganz unten)</label>
-      <div class="two">
-        <label class="f"><span class="lab">Publisher-Logo: Ausrichtung</span>
-          <select data-k="spinePubRot"><option value="auto">Automatisch (gedreht, wenn zu breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
-        <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spinePubSide" size="4" inputmode="decimal"></label>
-      </div>
-      <label class="f"><span class="lab">Publisher-Logo: Breite in mm (leer = automatisch)</span><input type="text" data-k="spinePubWidth" size="4" inputmode="decimal" placeholder="automatisch"></label>
-      <div class="two">
-        <label class="f"><span class="lab">Rückenlogo: Ausrichtung</span>
-          <select data-k="spineLogoRot"><option value="auto">Automatisch (gedreht, wenn breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
-        <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spineLogoSide" size="4" inputmode="decimal"></label>
-      </div>
-      <div class="two">
-        <label class="f"><span class="lab">Rückenlogo: Abstand zum Kopf oben (mm)</span><input type="text" data-k="spineLogoTop" size="4" inputmode="decimal"></label>
-        <label class="f"><span class="lab">Abstand zum Fuß unten (mm)</span><input type="text" data-k="spineLogoBottom" size="4" inputmode="decimal"></label>
-      </div>
-      <label class="chk"><input type="checkbox" data-k="spinePC"> "PC" am Fuß des Rückens</label>
-      <label class="chk"><input type="checkbox" data-k="galaxy" id="galaxyChk"> GOG-Galaxy-Feld auf der Rückseite (nur bei GOG, der Platz bleibt reserviert)</label>
+      <summary>Drucken</summary>
       <label class="chk"><input type="checkbox" data-k="cropMarks"> Schnittmarken an den Ecken</label>
       <label class="chk"><input type="checkbox" data-k="foldLines"> Falzlinien am Rücken (gestrichelt)</label>
       <p class="hint">Drucken: A4 quer, Skalierung 100 %, Ränder „Keine“, Hintergrundgrafiken aktivieren.</p>
@@ -280,9 +288,6 @@
               </div>
               <div class="back-bottom" id="backBottom">
                 <div class="panel-back">
-                  <div class="galaxy" id="galaxy">
-                    <i class="ring"></i><b id="gxTitle"></b><span id="gxText"></span><em id="gxJoin"></em><small id="gxUrl"></small>
-                  </div>
                   <div class="speccol"><h4 id="reqTitle"></h4><ul class="specs" id="specs"></ul></div>
                   <p class="copy" id="copy"></p>
                   <div class="rightcol">

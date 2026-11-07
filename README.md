@@ -102,9 +102,9 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 ### Cover-Tool (Web-App, live unter /cover/)
 
-- [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, GOG-Galaxy-Feld, Deutsch oder Englisch
+- [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, Deutsch oder Englisch
 - [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzlinien (Test im Browser)
-- [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden von Galaxy-Feld oder USK
+- [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden der USK
 - [x] Zweiter Stil "Leiste" (Kopfleiste wie bei Handelsspielen) neben dem klassischen Logo-Ecken-Stil, für alle Anbieter
 - [x] Bilder werden auf Druckgröße verkleinert, Hinweis zur Schärfe (dpi)
 - [x] Tests im Repo (Logik, Druck, feste Plätze, beide Stile, Online-Abläufe) und Veröffentlichung unter `/cover/`
@@ -138,6 +138,13 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [ ] Echte GOG-Installer testen: still installieren, Exit-Code, Log, Registry
 - [ ] Test auf echter Disc inklusive AutoPlay
 - [ ] Programm-Symbol und Versionsangaben in der EXE, Signierung (gegen die SmartScreen-Warnung)
+
+### Nächste Schritte der Web-Tools (Reihenfolge)
+
+- [ ] **GOG-Stil überarbeiten** (Vorderseite und Rücken): eigenständiger und weniger Lila-lastig, damit er zu mehr Covern passt (die dunkle Variante ist ein erster Schritt)
+- [ ] **Rückseite frei gestalten:** Konfigurator mit Textfeldern, Bildern und festen Bausteinen, die man selbst anordnet (wie die Steam-Rückseiten mit Beschreibung und Bildleiste)
+- [ ] **Beide Web-Tools zusammenführen:** Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
+- [ ] **Ein-Datei-Build:** Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, PNG als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
 
 ### Später
 

@@ -18,7 +18,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 ## Standardwerte
 
-Neue Projekte starten mit dem Stil **Leiste in GOG-Farben** (Lila mit grüner Linie), dem Rückentitel mittig und ohne GOG-Galaxy-Feld. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
+Neue Projekte starten mit dem Stil **Leiste in GOG-Farben** (Lila mit grüner Linie), und dem Rückentitel mittig. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
 
 ## Schnellstart
 
@@ -46,12 +46,14 @@ Die Einstellungen des Covers links:
 
 | Bereich | Inhalt |
 |---|---|
-| Hülle und Disc | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung: Deutsch oder English. USK-Freigabe: 0, 6, 12, 16, 18 oder keine anzeigen, dazu "USK auch auf der Rückseite zeigen" und die Deckkraft der USK auf der Vorderseite (30 bis 100 %) |
-| Bilder | Frontcover, Rückseite oben, Rückseite unten (optional), Publisher-Logo (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
-| Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
-| Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Mods, VR. Die Reihenfolge auf dem Cover ist fest. Die Symbole gibt es im **Linienstil** (Standard) oder als **GOG-Original** (nur die ersten sieben, die anderen bleiben im Linienstil) |
-| Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessor (Intel, AMD oder eigener Text), Grafikkarte (NVIDIA, AMD Radeon oder eigener Text), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus), Umbruch bei zwei Prozessoren oder Grafikkarten |
-| Darstellung und Druck | Stil, Größe des GOG-Logos auf dem Rücken (fest 7 mm oder Rückenbreite), Titel oben oder mittig auf dem Rücken, "PC" am Fuß des Rückens, GOG-Galaxy-Feld, Schnittmarken, Falzlinien |
+| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite). Sprache der Beschriftung. Stil (Leiste oder Klassisch, bei GOG je in GOG-Farben oder dunkel) |
+| 2. Titel und Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
+| 3. Bilder | Frontcover, Rückseite oben, Rückseite unten (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
+| 4. Publisher-Logo und Altersfreigabe | Publisher-Logo (Vorderseite, Rückseite und Rücken), **Unterlage dahinter auf der Vorderseite** (keine, weiß oder schwarz), USK-Freigabe (0, 6, 12, 16, 18 oder keine), "USK auch auf der Rückseite zeigen" und Deckkraft der USK vorn (30 bis 100 %) |
+| 5. Rücken | Titel (oben oder mittig), Hintergrund (Farbe oder Frontbild fortsetzen), Größe des Anbieter-Logos, Rückenlogo (statt des Titels) mit Ausrichtung und Abständen, Publisher-Logo am Fuß mit Unterlage, Ausrichtung, Abstand und Breite, "PC" am Fuß |
+| 6. Spielfunktionen | Single-Player, Co-op, Multi-Player, Online, LAN, Cross-Plattform, Controller Support, Erfolge, Cloud Saves, Mods, VR. Die Reihenfolge auf dem Cover ist fest, die Symbole sind Linien-SVG |
+| 7. Systemanforderungen | Läuft auf: Windows XP, Vista, 7, 8, 10, 11, macOS, Linux, dazu "64-Bit" bei Windows. Prozessor (Intel, AMD oder eigener Text), Grafikkarte (NVIDIA, AMD Radeon oder eigener Text), Arbeitsspeicher und Speicherplatz (Regler oder Zahl), DirectX und Sonstiges (leer lassen blendet die Zeile aus), Umbruch bei zwei Prozessoren oder Grafikkarten |
+| 8. Drucken | Schnittmarken an den Ecken, Falzlinien am Rücken (gestrichelt), Hinweis zu den Druckeinstellungen |
 
 Einstellungen werden im Browser gemerkt (**ohne Bilder**, die müssen nach dem Neuladen erneut geladen werden). Wer die Bilder behalten will, exportiert das **Projekt** (siehe unten). "Zurücksetzen" löscht Einstellungen und Bilder.
 
@@ -65,7 +67,7 @@ Die Auswahl erzeugt Texte wie "Intel Core i5-12400F", "AMD Ryzen 5 5600X", "NVID
 
 Im Formular gibt es bei den Systemanforderungen die Reiter **Mindestanforderungen** und **Empfohlen**. "Läuft auf" (Betriebssystem) gilt für beide. Auf dem Reiter "Empfohlen" schaltet **Empfohlene Anforderungen zusätzlich auf der Hülle zeigen** die zweite Spalte ein. Prozessor, Grafikkarte, Speicher, DirectX und Sonstiges lassen sich dort getrennt eintragen.
 
-Auf der Rückseite entsteht dann eine **Tabelle mit den Spalten Minimum und Empfohlen**. Angaben, die in beiden gleich sind (und das Betriebssystem), stehen nur einmal über beide Spalten, fehlt eine Angabe in einer Spalte, steht dort "–". Damit die Tabelle Platz hat, werden Galaxy-Feld und rechte Spalte etwas schmaler. Ist das Galaxy-Feld aus (Epic, Steam), nimmt die Tabelle seinen Platz mit. Ohne empfohlene Angaben bleibt es bei der einfachen Liste.
+Auf der Rückseite entsteht dann eine **Tabelle mit den Spalten Minimum und Empfohlen**. Angaben, die in beiden gleich sind (und das Betriebssystem), stehen nur einmal über beide Spalten, fehlt eine Angabe in einer Spalte, steht dort "–". Damit die Tabelle Platz hat, wird die rechte Spalte etwas schmaler. Ohne empfohlene Angaben bleibt es bei der einfachen Liste.
 
 **Nichts wird abgeschnitten:** Lange Angaben (auch Sonstiges) brechen um, und die Schrift wird bei Platzmangel kleiner (bis 4,4 pt). Alles, was in den Feldern steht, steht auch auf der Hülle. Ein Test prüft das für beide Stile und Anbieter.
 
@@ -141,9 +143,9 @@ Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games u
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
-| **GOG** | Lila | GOG-Logo | Galaxy-Feld, grüner Streifen, in der Leiste "PC · DRM-FREI", Leiste in Lila mit grüner Linie |
-| **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | dunkler grauer Streifen, Hinweis "Epic Games Launcher", kein Galaxy-Feld |
-| **Steam** | Marineblau | Logo und Schriftzug "STEAM" | dunkelblauer Streifen mit blauer Akzentlinie, Hinweis "Steam", kein Galaxy-Feld |
+| **GOG** | Lila | GOG-Logo | Grüner Streifen, in der Leiste "PC · DRM-FREI", Leiste in Lila mit grüner Linie |
+| **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | dunkler grauer Streifen, Hinweis "Epic Games Launcher" |
+| **Steam** | Marineblau | Logo und Schriftzug "STEAM" | dunkelblauer Streifen mit blauer Akzentlinie, Hinweis "Steam" |
 
 Der Anbieter wird mit den Einstellungen gemerkt und aus dem Rezept übernommen. Dieselbe Farbzuordnung nutzt das Menü ([player-und-builder.md](player-und-builder.md)).
 
@@ -190,7 +192,7 @@ Beide Stile zeigen auf der Rückseite die Systemanforderungen und auf Vorderseit
 
 ## Feste Plätze auf der Rückseite
 
-Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (20 × 24 mm, bewusst klein, damit mehr Platz für die Angaben bleibt), in der Mitte die **Angaben**, rechts **Logos, USK und Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Schaltet man das Galaxy-Feld aus (oder wählt Epic Games oder Steam), **rücken nur die Angaben nach links an den Rand** und nutzen den freien Platz, alles andere bleibt, wo es ist. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
+Die Rückseite hat feste Plätze: links die **Angaben** (am linken Rand), rechts **Logos, USK**, unten in der Mitte das **Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.
 
 ## Rücken-Logo, Rückenbild und Publisher
 
@@ -210,7 +212,7 @@ Die Rückseite hat feste Plätze: links das **GOG-Galaxy-Feld** (20 × 24 mm, be
 
 1. Auf **Drucken** klicken.
 2. Im Druckdialog: Papier **A4**, Ausrichtung **quer**, Skalierung **100 %** (nicht "Anpassen"), Ränder **Keine**, **Hintergrundgrafiken** einschalten.
-3. Ausdrucken und an den **Schnittmarken** ausschneiden. Die **Falzlinien** am Rücken (gestrichelt, nur wenn eingeschaltet) helfen beim Falten.
+3. Ausdrucken und an den **Schnittmarken** ausschneiden. Die **Falzlinien** am Rücken (gestrichelt, nur wenn eingeschaltet, auch im Druck) helfen beim Falten.
 
 Rücken und Vorderseite überlappen um 0,6 mm, damit beim Drucken keine helle Naht zwischen ihnen entsteht. Flächen ohne Bild bleiben im Druck weiß. Ein Test misst die Naht in der Vorschau bei mehreren Maßstäben.
 
@@ -220,7 +222,7 @@ Das Cover wird in Originalgröße (273 × 183 mm, Slim 266 × 183 mm) mittig auf
 
 ## Symbole
 
-Die Linien-Symbole stammen aus [Lucide](https://lucide.dev/) (ISC-Lizenz, Datei `assets/images/features/line/LICENSE-lucide.txt`) und sind kleine schwarze SVG-Dateien (unter 1 KB), also in jeder Größe scharf. Die GOG-Originale bleiben als Auswahl erhalten.
+Die Symbole der Spielfunktionen stammen aus [Lucide](https://lucide.dev/) (ISC-Lizenz, Datei `assets/images/features/line/LICENSE-lucide.txt`) und sind kleine schwarze SVG-Dateien (unter 1 KB), also in jeder Größe scharf. Das VR-Symbol ist selbst gezeichnet. Die früheren GOG-Original-Symbole (PNG) und die Bestenlisten gibt es nicht mehr.
 
 ## Aufbau der Dateien
 
@@ -268,7 +270,7 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 - **Schrift:** Lato lag im Archiv, wurde aber nie geladen.
 - **Rücken:** Der Titel steht in normaler Schreibweise (wie bei den GOG-Vorlagen) und verkleinert sich bei langen Titeln von selbst.
 - **Verschieben der Rückseite:** Ausgeblendete Elemente gaben ihren Platz im Layout frei und ließen andere rutschen. Jetzt hat die Rückseite feste Plätze.
-- Hinzugekommen: Live-Vorschau statt Formular-Abschicken, GOG-Galaxy-Feld, Zeile "Sonstiges", Beschriftungen auf Deutsch oder Englisch, Windows XP und Vista, macOS und Linux, eigener Text für Prozessor und Grafikkarte, Bestenlisten-Symbol, Hinweis zur Bildschärfe, zweiter Stil "Modern".
+- Hinzugekommen: Live-Vorschau statt Formular-Abschicken, Zeile "Sonstiges", Beschriftungen auf Deutsch oder Englisch, Windows XP und Vista, macOS und Linux, eigener Text für Prozessor und Grafikkarte, Bestenlisten-Symbol, Hinweis zur Bildschärfe, zweiter Stil "Modern".
 
 ## Tests
 
@@ -278,6 +280,6 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 
 ## Hinweise
 
-- GOG, Epic Games, Steam (Namen und Logos), die USK-Symbole und das GOG-Galaxy-Feld sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
+- GOG, Epic Games, Steam (Namen und Logos) und die USK-Symbole sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
 - Die Schrift Lato steht unter der SIL Open Font License (siehe `cover-tool/assets/fonts/README.txt`).
 

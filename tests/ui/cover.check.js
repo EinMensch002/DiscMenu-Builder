@@ -75,32 +75,23 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   assert.match(await page.locator('[data-img=front] .spec').textContent(), /129\.5 × 183 mm/);
   await page.check('[data-k=caseType][value=normal]');
 
-  // Die Rückseite bleibt stabil: Weder das Ausblenden des GOG-Galaxy-Felds noch der USK hinten verschiebt etwas
+  // Die Rückseite bleibt stabil: Das Ausblenden der USK hinten verschiebt nichts, fehlende Zeilen lassen die übrigen oben stehen
   const layout = () => page.evaluate(() => {
     const o = document.querySelector('#cover').getBoundingClientRect();
     const r = (sel) => { const b = document.querySelector(sel).getBoundingClientRect(); return [sel, Math.round((b.left - o.left) * 10) / 10, Math.round((b.top - o.top) * 10) / 10]; };
     return ['#feats', '#specs', '#specs li', '#discLogo', '#copy', '#spineTitle', '#frontUsk'].map(r);
   });
-  await page.check('[data-k=galaxy]'); await page.check('[data-k=uskBack]');
+  await page.check('[data-k=uskBack]');
   await page.waitForTimeout(150);
-  const base = await layout();
-  await page.uncheck('[data-k=galaxy]'); await page.waitForTimeout(150);
-  // Ohne Galaxy-Feld rücken nur die Systemanforderungen nach links an den Rand, alles andere bleibt an seinem Platz
   const noGx = await layout();
-  const rest = (l) => l.filter((r) => !r[0].startsWith('#specs'));
-  assert.deepEqual(rest(noGx), rest(base), 'Ohne Galaxy-Feld darf sich nichts außer den Anforderungen verschieben: ' + JSON.stringify([rest(base), rest(noGx)]));
-  for (const sel of ['#specs', '#specs li']) {
-    const was = base.find((r) => r[0] === sel), now = noGx.find((r) => r[0] === sel);
-    assert.ok(now[1] < was[1] - 15, sel + ' rückt nach links (vorher ' + was[1] + ', jetzt ' + now[1] + ')');
-    assert.equal(now[2], was[2], sel + ' bleibt in der Höhe');
-  }
+  assert.ok(noGx.find((r) => r[0] === '#specs')[1] < 60, 'Die Angaben beginnen am linken Rand der Rückseite');
   await page.uncheck('[data-k=uskBack]'); await page.waitForTimeout(150);
   assert.deepEqual(await layout(), noGx, 'Ohne USK auf der Rückseite darf sich nichts verschieben');
   await page.fill('[data-k=other]', ''); await page.waitForTimeout(150);          // eine Zeile weniger: die übrigen bleiben oben stehen
   const fewer = await layout();
   assert.deepEqual(fewer.find((x) => x[0] === '#specs li'), noGx.find((x) => x[0] === '#specs li'));
   assert.deepEqual(fewer.find((x) => x[0] === '#feats'), noGx.find((x) => x[0] === '#feats'));
-  await page.check('[data-k=galaxy]'); await page.check('[data-k=uskBack]');
+  await page.check('[data-k=uskBack]');
 
   // Stil "Leiste": Kopfleiste über Vorderseite und Rücken (die Akzentlinie läuft durch), alles bleibt auf dem Blatt
   await page.selectOption('[data-k=theme]', 'bar');
@@ -225,12 +216,10 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.uncheck('[data-k=spinePC]'); await page.waitForTimeout(100);
   assert.equal(await page.locator('#spineFoot .pc').evaluate((e) => getComputedStyle(e).display), 'none', '"PC" ist abschaltbar'); await page.check('[data-k=spinePC]');
   await page.fill('[data-k=title]', keep.title); await page.fill('[data-k=copyright]', keep.copyright);
-  // Symbole: Linienstil für alle Funktionen, Original nur für die ersten sieben
+  // Symbole: alle Funktionen als Linien-SVG
   await page.evaluate(() => CoverApp.patch({ features: ['single_player', 'vr'] })); await page.waitForTimeout(100);
   assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#feats img')].map((i) => [i.getAttribute('src'), i.naturalWidth > 0])), [['assets/images/features/line/single_player.svg', true], ['assets/images/features/line/vr.svg', true]]);
-  await page.selectOption('[data-k=iconStyle]', 'original'); await page.waitForTimeout(100);
-  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#feats img')].map((i) => i.getAttribute('src'))), ['assets/images/features/single_player.png', 'assets/images/features/line/vr.svg']);
-  await page.selectOption('[data-k=iconStyle]', 'line'); await page.evaluate(() => CoverApp.patch({ features: ['single_player'] }));
+  await page.evaluate(() => CoverApp.patch({ features: ['single_player'] }));
 
   // Druck: Flächen ohne Bild bleiben weiß (nicht grau), die Vorschau zeigt Platzhalter
   await page.evaluate(() => document.querySelectorAll('.drop .x').forEach((x) => x.click()));   // Zustand ohne Bilder

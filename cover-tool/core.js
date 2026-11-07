@@ -61,7 +61,6 @@
       features: 'Spielfunktionen:', featuresNote: 'Einige Funktionen erfordern GOG Galaxy',
       min: 'MINIMUM', rec: 'EMPFOHLEN', short: { ram: 'RAM', space: 'Speicher' }, os: 'Läuft auf', cpu: 'Prozessor', ram: 'Arbeitsspeicher', gpu: 'Grafik', dx: 'DirectX', space: 'Speicherplatz', other: 'Sonstiges',
       ramUnit: 'RAM', spaceUnit: 'freier Speicherplatz', bit64: '64-Bit',
-      galaxy: { title: 'GOG GALAXY 2.0', text: 'Alle deine Spiele und Freunde an einem Ort', join: 'JETZT BEITRETEN', url: 'www.gog.com/galaxy' },
       feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', online: 'Online', lan: 'LAN', cross_platform: 'Cross-Plattform', mods: 'Mods', vr: 'VR', controller_support: 'Controller Support', achievements: 'Erfolge', cloud_saves: 'Cloud Saves' },
     },
     en: {
@@ -69,14 +68,10 @@
       features: 'Game Features:', featuresNote: 'Some features require GOG Galaxy',
       min: 'MINIMUM', rec: 'RECOMMENDED', short: {}, os: 'Works on', cpu: 'Processor', ram: 'Memory', gpu: 'Graphics', dx: 'DirectX', space: 'Storage', other: 'Other',
       ramUnit: 'RAM', spaceUnit: 'available space', bit64: '64-bit',
-      galaxy: { title: 'GOG GALAXY 2.0', text: 'All your games and friends in one place', join: 'JOIN NOW', url: 'www.gog.com/galaxy' },
       feat: { single_player: 'Single-Player', co_op: 'Co-op', multi_player: 'Multi-Player', online: 'Online', lan: 'LAN', cross_platform: 'Cross-Platform', mods: 'Mods', vr: 'VR', controller_support: 'Controller Support', achievements: 'Achievements', cloud_saves: 'Cloud Saves' },
     },
   };
   const FEATURE_ORDER = ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'controller_support', 'achievements', 'cloud_saves', 'mods', 'vr'];
-  /* Symbole im Linienstil (Lucide, ISC-Lizenz) gibt es für alle Funktionen, die GOG-Originale nur für die ersten sieben */
-  const ORIGINAL_ICONS = ['single_player', 'co_op', 'multi_player', 'controller_support', 'achievements', 'cloud_saves'];
-  const ICON_STYLES = { line: 'Linien (neu)', original: 'GOG-Original' };
   const WIN_VERSIONS = ['XP', 'Vista', '7', '8', '10', '11'];
   const USK_VALUES = ['0', '6', '12', '16', '18'];
   /* Anbieter: Farben und Schriftzug. Es gibt nur Text und Farben, keine Logos (außer dem vorhandenen GOG-Logo). */
@@ -260,13 +255,14 @@
     return {
       caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'bar', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       custom: { back: '130', spine: '14', front: '129', h: '183' },
-      usk: '0', uskOpacity: '100', uskBack: true, galaxy: false, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
+      usk: '0', uskOpacity: '100', uskBack: true, spineLogo: 'fixed', cropMarks: true, foldLines: false, breakHw: false,
       features: ['single_player'],
       os: { win: ['10', '11'], mac: false, linux: false, x64: true },
       cpu: { intel: { on: false, pre: 'Core i5', num: '', sfx: '' }, amd: { on: false, pre: 'Ryzen 5', num: '', sfx: '' }, custom: '' },
       gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
       ram: '4', space: '10', dx: '', other: '',
-      iconStyle: 'line', spinePC: true, spineTitle: 'center', spineArt: 'color', spineUseLogo: true, spinePub: true,
+      frontPubPlate: 'none', spinePubPlate: 'white',          /* Unterlage hinter dem Publisher-Logo: 'none' | 'white' | 'black' */
+      spinePC: true, spineTitle: 'center', spineArt: 'color', spineUseLogo: true, spinePub: true,
       spineLogoRot: 'auto', spineLogoSide: '1.5', spineLogoTop: '3', spineLogoBottom: '3',      /* Rückenlogo: Drehung, Abstände (mm) zu den Seiten und zu Kopf und Fuß */
       spinePubRot: 'auto', spinePubSide: '1.2', spinePubWidth: '',                             /* Publisher am Fuß: Drehung, Abstand zur Seite (mm), eigene Breite (mm, leer = automatisch) */
       publisher: '', developer: '',         /* z. B. von Steam übernommen, Vorgabe für die Suche nach dem Publisher-Logo */
@@ -300,7 +296,7 @@
     if (saved.gogBar === 'dark' && out.provider === 'gog' && /^(bar|classic)$/.test(out.theme)) out.theme += '-dark';       // Vorläufer: eigene Einstellung für die dunkle GOG-Leiste
     if (out.provider !== 'gog') out.theme = out.theme.replace('-dark', '');
     if (!PROVIDERS[out.provider]) out.provider = 'gog';
-    if (!ICON_STYLES[out.iconStyle]) out.iconStyle = 'line';
+    for (const k of ['frontPubPlate', 'spinePubPlate']) if (!['none', 'white', 'black'].includes(out[k])) out[k] = k === 'spinePubPlate' ? 'white' : 'none';
     if (out.spineTitle !== 'top') out.spineTitle = 'center';
     if (out.spineArt !== 'image') out.spineArt = 'color';
     for (const k of ['spineLogoRot', 'spinePubRot']) if (!['auto', 'no', 'yes'].includes(out[k])) out[k] = 'auto';
@@ -342,7 +338,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { BAR_HEIGHT, fitLogo, styleOptions, parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, ORIGINAL_ICONS, ICON_STYLES, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { BAR_HEIGHT, fitLogo, styleOptions, parseCpuText, parseGpuText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -108,7 +108,6 @@ test('Beschriftungen gibt es in beiden Sprachen vollständig', () => {
   const keys = (o) => Object.keys(o).sort().join();
   assert.equal(keys(C.LABELS.de), keys(C.LABELS.en));
   assert.equal(keys(C.LABELS.de.feat), keys(C.LABELS.en.feat));
-  assert.equal(keys(C.LABELS.de.galaxy), keys(C.LABELS.en.galaxy));
   assert.ok(C.LABELS.de.reqTitle && C.LABELS.en.reqTitle && C.LABELS.de.tag && C.LABELS.en.tag);
   for (const f of C.FEATURE_ORDER) assert.ok(C.LABELS.de.feat[f], f);
 });
@@ -163,7 +162,6 @@ test('Alle Grafiken, die das Tool lädt, sind vorhanden und nicht übergroß', (
     'gog_logo.png',
     ...C.USK_VALUES.map((v) => `usk/usk_${v}.png`),
     ...Object.values(C.DISCS).map((f) => `disc/${f}`),
-    ...C.ORIGINAL_ICONS.map((f) => `features/${f}.png`),
   ];
   for (const f of C.FEATURE_ORDER) {                         // Linien-Symbole: alle Funktionen, klein und schwarz
     const p = path.join(root, 'features', 'line', f + '.svg');
@@ -220,4 +218,16 @@ test('Logo-Anpassung: Zu breite Logos werden gedreht, das Ergebnis passt immer i
   const s = C.defaultState();
   assert.equal(s.spinePubRot, 'auto'); assert.equal(s.spineLogoRot, 'auto'); assert.equal(s.spinePubWidth, '');
   assert.equal(C.mergeState({ spinePubRot: 'schräg' }).spinePubRot, 'auto');
+});
+
+test('Aufgeräumt: keine GOG-Original-Symbole und kein Galaxy-Feld mehr, Unterlagen für Publisher-Logos', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const dir = path.join(__dirname, '..', 'cover-tool', 'assets', 'images', 'features');
+  assert.deepEqual(fs.readdirSync(dir), ['line']);                                   // nur noch die SVG-Symbole
+  const s = C.defaultState();
+  assert.equal('galaxy' in s, false); assert.equal('iconStyle' in s, false);
+  assert.equal(s.frontPubPlate, 'none'); assert.equal(s.spinePubPlate, 'white');
+  assert.equal(C.mergeState({ frontPubPlate: 'black' }).frontPubPlate, 'black');
+  assert.equal(C.mergeState({ frontPubPlate: 'rot', spinePubPlate: 'rot' }).spinePubPlate, 'white');
+  assert.equal(C.mergeState({ galaxy: true }).galaxy, undefined);                    // alte Einstellung wird ignoriert
 });

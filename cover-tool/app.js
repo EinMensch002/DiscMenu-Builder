@@ -226,7 +226,7 @@
     $('#customBox').hidden = state.caseType !== 'custom';
     applyProvider(cover);
     wrap.classList.toggle('marks', state.cropMarks);
-    wrap.classList.toggle('fold', state.foldLines);
+    wrap.classList.toggle('show-fold', state.foldLines);
 
     /* Bilder */
     setBg($('#front'), images.front);
@@ -235,6 +235,7 @@
     $('#backBottom').style.backgroundPosition = images.backBottom ? 'center' : 'center bottom';
     const pubUrl = images.publisher && images.publisher.url;
     setImg($('#frontPub'), pubUrl);
+    $('#frontPub').className = 'front-pub plate-' + state.frontPubPlate;
     setImg($('#backPub'), pubUrl);
 
     /* Alterskennzeichen (USK) */
@@ -251,19 +252,15 @@
     $('#spineTitle').textContent = state.title.trim();
     renderSpine(c);
 
-    /* Rückseite: Spielfunktionen, Angaben, GOG-Galaxy-Feld, Copyright */
+    /* Rückseite: Spielfunktionen, Angaben, Copyright */
     $('#featTitle').textContent = L.features;
     $('#featNote').textContent = C.PROVIDERS[state.provider].note[state.lang];
     const feats = $('#feats');
     feats.replaceChildren(...C.FEATURE_ORDER.filter((k) => state.features.includes(k)).map((k) => {
-      const item = el('div', 'feat'), img = el('img'); img.src = (state.iconStyle === 'line' || !C.ORIGINAL_ICONS.includes(k)) ? 'assets/images/features/line/' + k + '.svg' : 'assets/images/features/' + k + '.png'; img.alt = '';
+      const item = el('div', 'feat'), img = el('img'); img.src = 'assets/images/features/line/' + k + '.svg'; img.alt = '';
       item.append(img, el('span', '', L.feat[k])); return item;
     }));
-    $('#galaxy').classList.toggle('off', !(state.galaxy && state.provider === 'gog'));      // das Feld gibt es nur bei GOG
-    $('#galaxyChk').disabled = state.provider !== 'gog';
     $('#reqTitle').textContent = L.reqTitle;
-    $('#gxTitle').textContent = L.galaxy.title; $('#gxText').textContent = L.galaxy.text;
-    $('#gxJoin').textContent = L.galaxy.join; $('#gxUrl').textContent = L.galaxy.url;
     $('#copy').textContent = state.copyright.trim();
     renderSpecs();
 
@@ -317,7 +314,6 @@
     list.replaceChildren(...rows);
     const panel = $('.panel-back');
     panel.classList.toggle('dual', table.dual);
-    panel.classList.toggle('nogx', $('#galaxy').classList.contains('off'));
     fitSpecs();
     /* Beim Umbruch zwischen zwei Alternativen ist der Schrägstrich überflüssig */
     $$('.sep', list).forEach((sep) => {
@@ -361,6 +357,7 @@
     setImg($('#spinePubImg'), showPub ? pub.url : '');
     spine.classList.toggle('nopub', !showPub);
     $('#spinePubBox').hidden = !showPub;
+    $('#spinePubBox').className = 'spine-pubbox plate-' + state.spinePubPlate;
     refitSpine();
   }
   function refitSpine() { fitSpinePub(); fitSpineTitle(C.caseDims(state)); fitSpineLogo(); }

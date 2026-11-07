@@ -25,7 +25,7 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload();
 
-  // Standardwerte: Stil Leiste in GOG-Farben (Lila mit Grün), Titel mittig, Galaxy-Feld aus, USK voll deckend
+  // Standardwerte: Stil Leiste in GOG-Farben (Lila mit Grün), Titel mittig, USK voll deckend
   assert.equal(await page.inputValue('[data-k=theme]'), 'bar');
   assert.deepEqual(await page.locator('[data-k=theme] option').allTextContents(), ['Leiste, GOG-Farben (Lila mit Grün)', 'Leiste, dunkel mit Lila', 'Klassisch (Logo-Ecke), GOG-Farben', 'Klassisch (Logo-Ecke), dunkel mit Lila']);
   assert.equal(await page.locator('#cover').evaluate((e) => getComputedStyle(e).getPropertyValue('--barB').trim()), '#6c1c72');
@@ -39,8 +39,6 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
   assert.equal(await page.inputValue('[data-k=theme]'), 'classic');
   await page.selectOption('[data-k=provider]', 'gog'); await page.selectOption('[data-k=theme]', 'bar');
   assert.equal(await page.inputValue('[data-k=spineTitle]'), 'center');
-  assert.equal(await page.locator('[data-k=galaxy]').isChecked(), false);
-  assert.equal(await page.locator('#galaxy').evaluate((e) => getComputedStyle(e).visibility), 'hidden');
   assert.equal(await page.inputValue('input[type=text][data-k=uskOpacity]'), '100');
 
   // USK-Deckkraft wirkt nur auf die Vorderseite
