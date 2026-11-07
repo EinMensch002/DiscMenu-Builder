@@ -618,6 +618,7 @@
     removeBackground(key) { return removeBackground(key); },
     onReset(f) { hooks.reset.push(f); },
     buildJump,
+    dpiOf(key, w, h) { return dpiOf(key, { w, h }); },
     /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
     patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },
     /* Aktuelle Einstellungen und Bilder (für den Projektexport) */

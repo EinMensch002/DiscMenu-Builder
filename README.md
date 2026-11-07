@@ -124,7 +124,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] **Alle Grafiken als SVG** (USK, DVD, CD, Blu-ray, GOG, Anbieter, Symbole): keine Rastergrafiken mehr, jede Datei nur wenige KB, in jeder Größe scharf (Test sorgt dafür)
 - [x] Falzmarken als gestrichelte Striche außerhalb des Covers an den Rückenkanten, mehr Platz im Funktionsstreifen
 - [ ] **SteamGridDB und Steam mit den echten Diensten prüfen** und nachbessern ([Checkliste](docs/manuelle-pruefung.md))
-- [ ] Anforderungen und Funktionen aus dem GOG-Katalog übernehmen
+- [x] **Daten von GOG** (Katalogsuche, Anforderungen, Funktionen, USK, Publisher, Spiel-Logo und Hintergrund in hoher Auflösung) über die Schnittstellen von GOG, mit nachgebauten Antworten getestet; dpi-Hinweis in der SteamGridDB-Auswahl
 - [ ] Eigener PDF-Export (bis dahin: im Druckdialog "Als PDF speichern")
 
 ### Builder und Player (gebaut, Praxistest steht aus)

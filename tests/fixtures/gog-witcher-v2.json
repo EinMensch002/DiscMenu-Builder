@@ -1,0 +1,188 @@
+{
+ "_links": {
+  "self": {
+   "href": "https://api.gog.com/v2/games/1207658924?locale=en-US"
+  },
+  "store": {
+   "href": "https://www.gog.com/en/game/the_witcher"
+  },
+  "icon": {
+   "href": "https://images.gog-statics.com/82ecfe17e7c3fa7fe3252664927ba9b0014ca17039d8ec1b46275677ab7a7898.png"
+  },
+  "logo": {
+   "href": "https://images.gog-statics.com/def9381ff2a8047fc343f023e3f976a65818f81381e616ac04094595cb1893a0.png"
+  },
+  "boxArtImage": {
+   "href": "https://images.gog-statics.com/32385c2c39b8715a9ccfb159ed481b55503b96526b00866f75a4af48461615a5.jpg"
+  },
+  "backgroundImage": {
+   "href": "https://images.gog-statics.com/c73009d18e964448b9704ad9d69a7c68bab5f8a10df410254bb511f2f9198a3a.jpg"
+  },
+  "galaxyBackgroundImage": {
+   "href": "https://images.gog-statics.com/46d5f76e789d0f335558b4ea79487ef7f1b2864ca67e77e127494882a3571751.jpg"
+  }
+ },
+ "_embedded": {
+  "product": {
+   "id": 1207658924,
+   "title": "The Witcher: Enhanced Edition"
+  },
+  "productType": "GAME",
+  "publisher": {
+   "name": "CD PROJEKT RED",
+   "searchIndex": "cd-projekt-red"
+  },
+  "publishers": [
+   {
+    "name": "CD PROJEKT RED",
+    "searchIndex": "cd-projekt-red"
+   }
+  ],
+  "developers": [
+   {
+    "name": "CD PROJEKT RED",
+    "searchIndex": "cd-projekt-red"
+   }
+  ],
+  "supportedOperatingSystems": [
+   {
+    "operatingSystem": {
+     "name": "windows",
+     "versions": "Windows"
+    },
+    "systemRequirements": [
+     {
+      "type": "minimum",
+      "description": "Windows 7, Intel Pentium 4 2.4GHz or AMD Athlon 64 +2800, 1 GB RAM for Windows XP, 1.5 GB for Vista, NVIDIA GeForce 6600 or ATI Radeon 9800 or better, 8.5 GB available hard drive space, DirectX 9.0c compliant soundcard\n",
+      "requirements": [
+       {
+        "id": "system",
+        "name": "System:",
+        "description": "Windows 10"
+       },
+       {
+        "id": "processor",
+        "name": "Processor:",
+        "description": "Intel Pentium 4 2.4 GHz or Athlon 64 +2800 (Intel Pentium 4 3.0 GHz or AMD Athlon 64 +3000 recommended). Athlon XP series, such as the Athlon XP +2400, is not supported"
+       },
+       {
+        "id": "memory",
+        "name": "Memory:",
+        "description": "1.5 GB RAM"
+       },
+       {
+        "id": "graphics",
+        "name": "Graphics:",
+        "description": "NVIDIA GeForce 6600 or ATI Radeon 9800 or better (NVIDIA GeForce 7800 GTX or ATI Radeon X1950 XT or better recommended)"
+       },
+       {
+        "id": "directx",
+        "name": "DirectX:",
+        "description": "DirectX 9.0c"
+       },
+       {
+        "id": "storage",
+        "name": "Storage:",
+        "description": "15 GB available hard drive space"
+       },
+       {
+        "id": "sound",
+        "name": "Sound:",
+        "description": "DirectX 9.0c compliant sound card"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "operatingSystem": {
+     "name": "osx",
+     "versions": "Mac OS X"
+    },
+    "systemRequirements": [
+     {
+      "type": "minimum",
+      "description": "OS X 10.8, 10.9, 10.10\nProcessor: Intel Core i5\nMemory: 4 GB of RAM\nGraphics:  nVidia GeForce GT 650m (1440x900), AMD Radeon HD 6750M (1440x900) or Intel HD 5000 (1366x768). \nHard Drive: 14.25 GB free space.\n",
+      "requirements": [
+       {
+        "id": "system",
+        "name": "System:",
+        "description": "macOS 11.0, macOS 12.0, and macOS 13.0"
+       },
+       {
+        "id": "processor",
+        "name": "Processor:",
+        "description": "Intel Core i5 or Apple silicon (M1/M2)"
+       },
+       {
+        "id": "memory",
+        "name": "Memory:",
+        "description": "4 GB RAM"
+       },
+       {
+        "id": "graphics",
+        "name": "Graphics:",
+        "description": "NVIDIA GeForce GT 650m (1440x900), AMD Radeon HD 6750M (1440x900), Intel HD 5000 (1366x768), or Apple silicon (M1/M2)"
+       },
+       {
+        "id": "storage",
+        "name": "Storage:",
+        "description": "14.25 GB free space"
+       }
+      ]
+     },
+     {
+      "type": "recommended",
+      "description": "OS: OS X 10.8, 10.9, 10.10\nProcessor: Intel Core i5 or Core i7\nMemory: 4 GB RAM\nGraphics: nVidia GeForce GT 650m (1440x900), AMD Radeon HD 6970M (1920x1080) or Intel Iris Pro 5200 (1440x900) \nHard Drive: 14.25 GB free\n<br><br>\nDisplay compatibility notice: 1440x900 resolution is the recommended resolution for best performance. It is not recommended to use native Retina resolutions.",
+      "requirements": [
+       {
+        "id": "system",
+        "name": "System:",
+        "description": "macOS 11.0, macOS 12.0, and macOS 13.0"
+       },
+       {
+        "id": "processor",
+        "name": "Processor:",
+        "description": "Intel Core i5, Core i7, or Apple silicon (M1/M2)"
+       },
+       {
+        "id": "memory",
+        "name": "Memory:",
+        "description": "4 GB RAM"
+       },
+       {
+        "id": "graphics",
+        "name": "Graphics:",
+        "description": "NVIDIA GeForce GT 650m (1440x900), AMD Radeon HD 6970M (1920x1080), Intel Iris Pro 5200 (1440x900), or Apple silicon (M1/M2)"
+       },
+       {
+        "id": "storage",
+        "name": "Storage:",
+        "description": "14.25 GB free space"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "features": [
+   {
+    "name": "Cloud saves",
+    "id": "cloud_saves"
+   },
+   {
+    "name": "Single-player",
+    "id": "single"
+   }
+  ],
+  "uskRating": {
+   "ageRating": 18,
+   "category": {
+    "name": "Not approved for young persons aged under 18"
+   }
+  },
+  "pegiRating": {
+   "ageRating": 18
+  }
+ }
+}

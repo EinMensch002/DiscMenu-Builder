@@ -304,3 +304,43 @@ test('Einstellungsdatei: Brandfetch-ID ist optional und stört den Konfigurator 
   const enc = await F.packSettings({ key: '', proxy: '', brandfetch: 'ID2' }, 'pw');
   assert.equal((await F.unpackSettings(enc, 'pw')).brandfetch, 'ID2');
 });
+
+/* ---------- GOG: Suche, Daten und Bilder (Antwort-Beispiel: The Witcher: Enhanced Edition, von api.gog.com/v2/games/1207658924) ---------- */
+test('GOG: Katalogsuche, Produkt-ID und Adresse', async () => {
+  const real = globalThis.fetch;
+  try {
+    let asked;
+    globalThis.fetch = async (u) => { asked = String(u); return { ok: true, status: 200, json: async () => ({ products: [{ id: '5', title: 'Reigns: The Witcher' }, { id: '1495134320', title: 'The Witcher 3: Wild Hunt — Remastered', releaseDate: '2015.05.18', coverVertical: 'https://images.gog-statics.com/x.jpg' }, { id: '1' }, { id: '6', title: 'The Witcher Adventure Game' }] }), text: async () => '' }; };
+    O.settings.save('', '');
+    const res = await O.gogSearch('The Witcher 3');
+    assert.equal(res[0].name, 'The Witcher 3: Wild Hunt — Remastered', 'der beste Treffer steht vorn (enthält alle Wörter), Einträge ohne Titel entfallen');
+    assert.deepEqual({ ...res[0] }, { id: '1495134320', name: 'The Witcher 3: Wild Hunt — Remastered', year: '2015', cover: 'https://images.gog-statics.com/x.jpg' });
+    assert.equal(res.length, 3);
+    assert.match(asked, /^https:\/\/catalog\.gog\.com\/v1\/catalog\?.*productType=in%3Agame%2Cpack.*query=like%3Awitcher$/, 'es wird nach dem längsten Wort gesucht, auch Ausgaben ("pack") sind dabei');
+    const exact = await O.gogSearch('witcher adventure game');
+    assert.equal(exact[0].name, 'The Witcher Adventure Game');
+  } finally { globalThis.fetch = real; }
+  assert.equal(O.parseGogRef('1207658924'), '1207658924');
+  assert.equal(O.parseGogRef('https://www.gogdb.org/product/1207658924'), '1207658924');
+  assert.equal(O.parseGogRef('witcher'), null); assert.equal(O.parseGogRef('123'), null);
+});
+
+test('GOG: Spiel-Daten werden wie die von Steam ausgewertet (Anforderungen, Funktionen, USK, Publisher, Bilder)', () => {
+  const v2 = require('./fixtures/gog-witcher-v2.json');
+  const d = O.gogDetails(v2);
+  assert.equal(d.name, 'The Witcher: Enhanced Edition');
+  assert.deepEqual(d.publishers, ['CD PROJEKT RED']); assert.deepEqual(d.platforms, { windows: true, mac: true, linux: false });
+  const r = O.steamPatchBoth(d);
+  assert.equal(r.patch.title, 'The Witcher: Enhanced Edition'); assert.equal(r.patch.publisher, 'CD PROJEKT RED');
+  assert.equal(r.patch.usk, '18'); assert.match(r.shown.find((x) => x.label === 'USK-Freigabe').min, /ab 18 Jahren \(USK laut GOG\)/);
+  assert.deepEqual(r.patch.features, ['single_player', 'cloud_saves']);
+  assert.equal(r.hasRequirements, true); assert.equal(r.patch.ram, '1.5'); assert.equal(r.patch.space, '15'); assert.equal(r.patch.dx, 'DirectX 9.0c');
+  assert.ok(r.patch.os.mac === true);
+  assert.ok(r.patch.cpu.items.some((i) => /Pentium 4|Athlon/.test(i.text || i.pre || '')) || r.patch.cpu.items.length > 0, 'Prozessor wird übernommen');
+  const img = O.gogImages(v2);
+  assert.match(img.cover, /^https:\/\/images\.gog-statics\.com\/[0-9a-f]{64}\.jpg$/); assert.match(img.logo, /\.png$/); assert.match(img.background, /\.jpg$/);
+  assert.notEqual(img.background, img.cover);
+  // Ohne Windows-Anforderungen oder Bewertung bleibt alles leer, ohne Fehler
+  const bare = O.gogDetails({ _embedded: { product: { id: 1, title: 'X' } }, _links: {} });
+  assert.equal(O.steamPatchBoth(bare).hasRequirements, false); assert.deepEqual(O.gogImages({}), { cover: '', logo: '', background: '' });
+});

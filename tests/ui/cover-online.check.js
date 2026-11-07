@@ -43,6 +43,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
     const target = new URL(req.url()).searchParams.get('url'); calls.push({ target, auth: req.headers().authorization });
     const ok = (body) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (/catalog\.gog\.com/.test(target)) return ok({ products: [{ id: '1', title: 'Beispiel' }] });
     if (/storesearch/.test(target)) return ok({ items: [{ id: 70, name: 'Half-Life' }, { id: 71, name: 'Half-Life 2' }] });
     if (/appdetails\?l=english&appids=1091500/.test(target)) return ok({ 1091500: { success: true, data: { name: 'Cyberpunk 2077', pc_requirements: { minimum: STEAM_CP }, platforms: { windows: true, mac: false, linux: false }, categories: [{ id: 2 }, { id: 22 }, { id: 28 }] } } });
     if (/appdetails/.test(target)) return ok({ 70: { success: true, data: { name: 'Half-Life', publishers: ['Valve'], developers: ['Valve'], ratings: { usk: { rating: '12' } }, pc_requirements: { minimum: STEAM_MIN, recommended: '<ul><li><strong>Memory:</strong> 4 GB RAM<br></li></ul>' }, platforms: { windows: true, mac: false, linux: true }, categories: [{ id: 2 }, { id: 1 }, { id: 22 }, { id: 28 }] } } });
@@ -205,6 +206,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.locator('#dlg .dlist button', { hasText: 'Half-Life' }).click();
   await page.waitForSelector('#dlg .gal button');
   assert.match(await page.locator('#dlg .gal small').first().textContent(), /600×900 · de/);
+  assert.match(await page.locator('#dlg .gal small.dpi-low').first().textContent(), /≈ 1\d\d dpi/, 'Auflösungshinweis: 600×900 sind auf der Hülle nur etwa 120 dpi');
   await page.locator('#dlg .gal button').first().click();
   await page.click('#dlg button:has-text("Als Frontcover übernehmen")');
   await page.waitForFunction(() => document.querySelector('[data-img=front]').classList.contains('has'));
@@ -293,7 +295,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   // Verbindungstest: beide Dienste einzeln
   await page.click('#dlg button:has-text("Verbindung testen")');
   await page.waitForFunction(() => /Alle Verbindungen in Ordnung/.test(document.querySelector('#dlg').textContent));
-  assert.match(await page.locator('#dlg').innerText(), /✓ Steam-Shop[\s\S]*✓ SteamGridDB/);
+  assert.match(await page.locator('#dlg').innerText(), /✓ Steam-Shop[\s\S]*✓ SteamGridDB[\s\S]*✓ GOG-Katalog/);
   const blocked = (route) => route.fulfill({ status: 403, headers: CORS, body: 'Dieser Host ist nicht erlaubt.' });
   await page.route('https://proxy.test/**', blocked);
   await page.click('#dlg button:has-text("Verbindung testen")');

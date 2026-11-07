@@ -115,3 +115,5 @@ Das [Cover-Tool](disc-sleeve.md) ist mit nachgebauten Diensten und im Browser-Dr
 - [ ] **Englische Oberfläche:** Sprache oben auf English stellen: alle Beschriftungen, Dialoge und Meldungen sind englisch, das Feld "Sprache der Beschriftung" fehlt, das Cover ist englisch beschriftet.
 - [ ] **Standardstart:** Nach "Zurücksetzen" ist GOG, normale Hülle, DVD, Durchsichtig schwarz mit passendem dunklem Rücken und sichtbarem GOG.COM eingestellt, die Falzmarken stehen unten und oben außerhalb des Covers.
 - [ ] **Negative Abstände am Rücken:** Ein Rückenlogo mit viel leerem Rand lässt sich mit negativen Abständen größer ziehen. Zur Seite wird abgeschnitten (nichts auf der Vorderseite), nach oben und unten prüfen, ob etwas Wichtiges überdeckt wird.
+- [ ] **Daten von GOG (echter Dienst):** Mit eingerichtetem Proxy ein GOG-Spiel suchen und übernehmen. Titel, Publisher, USK, Funktionen und Anforderungen stimmen, das Spiel-Logo und der Hintergrund laden, der Proxy-Worker ist aktuell. Das GOG-Cover ist erwartungsgemäß klein.
+- [ ] **dpi-Hinweis:** In der SteamGridDB-Auswahl steht zu jedem Bild die dpi auf der Hülle, die Werte passen zu den Bildmaßen.
