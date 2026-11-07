@@ -208,7 +208,7 @@ Beide Anbieter-Farben und die Rückseite (helles Feld mit den Angaben) sind in a
 ### Frontbild einpassen und USK-Hintergrund
 
 - **Frontbild einpassen** (Bereich "Bilder", unter dem Frontcover): **Strecken** ist der Standard, das ganze Bild füllt die Fläche, bei einem anderen Seitenverhältnis (z. B. Blu-ray-Hülle) wird es leicht gestaucht, nichts fehlt. **Zuschneiden** füllt die Fläche ohne Verzerrung: **Zoom** (100 bis 300 %) und **Ausschnitt** waagerecht und senkrecht (0 bis 100 %) bestimmen, welcher Teil zu sehen ist. Bei "Bild über den Rücken fortsetzen" bleibt es beim Zuschneiden über Rücken und Vorderseite.
-- **USK-Hintergrund:** Das USK-Zeichen besteht aus der **Raute** (immer voll sichtbar) und dem **Hintergrund** dahinter (abgerundetes Quadrat mit farbigem Rand). Der Regler "Hintergrund der USK auf der Vorderseite" stellt **nur den Hintergrund** ein: 100 % wie bisher, **0 % zeigt nur die Raute** ohne den farbigen Rand. Auf der **Rückseite steht immer nur die Raute**. Die Dateien liegen als `usk_<Wert>.svg` (Raute) und `usk_<Wert>_bg.svg` (Hintergrund) in `assets/images/usk/`.
+- **USK-Hintergrund:** Das USK-Zeichen besteht aus der **Raute** (immer voll sichtbar) und dem **Hintergrund** dahinter (abgerundetes Quadrat mit farbigem Rand). Der Regler "Hintergrund der USK auf der Vorderseite" stellt **nur den Hintergrund** ein: 100 % wie bisher, **0 % zeigt nur die Raute** ohne den farbigen Rand. Auf der **Rückseite steht immer nur die Raute**, etwas größer (19,5 mm), weil der Rand fehlt. Die Dateien liegen als `usk_<Wert>.svg` (Raute) und `usk_<Wert>_bg.svg` (Hintergrund) in `assets/images/usk/`.
 
 ## Feste Plätze auf der Rückseite
 
