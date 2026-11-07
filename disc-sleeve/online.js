@@ -114,8 +114,8 @@
   async function checkWorker() {
     let info = null;
     try {
-      const u = new URL(settings.proxy.split('{url}').join('x')); u.search = '?info=1';
-      const r = await fetch(u.href);
+      const u = new URL(settings.proxy.split('{url}').join('x')); u.search = '?info=1&t=' + Date.now();                  // nie aus dem Zwischenspeicher: nach dem Einspielen eines neuen Workers soll sofort die neue Version erscheinen
+      const r = await fetch(u.href, { cache: 'no-store' });
       try { info = await r.json(); } catch (e) { info = null; }
     } catch (e) { throw new Error('Der Proxy ist nicht erreichbar oder blockiert die Anfrage. Bitte die Proxy-Adresse prüfen.'); }
     if (!info || typeof info.version !== 'number') throw new Error('Alte Version des Proxy-Workers (ohne Versionsangabe), aktuell ist Version ' + WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen (Anleitung bei "Proxy einrichten").');
