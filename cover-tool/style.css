@@ -240,6 +240,23 @@ dialog .f small { display: block; margin-top: 3px; }
 .theme-bar.slim .spine-logo, .theme-bar.slim.has-wm .spine-logo { width: 5.5mm; }
 .theme-bar .spine.fill .spine-logo, .theme-bar.has-wm .spine.fill .spine-logo { width: calc(100% - 3mm); height: auto; max-height: 14mm; object-fit: contain; }
 
+/* ===== GOG: schmale Leiste in drei Varianten (Weiß, Dunkel, Dunkel durchscheinend). Das Logo ist immer da, "GOG.COM" lässt sich abschalten ===== */
+.cover.gog.theme-bar .gog-bar { padding-right: 3mm; }
+.cover.gog.theme-bar .gog-bar img { height: 6.4mm; width: auto; margin-left: 3mm; }
+.cover.gog.theme-bar .gog-bar .wm { display: none; }
+.cover.gog.gog-text.theme-bar .gog-bar .wm { display: flex; margin-left: 2.4mm; margin-right: auto; font-size: 8.5pt; letter-spacing: .55mm; color: var(--barFg); }
+.cover.gog.theme-bar .gog-bar b { color: var(--barFg); font-size: 6.5pt; opacity: .9; }
+.cover.gog.theme-bar .spine-logo, .cover.gog.theme-bar.has-wm .spine-logo { width: 6mm; height: auto; max-height: calc(var(--bar-h) - 3mm); }
+.cover.gog.theme-bar.slim .spine-logo { width: 4.6mm; }
+.cover.gog.theme-bar .spine.fill .spine-logo { width: calc(100% - 3mm); height: auto; max-height: calc(var(--bar-h) - 3mm); object-fit: contain; }
+.gog-tint .brand-logo { filter: brightness(0) opacity(.88); }
+.cover.bar-over.theme-bar .front { padding-top: 0; }
+.gog-dk .banner { background: linear-gradient(var(--bannerA), var(--bannerB)); border-top: .6mm solid var(--accent); }
+.gog-dk .banner-title b, .gog-dk .feat span { color: #fff; }
+.gog-dk .banner-title small { color: rgba(255, 255, 255, .72); }
+.gog-dk .feat img { filter: invert(1); }
+.gog:not(.gog-dk) .banner-title small { color: #4a4a55; }
+
 /* ===== Steam und Epic Games: dunkler Streifen mit den Spielfunktionen auf der Rückseite (in beiden Stilen) ===== */
 .has-wm .banner { background: linear-gradient(var(--bannerA), var(--bannerB)); border-top: .6mm solid var(--accent); }
 .has-wm .banner-title b, .has-wm .feat span { color: #fff; }

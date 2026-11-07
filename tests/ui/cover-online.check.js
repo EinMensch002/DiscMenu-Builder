@@ -92,7 +92,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
 
   // ---- Anbieter-Stile ----
   const css = (sel, prop) => page.evaluate(([s, p]) => getComputedStyle(document.querySelector(s)).getPropertyValue(p).trim(), [sel, prop]);
-  assert.equal(await css('#cover', '--brand'), '#89268d');
+  assert.equal(await css('#cover', '--brand'), '#2b2b31');
   await page.selectOption('[data-k=provider]', 'epic');
   await page.waitForFunction(() => document.querySelector('#cover').classList.contains('has-wm'));
   assert.equal(await css('#cover', '--brand'), '#2d2d33');

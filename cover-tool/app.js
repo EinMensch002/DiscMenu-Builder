@@ -105,6 +105,8 @@
     const sel = $('[data-k=theme]');
     if (!sel) return;
     if (state.provider !== 'gog') state.theme = 'bar';
+    else if (!['white', 'dark', 'glass'].includes(state.theme)) state.theme = 'dark';
+    $('#gogTextRow').hidden = state.provider !== 'gog';
     if (styleFor === state.provider && sel.options.length) return;
     styleFor = state.provider;
     const opts = C.styleOptions(state.provider);
@@ -229,13 +231,13 @@
   }
   /* Wie scharf wird das Bild gedruckt? Das Bild füllt die Fläche (zuschneiden), also entscheidet die knappere Seite. */
   function dpiOf(key, img) {
-    const spec = C.imageSpecs(C.caseDims(state))[key];
+    const spec = C.imageSpecs(C.caseDims(state), C.frontTop(state))[key];
     if (!spec || !img.w) return 0;
     const mmPerPx = Math.max(spec.w / img.w, spec.h / img.h);
     return Math.round(25.4 / mmPerPx);
   }
   function renderDrops() {
-    const specs = C.imageSpecs(C.caseDims(state));
+    const specs = C.imageSpecs(C.caseDims(state), C.frontTop(state));
     $$('.drop').forEach((drop) => {
       const key = drop.dataset.img, img = images[key], spec = specs[key];
       drop.classList.toggle('has', !!img);
@@ -330,9 +332,16 @@
   function applyProvider(cover) {
     const P = C.PROVIDERS[state.provider];
     const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line, spineBg: P.brand };
-    if (P.darkBar && state.theme === 'bar-dark') Object.assign(vars, { barA: P.darkBar.barA, barB: P.darkBar.barB, line: P.darkBar.line, spineBg: P.darkBar.spine });
+    const V = P.variants && P.variants[state.theme];
+    if (V) Object.assign(vars, { barA: V.barA, barB: V.barB, line: V.line, spineBg: V.spine, bannerA: V.bannerA, bannerB: V.bannerB, barFg: V.fg, 'bar-h': C.barHeight(state) + 'mm', 'bar-line': V.barLine });
+    else Object.assign(vars, { barFg: P.onBrand, 'bar-h': C.BAR_HEIGHT + 'mm', 'bar-line': '1.6mm' });
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
     cover.classList.toggle('has-wm', state.provider !== 'gog');
+    cover.classList.toggle('gog', state.provider === 'gog');
+    cover.classList.toggle('gog-text', state.provider === 'gog' && !!state.gogText);
+    cover.classList.toggle('gog-tint', !!(V && V.tint));
+    cover.classList.toggle('gog-dk', !!(V && V.dk));
+    cover.classList.toggle('bar-over', !!(V && V.over));
     $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + P.logo; img.alt = P.name; });
     $('#barWm').textContent = P.wordmark.replace('\n', ' ');
     $('#spineWm').textContent = P.wordmark.split('\n')[0];
@@ -398,7 +407,7 @@
 
   /* Rücken: Bild der Vorderseite fortsetzen, Logo statt Titel, Publisher-Logo am Fuß */
   function renderSpine(c) {
-    const spine = $('#spine'), front = $('#front'), barH = C.BAR_HEIGHT, f = images.front;
+    const spine = $('#spine'), front = $('#front'), barH = C.frontTop(state), f = images.front;
     const art = state.spineArt === 'image' && f && f.w > 0 && f.h > 0;
     spine.classList.toggle('art', !!art);
     if (art) {

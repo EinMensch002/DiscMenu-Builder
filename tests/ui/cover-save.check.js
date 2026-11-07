@@ -25,18 +25,38 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload();
 
-  // Standardwerte: Leiste in GOG-Farben (Lila mit Grün), Titel mittig, USK voll deckend
-  assert.equal(await page.inputValue('[data-k=theme]'), 'bar');
-  assert.deepEqual(await page.locator('[data-k=theme] option').allTextContents(), ['GOG-Farben (Lila mit Grün)', 'Dunkel mit Lila']);
-  assert.equal(await page.locator('#cover').evaluate((e) => getComputedStyle(e).getPropertyValue('--barB').trim()), '#6c1c72');
-  await page.selectOption('[data-k=theme]', 'bar-dark'); await page.waitForTimeout(150);       // dunkle Variante: Anthrazit mit lila Linie, auch auf dem Rücken
-  assert.equal(await page.locator('#cover').evaluate((e) => getComputedStyle(e).getPropertyValue('--barB').trim()), '#1b1b1f');
+  // Standardwerte: GOG dunkel (schmale Leiste), Titel mittig, USK voll deckend
+  const cv = (v) => page.locator('#cover').evaluate((e, n) => getComputedStyle(e).getPropertyValue(n).trim(), v);
+  assert.equal(await page.inputValue('[data-k=theme]'), 'dark');
+  assert.deepEqual(await page.locator('[data-k=theme] option').allTextContents(), ['Weiß', 'Dunkel', 'Dunkel, durchscheinend']);
+  assert.equal(await cv('--barB'), '#18181c');
   assert.equal(await page.locator('#spine').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(35, 35, 40)');
+  assert.equal(await page.locator('.gog-bar').evaluate((e) => Math.abs(e.getBoundingClientRect().height / (Number(getComputedStyle(document.querySelector('#preview')).getPropertyValue('--k')) || 1) / 3.7795 - 10) < 0.6), true, 'Leiste ist 10 mm schmal');
+  // Logo ist immer da, "GOG.COM" lässt sich ein- und ausschalten, "PC · DRM-FREI" bleibt
+  assert.equal(await page.locator('.gog-bar img').isVisible(), true);
+  assert.equal(await page.locator('#barWm').isVisible(), true); assert.equal(await page.locator('#barWm').textContent(), 'GOG.COM');
+  await page.uncheck('[data-k=gogText]'); await page.waitForTimeout(100);
+  assert.equal(await page.locator('#barWm').isVisible(), false); assert.equal(await page.locator('.gog-bar img').isVisible(), true);
+  assert.equal(await page.locator('#frontTag').textContent(), 'PC · DRM-FREI'); assert.equal(await page.locator('#frontTag').isVisible(), true);
+  await page.check('[data-k=gogText]');
+  // Weiß: helle Leiste mit dunklem Logo, die Leiste hat dunkle Schrift
+  await page.selectOption('[data-k=theme]', 'white'); await page.waitForTimeout(150);
+  assert.equal(await cv('--barA'), '#ffffff'); assert.equal(await cv('--barFg'), '#1c1c22');
+  assert.match(await page.locator('.gog-bar img').evaluate((e) => getComputedStyle(e).filter), /brightness/, 'Logo ist auf Weiß dunkel eingefärbt');
+  assert.equal(await page.locator('#cover').evaluate((e) => e.classList.contains('gog-dk')), false);
+  // Durchscheinend: die Leiste liegt über dem Bild (Verlauf), das Frontbild beginnt ganz oben
+  await page.selectOption('[data-k=theme]', 'glass'); await page.waitForTimeout(150);
+  assert.match(await cv('--barA'), /rgba/);
+  assert.equal(await page.locator('#front').evaluate((e) => getComputedStyle(e).paddingTop), '0px');
+  assert.match(await page.locator('[data-img=front] .spec').textContent(), /× 183 mm/);
+  await page.selectOption('[data-k=theme]', 'dark'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('#front').evaluate((e) => parseFloat(getComputedStyle(e).paddingTop) > 5), true);
   await page.selectOption('[data-k=provider]', 'steam'); await page.waitForTimeout(150);       // andere Anbieter: keine Farbvariante, das Feld ist ausgeblendet
   assert.equal(await page.locator('[data-k=theme] option').count(), 1);
   assert.equal(await page.locator('[data-k=theme]').isVisible(), false);
+  assert.equal(await page.locator('#gogTextRow').isVisible(), false, 'Der GOG.COM-Schalter gibt es nur bei GOG');
   assert.equal(await page.inputValue('[data-k=theme]'), 'bar');
-  await page.selectOption('[data-k=provider]', 'gog'); await page.selectOption('[data-k=theme]', 'bar');
+  await page.selectOption('[data-k=provider]', 'gog'); await page.selectOption('[data-k=theme]', 'dark');
   assert.equal(await page.inputValue('[data-k=spineTitle]'), 'center');
   assert.equal(await page.inputValue('input[type=text][data-k=uskOpacity]'), '100');
 
