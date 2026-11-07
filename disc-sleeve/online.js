@@ -107,11 +107,29 @@
     return d;
   }
 
+  /* Version des Proxy-Workers (tools/cors-proxy/worker.js): Der Worker meldet sich bei /?info=1 mit Version und erlaubten Hosts. Wird der Worker
+     geändert, steigen VERSION dort und WORKER_VERSION hier (ein Test prüft die Gleichheit). REQUIRED_HOSTS sind die Hosts, die die Tools über den Proxy brauchen. */
+  const WORKER_VERSION = 2;
+  const REQUIRED_HOSTS = ['www.steamgriddb.com', 'store.steampowered.com', 'catalog.gog.com', 'api.gog.com', 'store-content.ak.epicgames.com'];
+  async function checkWorker() {
+    let info = null;
+    try {
+      const u = new URL(settings.proxy.split('{url}').join('x')); u.search = '?info=1';
+      const r = await fetch(u.href);
+      try { info = await r.json(); } catch (e) { info = null; }
+    } catch (e) { throw new Error('Der Proxy ist nicht erreichbar oder blockiert die Anfrage. Bitte die Proxy-Adresse prüfen.'); }
+    if (!info || typeof info.version !== 'number') throw new Error('Alte Version des Proxy-Workers (ohne Versionsangabe), aktuell ist Version ' + WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen (Anleitung bei "Proxy einrichten").');
+    const missing = REQUIRED_HOSTS.filter((h) => !(info.hosts || []).some((src) => { try { return new RegExp(src).test(h); } catch (e) { return false; } }));
+    if (info.version < WORKER_VERSION || missing.length) throw new Error('Proxy-Worker Version ' + info.version + ', aktuell ist ' + WORKER_VERSION + (missing.length ? '. Er erlaubt nicht: ' + missing.join(', ') : '') + '. Bitte den aktuellen Worker-Code einspielen.');
+    return 'Version ' + info.version + (info.version > WORKER_VERSION ? ' (neuer als dieses Tool)' : ' (aktuell)');
+  }
+
   /* Verbindungstest für die Einstellungen: jeder Dienst einzeln, damit man sieht, woran es liegt */
   async function testConnection() {
     const out = [];
     const run = async (name, fn) => { try { out.push({ name, ok: true, text: await fn() }); } catch (e) { out.push({ name, ok: false, text: e.message || String(e) }); } };
     if (!settings.proxy) out.push({ name: 'Proxy', ok: false, text: 'Kein Proxy eingetragen. Ohne Proxy blockiert der Browser die Anfragen meist (CORS).' });
+    if (settings.proxy) await run('Proxy-Worker', checkWorker);
     await run('Steam-Shop', async () => { const r = await steamSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
     if (settings.key) await run('SteamGridDB', async () => { const r = await sgSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
     else out.push({ name: 'SteamGridDB', ok: false, text: 'Kein API-Schlüssel eingetragen.' });
@@ -469,7 +487,7 @@
     })).filter((x) => x.url && x.label);
   }
 
-  const api = { brandSearch, logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, steamUsk, keepManualFeatures, gogSearch, parseGogRef, gogGame, gogDetails, gogImages, SG_KINDS };
+  const api = { brandSearch, logoSearch, commonsUrl, commonsImageUrl, settings, net, sgGet, sgSearch, sgImages, sortImages, fetchBlob, steamSearch, steamDetails, parseSteamRef, shorten, testConnection, checkResponse, parseRequirements, parseSize, parseWindows, steamFeatures, steamPatch, steamPatchBoth, steamUsk, keepManualFeatures, checkWorker, WORKER_VERSION, REQUIRED_HOSTS, gogSearch, parseGogRef, gogGame, gogDetails, gogImages, SG_KINDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverOnline = api;
 })(typeof window !== 'undefined' ? window : globalThis);

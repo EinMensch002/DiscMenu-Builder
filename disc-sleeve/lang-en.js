@@ -192,7 +192,6 @@
     '"Verbindung testen" in den Einstellungen': '"Test connection" in the settings',
     'Teste die Verbindung ...': 'Testing the connection ...',
     'Alle Verbindungen in Ordnung.': 'All connections OK.',
-    'Mindestens eine Verbindung funktioniert nicht, Details unten.': 'At least one connection is not working, details below.',
     'Einstellungen gespeichert.': 'Settings saved.',
     'Einstellungen sichern': 'Back up settings',
     'Speichert Schlüssel und Proxy-Adresse in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Die Datei enthält deinen Schlüssel: nicht weitergeben und nicht ins Repository legen.': 'Saves key and proxy address in a file that can be read in again later, e.g. after clearing the browser data or on another device. The file contains your key: do not share it and do not put it in the repository.',
@@ -260,6 +259,7 @@
     'GOG liefert Cover nur in kleiner Größe (etwa 342 × 482 Pixel, das sind auf der Hülle rund 67 dpi). Logo und Hintergrund sind dagegen hochauflösend.': 'GOG only supplies covers in a small size (about 342 × 482 pixels, which is roughly 67 dpi on the case). Logo and background, however, are high resolution.',
     'GOG liefert zu diesem Spiel keine Daten.': 'GOG returns no data for this game.',
     'GOG-Katalog': 'GOG catalog',
+    'Proxy-Worker': 'Proxy worker',
     'GOG-Spieldaten': 'GOG game data',
     'GOG-Bilder': 'GOG images',
     'GOG hat keine Bild-Adresse geliefert.': 'GOG returned no image address.',
@@ -322,6 +322,13 @@
 
   /* Bruchstücke zusammengesetzter Meldungen (Reihenfolge egal, längere zuerst angewendet) */
   const parts = {
+    'Alte Version des Proxy-Workers (ohne Versionsangabe), aktuell ist Version ': 'Old version of the proxy worker (no version information), the current one is version ',
+    '. Bitte den aktuellen Worker-Code einspielen (Anleitung bei "Proxy einrichten").': '. Please install the current worker code (guide under "Set up a proxy").',
+    'Proxy-Worker Version ': 'Proxy worker version ',
+    ', aktuell ist ': ', current is ',
+    '. Er erlaubt nicht: ': '. It does not allow: ',
+    '. Bitte den aktuellen Worker-Code einspielen.': '. Please install the current worker code.',
+    ' (neuer als dieses Tool)': ' (newer than this tool)',
     ' hat mit Fehler ': ' responded with error ',
     'SteamGridDB hat mit Fehler ': 'SteamGridDB responded with error ',
     ' geantwortet.': '.',
@@ -385,6 +392,7 @@
   };
 
   const rules = [
+    [/^(\d+) von (\d+) Verbindungen funktionieren nicht: (.*)\. Details unten\.$/, '$1 of $2 connections are not working: $3. Details below.'],
     [/^Bild auswählen \((\d+) angezeigt\):$/, 'Choose an image ($1 shown):'],
     [/^Als (.+) übernehmen$/, 'Use as $1'],
     [/^ab (\d+) Jahren/, 'from age $1'],

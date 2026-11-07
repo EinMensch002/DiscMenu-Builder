@@ -252,7 +252,7 @@ Unter **Daten übernehmen > Daten von GOG …** sucht DiscSleeve im **GOG-Katalo
 
 **Selbst gesetzte Funktionen bleiben:** Beim Übernehmen von Steam oder GOG ersetzt die Funktionsliste des Ladens die bisherige. Nur **"Mods"** bleibt erhalten, wenn Du es selbst eingeschaltet hast (die Läden kennen Mods von Disc-Zusätzen nicht, z. B. ein später installiertes Mod-Menü).
 
-**Verbindung testen** (Einstellungen) prüft jeden Dienst einzeln: Steam-Shop, SteamGridDB, GOG-Katalog, GOG-Spieldaten, GOG-Bilder, Wikidata und Brandfetch. Der **Konfigurator** testet ebenfalls einzeln: SteamGridDB, Steam-Shop, GOG-Katalog, GOG-Spieldaten, Epic Games Store und die Übersetzung (MyMemory).
+**Verbindung testen** (Einstellungen) prüft zuerst den **Proxy-Worker** (Version und erlaubte Hosts, siehe [Proxy einrichten](steamgriddb.md)) und dann jeden Dienst einzeln: Steam-Shop, SteamGridDB, GOG-Katalog, GOG-Spieldaten, GOG-Bilder, Wikidata und Brandfetch. Bei Fehlern nennt die Zeile oben, wie viele und welche Dienste nicht funktionieren. Der **Konfigurator** testet ebenfalls einzeln (auch den Proxy-Worker): SteamGridDB, Steam-Shop, GOG-Katalog, GOG-Spieldaten, Epic Games Store und die Übersetzung (MyMemory).
 
 ### Woher kommen scharfe Cover?
 

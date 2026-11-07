@@ -21,6 +21,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.route('https://proxy.test/**', async (route) => {
     const req = route.request();
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+    if (new URL(req.url()).searchParams.has('info')) return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify({ version: 2, hosts: ['^www\\.steamgriddb\\.com$', '^store\\.steampowered\\.com$', '^catalog\\.gog\\.com$', '^api\\.gog\\.com$', '^store-content\\.ak\\.epicgames\\.com$'] }) });
     const target = new URL(req.url()).searchParams.get('url'); calls.push(target);
     const ok = (body) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if (/catalog\.gog\.com/.test(target)) return ok({ products: [{ id: '1207658924', title: 'The Witcher: Enhanced Edition', releaseDate: '2007.10.26' }, { id: '1495134320', title: 'The Witcher 3: Wild Hunt', releaseDate: '2015.05.18' }] });

@@ -42,6 +42,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.route('https://proxy.test/**', async (route) => {
     const req = route.request();
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+    if (new URL(req.url()).searchParams.has('info')) return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify({ name: 'discmenu-proxy', version: 2, hosts: ['^www\\.steamgriddb\\.com$', '^store\\.steampowered\\.com$', '^catalog\\.gog\\.com$', '^api\\.gog\\.com$', '^store-content\\.ak\\.epicgames\\.com$'] }) });
     const target = new URL(req.url()).searchParams.get('url'); calls.push({ target, auth: req.headers().authorization });
     const ok = (body) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if (/catalog\.gog\.com/.test(target)) return ok({ products: [{ id: '1', title: 'Beispiel' }] });
@@ -297,7 +298,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   // Verbindungstest: beide Dienste einzeln
   await page.click('#dlg button:has-text("Verbindung testen")');
   await page.waitForFunction(() => /Alle Verbindungen in Ordnung/.test(document.querySelector('#dlg').textContent));
-  assert.match(await page.locator('#dlg').innerText(), /✓ Steam-Shop[\s\S]*✓ SteamGridDB[\s\S]*✓ GOG-Katalog[\s\S]*✓ GOG-Spieldaten[\s\S]*✓ GOG-Bilder/);
+  assert.match(await page.locator('#dlg').innerText(), /✓ Proxy-Worker: Version 2 \(aktuell\)[\s\S]*✓ Steam-Shop[\s\S]*✓ SteamGridDB[\s\S]*✓ GOG-Katalog[\s\S]*✓ GOG-Spieldaten[\s\S]*✓ GOG-Bilder/);
   const blocked = (route) => route.fulfill({ status: 403, headers: CORS, body: 'Dieser Host ist nicht erlaubt.' });
   await page.route('https://proxy.test/**', blocked);
   await page.click('#dlg button:has-text("Verbindung testen")');

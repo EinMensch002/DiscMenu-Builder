@@ -3,6 +3,11 @@
 // Optional: Die Variable ALLOWED_ORIGIN (z. B. https://einmensch002.github.io) beschränkt
 // den Proxy auf bestimmte Seiten. Mehrere Adressen werden mit Komma getrennt.
 // Anleitung: docs/steamgriddb.md
+//
+// VERSION: Die Tools (DiscSleeve und Konfigurator) fragen mit /?info=1 nach der Version und der Liste der erlaubten Hosts und zeigen unter
+// "Verbindung testen", ob dieser Worker aktuell ist. Wer diese Datei ändert, erhöht VERSION hier und WORKER_VERSION in disc-sleeve/online.js und
+// configurator/index.html (ein Test prüft, dass alle drei gleich sind und der Worker alle Hosts der Tools erlaubt).
+const VERSION = 2;
 
 const ALLOWED_HOSTS = [
   /^([a-z0-9-]+\.)*steamgriddb\.com$/,
@@ -34,6 +39,11 @@ export default {
 
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
     if (request.method !== 'GET') return reply('Nur GET ist erlaubt.', 405);
+
+    const params = new URL(request.url).searchParams;
+    if (params.has('info') && !params.has('url')) {
+      return new Response(JSON.stringify({ name: 'discmenu-proxy', version: VERSION, hosts: ALLOWED_HOSTS.map((re) => re.source) }), { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    }
 
     let target;
     try {

@@ -10,10 +10,11 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
-  let epicDown = false; const seen = [];
+  let epicDown = false, workerVersion = 2; const seen = [];
   await page.route('https://proxy.test/**', (route) => {
     const req = route.request();
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+    if (new URL(req.url()).searchParams.has('info')) return route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify({ name: 'discmenu-proxy', version: workerVersion, hosts: ['^www\\.steamgriddb\\.com$', '^store\\.steampowered\\.com$', '^catalog\\.gog\\.com$', '^api\\.gog\\.com$', '^store-content\\.ak\\.epicgames\\.com$'] }) });
     const t = new URL(req.url()).searchParams.get('url'); seen.push(t);
     const json = (b, status = 200) => route.fulfill({ status, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(b) });
     if (/steamgriddb/.test(t)) return json({ success: true, data: [{ id: 1, name: 'Half-Life' }] });
@@ -33,20 +34,29 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.click('#dlg button:has-text("Verbindung testen")');
   await page.waitForFunction(() => /Alle Verbindungen in Ordnung/.test(document.querySelector('#dlg').textContent));
   const text = await page.locator('#sgTests').innerText();
-  for (const n of ['SteamGridDB', 'Steam-Shop', 'GOG-Katalog', 'GOG-Spieldaten', 'Epic Games Store', 'Übersetzung (MyMemory)']) assert.match(text, new RegExp('✓ ' + n.replace(/[()]/g, '\\$&')), n);
+  for (const n of ['Proxy-Worker', 'SteamGridDB', 'Steam-Shop', 'GOG-Katalog', 'GOG-Spieldaten', 'Epic Games Store', 'Übersetzung (MyMemory)']) assert.match(text, new RegExp('✓ ' + n.replace(/[()]/g, '\\$&')), n);
   assert.ok(seen.some((u) => /api\.gog\.com\/products\/1207658924/.test(u)), 'GOG-Spieldaten werden abgefragt');
+  assert.match(text, /✓ Proxy-Worker: Version 2 \(aktuell\)/);
+
+  // Veralteter Worker (Version 1): Kreuz mit Hinweis, die Zusammenfassung nennt den Dienst
+  workerVersion = 1;
+  await page.click('#dlg button:has-text("Verbindung testen")');
+  await page.waitForFunction(() => /Verbindungen funktionieren nicht: Proxy-Worker/.test(document.querySelector('#dlg').textContent));
+  assert.match(await page.locator('#sgTests').innerText(), /✗ Proxy-Worker: Proxy-Worker Version 1, aktuell ist 2\. Bitte den aktuellen Worker-Code einspielen\./);
+  assert.match(await page.locator('#dlg').textContent(), /1 von 7 Verbindungen funktionieren nicht: Proxy-Worker\. Details unten\./);
+  workerVersion = 2;
 
   // Ein Dienst fällt aus (Worker veraltet): er steht mit Meldung da, die anderen bleiben grün
   epicDown = true;
   await page.click('#dlg button:has-text("Verbindung testen")');
-  await page.waitForFunction(() => /Mindestens eine Verbindung funktioniert nicht/.test(document.querySelector('#dlg').textContent));
+  await page.waitForFunction(() => /Verbindungen funktionieren nicht: Epic Games Store/.test(document.querySelector('#dlg').textContent));
   const t2 = await page.locator('#sgTests').innerText();
   assert.match(t2, /✗ Epic Games Store: Der Proxy erlaubt Epic Games nicht/); assert.match(t2, /✓ GOG-Katalog/);
 
   // Ohne Schlüssel und Proxy: verständliche Hinweise statt Absturz
   await page.fill('#dlg input[placeholder="API-Schlüssel"]', ''); await page.fill('#dlg input[placeholder*="proxy"]', '');
   await page.click('#dlg button:has-text("Verbindung testen")');
-  await page.waitForFunction(() => /Mindestens eine/.test(document.querySelector('#dlg').textContent) && /Kein Proxy eingetragen/.test(document.querySelector('#sgTests').textContent));
+  await page.waitForFunction(() => /Verbindungen funktionieren nicht/.test(document.querySelector('#dlg').textContent) && /Kein Proxy eingetragen/.test(document.querySelector('#sgTests').textContent));
   assert.match(await page.locator('#sgTests').innerText(), /✗ SteamGridDB: Kein API-Schlüssel eingetragen/);
 
   assert.deepEqual(errors, [], 'Keine Skriptfehler');

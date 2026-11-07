@@ -68,7 +68,7 @@ const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zu
   await page.click('#bSettings');
   assert.match(await page.locator('#dlg').textContent(), /Settings for SteamGridDB and Steam/);
   await page.click('#dlg button:has-text("Test connection")');
-  await page.waitForFunction(() => /At least one connection is not working/.test(document.querySelector('#dlg').textContent));
+  await page.waitForFunction(() => /connections are not working/.test(document.querySelector('#dlg').textContent));
   assert.deepEqual(await leftovers('#dlg'), [], 'Deutsche Reste im Einstellungsdialog');
   await page.click('#dlgX');
   await page.click('details.menu:has-text("Import data") summary'); await page.click('#bSteam');
