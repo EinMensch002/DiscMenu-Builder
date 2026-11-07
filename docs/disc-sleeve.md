@@ -235,6 +235,33 @@ Oben in der Leiste steht ein **Sprachmenü mit Flagge** (Deutsch, English). Es s
 Damit sich das Tool auch ohne Vorkenntnisse bedienen lässt, stehen **Auswahlen mit wenigen Möglichkeiten als Schaltflächen** da (z. B. Anbieter, Hülle, Disc-Medium, Sprache der Beschriftung, Frontbild einpassen, Rücken hell oder dunkel, Farbe von "PC"): Man sieht alle Möglichkeiten auf einen Blick und wählt mit einem Klick statt über eine Aufklappliste. Der **Stil** ist ein Schieberegler mit Farbvorschau. Oben im Formular stehen **Sprungknöpfe zu allen Bereichen** (Hülle und Stil, Titel und Texte, Bilder ...), sie öffnen den Bereich und springen hin.
 
 
+### Rückseite gestalten (Editor)
+
+Die Rückseite besteht aus **zwei Teilen**:
+
+- **Unten, immer gleich (fester Teil):** der Streifen mit den **Spielfunktionen** und darunter **Systemanforderungen, Logos, USK und Copyright**. Er sieht bei GOG, Epic und Steam gleich aus. Nur die **Höhen** lassen sich von Hand einstellen (Bereich "Rückseite" im Formular, 0,25-mm-Schritte), zum Beispiel für eine Blu-ray-Hülle.
+- **Darüber, frei (Gestaltungsfläche):** Als Grund dient das Bild "Rückseite oben" (Bereich "Bilder"). Darauf liegen beliebig viele **Bilder und Texte**, die man im **Editor** (Pop-up) anordnet. Geöffnet wird er mit **"Rückseite gestalten …"** oder mit einem **Klick auf die Fläche** in der Vorschau. Was über die Fläche hinausragt, wird abgeschnitten (es verschwindet "hinter dem Weiß").
+
+**Im Editor:**
+
+| Was | Wie |
+|---|---|
+| Hinzufügen | **+ Text**, **+ Bild (Datei)**, **+ Bild von Steam oder GOG** (Suche, Screenshots, Hintergrund und Titelbild; mehrere Bilder auf einmal wählbar) |
+| Verschieben, Größe | Ziehen, Griffe an den Ecken und Kanten (Umschalt hält bei Bildern das Seitenverhältnis), Pfeiltasten (0,25 mm, mit Umschalt 1 mm). Es **rastet** an Rändern, Mitte und anderen Elementen ein (Alt beim Ziehen: nicht einrasten) |
+| Text | Inhalt (eigener Text, **Spieltitel** oder **Beschreibung des Spiels**), Schriftart (Lato, Serif, Schmal, Plakat, Schreibmaschine, Handschrift), Größe in pt, Farbe, Stärke, **kursiv**, **GROSSBUCHSTABEN**, Zeichenabstand, Zeilenhöhe, Ausrichtung (auch Blocksatz, senkrecht), "Schrift an Platz anpassen", Hintergrund hinter dem Text mit Deckkraft |
+| Bild | Einpassen (füllen, ganz zeigen, strecken), Ausschnitt, Deckkraft, Anzeige der Druckauflösung (dpi) |
+| **Rand und Übergang** | Ohne, **Abgerundet**, **Rahmen** (Breite und Farbe), **Weicher Rand** (Bild blendet an den Kanten aus) und **Ausgerissen (Papier)** (unregelmäßiger, ausgefranster Rand) |
+| **Drehen** | Element anklicken, am **runden Griff oberhalb** ziehen (rastet bei 0°, 90°, 180°, 270° ein, mit Umschalt in 15°-Schritten) oder im Feld **Drehung (°)** eintippen. Gedrehte Elemente lassen sich weiter verschieben und skalieren |
+| Ordnung | Nach vorn, nach hinten, Duplizieren (Strg+D), Löschen (Entf) |
+| Rückgängig | Rückgängig und Wiederholen (Strg+Z, Strg+Y), bis zu 50 Schritte |
+| Vorlagen | Der Knopf **Vorlagen** öffnet links eine **Leiste mit Mini-Vorschauen** (Bilder als graue Flächen, Texte als Zeilen). Vorhanden: Leer, Titel und Beschreibung, Beschreibung und Bildleiste, **Party-Stil** (Among Us), **Vier Bilder** (Age of Empires), **Spalten** (Spider-Man), **Retro** (Half-Life) und **Ganzes Bild** (Alyx). Eine Vorlage ersetzt die vorhandenen Elemente (vorher wird gefragt), danach ist alles frei änderbar. Eigene Vorlagen speichern und importieren sind für später geplant |
+| **Durchgehendes Bild** | Haken im Editor (und im Formular): Das Bild "Rückseite oben" geht dann über die **ganze Rückseite** und wird nur vom Streifen mit den Spielfunktionen unterbrochen, unten liegt es hinter dem weißlichen Feld. Standard sind zwei getrennte Bilder (oben und unten). Bildmaße: die ganze Rückseite |
+
+- **Beschreibung:** Steam und GOG übernehmen beim Import die Kurzbeschreibung in das Feld "Beschreibung des Spiels" (Bereich "Rückseite"). Ein Textelement mit Inhalt "Beschreibung des Spiels" zeigt sie an.
+- **Schriften** kommen vom Betriebssystem (nur Lato liegt bei). Auf einem anderen Rechner kann ein Text deshalb etwas anders aussehen. Die Papierkante ("Ausgerissen") sieht bei jedem Zeichnen gleich aus.
+- **Gespeichert** wird alles mit dem Projekt (Einstellungen, Elemente, Bilder, ZIP). Bilder der Gestaltungsfläche heißen `d1`, `d2` und so weiter und werden beim Schließen des Editors entfernt, wenn kein Element sie mehr braucht.
+- **Zu hoch:** Sind die festen Teile zusammen so hoch wie die Rückseite, steht ein Hinweis da. Dann die Höhen verkleinern.
+
 ### Längen in Millimetern und negative Abstände
 
 Alle Felder, in denen man eine Länge in **Millimetern** eingibt (eigene Hüllenmaße, Abstände und Breite von Rückenlogo und Publisher-Logo am Rücken), sind Zahlenfelder: Mit **Pfeil nach oben und unten** (oder den kleinen Pfeilen im Feld) geht der Wert in **0,25-mm-Schritten**. Bei den **Abständen am Rücken** (zur Seite, zum Kopf oben, zum Fuß unten) sind auch **negative Zahlen** erlaubt: Das Logo wird dann größer und ragt über seinen Rahmen hinaus. Das hilft bei Logos mit viel leerem Rand ums Bild. Zur Seite hin wird alles am Rand des Rückens abgeschnitten, damit nichts auf Vorder- oder Rückseite zu sehen ist. Nach oben und unten darf das Logo über sein Feld hinaus in den Bereich von Leiste und "PC" ragen. Das kann dort etwas überdecken, bitte im Ausdruck prüfen.

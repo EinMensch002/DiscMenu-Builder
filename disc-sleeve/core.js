@@ -38,22 +38,143 @@
     return { name: 'Eigene Maße', w: round1(back + spine + front), h, back: round1(back), spine: round1(spine), front: round1(front), adjusted };
   }
 
-  /* Rückseite: oben das Bild, dann der grüne Streifen, unten die Angaben. */
-  const BACK = { banner: 15, bottom: 46 };
+  /* ---------- Rückseite: unten fest, oben frei gestaltbar ----------
+     Unten steht immer derselbe Teil (Streifen mit den Spielfunktionen und Systemanforderungen mit Logos), bei allen Anbietern gleich. Die Höhen lassen sich
+     von Hand anpassen (z. B. bei einer Blu-ray-Hülle). Darüber liegt die Gestaltungsfläche: Als Grund das Bild "Rückseite oben", darauf beliebig viele
+     Elemente (Bilder und Texte) mit Position und Größe in mm, in der Reihenfolge von unten nach oben. Bearbeitet wird sie im Editor (Pop-up). */
+  const BACK = { banner: 15, bottom: 46 };                                           // Standardhöhen unten (mm)
+  const BACK_LIMITS = { featH: [10, 30], reqH: [30, 110] };
+  const BACK_FONTS = ['sans', 'serif', 'condensed', 'display', 'mono', 'hand'];
+  const BACK_EDGES = ['none', 'round', 'border', 'feather', 'torn'];
+  const MAX_ITEMS = 60;
+  const clampN = (v, lo, hi, d) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+  const hexOk = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v)) ? String(v).toLowerCase() : d);
+  const oneOf = (v, list, d) => (list.includes(v) ? v : d);
+  const IMAGE_KEY_RE = /^(front|backTop|backBottom|publisher|spineLogo|spineBg|d\d+)$/;
+  const isImageKey = (k) => IMAGE_KEY_RE.test(String(k));
+
+  const normRot = (v) => { const n = parseFloat(String(v).replace(',', '.')); if (!isFinite(n)) return 0; let r = ((n % 360) + 360) % 360; if (r > 180) r -= 360; return Math.round(r * 10) / 10; };
+  /* Ein Element der Gestaltungsfläche prüfen (fehlende Werte bekommen Standardwerte) */
+  function normalizeItem(raw) {
+    if (!raw || typeof raw !== 'object' || !['image', 'text'].includes(raw.type)) return null;
+    const it = {
+      id: typeof raw.id === 'string' && /^[a-z0-9_-]{1,12}$/i.test(raw.id) ? raw.id : '',
+      type: raw.type,
+      x: clampN(raw.x, -300, 600, 0), y: clampN(raw.y, -300, 600, 0), w: clampN(raw.w, 2, 600, 40), h: clampN(raw.h, 2, 600, 20),
+      opacity: Math.round(clampN(raw.opacity, 5, 100, 100)), rot: normRot(raw.rot),
+      edge: oneOf(raw.edge, BACK_EDGES, 'none'), edgeSize: clampN(raw.edgeSize, 0, 20, 0), borderColor: hexOk(raw.borderColor, '#ffffff'),
+    };
+    if (it.type === 'image') {
+      it.img = isImageKey(raw.img) ? raw.img : '';
+      it.fit = oneOf(raw.fit, ['cover', 'contain', 'stretch'], 'cover');
+      it.posX = Math.round(clampN(raw.posX, 0, 100, 50)); it.posY = Math.round(clampN(raw.posY, 0, 100, 50));
+    } else {
+      it.text = typeof raw.text === 'string' ? raw.text.slice(0, 4000) : '';
+      it.bind = oneOf(raw.bind, ['', 'title', 'description'], '');
+      it.font = oneOf(raw.font, BACK_FONTS, 'sans');
+      it.size = clampN(raw.size, 3, 120, 8); it.color = hexOk(raw.color, '#222222');
+      it.weight = oneOf(String(raw.weight), ['300', '400', '700', '900'], '400'); it.italic = !!raw.italic; it.caps = !!raw.caps;
+      it.spacing = clampN(raw.spacing, -5, 60, 0); it.line = clampN(raw.line, 0.8, 3, 1.3);
+      it.align = oneOf(raw.align, ['left', 'center', 'right', 'justify'], 'left'); it.valign = oneOf(raw.valign, ['top', 'middle', 'bottom'], 'top');
+      it.fit = raw.fit !== false; it.bg = raw.bg ? hexOk(raw.bg, '') : ''; it.bgOpacity = Math.round(clampN(raw.bgOpacity, 0, 100, 80)); it.pad = clampN(raw.pad, 0, 20, 1);
+    }
+    return it;
+  }
+  function defaultBack() { return { featH: String(BACK.banner), reqH: String(BACK.bottom), span: false, description: '', seq: 1, items: [] }; }
+  function normalizeBack(saved) {
+    const s = saved && typeof saved === 'object' ? saved : {}, out = defaultBack();
+    out.featH = String(Math.round(clampN(s.featH, BACK_LIMITS.featH[0], BACK_LIMITS.featH[1], BACK.banner) * 100) / 100);
+    out.reqH = String(Math.round(clampN(s.reqH, BACK_LIMITS.reqH[0], BACK_LIMITS.reqH[1], BACK.bottom) * 100) / 100);
+    out.span = !!s.span;
+    out.description = typeof s.description === 'string' ? s.description.slice(0, 4000) : '';
+    const seen = new Set(); let maxN = 0;
+    for (const raw of Array.isArray(s.items) ? s.items.slice(0, MAX_ITEMS) : []) {
+      const it = normalizeItem(raw); if (!it) continue;
+      if (!it.id || seen.has(it.id)) { let n = 1; while (seen.has('e' + n)) n++; it.id = 'e' + n; }
+      seen.add(it.id); out.items.push(it);
+    }
+    for (const it of out.items) { const m = /^d(\d+)$/.exec(it.img || ''); if (m) maxN = Math.max(maxN, Number(m[1])); }
+    out.seq = Math.max(Math.round(clampN(s.seq, 1, 100000, 1)), maxN + 1);
+    return out;
+  }
+  /* Höhe der Gestaltungsfläche (mm): alles über dem Streifen mit den Spielfunktionen */
+  function designHeight(state, dims) {
+    const c = dims || caseDims(state), b = (state && state.back) || defaultBack();
+    return Math.max(0, round1(c.h - Number(b.featH) - Number(b.reqH)));
+  }
+  /* Neues Element mit Standardwerten (Position in mm auf der Gestaltungsfläche) */
+  function newItem(type, props) { return normalizeItem({ type, ...(props || {}) }); }
+  /* Vorlagen für die Gestaltungsfläche: Elemente, die an die Größe der Fläche angepasst sind (Bilder bleiben leer, bis man sie wählt) */
+  const BACK_TEMPLATES = { none: 'Leer', text: 'Titel und Beschreibung', steam: 'Beschreibung und Bildleiste', among: 'Party-Stil (Among Us)', aoe: 'Vier Bilder (Age of Empires)', spider: 'Spalten (Spider-Man)', halflife: 'Retro (Half-Life)', alyx: 'Ganzes Bild (Alyx)' };
+  /* Vorlagen nach dem Vorbild bekannter Steam-Hüllen. Maße sind Anteile der Gestaltungsfläche (x, y, Breite, Höhe von 0 bis 1), Schriftgrößen gelten für 130 mm Breite.
+     Eine Fläche ("fill") ist ein Textelement ohne Text mit Hintergrund, sie dient als dunkler Grund. */
+  const W = '#ffffff';
+  const fill = (c, o) => ['text', 0, 0, 1, 1, { bg: c, bgOpacity: o || 100, pad: 0 }];
+  const txt = (x, y, w, h, p) => ['text', x, y, w, h, { size: 7, color: W, ...p }];
+  const img = (x, y, w, h, p) => ['image', x, y, w, h, p || {}];
+  const TEMPLATE_DEFS = {
+    among: [fill('#0b0b0f'),
+      txt(0.06, 0.03, 0.88, 0.17, { text: 'Überschrift', font: 'display', size: 17, weight: '900', align: 'center', valign: 'middle' }),
+      txt(0.08, 0.2, 0.84, 0.09, { text: 'Kurzer Text …', size: 8, align: 'center' }),
+      img(0.1, 0.31, 0.8, 0.13), txt(0.1, 0.445, 0.8, 0.05, { text: 'Bildunterschrift', size: 6.5, align: 'center' }),
+      img(0.1, 0.52, 0.8, 0.13), txt(0.1, 0.655, 0.8, 0.05, { text: 'Bildunterschrift', size: 6.5, align: 'center' }),
+      txt(0.06, 0.72, 0.88, 0.26, { bind: 'description', size: 8, align: 'center' })],
+    aoe: [fill('#17110c'),
+      txt(0.05, 0.03, 0.9, 0.1, { text: 'Überschrift', font: 'display', size: 15, weight: '900', caps: true, align: 'center', valign: 'middle', color: '#e8d9b0', spacing: 3 }),
+      img(0.05, 0.16, 0.43, 0.26, { edge: 'border', edgeSize: 0.5, borderColor: '#e8d9b0' }), img(0.52, 0.16, 0.43, 0.26, { edge: 'border', edgeSize: 0.5, borderColor: '#e8d9b0' }),
+      txt(0.05, 0.425, 0.43, 0.12, { text: 'Bildunterschrift', size: 6, color: '#e8d9b0' }), txt(0.52, 0.425, 0.43, 0.12, { text: 'Bildunterschrift', size: 6, color: '#e8d9b0' }),
+      img(0.05, 0.56, 0.43, 0.26, { edge: 'border', edgeSize: 0.5, borderColor: '#e8d9b0' }), img(0.52, 0.56, 0.43, 0.26, { edge: 'border', edgeSize: 0.5, borderColor: '#e8d9b0' }),
+      txt(0.05, 0.825, 0.43, 0.12, { text: 'Bildunterschrift', size: 6, color: '#e8d9b0' }), txt(0.52, 0.825, 0.43, 0.12, { text: 'Bildunterschrift', size: 6, color: '#e8d9b0' })],
+    spider: [fill('#0a0a0c'),
+      txt(0.05, 0.04, 0.9, 0.12, { text: 'Überschrift', font: 'display', size: 18, weight: '900', caps: true, valign: 'top', spacing: 2 }),
+      txt(0.05, 0.2, 0.43, 0.17, { text: 'Kurzer Text …' }), txt(0.05, 0.39, 0.43, 0.17, { text: 'Kurzer Text …' }), txt(0.05, 0.58, 0.43, 0.17, { text: 'Kurzer Text …' }), txt(0.05, 0.77, 0.43, 0.17, { text: 'Kurzer Text …' }),
+      img(0.53, 0.2, 0.42, 0.21), img(0.53, 0.44, 0.42, 0.21), img(0.53, 0.68, 0.42, 0.21)],
+    halflife: [fill('#14110e'),
+      txt(0.04, 0.03, 0.92, 0.1, { text: 'Überschrift', font: 'display', size: 22, weight: '900', caps: true, color: '#f2a33a', valign: 'middle' }),
+      txt(0.06, 0.15, 0.88, 0.14, { bind: 'description', size: 8, italic: true, color: '#f0e6d6', align: 'center' }),
+      img(0.06, 0.33, 0.42, 0.24), txt(0.52, 0.33, 0.42, 0.24, { text: 'Kurzer Text …', color: '#f0e6d6' }),
+      img(0.06, 0.62, 0.42, 0.24), txt(0.52, 0.62, 0.42, 0.24, { text: 'Kurzer Text …', color: '#f0e6d6' })],
+    alyx: [img(0, 0, 1, 1),
+      txt(0.08, 0.55, 0.84, 0.12, { bind: 'title', font: 'display', size: 22, weight: '900', caps: true, align: 'center', valign: 'middle', bg: '#000000', bgOpacity: 40, spacing: 4 }),
+      txt(0.08, 0.69, 0.84, 0.26, { bind: 'description', size: 8, bg: '#000000', bgOpacity: 55, pad: 2 })],
+  };
+  function backTemplate(id, w, h) {
+    const m = 6, inner = Math.max(10, w - 2 * m);
+    if (TEMPLATE_DEFS[id]) {
+      return TEMPLATE_DEFS[id].map(([type, fx, fy, fw, fh, p]) => newItem(type, { ...p, x: round1(fx * w), y: round1(fy * h), w: round1(fw * w), h: round1(fh * h), ...(p.size ? { size: round1(p.size * w / 130) } : {}) }));
+    }
+    if (id === 'text') {
+      return [
+        newItem('text', { bind: 'title', x: m, y: h * 0.38, w: inner, h: 9, font: 'display', size: 16, weight: '900', caps: true, align: 'center', valign: 'middle', color: '#ffffff', spacing: 4, bg: '#000000', bgOpacity: 45, pad: 1.5 }),
+        newItem('text', { bind: 'description', x: m, y: h * 0.38 + 11, w: inner, h: h * 0.6 - 13, size: 8, color: '#ffffff', align: 'left', bg: '#000000', bgOpacity: 45, pad: 2 }),
+      ];
+    }
+    if (id === 'steam') {
+      const stripH = Math.round(h * 0.26 * 10) / 10, gap = 3, iw = Math.round(((inner - 2 * gap) / 3) * 10) / 10, y = round1(h - stripH - 4);
+      const out = [
+        newItem('text', { bind: 'title', x: m, y: round1(h * 0.34), w: inner, h: 8, font: 'display', size: 15, weight: '900', caps: true, align: 'center', valign: 'middle', color: '#1c1c22', spacing: 3 }),
+        newItem('text', { bind: 'description', x: m, y: round1(h * 0.34 + 9), w: inner, h: round1(y - h * 0.34 - 12), size: 7.5, color: '#222222', align: 'left' }),
+      ];
+      for (let i = 0; i < 3; i++) out.push(newItem('image', { x: round1(m + i * (iw + gap)), y, w: iw, h: stripH, edge: 'border', edgeSize: 0.6, borderColor: '#ffffff' }));
+      return out;
+    }
+    return [];
+  }
+  function imageSpecs(caseOrDims, top, state) {
+    if (top === undefined) top = BAR_HEIGHT;
+    const c = typeof caseOrDims === 'object' ? caseOrDims : (CASES[caseOrDims] || CASES.normal);
+    const b = (state && state.back) || defaultBack();
+    return {
+      front: { w: c.front, h: round1(c.h - top) },
+      backTop: { w: c.back, h: b.span ? c.h : designHeight({ back: b }, c) },
+      backBottom: { w: c.back, h: Number(b.reqH) },
+      spineBg: { w: c.spine, h: c.h },
+    };
+  }
 
   /* Größe, in der die Bilder für den Druck angelegt werden sollten */
   /* Höhe der Kopfleiste (mm): Das Frontbild füllt nur den Teil darunter */
   const BAR_HEIGHT = 18.6;
-  function imageSpecs(caseOrDims, top) {
-    if (top === undefined) top = BAR_HEIGHT;
-    const c = typeof caseOrDims === 'object' ? caseOrDims : (CASES[caseOrDims] || CASES.normal);
-    return {
-      front: { w: c.front, h: round1(c.h - top) },
-      backTop: { w: c.back, h: round1(c.h - BACK.banner - BACK.bottom) },
-      backBottom: { w: c.back, h: BACK.bottom },
-      spineBg: { w: c.spine, h: c.h },
-    };
-  }
   const round1 = (n) => Math.round(n * 10) / 10;
 
   /* --- Texte --- */
@@ -319,6 +440,7 @@
       caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'glass', gogText: true, gogSpine: 'match', pcColor: 'auto', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       custom: { back: '130', spine: '14', front: '129', h: '183' },
       usk: '0', uskOpacity: '100', frontFit: 'stretch', frontZoom: '100', frontX: '50', frontY: '50', uskBack: true, spineLogo: 'fixed', cropMarks: true, foldLines: true, breakHw: false,
+      back: defaultBack(),
       features: ['single_player'],
       os: { win: ['10', '11'], mac: false, linux: false, x64: true },
       cpu: { items: [] },
@@ -351,6 +473,7 @@
       else if (typeof b === 'object') out[key] = mergeObject(b, s);
       else out[key] = typeof s === typeof b ? s : b;
     }
+    out.back = normalizeBack(saved.back);
     out.cpu = normalizeHw(saved.cpu, 'cpu'); out.gpu = normalizeHw(saved.gpu, 'gpu');
     out.rec.cpu = normalizeHw(saved.rec && saved.rec.cpu, 'cpu'); out.rec.gpu = normalizeHw(saved.rec && saved.rec.gpu, 'gpu');
     if (!CASES[out.caseType] && out.caseType !== 'custom') out.caseType = 'normal';
@@ -407,7 +530,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { BACK_LIMITS, BACK_FONTS, BACK_EDGES, BACK_TEMPLATES, MAX_ITEMS, isImageKey, normalizeItem, normalizeBack, defaultBack, designHeight, newItem, backTemplate, BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

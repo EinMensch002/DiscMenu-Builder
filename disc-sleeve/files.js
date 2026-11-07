@@ -92,15 +92,16 @@
 
   /* ---------- Projektdatei ---------- */
   const PROJECT_TYPE = 'discmenu-cover';
-  const IMAGE_KEYS = ['front', 'backTop', 'backBottom', 'publisher', 'spineLogo', 'spineBg'];
+  const IMAGE_KEYS = ['front', 'backTop', 'backBottom', 'publisher', 'spineLogo', 'spineBg'];        // feste Bildfelder; dazu kommen Bilder der Gestaltungsfläche (d1, d2, ...)
+  const isImageKey = (k) => IMAGE_KEYS.includes(k) || /^d\d{1,6}$/.test(String(k));
   const EXT_BY_TYPE = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' };
   const TYPE_BY_EXT = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml' };
 
   /* state: Einstellungen des Cover-Tools. images: { schlüssel: { data: Uint8Array, type, name } }. Ergebnis: ZIP als Uint8Array. */
   function packProject(state, images) {
     const files = [], meta = {};
-    for (const key of IMAGE_KEYS) {
-      const img = images && images[key];
+    for (const key of Object.keys(images || {}).filter(isImageKey)) {
+      const img = images[key];
       if (!img) continue;
       const ext = EXT_BY_TYPE[img.type] || 'png', path = 'images/' + key + '.' + ext;
       files.push({ name: path, data: img.data });
@@ -119,8 +120,8 @@
     if (!j || j.type !== PROJECT_TYPE) throw new Error('Das ist keine Projektdatei des Cover-Tools.');
     if (j.version > 1) throw new Error('Die Projektdatei stammt aus einer neueren Version des Cover-Tools.');
     const images = {}, missing = [];
-    for (const key of IMAGE_KEYS) {
-      const m = j.images && j.images[key];
+    for (const key of Object.keys((j.images && typeof j.images === 'object') ? j.images : {}).filter(isImageKey)) {
+      const m = j.images[key];
       if (!m || typeof m.file !== 'string') continue;
       const f = files.find((x) => x.name === m.file);
       if (!f) { missing.push(key); continue; }
@@ -129,7 +130,7 @@
     return { state: j.state, images, missing };
   }
 
-  const api = { packSettings, unpackSettings, buildZip, crc32, packProject, unpackProject, IMAGE_KEYS, TYPE_BY_EXT, PROJECT_TYPE };
+  const api = { packSettings, unpackSettings, buildZip, crc32, packProject, unpackProject, IMAGE_KEYS, isImageKey, TYPE_BY_EXT, PROJECT_TYPE };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverFiles = api;
 })(typeof window !== 'undefined' ? window : globalThis);

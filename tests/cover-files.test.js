@@ -124,3 +124,13 @@ test('Steam: Fehler des Proxys werden in verständliche Meldungen übersetzt', a
   assert.deepEqual(none.map((r) => [r.name, r.ok]), [['Proxy', false], ['Steam-Shop', false], ['SteamGridDB', false], ['GOG-Katalog', false], ['GOG-Spieldaten', false], ['GOG-Bilder', false], ['Wikidata (Publisher-Logos)', false], ['Brandfetch', true]]);
   assert.match(none[0].text, /Kein Proxy/); assert.match(none[2].text, /Kein API-Schlüssel/);
 });
+
+test('Projektdatei: Bilder der Gestaltungsfläche (d1, d2) und die Elemente überstehen Export und Import, fremde Schlüssel nicht', async () => {
+  const state = C.mergeState({ back: { description: 'Text', items: [{ type: 'image', id: 'e1', img: 'd1', edge: 'torn' }, { type: 'text', id: 'e2', bind: 'description', caps: true }] } });
+  const png = new Uint8Array([137, 80, 78, 71, 1, 2, 3]);
+  const zip = F.packProject(state, { d1: { data: png, type: 'image/png', name: 'shot.png' }, evil: { data: png, type: 'image/png', name: 'x.png' } });
+  const out = F.unpackProject(await Z.read(zip));
+  assert.deepEqual(Object.keys(out.images), ['d1']);
+  assert.deepEqual(C.mergeState(out.state).back, state.back);
+  assert.ok(F.isImageKey('d12') && F.isImageKey('front') && !F.isImageKey('d') && !F.isImageKey('../x'));
+});

@@ -275,3 +275,51 @@ test('Im Bilderordner liegen keine Rastergrafiken', () => {
   const bad = walk(path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images')).filter((f) => /\.(png|jpe?g|gif|webp|bmp)$/i.test(f));
   assert.deepEqual(bad, []);
 });
+
+test('Rückseite: Standard, Prüfung der Elemente, Höhe der Gestaltungsfläche', () => {
+  const b = C.defaultBack();
+  assert.deepEqual([b.featH, b.reqH, b.items.length], ['15', '46', 0]);
+  const st = C.defaultState();
+  assert.equal(C.designHeight(st, C.caseDims(st)), 122);                       // 183 - 15 - 46
+  const t = C.normalizeItem({ type: 'text', x: 'abc', w: 9999, size: 'x', font: 'comic', edge: 'wellig', color: 'rot', weight: 5 });
+  assert.equal(t.x, 0); assert.equal(t.w, 600); assert.equal(t.size, 8); assert.equal(t.font, 'sans'); assert.equal(t.edge, 'none'); assert.equal(t.color, '#222222'); assert.equal(t.weight, '400');
+  assert.equal(C.normalizeItem({ type: 'video' }), null);
+  assert.equal(C.normalizeItem({ type: 'image', img: 'evil/../x' }).img, '');
+  assert.equal(C.normalizeItem({ type: 'image', img: 'd12' }).img, 'd12');
+  const n = C.normalizeBack({ featH: '99', reqH: '1', description: 5, items: [{ type: 'image', id: 'a', img: 'd7' }, { type: 'image', id: 'a' }, null, { type: 'text' }] });
+  assert.equal(n.featH, '30'); assert.equal(n.reqH, '30'); assert.equal(n.description, '');
+  assert.equal(new Set(n.items.map((i) => i.id)).size, 3, 'doppelte und fehlende Kennungen werden vergeben');
+  assert.ok(n.seq >= 8, 'Zähler liegt hinter dem größten Bildschlüssel');
+  assert.equal(C.normalizeBack({ items: Array.from({ length: 200 }, () => ({ type: 'text' })) }).items.length, C.MAX_ITEMS);
+  assert.deepEqual(C.mergeState({ back: { featH: '20' } }).back.featH, '20');
+});
+
+test('Rückseite: Bildmaße folgen den Höhen, Vorlagen liefern gültige Elemente', () => {
+  const st = C.defaultState(); st.back.reqH = '60';
+  const sp = C.imageSpecs(C.caseDims(st), C.frontTop(st), st);
+  assert.deepEqual(sp.backTop, { w: 130, h: 108 }); assert.deepEqual(sp.backBottom, { w: 130, h: 60 });
+  assert.equal(C.backTemplate('none', 130, 122).length, 0);
+  for (const id of ['text', 'steam']) {
+    const list = C.backTemplate(id, 130, 122);
+    assert.ok(list.length >= 2);
+    for (const it of list) { assert.ok(it.x >= 0 && it.y >= 0 && it.x + it.w <= 130.01 && it.y + it.h <= 122.01, id + ' liegt in der Fläche'); }
+  }
+  assert.equal(C.backTemplate('steam', 130, 122).filter((i) => i.type === 'image').length, 3);
+  assert.equal(C.designHeight(st, { h: 183 }) > 0, true);
+  st.back.featH = '30'; st.back.reqH = '110'; assert.equal(C.designHeight(st, { h: 120 }), 0);
+});
+
+test('Rückseite: Drehung, durchgehendes Bild und alle Vorlagen', () => {
+  assert.equal(C.normalizeItem({ type: 'text', rot: 725 }).rot, 5);
+  assert.equal(C.normalizeItem({ type: 'text', rot: 'x' }).rot, 0);
+  const st = C.defaultState(); assert.equal(st.back.span, false);
+  assert.deepEqual(C.imageSpecs(C.caseDims(st), C.frontTop(st), st).backTop, { w: 130, h: 122 });
+  st.back.span = true;
+  assert.deepEqual(C.imageSpecs(C.caseDims(st), C.frontTop(st), st).backTop, { w: 130, h: 183 }, 'durchgehend: ganze Höhe');
+  assert.equal(C.mergeState({ back: { span: true } }).back.span, true);
+  assert.deepEqual(Object.keys(C.BACK_TEMPLATES), ['none', 'text', 'steam', 'among', 'aoe', 'spider', 'halflife', 'alyx']);
+  for (const id of Object.keys(C.BACK_TEMPLATES)) {
+    for (const [w, h] of [[130, 122], [127, 100]]) for (const it of C.backTemplate(id, w, h)) assert.ok(it.x >= -0.01 && it.y >= -0.01 && it.x + it.w <= w + 0.06 && it.y + it.h <= h + 0.06, id + ' passt in die Fläche');
+  }
+  assert.ok(C.backTemplate('spider', 130, 122).filter((i) => i.type === 'image').length === 3);
+});

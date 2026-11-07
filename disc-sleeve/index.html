@@ -104,6 +104,18 @@
         <div class="dt"><b>Rückseite unten <i>(optional)</i></b><span class="spec"></span><span class="info">Ohne Bild setzt sich das obere Bild hinter den Angaben fort.</span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
     </details>
 
+    <details class="sec" id="secBack">
+      <summary>Rückseite</summary>
+      <p class="hint">Unten steht immer derselbe Teil (Spielfunktionen, Systemanforderungen, Logos). Darüber liegt die <b>Gestaltungsfläche</b>: Dort kannst Du im Editor Bilder und Texte frei anordnen. Als Grund dient das Bild "Rückseite oben" aus dem Bereich "Bilder". Ein Klick auf die Fläche in der Vorschau öffnet den Editor ebenfalls.</p>
+      <div class="drow"><button type="button" class="pri" id="bDesign">Rückseite gestalten …</button></div>
+      <label class="chk"><input type="checkbox" data-k="back.span"> Ein durchgehendes Bild über die ganze Rückseite (statt zwei Bildern oben und unten)</label>
+      <div class="two">
+        <label class="f"><span class="lab">Höhe Spielfunktionen (mm)</span><input type="number" step="0.25" data-k="back.featH"></label>
+        <label class="f"><span class="lab">Höhe Anforderungen und Logos (mm)</span><input type="number" step="0.25" data-k="back.reqH"></label>
+      </div>
+      <p class="hint" id="backInfo"></p>
+      <label class="f"><span class="lab">Beschreibung des Spiels</span><textarea data-k="back.description" rows="5" placeholder="Kurze Beschreibung (kommt auch beim Import von Steam oder GOG). Im Editor zeigt ein Textelement mit Verknüpfung &quot;Beschreibung&quot; sie an."></textarea></label>
+    </details>
     <details class="sec" open>
       <summary>Publisher-Logo und Altersfreigabe</summary>
       <div class="drop" data-img="publisher"><input type="file" accept="image/*" aria-label="Publisher-Logo"><div class="thumb"></div>
@@ -252,8 +264,8 @@
           <div class="cover theme-bar" id="cover">
 
             <section class="back" id="back">
-              <div class="back-top" id="backTop"><span class="ph">Rückseite oben</span></div>
-              <div class="banner">
+              <div class="back-top" id="backTop" title="Klicken, um die Rückseite zu gestalten"><span class="ph">Rückseite oben</span><div class="bitems" id="backItems"></div></div>
+              <div class="banner" id="backFeats">
                 <div class="banner-title"><b id="featTitle"></b><small id="featNote"></small></div>
                 <div class="feats" id="feats"></div>
               </div>
@@ -297,7 +309,9 @@
 <script src="zip.js?v=__VERSION__"></script>
 <script src="online.js?v=__VERSION__"></script>
 <script src="files.js?v=__VERSION__"></script>
+<script src="back-design.js?v=__VERSION__"></script>
 <script src="app.js?v=__VERSION__"></script>
+<script src="back-editor.js?v=__VERSION__"></script>
 <script src="extras.js?v=__VERSION__"></script>
 </body>
 </html>

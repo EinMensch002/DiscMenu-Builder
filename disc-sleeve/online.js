@@ -335,8 +335,11 @@
     if (developer) patch.developer = developer;
     const usk = steamUsk(details);
     if (usk) patch.usk = usk.value;
+    const desc = shorten(plain(details.short_description || ''), 500);
+    if (desc) patch.back = { description: desc };
     const put = (label, col, value, kind) => { const row = rows.get(label) || { label, min: '', rec: '', kind: '' }; row[col] = value; if (kind) row.kind = kind; rows.set(label, row); };
     if (title) put('Spieletitel (Rücken)', 'min', title);
+    if (desc) put('Beschreibung (Rückseite)', 'min', shorten(desc, 90));
     if (usk) put('USK-Freigabe', 'min', 'ab ' + usk.value + ' Jahren (' + usk.source + ')');
     if (publisher || developer) put('Publisher / Entwickler', 'min', [publisher, developer].filter((x, i, a) => x && a.indexOf(x) === i).join(' / '));
     com.shown.filter((x) => x[0] === 'Läuft auf').forEach(([l, v]) => put(l, 'min', v));
@@ -408,13 +411,14 @@
     const names = (list) => (list || []).map((x) => x && x.name).filter(Boolean);
     return {
       name: p.title, publishers: e.publisher && e.publisher.name ? [e.publisher.name] : names(e.publishers), developers: names(e.developers),
-      pc_requirements: req, platforms: { windows: !!win, mac: has('osx'), linux: has('linux') }, categories, ratings, ratingFrom: 'GOG',
+      short_description: plain(v2 && v2.description ? v2.description : ''), pc_requirements: req, platforms: { windows: !!win, mac: has('osx'), linux: has('linux') }, categories, ratings, ratingFrom: 'GOG',
     };
   }
   /* Bilder aus den Links der GOG-Antwort: Cover (nur etwa 342 x 482 Pixel), Logo (PNG, transparent, etwa 1600 px) und Hintergrund (etwa 2560 px breit) */
   function gogImages(v2) {
     const l = (v2 && v2._links) || {}, href = (k) => (l[k] && l[k].href) || '';
-    return { cover: href('boxArtImage'), logo: href('logo'), background: href('galaxyBackgroundImage') || href('backgroundImage') };
+    const shots = ((v2 && v2._embedded && v2._embedded.screenshots) || []).map((x) => x && x._links && x._links.self && x._links.self.href).filter(Boolean).map((u) => u.replace('{formatter}', '1600'));
+    return { cover: href('boxArtImage'), logo: href('logo'), background: href('galaxyBackgroundImage') || href('backgroundImage'), shots };
   }
 
   /* ---------- Publisher-Logos über Wikidata und Wikimedia Commons ----------

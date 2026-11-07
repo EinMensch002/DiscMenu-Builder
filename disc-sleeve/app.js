@@ -204,6 +204,7 @@
 
   /* ---------- Bilder: auf Druckgröße verkleinern, als Datei-Adresse statt als Base64-Text halten ---------- */
   const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900, spineLogo: 1200, spineBg: 2000 };
+  const maxEdge = (key) => MAX_EDGE[key] || 2000;                       // Bilder der Gestaltungsfläche (d1, d2, ...)
 
   async function loadImage(key, file) {
     let result;
@@ -211,7 +212,7 @@
       result = { url: URL.createObjectURL(file), w: 0, h: 0, svg: true, blob: file, type: 'image/svg+xml' };
     } else {
       const bmp = await createImageBitmap(file);
-      const size = C.fitSize(bmp.width, bmp.height, MAX_EDGE[key]);
+      const size = C.fitSize(bmp.width, bmp.height, maxEdge(key));
       const cv = document.createElement('canvas');
       cv.width = size.w; cv.height = size.h;
       const ctx = cv.getContext('2d');
@@ -280,13 +281,13 @@
   }
   /* Wie scharf wird das Bild gedruckt? Das Bild füllt die Fläche (zuschneiden), also entscheidet die knappere Seite. */
   function dpiOf(key, img) {
-    const spec = C.imageSpecs(C.caseDims(state), C.frontTop(state))[key];
+    const spec = C.imageSpecs(C.caseDims(state), C.frontTop(state), state)[key];
     if (!spec || !img.w) return 0;
     const mmPerPx = Math.max(spec.w / img.w, spec.h / img.h);
     return Math.round(25.4 / mmPerPx);
   }
   function renderDrops() {
-    const specs = C.imageSpecs(C.caseDims(state), C.frontTop(state));
+    const specs = C.imageSpecs(C.caseDims(state), C.frontTop(state), state);
     $$('.drop').forEach((drop) => {
       const key = drop.dataset.img, img = images[key], spec = specs[key];
       drop.classList.toggle('has', !!img);
@@ -375,6 +376,7 @@
     $('#reqTitle').textContent = L.reqTitle;
     $('#copy').textContent = state.copyright.trim();
     renderSpecs();
+    renderBack(c);
 
     renderDrops();
     renderNotes();
@@ -461,6 +463,21 @@
     const titleH = getComputedStyle(title).display === 'none' ? 0 : title.offsetHeight + parseFloat(getComputedStyle(title).marginBottom || 0);
     let pt = parseFloat(getComputedStyle(list).fontSize) * 72 / 96;
     while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight - 1) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
+  }
+
+  /* ---------- Rückseite: feste Höhen unten, Gestaltungsfläche oben ---------- */
+  function renderBack(c) {
+    const b = state.back, designH = C.designHeight(state, c);
+    $('#backFeats').style.height = Number(b.featH) + 'mm'; $('#backBottom').style.height = Number(b.reqH) + 'mm';
+    const sp = !!b.span, backEl = $('#back');
+    backEl.classList.toggle('span', sp);
+    backEl.style.backgroundImage = sp && images.backTop ? 'url("' + images.backTop.url + '")' : '';
+    backEl.style.backgroundSize = 'cover'; backEl.style.backgroundPosition = 'center';
+    if (sp) { setBg($('#backTop'), null); setBg($('#backBottom'), null); }
+    const items = $('#backItems');
+    if (window.BackDesign) BackDesign.renderInto(items, b.items, { images, state, editor: false });
+    items.hidden = designH <= 0;
+    $('#backInfo').textContent = 'Gestaltungsfläche: ' + c.back + ' × ' + designH + ' mm, ' + b.items.length + (b.items.length === 1 ? ' Element' : ' Elemente') + '.';
   }
 
   /* Frontbild einpassen: Standard ist "Strecken" (das ganze Bild füllt die Fläche, bei anderem Seitenverhältnis leicht gestaucht). "Zuschneiden" füllt
@@ -561,6 +578,7 @@
     if (!state.title.trim()) notes.push('Der Spieletitel für den Rücken fehlt.');
     const dims = C.caseDims(state);
     if (dims.adjusted) notes.push('Die eigenen Maße wurden angepasst (erlaubt: Rückseite und Vorderseite 100–150 mm, Rücken 3–30 mm, Höhe 100–198 mm, insgesamt höchstens ' + C.MAX_W + ' mm breit). Verwendet wird: ' + dims.back + ' + ' + dims.spine + ' + ' + dims.front + ' × ' + dims.h + ' mm.');
+    if (C.designHeight(state, dims) <= 0) notes.push('Die festen Teile unten sind zusammen so hoch wie die Rückseite, für die Gestaltungsfläche bleibt kein Platz. Bitte die Höhen verkleinern.');
     if (!state.features.length) notes.push('Es ist keine Spielfunktion gewählt, der grüne Streifen bleibt leer.');
     $('#notes').replaceChildren(...notes.map((t) => el('p', '', t)));
   }
@@ -585,6 +603,7 @@
     bindHw();
     ['spineLogoImg', 'spinePubImg'].forEach((id) => $('#' + id).addEventListener('load', refitSpine));
     bindDrops();
+    $('#backTop').addEventListener('click', () => { if (window.BackEditor) BackEditor.open(); });
     syncControls();
     buildJump();
     $('#bPrint').addEventListener('click', () => window.print());
@@ -618,6 +637,10 @@
     removeBackground(key) { return removeBackground(key); },
     onReset(f) { hooks.reset.push(f); },
     buildJump,
+    get images() { return images; },
+    touch() { changed(); },
+    clearImage(key) { clearImage(key); renderDrops(); changed(); },
+    caseDims() { return C.caseDims(state); },
     dpiOf(key, w, h) { return dpiOf(key, { w, h }); },
     /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
     patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },
