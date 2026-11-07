@@ -99,22 +99,73 @@
     });
   }
 
-  /* Stil-Auswahl: Nur GOG hat zwei Farbvarianten (GOG-Farben oder dunkel). Bei den anderen Anbietern gibt es nichts zu wählen, das Feld ist dann ausgeblendet. */
+  /* Stil-Auswahl: Nur GOG hat mehrere Varianten, sie werden als Schieberegler mit sechs Punkten gezeigt (von hell nach dunkel). Bei den anderen
+     Anbietern gibt es nichts zu wählen, die Zeile ist dann ausgeblendet. Die Auswahlliste (data-k=theme) bleibt als Datenhalter unsichtbar erhalten. */
   let styleFor = null;
   function fillStyleOptions() {
     const sel = $('[data-k=theme]');
     if (!sel) return;
     if (state.provider !== 'gog') state.theme = 'bar';
+    else if (!Object.keys(C.PROVIDERS.gog.variants).includes(state.theme)) state.theme = 'dark';
+    $('#gogSpineRow').hidden = state.provider !== 'gog';
+    $('#gogTextRow').hidden = state.provider !== 'gog';
     if (styleFor === state.provider && sel.options.length) return;
     styleFor = state.provider;
     const opts = C.styleOptions(state.provider);
     sel.replaceChildren(...opts.map(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; return o; }));
-    sel.closest('label').hidden = opts.length < 2;
+    $('#styleRow').hidden = opts.length < 2;
+    const slider = $('#styleSlider'), ticks = $('#styleTicks');
+    slider.max = String(opts.length - 1);
+    ticks.style.gridTemplateColumns = 'repeat(' + opts.length + ', minmax(0, 1fr))';
+    ticks.replaceChildren(...opts.map(([v, l]) => {
+      const b = document.createElement('button'), sw = document.createElement('i'), V = (C.PROVIDERS.gog.variants || {})[v];
+      b.type = 'button'; b.dataset.theme = v; sw.className = 'sw';
+      if (V) sw.style.background = 'linear-gradient(' + V.barA + ', ' + V.barB + '), repeating-conic-gradient(#cfd3dc 0 25%, #fff 0 50%) 0 0 / 8px 8px';
+      b.append(sw, l); return b;
+    }));
+  }
+  function updateStylePicker() {
+    const sel = $('[data-k=theme]'), idx = Math.max(0, [...sel.options].findIndex((o) => o.value === sel.value));
+    $('#styleSlider').value = String(idx);
+    $$('#styleTicks button').forEach((b) => b.classList.toggle('on', b.dataset.theme === sel.value));
+  }
+  function bindStylePicker() {
+    const pick = (v) => { const sel = $('[data-k=theme]'); if (sel.value === v) return; sel.value = v; sel.dispatchEvent(new Event('change', { bubbles: true })); };
+    $('#styleSlider').addEventListener('input', (e) => { const o = $('[data-k=theme]').options[Number(e.target.value)]; if (o) pick(o.value); });
+    $('#styleTicks').addEventListener('click', (e) => { const b = e.target.closest('button[data-theme]'); if (b) pick(b.dataset.theme); });
+  }
+
+  /* Auswahlen mit wenigen Möglichkeiten (data-seg) als Schaltflächen: alle Möglichkeiten auf einen Blick statt Aufklappliste */
+  function renderSeg(sel) {
+    const box = sel._seg, sig = [...sel.options].map((o) => o.value + '|' + o.textContent).join('/');
+    if (box.dataset.sig !== sig) {
+      box.dataset.sig = sig;
+      box.replaceChildren(...[...sel.options].map((o) => { const b = document.createElement('button'); b.type = 'button'; b.dataset.v = o.value; b.textContent = o.textContent; return b; }));
+    }
+    [...box.children].forEach((b) => b.classList.toggle('on', b.dataset.v === sel.value));
+  }
+  function buildSegs() {
+    $$('select[data-seg]').forEach((sel) => {
+      const box = document.createElement('div'); box.className = 'seg'; sel.classList.add('seg-src'); sel.tabIndex = -1; sel.after(box); sel._seg = box;
+      box.addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b || sel.value === b.dataset.v) return; sel.value = b.dataset.v; sel.dispatchEvent(new Event('change', { bubbles: true })); });
+    });
+  }
+
+  /* Sprungleiste: ein Knopf je Bereich, öffnet ihn und springt hin (bei Sprachwechsel neu aufgebaut, damit die Namen zur Sprache passen) */
+  function buildJump() {
+    const nav = $('#jump'); if (!nav) return;
+    nav.replaceChildren(...$$('#form > details.sec').map((d) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = d.querySelector('summary').textContent.trim();
+      b.addEventListener('click', () => { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      return b;
+    }));
   }
   function syncControls() {
     fillStyleOptions();
     renderHw();
     $$('[data-k]').forEach(writeControl);
+    updateStylePicker();
+    $$('select[data-seg]').forEach(renderSeg);
     $$('[data-enable]').forEach((el) => el.classList.toggle('on', !!get(el.dataset.enable)));
   }
   function bindControls() {
@@ -229,13 +280,13 @@
   }
   /* Wie scharf wird das Bild gedruckt? Das Bild füllt die Fläche (zuschneiden), also entscheidet die knappere Seite. */
   function dpiOf(key, img) {
-    const spec = C.imageSpecs(C.caseDims(state))[key];
+    const spec = C.imageSpecs(C.caseDims(state), C.frontTop(state))[key];
     if (!spec || !img.w) return 0;
     const mmPerPx = Math.max(spec.w / img.w, spec.h / img.h);
     return Math.round(25.4 / mmPerPx);
   }
   function renderDrops() {
-    const specs = C.imageSpecs(C.caseDims(state));
+    const specs = C.imageSpecs(C.caseDims(state), C.frontTop(state));
     $$('.drop').forEach((drop) => {
       const key = drop.dataset.img, img = images[key], spec = specs[key];
       drop.classList.toggle('has', !!img);
@@ -297,9 +348,13 @@
 
     /* Alterskennzeichen (USK) */
     const usk = state.usk === 'none' ? '' : 'assets/images/usk/usk_' + state.usk + '.svg';
+    /* Die Raute (usk_N.svg) ist immer voll sichtbar. Der Regler stellt nur den Hintergrund dahinter ein (usk_N_bg.svg, Kachel mit Rand): 0 % = nur die Raute.
+       Auf der Rückseite steht immer nur die Raute. */
     setImg($('#frontUsk'), usk);
+    setImg($('#frontUskBg'), usk && Number(state.uskOpacity) > 0 ? usk.replace(/\.svg$/, '_bg.svg') : '');
+    $('#frontUskBg').style.opacity = String(Number(state.uskOpacity) / 100);
     setImg($('#backUsk'), state.uskBack ? usk : '');
-    $('#frontUsk').style.opacity = String(Number(state.uskOpacity) / 100);
+    $('#frontCropBox').hidden = state.frontFit !== 'crop';
     setImg($('#discLogo'), 'assets/images/disc/' + C.DISCS[state.disc]);
 
     /* Rücken */
@@ -330,10 +385,22 @@
   function applyProvider(cover) {
     const P = C.PROVIDERS[state.provider];
     const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line, spineBg: P.brand };
-    if (P.darkBar && state.theme === 'bar-dark') Object.assign(vars, { barA: P.darkBar.barA, barB: P.darkBar.barB, line: P.darkBar.line, spineBg: P.darkBar.spine });
+    const V = P.variants && P.variants[state.theme];
+    /* Rücken: "passend zur Leiste" (Standard) hell bei hellen und dunkel bei dunklen Leisten, oder fest dunkel bzw. hell */
+    const lightSpine = !!(V && (state.gogSpine === 'light' || (state.gogSpine === 'match' && !V.dk)));
+    if (V) Object.assign(vars, { barA: V.barA, barB: V.barB, line: V.line, spineBg: lightSpine ? V.spineLight : V.spine, bannerA: V.bannerA, bannerB: V.bannerB, barFg: V.fg, barGrad: V.grad || 'linear-gradient(' + V.barA + ', ' + V.barB + ')', 'bar-h': C.barHeight(state) + 'mm', 'bar-line': V.barLine });
+    else Object.assign(vars, { barFg: P.onBrand, barGrad: 'linear-gradient(' + P.barA + ', ' + P.barB + ')', 'bar-h': C.BAR_HEIGHT + 'mm', 'bar-line': '1.6mm' });
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);
     cover.classList.toggle('has-wm', state.provider !== 'gog');
-    $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + P.logo; img.alt = P.name; });
+    cover.classList.toggle('gog', state.provider === 'gog');
+    cover.classList.toggle('gog-text', state.provider === 'gog' && !!state.gogText);
+    cover.classList.toggle('gog-tint', !!(V && V.tint));
+    cover.classList.toggle('gog-dk', !!(V && V.dk));
+    cover.classList.toggle('bar-over', !!(V && V.over));
+    cover.classList.toggle('spine-light', lightSpine);
+    /* Farbe von "PC" am Fuß des Rückens: automatisch passend zum Rücken (weiß auf dunkel, schwarz auf hell) oder fest */
+    cover.style.setProperty('--pc', state.pcColor === 'white' ? '#ffffff' : state.pcColor === 'black' ? '#111111' : lightSpine ? '#1c1c22' : '#ffffff');
+    $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + ((V && V.logo) || P.logo); img.alt = P.name; });
     $('#barWm').textContent = P.wordmark.replace('\n', ' ');
     $('#spineWm').textContent = P.wordmark.split('\n')[0];
     $('#frontTag').textContent = P.tag[state.lang];
@@ -396,9 +463,21 @@
     while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight - 1) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
   }
 
+  /* Frontbild einpassen: Standard ist "Strecken" (das ganze Bild füllt die Fläche, bei anderem Seitenverhältnis leicht gestaucht). "Zuschneiden" füllt
+     die Fläche ohne Verzerrung, mit Zoom (100 bis 300 %) und Ausschnitt (X, Y in %). Die Fläche beginnt unter der Leiste (bei GOG durchscheinend ganz oben). */
+  function fitFront(front, c) {
+    const f = images.front;
+    if (!f || !(f.w > 0 && f.h > 0)) { front.style.backgroundSize = ''; front.style.backgroundPosition = ''; return; }
+    if (state.frontFit !== 'crop') { front.style.backgroundSize = '100% 100%'; front.style.backgroundPosition = '0 0'; return; }
+    const W = c.front, H = c.h - C.frontTop(state), z = num(state.frontZoom, 100, 100, 300) / 100, x = num(state.frontX, 50, 0, 100) / 100, y = num(state.frontY, 50, 0, 100) / 100;
+    const k = Math.max(W / f.w, H / f.h) * z, sw = f.w * k, sh = f.h * k, mm = (n) => n.toFixed(3) + 'mm';
+    front.style.backgroundSize = mm(sw) + ' ' + mm(sh);
+    front.style.backgroundPosition = mm(-(sw - W) * x) + ' ' + mm(-(sh - H) * y);
+  }
+
   /* Rücken: Bild der Vorderseite fortsetzen, Logo statt Titel, Publisher-Logo am Fuß */
   function renderSpine(c) {
-    const spine = $('#spine'), front = $('#front'), barH = C.BAR_HEIGHT, f = images.front;
+    const spine = $('#spine'), front = $('#front'), barH = C.frontTop(state), f = images.front;
     const art = state.spineArt === 'image' && f && f.w > 0 && f.h > 0;
     spine.classList.toggle('art', !!art);
     if (art) {
@@ -415,12 +494,12 @@
       /* Eigenes Rückenbild: füllt den Rücken (zugeschnitten), der Ausschnitt ist links/rechts wählbar, optional abgedunkelt */
       const dim = num(state.spineBgDim, 25, 0, 80) / 100, x = num(state.spineBgX, 50, 0, 100);
       spine.classList.add('art');
-      front.style.backgroundSize = ''; front.style.backgroundPosition = '';
+      fitFront(front, c);
       spine.style.backgroundImage = 'linear-gradient(rgba(0,0,0,' + dim + '), rgba(0,0,0,' + dim + ')), url("' + images.spineBg.url + '")';
       spine.style.backgroundSize = '100% 100%, cover';
       spine.style.backgroundPosition = '0 0, ' + x + '% 50%';
     } else {
-      front.style.backgroundSize = ''; front.style.backgroundPosition = '';
+      fitFront(front, c);
       spine.style.backgroundImage = ''; spine.style.backgroundSize = ''; spine.style.backgroundPosition = '';
     }
     const sl = images.spineLogo, useLogo = !!(state.spineUseLogo && sl), pub = images.publisher, showPub = !!(state.spinePub && pub);
@@ -443,7 +522,7 @@
     box.hidden = !(state.spinePub && pub);
     if (box.hidden) return;
     const c = C.caseDims(state), pad = 0.6;
-    const side = num(state.spinePubSide, 1.2, 0, Math.max(0, c.spine / 2 - 2)), manual = num(state.spinePubWidth, 0, 0, 60);
+    const side = num(state.spinePubSide, 1.2, -10, Math.max(0, c.spine / 2 - 2)), manual = num(state.spinePubWidth, 0, 0, 60);
     const across = Math.max(2, c.spine - 2 * side) - 2 * pad;
     const fit = C.fitLogo(aspectOf(pub, el), state.spinePubRot, across, 30, manual > 0 ? manual - 2 * pad : 0, 4);
     const w = fit.w, h = fit.h, mm = (n) => n.toFixed(2) + 'mm';
@@ -456,7 +535,8 @@
     const box = $('#spineBox'), li = $('#spineLogoImg'), sl = images.spineLogo;
     if (li.hidden || !sl) return;
     const c = C.caseDims(state), probe = $('#mmProbe'), k = probe.offsetWidth / 10 || 3.78;          // Pixel je mm (unabhängig von der Vorschaugröße)
-    const side = num(state.spineLogoSide, 1.5, 0, Math.max(0, c.spine / 2 - 2)), top = num(state.spineLogoTop, 3, 0, 60), bottom = num(state.spineLogoBottom, 3, 0, 60);
+    const side = num(state.spineLogoSide, 1.5, -10, Math.max(0, c.spine / 2 - 2)), top = num(state.spineLogoTop, 3, -30, 60), bottom = num(state.spineLogoBottom, 3, -30, 60);
+    box.classList.toggle('free', top < 0 || bottom < 0);
     const along = Math.max(5, box.clientHeight / k - top - bottom), across = Math.max(2, c.spine - 2 * side);
     const a = aspectOf(sl, li), fit = C.fitLogo(a, state.spineLogoRot === 'auto' ? (a > 1.4 ? 'yes' : 'no') : state.spineLogoRot, across, along, 0, 0);
     li.style.width = (fit.w * k) + 'px'; li.style.height = (fit.h * k) + 'px';
@@ -499,11 +579,14 @@
   /* ---------- Start ---------- */
   function init() {
     const ver = $('#ver'); if (ver && /__/.test(ver.textContent)) ver.textContent = 'lokal';
+    buildSegs();
+    bindStylePicker();
     bindControls();
     bindHw();
     ['spineLogoImg', 'spinePubImg'].forEach((id) => $('#' + id).addEventListener('load', refitSpine));
     bindDrops();
     syncControls();
+    buildJump();
     $('#bPrint').addEventListener('click', () => window.print());
     $('#bReset').addEventListener('click', () => {
       if (!confirm('Alle Einstellungen und Bilder zurücksetzen?')) return;
@@ -534,6 +617,7 @@
     onChange(f) { hooks.change.push(f); },
     removeBackground(key) { return removeBackground(key); },
     onReset(f) { hooks.reset.push(f); },
+    buildJump,
     /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
     patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },
     /* Aktuelle Einstellungen und Bilder (für den Projektexport) */

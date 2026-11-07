@@ -3,7 +3,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
 
 // Legt ein Testbild an und übergibt es wie eine Datei aus dem Dateidialog
 async function giveImage(page, key, w, h, type = 'image/jpeg') {
@@ -24,6 +24,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.selectOption('[data-k=theme]', 'white'); await page.waitForTimeout(150);            // die meisten Prüfungen hier gelten für die Leiste über dem Bild (Weiß); Standard ist "Durchsichtig weiß"
 
   // Titel, Funktionen, Systemanforderungen
   await page.fill('[data-k=title]', 'Sehr langer Spieltitel: Die Rückkehr der Titel & Co. <b>');
@@ -95,7 +96,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.waitForTimeout(100);
   const wSlim = (await page.locator('#cover').boundingBox()).width;
   assert.ok(Math.abs(wSlim / wNormal - 266 / 273) < 0.01, 'Slim-Hülle ist 266 statt 273 mm breit');
-  assert.match(await page.locator('[data-img=front] .spec').textContent(), /129\.5 × 164\.4 mm/);
+  assert.match(await page.locator('[data-img=front] .spec').textContent(), /129\.5 × 173 mm/);
   await page.check('[data-k=caseType][value=normal]');
 
   // Die Rückseite bleibt stabil: Das Ausblenden der USK hinten verschiebt nichts, fehlende Zeilen lassen die übrigen oben stehen
@@ -120,7 +121,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   assert.equal(await page.locator('.gog-bar').isVisible(), true);
   // Das Frontbild füllt nur den Teil unter der Kopfleiste (sonst wäre der obere Bildrand verdeckt)
   assert.deepEqual(await page.evaluate(() => { const f = document.querySelector('#front'), c = getComputedStyle(f), bar = document.querySelector('.gog-bar').getBoundingClientRect(), k = Number(getComputedStyle(document.querySelector('#preview')).getPropertyValue('--k')) || 1; return [c.backgroundClip, c.backgroundOrigin, Math.abs(parseFloat(c.paddingTop) - bar.height / k) < 1.5]; }), ['content-box', 'content-box', true]);
-  assert.match(await page.locator('[data-img=front] .spec').textContent(), /× 164\.4 mm/, 'Maße des Frontbilds ohne die Kopfleiste');
+  assert.match(await page.locator('[data-img=front] .spec').textContent(), /× 173 mm/, 'Maße des Frontbilds ohne die (schmale GOG-)Kopfleiste');
   const lineY = await page.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(), a = r('.gog-bar'), b = r('.spine-head'); return [Math.round(a.top * 10) / 10, Math.round(a.bottom * 10) / 10, Math.round(b.top * 10) / 10, Math.round(b.bottom * 10) / 10]; });
   assert.deepEqual([lineY[0], lineY[1]], [lineY[2], lineY[3]], 'Leiste auf Vorderseite und Rücken sind gleich hoch, die Linie läuft durch');
   for (const p of ['steam', 'epic', 'gog']) { await page.selectOption('[data-k=provider]', p); await page.waitForTimeout(100); assert.equal(await page.locator('#spineLogo').isVisible(), true, p); assert.equal(await page.evaluate(() => { const l = document.querySelector('#spineLogo').getBoundingClientRect(), h = document.querySelector('.spine-head').getBoundingClientRect(); return l.top >= h.top && l.bottom <= h.bottom; }), true, 'Rückenlogo bleibt in der Leiste: ' + p); }
@@ -137,7 +138,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.check('[data-k=caseType][value=custom]');
   await page.waitForFunction(() => !document.querySelector('#customBox').hidden);
   await page.click('[data-preset=bluray]');
-  await page.waitForFunction(() => document.querySelector('[data-img=front] .spec').textContent.includes('127.5 × 129.4 mm'));
+  await page.waitForFunction(() => document.querySelector('[data-img=front] .spec').textContent.includes('127.5 × 138 mm'));
   assert.equal(await page.inputValue('[data-k="custom.back"]'), '127.5');
   const wBlu = (await page.locator('#cover').boundingBox()).width, hBlu = (await page.locator('#cover').boundingBox()).height;
   assert.ok(Math.abs(wBlu / hBlu - 269 / 148) < 0.01, 'Seitenverhältnis 269 : 148');
@@ -166,7 +167,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
       const out = [];
       for (let x = info.bx - 3; x <= info.bx + 3; x++) for (let y = info.y0; y < info.y1; y++) {
         const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
-        if (!(Math.abs(r - 137) < 25 && Math.abs(g - 38) < 25 && Math.abs(b - 141) < 25)) out.push([x, y, r, g, b]);
+        if (!(r < 90 && g < 90 && b < 90)) out.push([x, y, r, g, b]);          // dunkle Leiste (GOG, Standard): an der Naht darf nichts Helles durchscheinen
       }
       return out;
     }, { shot, info });
@@ -262,7 +263,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.click('.menu summary:has-text("Projekt")'); await page.click('#bBrowserSave');           // sichert sofort (sonst nach etwa 1 s von selbst)
   await page.waitForFunction(() => /Im Browser gesichert/.test(document.querySelector('#autoInfo').textContent)); await page.waitForTimeout(400);
   await page.reload();
-  assert.equal(await page.inputValue('[data-k=theme]'), 'bar');
+  assert.equal(await page.inputValue('[data-k=theme]'), 'dark');
   assert.equal(await page.inputValue('[data-k=title]'), 'Sehr langer Spieltitel: Die Rückkehr der Titel & Co. <b>');
   await page.waitForFunction(() => document.querySelector('[data-img=front]').classList.contains('has'));
   assert.match(await page.locator('#autoInfo').textContent(), /aus dem Browser-Speicher geladen/);

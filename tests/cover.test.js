@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const C = require('../cover-tool/core.js');
+const C = require('../disc-sleeve/core.js');
 
 test('Maße: Rücken und Seiten ergeben die Gesamtbreite', () => {
   for (const [name, c] of Object.entries(C.CASES)) {
@@ -142,10 +142,10 @@ test('Gespeicherte Einstellungen: kaputte oder alte Daten stören nicht', () => 
   assert.equal(m.disc, 'bluray');
   assert.equal(m.usk, '0');
   assert.equal(m.lang, 'de');
-  assert.equal(m.theme, 'bar');
-  assert.equal(C.mergeState({ theme: 'modern' }).theme, 'bar');          // alter Stil "Modern" wird zur Leiste
-  assert.equal(C.mergeState({ theme: 'bar' }).theme, 'bar'); assert.equal(C.mergeState({ theme: 'x' }).theme, 'bar');
-  assert.equal(C.mergeState({ theme: 'bunt' }).theme, 'bar');
+  assert.equal(m.theme, 'glass');                                           // Standard: Durchsichtig schwarz
+  assert.equal(C.mergeState({ theme: 'modern' }).theme, 'dark');          // alter Stil "Modern" wird zu "Dunkel"
+  assert.equal(C.mergeState({ theme: 'bar' }).theme, 'dark'); assert.equal(C.mergeState({ theme: 'x' }).theme, 'dark');
+  assert.equal(C.mergeState({ theme: 'bunt' }).theme, 'dark');
   assert.equal(m.title, '');
   assert.deepEqual(m.features, ['co_op']);
   assert.deepEqual(m.os.win, ['7']);
@@ -169,7 +169,7 @@ test('Anbieter: Farben, Schriftzüge und Hinweise sind vollständig', () => {
     for (const k of ['brand', 'onBrand', 'dark', 'mid', 'accent', 'bannerA', 'bannerB']) assert.match(p[k], /^#[0-9a-f]{6}$/i, id + '.' + k);
     for (const lang of ['de', 'en']) { assert.ok(p.tag[lang] && p.note[lang], id + ' ' + lang); }
   }
-  assert.equal(C.PROVIDERS.gog.wordmark, '');                           // GOG hat sein Logo
+  assert.equal(C.PROVIDERS.gog.wordmark, 'GOG.COM');                    // GOG: Logo, daneben (abschaltbar) der Schriftzug
   assert.ok(C.PROVIDERS.epic.wordmark && C.PROVIDERS.steam.wordmark);   // die anderen nur einen Schriftzug
   assert.ok(!/GOG/.test(C.PROVIDERS.epic.note.de + C.PROVIDERS.epic.note.en + C.PROVIDERS.steam.note.de + C.PROVIDERS.steam.note.en), 'Hinweise anderer Anbieter nennen nicht GOG');
   const brands = Object.values(C.PROVIDERS).map((p) => p.brand);
@@ -178,10 +178,11 @@ test('Anbieter: Farben, Schriftzüge und Hinweise sind vollständig', () => {
 
 test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
   const fs = require('node:fs'), path = require('node:path');
-  const root = path.join(__dirname, '..', 'cover-tool', 'assets', 'images');
+  const root = path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images');
   const need = [
     'gog_logo.svg',
-    ...C.USK_VALUES.map((v) => `usk/usk_${v}.svg`),
+    ...C.USK_VALUES.flatMap((v) => [`usk/usk_${v}.svg`, `usk/usk_${v}_bg.svg`]),          // Raute und Hintergrund (Kachel mit Rand) getrennt
+    ...Object.values(C.PROVIDERS.gog.variants).filter((v) => v.logo).map((v) => v.logo),
     ...Object.values(C.DISCS).map((f) => `disc/${f}`),
   ];
   for (const f of C.FEATURE_ORDER) {                         // Linien-Symbole: alle Funktionen, klein und schwarz
@@ -200,21 +201,34 @@ test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
   }
 });
 
-test('Stil-Auswahl: GOG hat zwei Farbvarianten, die anderen Anbieter nur die Leiste', () => {
-  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['bar', 'bar-dark']);
+test('Stil-Auswahl: GOG hat sechs Varianten (von hell nach dunkel), die anderen Anbieter nur die Leiste', () => {
+  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['white', 'warm', 'glasswhite', 'glass', 'dark', 'violet']);
   assert.deepEqual(C.styleOptions('steam').map((o) => o[0]), ['bar']);
-  assert.equal(C.defaultState().theme, 'bar');                                   // Standard: Leiste in GOG-Farben
-  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar-dark' }).theme, 'bar-dark');
-  assert.equal(C.mergeState({ provider: 'steam', theme: 'bar-dark' }).theme, 'bar');           // dunkle Variante gibt es nur bei GOG
-  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar', gogBar: 'dark' }).theme, 'bar-dark');   // Vorläufer-Einstellung
-  assert.equal(C.mergeState({ provider: 'gog', theme: 'alt-dark' }).theme, 'bar-dark');             // alte Stile werden zur Leiste
+  assert.equal(C.defaultState().theme, 'glass'); assert.equal(C.defaultState().gogText, true);
+  assert.equal(C.defaultState().foldLines, true); assert.equal(C.defaultState().caseType, 'normal'); assert.equal(C.defaultState().disc, 'dvd'); assert.equal(C.defaultState().provider, 'gog');   // Standard: GOG, normale Hülle, DVD, Durchsichtig schwarz, GOG.COM und Falzmarken an
+  assert.equal(C.defaultState().gogSpine, 'match'); assert.equal(C.defaultState().pcColor, 'auto');
+  assert.equal(C.mergeState({ gogSpine: 'x', pcColor: 'rot' }).gogSpine, 'match'); assert.equal(C.mergeState({ gogSpine: 'x', pcColor: 'rot' }).pcColor, 'auto');
+  assert.equal(C.mergeState({ gogSpine: 'light', pcColor: 'black' }).pcColor, 'black'); assert.equal(C.mergeState({ gogSpine: 'light' }).gogSpine, 'light');
+  for (const t of ['white', 'warm', 'glasswhite', 'glass', 'dark', 'violet']) assert.equal(C.mergeState({ provider: 'gog', theme: t }).theme, t);
+  assert.equal(C.mergeState({ provider: 'steam', theme: 'white' }).theme, 'bar');                 // Varianten gibt es nur bei GOG
+  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar' }).theme, 'dark');                    // alte Stile werden zu "Dunkel"
+  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar-dark' }).theme, 'dark');
+  assert.equal(C.mergeState({ provider: 'gog', theme: 'alt-dark' }).theme, 'dark');
+  assert.equal(C.mergeState({ gogText: false }).gogText, false); assert.equal(C.mergeState({}).gogText, true);
+  // Leiste: bei GOG schmal; bei "durchscheinend" liegt sie über dem Bild, das Frontbild beginnt ganz oben
+  assert.equal(C.barHeight({ provider: 'gog' }), 10); assert.equal(C.barHeight({ provider: 'steam' }), C.BAR_HEIGHT);
+  assert.equal(C.frontTop({ provider: 'gog', theme: 'white' }), 10); assert.equal(C.frontTop({ provider: 'gog', theme: 'glass' }), 0); assert.equal(C.frontTop({ provider: 'gog', theme: 'glasswhite' }), 0);
+  assert.equal(C.frontTop({ provider: 'epic', theme: 'bar' }), C.BAR_HEIGHT);
+  const dims = C.caseDims(C.mergeState({}));
+  assert.equal(C.imageSpecs(dims, 0).front.h, dims.h); assert.equal(C.imageSpecs(dims, 10).front.h, dims.h - 10);
+  for (const v of Object.values(C.PROVIDERS.gog.variants)) assert.ok(v.barA && v.barB && v.fg && v.spine && v.bannerA);
   const s = C.defaultState();
   assert.equal(s.spineArt, 'color'); assert.equal(s.spineUseLogo, true); assert.equal(s.spinePub, true);
   assert.equal(C.mergeState({ spineArt: 'komisch' }).spineArt, 'color'); assert.equal(C.mergeState({ spineArt: 'image' }).spineArt, 'image');
 });
 
 test('Projektdatei: Rückenlogo wird mitgespeichert', async () => {
-  const F = require('../cover-tool/files.js'), Z = require('../cover-tool/zip.js');
+  const F = require('../disc-sleeve/files.js'), Z = require('../disc-sleeve/zip.js');
   assert.ok(F.IMAGE_KEYS.includes('spineLogo'));
   const png = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3]);
   const out = F.unpackProject(await Z.read(F.packProject(C.defaultState(), { spineLogo: { data: png, type: 'image/png', name: 'logo.png' } })));
@@ -245,7 +259,7 @@ test('Logo-Anpassung: Zu breite Logos werden gedreht, das Ergebnis passt immer i
 
 test('Aufgeräumt: keine GOG-Original-Symbole und kein Galaxy-Feld mehr, Unterlagen für Publisher-Logos', () => {
   const fs = require('node:fs'), path = require('node:path');
-  const dir = path.join(__dirname, '..', 'cover-tool', 'assets', 'images', 'features');
+  const dir = path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images', 'features');
   assert.deepEqual(fs.readdirSync(dir), ['line']);                                   // nur noch die SVG-Symbole
   const s = C.defaultState();
   assert.equal('galaxy' in s, false); assert.equal('iconStyle' in s, false);
@@ -258,6 +272,6 @@ test('Aufgeräumt: keine GOG-Original-Symbole und kein Galaxy-Feld mehr, Unterla
 test('Im Bilderordner liegen keine Rastergrafiken', () => {
   const fs = require('node:fs'), path = require('node:path');
   const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]);
-  const bad = walk(path.join(__dirname, '..', 'cover-tool', 'assets', 'images')).filter((f) => /\.(png|jpe?g|gif|webp|bmp)$/i.test(f));
+  const bad = walk(path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images')).filter((f) => /\.(png|jpe?g|gif|webp|bmp)$/i.test(f));
   assert.deepEqual(bad, []);
 });

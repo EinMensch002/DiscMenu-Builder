@@ -1,9 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const zlib = require('node:zlib');
-const C = require('../cover-tool/core.js');
-const O = require('../cover-tool/online.js');
-const Z = require('../cover-tool/zip.js');
+const C = require('../disc-sleeve/core.js');
+const O = require('../disc-sleeve/online.js');
+const Z = require('../disc-sleeve/zip.js');
 
 // Kleiner Speicher-Ersatz für localStorage
 const mem = new Map();
@@ -296,7 +296,7 @@ test('Brandfetch: Suche nach Firmenlogos mit Client-ID', async () => {
 });
 
 test('Einstellungsdatei: Brandfetch-ID ist optional und stört den Konfigurator nicht', async () => {
-  const F = require('../cover-tool/files.js');
+  const F = require('../disc-sleeve/files.js');
   const plain = JSON.parse(await F.packSettings({ key: 'k', proxy: 'https://p/?url={url}' }, ''));
   assert.equal('brandfetchId' in plain, false);                       // ohne ID bleibt die Datei wie beim Konfigurator
   const text = await F.packSettings({ key: 'k', proxy: '', brandfetch: 'ID1' }, '');

@@ -10,7 +10,7 @@ Werkzeuge für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung
 > | Werkzeug | Stand | Aufrufen |
 > |---|---|---|
 > | **Menü-Konfigurator** | fertig und nutzbar | https://einmensch002.github.io/DiscMenu-Builder/ |
-> | **Cover-Tool** (Hüllen zum Ausdrucken) | fertig und nutzbar, Ausdruck mit echtem Drucker noch zu prüfen | https://einmensch002.github.io/DiscMenu-Builder/cover/ |
+> | **DiscSleeve** (Hüllen zum Ausdrucken) | fertig und nutzbar, Ausdruck mit echtem Drucker noch zu prüfen | https://einmensch002.github.io/DiscMenu-Builder/disc-sleeve/ |
 > | **Builder** und **Player** (die Menü-EXE) | gebaut (Go, eine EXE ohne Installation), noch nicht auf echtem Windows und Wine/Proton geprüft | [Anleitung](docs/player-und-builder.md) |
 >
 > Beide Web-Apps laufen komplett im Browser, nichts wird hochgeladen, und verlinken sich gegenseitig.
@@ -22,7 +22,7 @@ Werkzeuge für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung
 | **Konfigurator** (`configurator/`) | Das Rezept (`menu.json` mit Bildern und Sounds) per Maske zusammenstellen, mit Vorschau und Installations-Simulation. Exportiert eine ZIP | [docs/configurator.md](docs/configurator.md) |
 | **Builder** (`src/Builder`) | Aus dem Rezept und dem Player die fertige Menü-EXE zusammensetzen und das Rezept prüfen | [docs/player-und-builder.md](docs/player-und-builder.md) |
 | **Player** (`src/Player`) | Das Menü selbst, das auf der Disc liegt (Windows 10/11, Linux über Wine/Proton) | [docs/player-und-builder.md](docs/player-und-builder.md) |
-| **Cover-Tool** (`cover-tool/`) | Druckfertige Hüllen: Cover, Rücken und Rückseite mit Systemanforderungen, Spielfunktionen und USK, A4 quer mit Schnittmarken | [docs/cover-tool.md](docs/cover-tool.md) |
+| **DiscSleeve** (`disc-sleeve/`) | Druckfertige Hüllen: Cover, Rücken und Rückseite mit Systemanforderungen, Spielfunktionen und USK, A4 quer mit Schnittmarken | [docs/disc-sleeve.md](docs/disc-sleeve.md) |
 
 Der übliche Ablauf für eine Disc: Rezept im **Konfigurator** erstellen, mit dem **Builder** die Menü-EXE erzeugen, Disc brennen und mit dem **Cover-Tool** die Hülle drucken.
 
@@ -30,7 +30,7 @@ Der übliche Ablauf für eine Disc: Rezept im **Konfigurator** erstellen, mit de
 
 - **Ein Rezept:** Alles steht in der `menu.json` (mit Assets, als ZIP). Für eine neue Disc wird nichts neu programmiert.
 - **Konfigurator:** Eine Web-App ohne Backend, in der man das Rezept per Maske zusammenstellt, statt die JSON zu schreiben.
-- **Cover-Tool:** Eine zweite Web-App für die Hülle der Disc. Sie druckt Cover, Rücken und Rückseite mit Systemanforderungen im GOG-Stil (Leistenstil, Deutsch oder Englisch, USK-Kennzeichnung, ohne Barcode).
+- **DiscSleeve (früher Cover-Tool):** Eine zweite Web-App für die Hülle der Disc. Sie druckt Cover, Rücken und Rückseite mit Systemanforderungen im GOG-Stil (Leistenstil, Deutsch oder Englisch, USK-Kennzeichnung, ohne Barcode).
 - **Einheitlicher Look, anpassbar:** Layout und Bedienung sind immer gleich, Texte, Cover, Hintergrund und Sounds kommen aus der Rezeptdatei.
 - **Eine oder mehrere Spiele pro Disc:** Bei mehreren Spielen gibt es eine Auswahlseite (Reihenfolge über `index`), bei nur einem Spiel öffnet sich direkt dessen Seite.
 - **Pro Spiel:** Installieren (wahlweise still mit Zielpfad), DLCs/Erweiterungen, Patches (z. B. Sprach- oder Grafikpatches), Extras (Soundtrack, Artbooks, Handbücher). Eigene Tabs (z. B. Mods) sind später geplant.
@@ -44,7 +44,7 @@ Der übliche Ablauf für eine Disc: Rezept im **Konfigurator** erstellen, mit de
 |---|---|
 | [docs/concept.md](docs/concept.md) | Konzept, Bausteine, Ablauf, Menüaufbau, EXE-Aufbau |
 | [docs/player-und-builder.md](docs/player-und-builder.md) | Builder und Player: Bauen, Benutzen, Windows 11, Wine/Proton, Anbieter-Look |
-| [docs/cover-tool.md](docs/cover-tool.md) | Cover-Tool: Bedienung, Maße, Stile, Drucken, Grenzen, Geplantes |
+| [docs/disc-sleeve.md](docs/disc-sleeve.md) | DiscSleeve (Cover-Tool): Bedienung, Maße, Stile, Drucken, Grenzen, Geplantes |
 | [docs/configurator.md](docs/configurator.md) | Konfigurator (Web-App): Bedienung, Grenzen |
 | [docs/steamgriddb.md](docs/steamgriddb.md) | Bilder, Beschreibungen und Übersetzung, Einrichtung, Proxy |
 | [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json`, Aufbau der Rezept-ZIP |
@@ -63,7 +63,7 @@ DiscMenu-Builder/
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
 ├─ configurator/            Konfigurator: index.html (eine eigenständige Datei)
 ├─ go.mod, scripts/build.sh Go-Projekt und Build-Skript für die Windows-EXEs
-├─ cover-tool/              Cover-Tool: druckfertige Hüllen (Web-App, Seite unter /cover/)
+├─ disc-sleeve/              DiscSleeve: druckfertige Hüllen (Web-App, Seite unter /disc-sleeve/, alt: /cover/ leitet weiter)
 ├─ schema/                  JSON Schema der menu.json
 ├─ tests/                   Automatische Tests
 ├─ tools/mkdemo/            Erzeugt die Beispiel-Assets
@@ -100,15 +100,15 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Automatische Tests im Repo (Kernlogik, Schema, Worker, Oberfläche) mit CI
 - [x] Prüfung der Disc-Dateien über Ordnerzugriff (Chrome, Edge)
 
-### Cover-Tool (Web-App, live unter /cover/)
+### DiscSleeve (Web-App, live unter /disc-sleeve/)
 
 - [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, Deutsch oder Englisch
 - [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzmarken (Test im Browser)
 - [x] Prozessoren und Grafikkarten als Listen (mehrere Einträge, an- und ausschaltbar, GeForce/Radeon, Speicher in GB), Import zerlegt "or" in einzelne Zeilen
 - [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden der USK
-- [x] Stil "Leiste" (Kopfleiste wie bei Handelsspielen) für alle Anbieter, bei GOG in zwei Farbvarianten
+- [x] Stil "Leiste" (Kopfleiste wie bei Handelsspielen) für alle Anbieter, bei GOG schmal in sechs Varianten (Schieberegler von hell nach dunkel)
 - [x] Bilder werden auf Druckgröße verkleinert, Hinweis zur Schärfe (dpi)
-- [x] Tests im Repo (Logik, Druck, feste Plätze, beide Stile, Online-Abläufe) und Veröffentlichung unter `/cover/`
+- [x] Tests im Repo (Logik, Druck, feste Plätze, beide Stile, Online-Abläufe) und Veröffentlichung unter `/disc-sleeve/`
 - [ ] Mit echtem Drucker und echter Hülle prüfen (Maße, Schnittmarken)
 - [x] Titel, Anbieter, Größe und Cover aus der `menu.json` oder Rezept-ZIP übernehmen
 - [x] Stile passend zum Anbieter (GOG, Epic Games, Steam) mit eigenen Farben, Logo und Schriftzug
@@ -145,7 +145,8 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 ### Nächste Schritte der Web-Tools (Reihenfolge)
 
-- [ ] **GOG-Stil überarbeiten** (Vorderseite und Rücken): eigenständiger und weniger Lila-lastig, damit er zu mehr Covern passt (die dunkle Variante ist ein erster Schritt)
+- [x] **GOG-Stil überarbeitet:** schmale Leiste wie bei den echten GOG-Hüllen in sechs Varianten (Schieberegler von hell nach dunkel), Logo immer sichtbar, "GOG.COM" ein-/ausschaltbar, Rücken und Streifen neutral statt Lila
+- [x] **Oberfläche in Deutsch und Englisch** (Sprachmenü mit Flagge oben, Sprachpakete für weitere Sprachen), Farbe von "PC" am Rücken, GOG-Varianten Weiß, Warmweiß, Dunkel, Violett-Hauch, durchscheinend, heller Rücken
 - [ ] **Rückseite frei gestalten:** Konfigurator mit Textfeldern, Bildern und festen Bausteinen, die man selbst anordnet (wie die Steam-Rückseiten mit Beschreibung und Bildleiste)
 - [ ] **Beide Web-Tools zusammenführen:** Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
 - [ ] **Ein-Datei-Build** (Vorarbeit erledigt: alle Grafiken sind SVG, nur die Schrift Lato ist noch eine Binärdatei): Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien

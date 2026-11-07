@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
-const html = fs.readFileSync(path.join(root, 'cover-tool', 'index.html'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'disc-sleeve', 'index.html'), 'utf8');
 const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'pages.yml'), 'utf8');
 
 // Auf GitHub Pages dürfen Browser Dateien bis zu 10 Minuten zwischenspeichern. Ohne Versionsnummer in der Adresse
@@ -13,12 +13,14 @@ test('Alle eigenen Dateien der Seite haben eine Versionsnummer in der Adresse', 
   const refs = [...html.matchAll(/<(?:script|link)[^>]*(?:src|href)="([^"]+)"/g)].map((m) => m[1]).filter((u) => !/^https?:/.test(u));
   assert.ok(refs.length >= 7, 'Skripte und Stil gefunden: ' + refs);
   for (const ref of refs) assert.match(ref, /\?v=__VERSION__$/, ref);
-  for (const ref of refs) assert.ok(fs.existsSync(path.join(root, 'cover-tool', ref.split('?')[0])), 'Datei fehlt: ' + ref);
+  for (const ref of refs) assert.ok(fs.existsSync(path.join(root, 'disc-sleeve', ref.split('?')[0])), 'Datei fehlt: ' + ref);
   assert.match(html, /id="ver"[^>]*>Version __VERSION__</, 'Die Versionsnummer wird auf der Seite angezeigt');
 });
 
 test('Der Pages-Workflow setzt die Versionsnummer ein', () => {
-  assert.match(workflow, /sed -i "s\/__VERSION__\/\$\{GITHUB_SHA::7\}\/g" site\/cover\/index\.html/);
+  assert.match(workflow, /sed -i "s\/__VERSION__\/\$\{GITHUB_SHA::7\}\/g" site\/disc-sleeve\/index\.html/);
+  assert.match(workflow, /mkdir site\/cover/);                                   // die alte Adresse /cover/ leitet weiter
+  assert.match(workflow, /url=\.\.\/disc-sleeve\//);
   // dasselbe Ersetzen auf der echten Datei: danach bleibt kein Platzhalter übrig
   const out = html.replace(/__VERSION__/g, '0c9d65a');
   assert.ok(!out.includes('__VERSION__'));
@@ -28,9 +30,9 @@ test('Der Pages-Workflow setzt die Versionsnummer ein', () => {
 
 // Jeder Anbieter hat ein Logo für Vorderseite und Rücken: Datei vorhanden, klein (Vektor bzw. wenige KB) und mit weißer Füllung
 test('Anbieter-Logos: Dateien vorhanden und klein', () => {
-  const C = require('../cover-tool/core.js');
+  const C = require('../disc-sleeve/core.js');
   for (const [key, p] of Object.entries(C.PROVIDERS)) {
-    const file = path.join(root, 'cover-tool', 'assets', 'images', p.logo);
+    const file = path.join(root, 'disc-sleeve', 'assets', 'images', p.logo);
     assert.ok(fs.existsSync(file), key + ': ' + p.logo + ' fehlt');
     assert.ok(fs.statSync(file).size < 40000, key + ': Logo ist zu groß');
     assert.ok(p.logo.endsWith('.svg'), key + ': Logo muss SVG sein');

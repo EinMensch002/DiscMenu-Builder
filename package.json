@@ -4,7 +4,7 @@
   "description": "Tests für Konfigurator, Proxy und das gemeinsame JSON Schema",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "test:ui": "node tests/ui/ui.check.js && node tests/ui/cover.check.js && node tests/ui/cover-online.check.js && node tests/ui/cover-save.check.js && node tests/ui/cover-spine.check.js"
+    "test:ui": "node tests/ui/ui.check.js && node tests/ui/cover.check.js && node tests/ui/cover-online.check.js && node tests/ui/cover-save.check.js && node tests/ui/cover-spine.check.js && node tests/ui/cover-i18n.check.js"
   },
   "devDependencies": {
     "ajv": "^8.17.0",

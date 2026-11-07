@@ -38,24 +38,9 @@
      inkscape:groupmode="layer"
      inkscape:label="1"
      transform="translate(-599.49469,-325.10552)">
-    <path
-       id="path2"
-       d="m 458.9317,597.1856 h 81.2075 c 4.6397,0 8.4356,-4.1927 8.4356,-9.3178 v -79.4432 c 0,-5.125 -3.7959,-9.3178 -8.4356,-9.3178 h -81.2075 c -4.6398,0 -8.4356,4.1928 -8.4356,9.3178 v 79.4432 c 0,5.1251 3.7958,9.3178 8.4356,9.3178"
-       style="fill:#ffffff;fill-opacity:.702;fill-rule:evenodd;stroke:none"
-       transform="matrix(1.3333333,0,0,-1.3333333,0,1122.5197)"
-       inkscape:export-filename="USK_0.svg"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
-    <path
-       id="path3"
-       d="m 458.9317,597.1856 h 81.2075 c 4.6397,0 8.4356,-4.1927 8.4356,-9.3178 v -79.4432 c 0,-5.125 -3.7959,-9.3178 -8.4356,-9.3178 h -81.2075 c -4.6398,0 -8.4356,4.1928 -8.4356,9.3178 v 79.4432 c 0,5.1251 3.7958,9.3178 8.4356,9.3178 z"
-       style="fill:none;stroke:#ffffff;stroke-width:1.7501;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-       transform="matrix(1.3333333,0,0,-1.3333333,0,1122.5197)" />
-    <path
-       id="path4"
-       d="m 458.9317,597.1856 h 81.2075 c 4.6397,0 8.4356,-4.1927 8.4356,-9.3178 v -79.4432 c 0,-5.125 -3.7959,-9.3178 -8.4356,-9.3178 h -81.2075 c -4.6398,0 -8.4356,4.1928 -8.4356,9.3178 v 79.4432 c 0,5.1251 3.7958,9.3178 8.4356,9.3178 z"
-       style="fill:none;stroke:#ffffff;stroke-width:1.7501;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-       transform="matrix(1.3333333,0,0,-1.3333333,0,1122.5197)" />
+    
+    
+    
     <path
        id="path5"
        d="m 502.655,589.0456 37.3152,-36.3654 c 2.132,-2.0775 1.9987,-5.7041 -0.2962,-8.0589 l -35.5751,-36.5045 c -2.2949,-2.3551 -5.9167,-2.5818 -8.0487,-0.5043 l -37.3152,36.3654 c -2.132,2.0775 -1.9987,5.7041 0.2962,8.0589 l 35.5751,36.5045 c 2.2949,2.355 5.9167,2.5818 8.0487,0.5043"
