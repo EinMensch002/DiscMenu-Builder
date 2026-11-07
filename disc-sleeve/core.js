@@ -38,74 +38,106 @@
     return { name: 'Eigene Maße', w: round1(back + spine + front), h, back: round1(back), spine: round1(spine), front: round1(front), adjusted };
   }
 
-  /* ---------- Rückseite aus Bausteinen ----------
-     Die Rückseite besteht aus Bausteinen von oben nach unten (Reihenfolge und Ein/Aus wählbar). Das Hintergrundbild füllt den Rest, alle anderen Bausteine
-     haben eine feste Höhe in mm. Vorlagen setzen eine Reihenfolge samt Ein/Aus, die Inhalte (Beschreibung, Text, Bilder) bleiben dabei erhalten. */
-  const BACK_TYPES = ['image', 'description', 'shots', 'features', 'requirements', 'text'];
-  const BACK_H = { description: 34, shots: 30, features: 15, requirements: 46, text: 16 };            // Standardhöhen (mm)
-  const BACK_LIMITS = { description: [10, 100], shots: [12, 80], features: [10, 30], requirements: [30, 110], text: [8, 80] };
-  const BACK_TEMPLATES = {
-    classic: { name: 'Wie bisher', on: ['image', 'features', 'requirements'], order: ['image', 'features', 'requirements', 'description', 'shots', 'text'] },
-    steam: { name: 'Beschreibung und Bildleiste', on: ['image', 'description', 'shots', 'features', 'requirements'], order: ['image', 'description', 'shots', 'features', 'requirements', 'text'] },
-    minimal: { name: 'Nur Anforderungen', on: ['image', 'requirements'], order: ['image', 'requirements', 'features', 'description', 'shots', 'text'] },
-  };
-  const BACK_SHOT_MARGIN = 3, BACK_SHOT_GAP = 2;                      // Rand und Abstand der Bildleiste (mm)
-  function templateBlocks(id) {
-    const t = BACK_TEMPLATES[id] || BACK_TEMPLATES.classic;
-    return t.order.map((type) => ({ type, on: t.on.includes(type), h: BACK_H[type] || 0 }));
-  }
-  function defaultBack() { return { template: 'classic', blocks: templateBlocks('classic'), description: '', text: '', shotsCount: '3' }; }
-  /* Gespeicherte Rückseite prüfen: jeder Baustein genau einmal, Höhen in den Grenzen, unbekanntes fällt weg, Fehlendes kommt dazu */
-  function normalizeBack(saved) {
-    const d = defaultBack(), s = saved && typeof saved === 'object' ? saved : {};
-    const out = { template: BACK_TEMPLATES[s.template] ? s.template : 'classic', description: typeof s.description === 'string' ? s.description : '', text: typeof s.text === 'string' ? s.text : '' };
-    out.shotsCount = ['2', '3', '4'].includes(String(s.shotsCount)) ? String(s.shotsCount) : d.shotsCount;
-    const seen = new Set(), blocks = [];
-    for (const b of Array.isArray(s.blocks) ? s.blocks : []) {
-      if (!b || !BACK_TYPES.includes(b.type) || seen.has(b.type)) continue;
-      seen.add(b.type);
-      const lim = BACK_LIMITS[b.type], h = parseFloat(String(b.h).replace(',', '.'));
-      blocks.push({ type: b.type, on: b.type === 'image' ? b.on !== false : !!b.on, h: lim ? Math.min(lim[1], Math.max(lim[0], isFinite(h) ? h : BACK_H[b.type])) : 0 });
+  /* ---------- Rückseite: unten fest, oben frei gestaltbar ----------
+     Unten steht immer derselbe Teil (Streifen mit den Spielfunktionen und Systemanforderungen mit Logos), bei allen Anbietern gleich. Die Höhen lassen sich
+     von Hand anpassen (z. B. bei einer Blu-ray-Hülle). Darüber liegt die Gestaltungsfläche: Als Grund das Bild "Rückseite oben", darauf beliebig viele
+     Elemente (Bilder und Texte) mit Position und Größe in mm, in der Reihenfolge von unten nach oben. Bearbeitet wird sie im Editor (Pop-up). */
+  const BACK = { banner: 15, bottom: 46 };                                           // Standardhöhen unten (mm)
+  const BACK_LIMITS = { featH: [10, 30], reqH: [30, 110] };
+  const BACK_FONTS = ['sans', 'serif', 'condensed', 'display', 'mono', 'hand'];
+  const BACK_EDGES = ['none', 'round', 'border', 'feather', 'torn'];
+  const MAX_ITEMS = 60;
+  const clampN = (v, lo, hi, d) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+  const hexOk = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v)) ? String(v).toLowerCase() : d);
+  const oneOf = (v, list, d) => (list.includes(v) ? v : d);
+  const IMAGE_KEY_RE = /^(front|backTop|backBottom|publisher|spineLogo|spineBg|d\d+)$/;
+  const isImageKey = (k) => IMAGE_KEY_RE.test(String(k));
+
+  /* Ein Element der Gestaltungsfläche prüfen (fehlende Werte bekommen Standardwerte) */
+  function normalizeItem(raw) {
+    if (!raw || typeof raw !== 'object' || !['image', 'text'].includes(raw.type)) return null;
+    const it = {
+      id: typeof raw.id === 'string' && /^[a-z0-9_-]{1,12}$/i.test(raw.id) ? raw.id : '',
+      type: raw.type,
+      x: clampN(raw.x, -300, 600, 0), y: clampN(raw.y, -300, 600, 0), w: clampN(raw.w, 2, 600, 40), h: clampN(raw.h, 2, 600, 20),
+      opacity: Math.round(clampN(raw.opacity, 5, 100, 100)),
+      edge: oneOf(raw.edge, BACK_EDGES, 'none'), edgeSize: clampN(raw.edgeSize, 0, 20, 0), borderColor: hexOk(raw.borderColor, '#ffffff'),
+    };
+    if (it.type === 'image') {
+      it.img = isImageKey(raw.img) ? raw.img : '';
+      it.fit = oneOf(raw.fit, ['cover', 'contain', 'stretch'], 'cover');
+      it.posX = Math.round(clampN(raw.posX, 0, 100, 50)); it.posY = Math.round(clampN(raw.posY, 0, 100, 50));
+    } else {
+      it.text = typeof raw.text === 'string' ? raw.text.slice(0, 4000) : '';
+      it.bind = oneOf(raw.bind, ['', 'title', 'description'], '');
+      it.font = oneOf(raw.font, BACK_FONTS, 'sans');
+      it.size = clampN(raw.size, 3, 120, 8); it.color = hexOk(raw.color, '#222222');
+      it.weight = oneOf(String(raw.weight), ['300', '400', '700', '900'], '400'); it.italic = !!raw.italic; it.caps = !!raw.caps;
+      it.spacing = clampN(raw.spacing, -5, 60, 0); it.line = clampN(raw.line, 0.8, 3, 1.3);
+      it.align = oneOf(raw.align, ['left', 'center', 'right', 'justify'], 'left'); it.valign = oneOf(raw.valign, ['top', 'middle', 'bottom'], 'top');
+      it.fit = raw.fit !== false; it.bg = raw.bg ? hexOk(raw.bg, '') : ''; it.bgOpacity = Math.round(clampN(raw.bgOpacity, 0, 100, 80)); it.pad = clampN(raw.pad, 0, 20, 1);
     }
-    for (const type of d.blocks.map((x) => x.type)) if (!seen.has(type)) blocks.push(d.blocks.find((x) => x.type === type));
-    out.blocks = blocks;
+    return it;
+  }
+  function defaultBack() { return { featH: String(BACK.banner), reqH: String(BACK.bottom), description: '', seq: 1, items: [] }; }
+  function normalizeBack(saved) {
+    const s = saved && typeof saved === 'object' ? saved : {}, out = defaultBack();
+    out.featH = String(Math.round(clampN(s.featH, BACK_LIMITS.featH[0], BACK_LIMITS.featH[1], BACK.banner) * 100) / 100);
+    out.reqH = String(Math.round(clampN(s.reqH, BACK_LIMITS.reqH[0], BACK_LIMITS.reqH[1], BACK.bottom) * 100) / 100);
+    out.description = typeof s.description === 'string' ? s.description.slice(0, 4000) : '';
+    const seen = new Set(); let maxN = 0;
+    for (const raw of Array.isArray(s.items) ? s.items.slice(0, MAX_ITEMS) : []) {
+      const it = normalizeItem(raw); if (!it) continue;
+      if (!it.id || seen.has(it.id)) { let n = 1; while (seen.has('e' + n)) n++; it.id = 'e' + n; }
+      seen.add(it.id); out.items.push(it);
+    }
+    for (const it of out.items) { const m = /^d(\d+)$/.exec(it.img || ''); if (m) maxN = Math.max(maxN, Number(m[1])); }
+    out.seq = Math.max(Math.round(clampN(s.seq, 1, 100000, 1)), maxN + 1);
     return out;
   }
-  /* Höhen auf der Rückseite: Bausteine von oben nach unten, das Hintergrundbild nimmt den Rest. overflow > 0: die festen Bausteine sind zusammen zu hoch (mm). */
-  function backLayout(state, dims) {
-    const c = dims || caseDims(state), back = (state && state.back) || defaultBack();
-    const blocks = back.blocks.map((b) => ({ type: b.type, on: !!b.on, h: b.type === 'image' ? 0 : b.h }));
-    const fixed = blocks.filter((b) => b.on && b.type !== 'image').reduce((a, b) => a + b.h, 0);
-    const image = blocks.find((b) => b.type === 'image');
-    const rest = round1(c.h - fixed);
-    if (image) image.h = image.on ? Math.max(0, rest) : 0;
-    return { blocks, imageH: image && image.on ? Math.max(0, rest) : 0, overflow: rest < 0 ? round1(-rest) : 0, fixed: round1(fixed) };
+  /* Höhe der Gestaltungsfläche (mm): alles über dem Streifen mit den Spielfunktionen */
+  function designHeight(state, dims) {
+    const c = dims || caseDims(state), b = (state && state.back) || defaultBack();
+    return Math.max(0, round1(c.h - Number(b.featH) - Number(b.reqH)));
   }
-  const blockOf = (lay, type) => lay.blocks.find((b) => b.type === type);
-  /* Bildleiste: Breite und Höhe eines Bildes (mm) */
-  function shotSize(state, dims) {
-    const c = dims || caseDims(state), n = Number((state.back && state.back.shotsCount) || 3), lay = backLayout(state, c), blk = blockOf(lay, 'shots');
-    return { w: round1((c.back - 2 * BACK_SHOT_MARGIN - (n - 1) * BACK_SHOT_GAP) / n), h: round1(Math.max(1, (blk ? blk.h : BACK_H.shots) - 2 * BACK_SHOT_MARGIN)) };
+  /* Neues Element mit Standardwerten (Position in mm auf der Gestaltungsfläche) */
+  function newItem(type, props) { return normalizeItem({ type, ...(props || {}) }); }
+  /* Vorlagen für die Gestaltungsfläche: Elemente, die an die Größe der Fläche angepasst sind (Bilder bleiben leer, bis man sie wählt) */
+  const BACK_TEMPLATES = { none: 'Leer', text: 'Titel und Beschreibung', steam: 'Beschreibung und Bildleiste' };
+  function backTemplate(id, w, h) {
+    const m = 6, inner = Math.max(10, w - 2 * m);
+    if (id === 'text') {
+      return [
+        newItem('text', { bind: 'title', x: m, y: h * 0.38, w: inner, h: 9, font: 'display', size: 16, weight: '900', caps: true, align: 'center', valign: 'middle', color: '#ffffff', spacing: 4, bg: '#000000', bgOpacity: 45, pad: 1.5 }),
+        newItem('text', { bind: 'description', x: m, y: h * 0.38 + 11, w: inner, h: h * 0.6 - 13, size: 8, color: '#ffffff', align: 'left', bg: '#000000', bgOpacity: 45, pad: 2 }),
+      ];
+    }
+    if (id === 'steam') {
+      const stripH = Math.round(h * 0.26 * 10) / 10, gap = 3, iw = Math.round(((inner - 2 * gap) / 3) * 10) / 10, y = round1(h - stripH - 4);
+      const out = [
+        newItem('text', { bind: 'title', x: m, y: round1(h * 0.34), w: inner, h: 8, font: 'display', size: 15, weight: '900', caps: true, align: 'center', valign: 'middle', color: '#1c1c22', spacing: 3 }),
+        newItem('text', { bind: 'description', x: m, y: round1(h * 0.34 + 9), w: inner, h: round1(y - h * 0.34 - 12), size: 7.5, color: '#222222', align: 'left' }),
+      ];
+      for (let i = 0; i < 3; i++) out.push(newItem('image', { x: round1(m + i * (iw + gap)), y, w: iw, h: stripH, edge: 'border', edgeSize: 0.6, borderColor: '#ffffff' }));
+      return out;
+    }
+    return [];
   }
-  const BACK = { banner: BACK_H.features, bottom: BACK_H.requirements };      // Standardhöhen der Rückseite "Wie bisher"
+  function imageSpecs(caseOrDims, top, state) {
+    if (top === undefined) top = BAR_HEIGHT;
+    const c = typeof caseOrDims === 'object' ? caseOrDims : (CASES[caseOrDims] || CASES.normal);
+    const b = (state && state.back) || defaultBack();
+    return {
+      front: { w: c.front, h: round1(c.h - top) },
+      backTop: { w: c.back, h: designHeight({ back: b }, c) },
+      backBottom: { w: c.back, h: Number(b.reqH) },
+      spineBg: { w: c.spine, h: c.h },
+    };
+  }
 
   /* Größe, in der die Bilder für den Druck angelegt werden sollten */
   /* Höhe der Kopfleiste (mm): Das Frontbild füllt nur den Teil darunter */
   const BAR_HEIGHT = 18.6;
-  function imageSpecs(caseOrDims, top, state) {
-    if (top === undefined) top = BAR_HEIGHT;
-    const c = typeof caseOrDims === 'object' ? caseOrDims : (CASES[caseOrDims] || CASES.normal);
-    const lay = backLayout(state || { back: defaultBack() }, c), req = blockOf(lay, 'requirements');
-    const specs = {
-      front: { w: c.front, h: round1(c.h - top) },
-      backTop: { w: c.back, h: round1(lay.imageH) },
-      backBottom: { w: c.back, h: req && req.on ? req.h : BACK.bottom },
-      spineBg: { w: c.spine, h: c.h },
-    };
-    const shot = shotSize(state || { back: defaultBack() }, c);
-    for (let i = 1; i <= 4; i++) specs['shot' + i] = shot;
-    return specs;
-  }
   const round1 = (n) => Math.round(n * 10) / 10;
 
   /* --- Texte --- */
@@ -461,7 +493,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { BACK_TYPES, BACK_H, BACK_LIMITS, BACK_TEMPLATES, templateBlocks, defaultBack, normalizeBack, backLayout, shotSize, BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { BACK_LIMITS, BACK_FONTS, BACK_EDGES, BACK_TEMPLATES, MAX_ITEMS, isImageKey, normalizeItem, normalizeBack, defaultBack, designHeight, newItem, backTemplate, BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

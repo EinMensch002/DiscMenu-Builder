@@ -106,24 +106,14 @@
 
     <details class="sec" id="secBack">
       <summary>Rückseite</summary>
-      <p class="hint">Die Rückseite besteht aus Bausteinen von oben nach unten. Wähle eine Vorlage, schalte Bausteine ein oder aus, ändere die Reihenfolge mit den Pfeilen und stelle die Höhen in mm ein. Das Hintergrundbild füllt den Rest.</p>
-      <div class="f"><span class="lab">Vorlage</span>
-        <select data-k="back.template" data-seg><option value="classic">Wie bisher</option><option value="steam">Beschreibung und Bildleiste</option><option value="minimal">Nur Anforderungen</option></select></div>
-      <div id="blockList" class="blocks"></div>
-      <div id="backDescEdit" hidden><label class="f"><span class="lab">Beschreibung</span><textarea data-k="back.description" rows="5" placeholder="Kurze Beschreibung des Spiels (die Schrift passt sich der Höhe an)"></textarea></label></div>
-      <div id="backTextEdit" hidden><label class="f"><span class="lab">Freier Text</span><textarea data-k="back.text" rows="3" placeholder="z. B. ein Hinweis oder eine Widmung"></textarea></label></div>
-      <div id="backShotsEdit" hidden>
-        <div class="f"><span class="lab">Bildleiste: Anzahl der Bilder</span>
-          <select data-k="back.shotsCount" data-seg><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
-      <div class="drop" data-img="shot1"><input type="file" accept="image/*" aria-label="Bild 1 der Bildleiste"><div class="thumb"></div>
-        <div class="dt"><b>Bildleiste: Bild 1</b><span class="spec"></span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
-      <div class="drop" data-img="shot2"><input type="file" accept="image/*" aria-label="Bild 2 der Bildleiste"><div class="thumb"></div>
-        <div class="dt"><b>Bildleiste: Bild 2</b><span class="spec"></span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
-      <div class="drop" data-img="shot3"><input type="file" accept="image/*" aria-label="Bild 3 der Bildleiste"><div class="thumb"></div>
-        <div class="dt"><b>Bildleiste: Bild 3</b><span class="spec"></span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
-      <div class="drop" data-img="shot4"><input type="file" accept="image/*" aria-label="Bild 4 der Bildleiste"><div class="thumb"></div>
-        <div class="dt"><b>Bildleiste: Bild 4</b><span class="spec"></span><span class="info"></span></div><button type="button" class="x" title="Entfernen">✕</button></div>
+      <p class="hint">Unten steht immer derselbe Teil (Spielfunktionen, Systemanforderungen, Logos). Darüber liegt die <b>Gestaltungsfläche</b>: Dort kannst Du im Editor Bilder und Texte frei anordnen. Als Grund dient das Bild "Rückseite oben" aus dem Bereich "Bilder". Ein Klick auf die Fläche in der Vorschau öffnet den Editor ebenfalls.</p>
+      <div class="drow"><button type="button" class="pri" id="bDesign">Rückseite gestalten …</button></div>
+      <div class="two">
+        <label class="f"><span class="lab">Höhe Spielfunktionen (mm)</span><input type="number" step="0.25" data-k="back.featH"></label>
+        <label class="f"><span class="lab">Höhe Anforderungen und Logos (mm)</span><input type="number" step="0.25" data-k="back.reqH"></label>
       </div>
+      <p class="hint" id="backInfo"></p>
+      <label class="f"><span class="lab">Beschreibung des Spiels</span><textarea data-k="back.description" rows="5" placeholder="Kurze Beschreibung (kommt auch beim Import von Steam oder GOG). Im Editor zeigt ein Textelement mit Verknüpfung &quot;Beschreibung&quot; sie an."></textarea></label>
     </details>
     <details class="sec" open>
       <summary>Publisher-Logo und Altersfreigabe</summary>
@@ -273,9 +263,7 @@
           <div class="cover theme-bar" id="cover">
 
             <section class="back" id="back">
-              <div class="back-top" id="backTop"><span class="ph">Rückseite oben</span></div>
-              <div class="back-desc" id="backDesc"><p id="backDescText"></p></div>
-              <div class="back-shots" id="backShots"><i class="shot" id="shot1"></i><i class="shot" id="shot2"></i><i class="shot" id="shot3"></i><i class="shot" id="shot4"></i></div>
+              <div class="back-top" id="backTop" title="Klicken, um die Rückseite zu gestalten"><span class="ph">Rückseite oben</span><div class="bitems" id="backItems"></div></div>
               <div class="banner" id="backFeats">
                 <div class="banner-title"><b id="featTitle"></b><small id="featNote"></small></div>
                 <div class="feats" id="feats"></div>
@@ -290,7 +278,6 @@
                   </div>
                 </div>
               </div>
-              <div class="back-text" id="backTextBox"><p id="backTextP"></p></div>
             </section>
 
             <section class="spine" id="spine">
@@ -321,7 +308,9 @@
 <script src="zip.js?v=__VERSION__"></script>
 <script src="online.js?v=__VERSION__"></script>
 <script src="files.js?v=__VERSION__"></script>
+<script src="back-design.js?v=__VERSION__"></script>
 <script src="app.js?v=__VERSION__"></script>
+<script src="back-editor.js?v=__VERSION__"></script>
 <script src="extras.js?v=__VERSION__"></script>
 </body>
 </html>

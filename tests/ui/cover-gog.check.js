@@ -51,21 +51,17 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.match(tbl, /Arbeitsspeicher[\s\S]*1\.5 GB/);
   // Voreinstellung: Logo ja (Rückenlogo ist leer), Hintergrund und das kleine GOG-Cover nein
   const chk = page.locator('#dlg label.chk input');
-  assert.equal(await chk.count(), 4);
-  assert.equal(await chk.nth(0).isChecked(), true); assert.equal(await chk.nth(1).isChecked(), false); assert.equal(await chk.nth(2).isChecked(), false); assert.equal(await chk.nth(3).isChecked(), false);
-  assert.match(await page.locator('#dlg table.shown').innerText(), /Beschreibung \(Rückseite\)[\s\S]*role-playing game/, 'Beschreibung kommt von GOG');
+  assert.equal(await chk.count(), 3);
+  assert.equal(await chk.nth(0).isChecked(), true); assert.equal(await chk.nth(1).isChecked(), false); assert.equal(await chk.nth(2).isChecked(), false);
   assert.match(await page.locator('#dlg').textContent(), /342 × 482/);
-  await chk.nth(1).check(); await chk.nth(2).check();                                // Hintergrund und Bildleiste (Screenshots)
+  await chk.nth(1).check();
   await page.click('#dlg button:has-text("Übernehmen")');
   await page.waitForFunction(() => !document.querySelector('#dlg').open);
   const st = await page.evaluate(() => ({ title: CoverApp.state.title, usk: CoverApp.state.usk, pub: CoverApp.state.publisher, feats: CoverApp.state.features, imgs: Object.keys(CoverApp.snapshot().images) }));
   assert.equal(st.title, 'The Witcher: Enhanced Edition'); assert.equal(st.usk, '18'); assert.deepEqual(st.feats, ['single_player', 'cloud_saves']);
   assert.ok(st.imgs.includes('spineLogo') && st.imgs.includes('backTop'), 'Logo und Hintergrund geladen: ' + st.imgs);
-  assert.ok(['shot1', 'shot2', 'shot3'].every((k) => st.imgs.includes(k)) && !st.imgs.includes('shot4'), 'drei Screenshots geladen: ' + st.imgs);
-  const bk = await page.evaluate(() => CoverApp.state.back);
-  assert.equal(bk.shotsCount, '3'); assert.equal(bk.blocks.find((b) => b.type === 'shots').on, true, 'Bildleiste ist eingeschaltet'); assert.match(bk.description, /role-playing game/);
   assert.ok(!st.imgs.includes('front'), 'Das kleine GOG-Cover wird nur auf Wunsch geladen');
-  assert.equal(imgCalls.length, 5, 'Bilder kommen direkt von images.gog-statics.com');
+  assert.equal(imgCalls.length, 2, 'Bilder kommen direkt von images.gog-statics.com');
   assert.ok(!calls.some((c) => /gog-statics/.test(c)), 'Bilder gehen nicht über den Proxy');
 
   // GOG-Produkt-ID direkt: keine Suche

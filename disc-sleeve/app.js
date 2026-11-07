@@ -188,7 +188,6 @@
     const el = e.target;
     if (!el.dataset || !el.dataset.k) return;
     readControl(el);
-    if (el.dataset.k === 'back.template') { state.back.blocks = C.templateBlocks(state.back.template); $('#blockList').dataset.sig = ''; }       // die Vorlage setzt Reihenfolge und Ein/Aus
     syncControls();
     changed();
   }
@@ -204,7 +203,8 @@
   }
 
   /* ---------- Bilder: auf Druckgröße verkleinern, als Datei-Adresse statt als Base64-Text halten ---------- */
-  const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900, spineLogo: 1200, spineBg: 2000, shot1: 1600, shot2: 1600, shot3: 1600, shot4: 1600 };
+  const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900, spineLogo: 1200, spineBg: 2000 };
+  const maxEdge = (key) => MAX_EDGE[key] || 2000;                       // Bilder der Gestaltungsfläche (d1, d2, ...)
 
   async function loadImage(key, file) {
     let result;
@@ -212,7 +212,7 @@
       result = { url: URL.createObjectURL(file), w: 0, h: 0, svg: true, blob: file, type: 'image/svg+xml' };
     } else {
       const bmp = await createImageBitmap(file);
-      const size = C.fitSize(bmp.width, bmp.height, MAX_EDGE[key]);
+      const size = C.fitSize(bmp.width, bmp.height, maxEdge(key));
       const cv = document.createElement('canvas');
       cv.width = size.w; cv.height = size.h;
       const ctx = cv.getContext('2d');
@@ -465,71 +465,14 @@
     while (pt > 4.4 && list.offsetHeight + titleH > col.clientHeight - 1) { pt -= 0.2; list.style.fontSize = pt.toFixed(1) + 'pt'; }
   }
 
-  /* ---------- Rückseite aus Bausteinen ---------- */
-  const BLOCK_ELEMENT = { image: '#backTop', description: '#backDesc', shots: '#backShots', features: '#backFeats', requirements: '#backBottom', text: '#backTextBox' };
-  const BLOCK_NAME = { image: 'Hintergrundbild', description: 'Beschreibung', shots: 'Bildleiste', features: 'Spielfunktionen', requirements: 'Systemanforderungen und Logos', text: 'Freier Text' };
-  /* Text in einem Baustein: so groß wie möglich (bis max pt), aber so klein wie nötig, damit nichts abgeschnitten wird */
-  function fitBlockText(p, maxPt, minPt) {
-    let pt = maxPt; p.style.fontSize = pt + 'pt';
-    while (pt > minPt && p.scrollHeight > p.clientHeight + 1) { pt -= 0.2; p.style.fontSize = pt.toFixed(1) + 'pt'; }
-  }
+  /* ---------- Rückseite: feste Höhen unten, Gestaltungsfläche oben ---------- */
   function renderBack(c) {
-    const lay = C.backLayout(state, c), B = state.back;
-    lay.blocks.forEach((b, i) => {
-      const n = $(BLOCK_ELEMENT[b.type]); n.style.order = String(i); n.hidden = !b.on;
-      if (b.type !== 'image') n.style.height = b.h + 'mm';
-    });
-    const on = (t) => lay.blocks.some((b) => b.type === t && b.on);
-    const desc = $('#backDescText'), txt = $('#backTextP');
-    desc.dataset.ph = state.lang === 'en' ? 'Description' : 'Beschreibung'; txt.dataset.ph = state.lang === 'en' ? 'Free text' : 'Freier Text';
-    desc.textContent = B.description.trim(); txt.textContent = B.text.trim();
-    if (on('description')) fitBlockText(desc, 8, 4.4);
-    if (on('text')) fitBlockText(txt, 8, 4.4);
-    const n = Number(B.shotsCount) || 3;
-    for (let i = 1; i <= 4; i++) { const slot = $('#shot' + i); slot.hidden = i > n; setBg(slot, images['shot' + i]); }
-    $('#backShots').classList.toggle('any', [1, 2, 3, 4].some((i) => i <= n && images['shot' + i]));
-    /* Formular: Eingabefelder der eingeschalteten Bausteine */
-    $('#backDescEdit').hidden = !on('description'); $('#backTextEdit').hidden = !on('text'); $('#backShotsEdit').hidden = !on('shots');
-    for (let i = 1; i <= 4; i++) $('[data-img=shot' + i + ']').hidden = i > n;
-    renderBlockList(lay);
-  }
-  function renderBlockList(lay) {
-    const box = $('#blockList'), blocks = state.back.blocks, sig = blocks.map((b) => b.type + (b.on ? '1' : '0')).join(',');
-    if (box.dataset.sig !== sig) {
-      box.dataset.sig = sig;
-      box.replaceChildren(...blocks.map((b, i) => {
-        const row = el('div', 'brow' + (b.on ? '' : ' off')); row.dataset.i = String(i); row.dataset.type = b.type;
-        const chk = el('input'); chk.type = 'checkbox'; chk.checked = b.on; chk.dataset.bf = 'on'; chk.title = 'Baustein anzeigen';
-        const name = el('span', 'bname', BLOCK_NAME[b.type]);
-        const h = el('span', 'bh');
-        if (b.type === 'image') h.append(el('span', 'brest'));
-        else { const inp = el('input'); inp.type = 'number'; inp.step = '0.25'; inp.min = String(C.BACK_LIMITS[b.type][0]); inp.max = String(C.BACK_LIMITS[b.type][1]); inp.dataset.bf = 'h'; inp.value = String(b.h); inp.setAttribute('aria-label', 'Höhe in mm'); h.append(inp, document.createTextNode(' mm')); }
-        const up = el('button', '', '▲'); up.type = 'button'; up.dataset.bf = 'up'; up.title = 'Baustein nach oben schieben'; up.disabled = i === 0;
-        const down = el('button', '', '▼'); down.type = 'button'; down.dataset.bf = 'down'; down.title = 'Baustein nach unten schieben'; down.disabled = i === blocks.length - 1;
-        row.append(chk, name, h, up, down); return row;
-      }));
-    }
-    [...box.children].forEach((row, i) => {
-      const b = blocks[i], inp = $('input[data-bf=h]', row), rest = $('.brest', row);
-      row.classList.toggle('off', !b.on);
-      if (inp && document.activeElement !== inp) inp.value = String(b.h);
-      if (rest) rest.textContent = b.on ? 'füllt den Rest: ' + (Math.round(lay.imageH * 10) / 10) + ' mm' : '';
-    });
-  }
-  function bindBlocks() {
-    const box = $('#blockList');
-    const swap = (i, j) => { const bl = state.back.blocks; if (j < 0 || j >= bl.length) return; [bl[i], bl[j]] = [bl[j], bl[i]]; box.dataset.sig = ''; changed(); };
-    box.addEventListener('click', (e) => {
-      const b = e.target.closest('button[data-bf]'), row = e.target.closest('.brow'); if (!b || !row) return;
-      const i = Number(row.dataset.i); swap(i, b.dataset.bf === 'up' ? i - 1 : i + 1);
-    });
-    box.addEventListener('input', (e) => {
-      const t = e.target, row = t.closest('.brow'); if (!row || !t.dataset.bf) return;
-      const b = state.back.blocks[Number(row.dataset.i)];
-      if (t.dataset.bf === 'on') { b.on = t.checked; box.dataset.sig = ''; }
-      else if (t.dataset.bf === 'h') { const v = parseFloat(String(t.value).replace(',', '.')), lim = C.BACK_LIMITS[b.type]; if (isFinite(v)) b.h = Math.min(lim[1], Math.max(lim[0], v)); }
-      changed();
-    });
+    const b = state.back, designH = C.designHeight(state, c);
+    $('#backFeats').style.height = Number(b.featH) + 'mm'; $('#backBottom').style.height = Number(b.reqH) + 'mm';
+    const items = $('#backItems');
+    if (window.BackDesign) BackDesign.renderInto(items, b.items, { images, state, editor: false });
+    items.hidden = designH <= 0;
+    $('#backInfo').textContent = 'Gestaltungsfläche: ' + c.back + ' × ' + designH + ' mm, ' + b.items.length + (b.items.length === 1 ? ' Element' : ' Elemente') + '.';
   }
 
   /* Frontbild einpassen: Standard ist "Strecken" (das ganze Bild füllt die Fläche, bei anderem Seitenverhältnis leicht gestaucht). "Zuschneiden" füllt
@@ -630,9 +573,7 @@
     if (!state.title.trim()) notes.push('Der Spieletitel für den Rücken fehlt.');
     const dims = C.caseDims(state);
     if (dims.adjusted) notes.push('Die eigenen Maße wurden angepasst (erlaubt: Rückseite und Vorderseite 100–150 mm, Rücken 3–30 mm, Höhe 100–198 mm, insgesamt höchstens ' + C.MAX_W + ' mm breit). Verwendet wird: ' + dims.back + ' + ' + dims.spine + ' + ' + dims.front + ' × ' + dims.h + ' mm.');
-    const lay = C.backLayout(state, dims);
-    if (lay.overflow > 0) notes.push('Die Bausteine der Rückseite sind zusammen ' + lay.overflow + ' mm zu hoch, das Hintergrundbild verschwindet. Bitte Höhen verkleinern oder Bausteine ausschalten.');
-    if (lay.blocks.some((b) => b.type === 'description' && b.on) && !state.back.description.trim()) notes.push('Der Baustein "Beschreibung" ist eingeschaltet, aber leer.');
+    if (C.designHeight(state, dims) <= 0) notes.push('Die festen Teile unten sind zusammen so hoch wie die Rückseite, für die Gestaltungsfläche bleibt kein Platz. Bitte die Höhen verkleinern.');
     if (!state.features.length) notes.push('Es ist keine Spielfunktion gewählt, der grüne Streifen bleibt leer.');
     $('#notes').replaceChildren(...notes.map((t) => el('p', '', t)));
   }
@@ -653,11 +594,11 @@
     const ver = $('#ver'); if (ver && /__/.test(ver.textContent)) ver.textContent = 'lokal';
     buildSegs();
     bindStylePicker();
-    bindBlocks();
     bindControls();
     bindHw();
     ['spineLogoImg', 'spinePubImg'].forEach((id) => $('#' + id).addEventListener('load', refitSpine));
     bindDrops();
+    $('#backTop').addEventListener('click', () => { if (window.BackEditor) BackEditor.open(); });
     syncControls();
     buildJump();
     $('#bPrint').addEventListener('click', () => window.print());
@@ -691,6 +632,10 @@
     removeBackground(key) { return removeBackground(key); },
     onReset(f) { hooks.reset.push(f); },
     buildJump,
+    get images() { return images; },
+    touch() { changed(); },
+    clearImage(key) { clearImage(key); renderDrops(); changed(); },
+    caseDims() { return C.caseDims(state); },
     dpiOf(key, w, h) { return dpiOf(key, { w, h }); },
     /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
     patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },

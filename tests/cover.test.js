@@ -276,48 +276,35 @@ test('Im Bilderordner liegen keine Rastergrafiken', () => {
   assert.deepEqual(bad, []);
 });
 
-/* ---------- Rückseite aus Bausteinen ---------- */
-test('Rückseite: Standard entspricht dem bisherigen Aufbau (Bild, Streifen, Angaben)', () => {
+test('Rückseite: Standard, Prüfung der Elemente, Höhe der Gestaltungsfläche', () => {
+  const b = C.defaultBack();
+  assert.deepEqual([b.featH, b.reqH, b.items.length], ['15', '46', 0]);
   const st = C.defaultState();
-  assert.equal(st.back.template, 'classic');
-  assert.deepEqual(st.back.blocks.filter((b) => b.on).map((b) => b.type), ['image', 'features', 'requirements']);
-  const lay = C.backLayout(st);
-  assert.equal(lay.imageH, 183 - 15 - 46); assert.equal(lay.overflow, 0);
-  const sp = C.imageSpecs(C.caseDims(st), 18.6, st);
-  assert.equal(sp.backTop.h, 183 - C.BACK.banner - C.BACK.bottom); assert.deepEqual(sp.backBottom, { w: 130, h: 46 });
+  assert.equal(C.designHeight(st, C.caseDims(st)), 122);                       // 183 - 15 - 46
+  const t = C.normalizeItem({ type: 'text', x: 'abc', w: 9999, size: 'x', font: 'comic', edge: 'wellig', color: 'rot', weight: 5 });
+  assert.equal(t.x, 0); assert.equal(t.w, 600); assert.equal(t.size, 8); assert.equal(t.font, 'sans'); assert.equal(t.edge, 'none'); assert.equal(t.color, '#222222'); assert.equal(t.weight, '400');
+  assert.equal(C.normalizeItem({ type: 'video' }), null);
+  assert.equal(C.normalizeItem({ type: 'image', img: 'evil/../x' }).img, '');
+  assert.equal(C.normalizeItem({ type: 'image', img: 'd12' }).img, 'd12');
+  const n = C.normalizeBack({ featH: '99', reqH: '1', description: 5, items: [{ type: 'image', id: 'a', img: 'd7' }, { type: 'image', id: 'a' }, null, { type: 'text' }] });
+  assert.equal(n.featH, '30'); assert.equal(n.reqH, '30'); assert.equal(n.description, '');
+  assert.equal(new Set(n.items.map((i) => i.id)).size, 3, 'doppelte und fehlende Kennungen werden vergeben');
+  assert.ok(n.seq >= 8, 'Zähler liegt hinter dem größten Bildschlüssel');
+  assert.equal(C.normalizeBack({ items: Array.from({ length: 200 }, () => ({ type: 'text' })) }).items.length, C.MAX_ITEMS);
+  assert.deepEqual(C.mergeState({ back: { featH: '20' } }).back.featH, '20');
 });
 
-test('Rückseite: Bausteine ein/aus, Höhen und Reihenfolge ändern die Bildhöhe, zu hohe Bausteine melden den Überlauf', () => {
-  assert.deepEqual(C.templateBlocks('steam').map((b) => b.type), ['image', 'description', 'shots', 'features', 'requirements', 'text']);
-  assert.deepEqual(C.templateBlocks('steam').filter((b) => b.on).map((b) => b.type), ['image', 'description', 'shots', 'features', 'requirements']);
-  assert.deepEqual(C.templateBlocks('minimal').filter((b) => b.on).map((b) => b.type), ['image', 'requirements']);
-  // Vorlage über templateBlocks, Höhen aus den Standardwerten
-  const steam = C.mergeState({ back: { template: 'steam', blocks: C.templateBlocks('steam') } });
-  const lay = C.backLayout(steam);
-  assert.equal(lay.fixed, 34 + 30 + 15 + 46); assert.equal(lay.imageH, 183 - 125);
-  const sp = C.imageSpecs(C.caseDims(steam), 18.6, steam);
-  assert.equal(sp.backTop.h, 58); assert.deepEqual(sp.shot1, { w: 40, h: 24 });          // (130 - 6 - 2 * 2) / 3 breit, Block 30 mm minus 2 * 3 mm Rand
-  const four = C.mergeState({ back: { template: 'steam', blocks: C.templateBlocks('steam'), shotsCount: '4' } });
-  assert.equal(C.shotSize(four).w, 29.5);
-  // Blu-ray (148 mm hoch): zu hoch -> Überlauf
-  const bl = C.mergeState({ caseType: 'custom', custom: { back: '127.5', spine: '14', front: '127.5', h: '148' }, back: { template: 'steam', blocks: C.templateBlocks('steam') } });
-  assert.equal(C.backLayout(bl).overflow, 0); assert.equal(C.backLayout(bl).imageH, 148 - 125 );
-  const tall = C.mergeState({ back: { blocks: [{ type: 'image', on: true }, { type: 'requirements', on: true, h: 110 }, { type: 'description', on: true, h: 100 }] } });
-  assert.equal(C.backLayout(tall).overflow, 42);                    // 110 + 100 + 15 mm (der ergänzte Spielfunktionen-Streifen) sind 42 mm mehr als die 183 mm Höhe
-  // Bild aus: kein Rest
-  const noImg = C.mergeState({ back: { blocks: [{ type: 'image', on: false }, { type: 'requirements', on: true }] } });
-  assert.equal(C.backLayout(noImg).imageH, 0);
-});
-
-test('Rückseite: gespeicherte Werte werden geprüft und ergänzt', () => {
-  const b = C.normalizeBack({ template: 'x', shotsCount: '9', description: 5, blocks: [{ type: 'text', on: true, h: 999 }, { type: 'text', on: true, h: 20 }, { type: 'kaputt', on: true }, { type: 'shots', on: true, h: 1 }] });
-  assert.equal(b.template, 'classic'); assert.equal(b.shotsCount, '3'); assert.equal(b.description, '');
-  assert.deepEqual(b.blocks.map((x) => x.type).slice(0, 2), ['text', 'shots']);                     // doppelte und unbekannte fallen weg
-  assert.equal(b.blocks.length, 6, 'fehlende Bausteine kommen dazu');
-  assert.equal(b.blocks[0].h, C.BACK_LIMITS.text[1], 'Höhe in den Grenzen'); assert.equal(b.blocks[1].h, C.BACK_LIMITS.shots[0]);
-  assert.equal(b.blocks.find((x) => x.type === 'image').on, true);
-  // Alte Einstellungen ohne Rückseite: Standard
-  assert.deepEqual(C.mergeState({ title: 'X' }).back, C.defaultBack());
-  // Teilweise Angaben (Import): Beschreibung ändert nur die Beschreibung
-  const m = C.mergeState({ back: { description: 'Text' } }); assert.equal(m.back.description, 'Text'); assert.equal(m.back.template, 'classic');
+test('Rückseite: Bildmaße folgen den Höhen, Vorlagen liefern gültige Elemente', () => {
+  const st = C.defaultState(); st.back.reqH = '60';
+  const sp = C.imageSpecs(C.caseDims(st), C.frontTop(st), st);
+  assert.deepEqual(sp.backTop, { w: 130, h: 108 }); assert.deepEqual(sp.backBottom, { w: 130, h: 60 });
+  assert.equal(C.backTemplate('none', 130, 122).length, 0);
+  for (const id of ['text', 'steam']) {
+    const list = C.backTemplate(id, 130, 122);
+    assert.ok(list.length >= 2);
+    for (const it of list) { assert.ok(it.x >= 0 && it.y >= 0 && it.x + it.w <= 130.01 && it.y + it.h <= 122.01, id + ' liegt in der Fläche'); }
+  }
+  assert.equal(C.backTemplate('steam', 130, 122).filter((i) => i.type === 'image').length, 3);
+  assert.equal(C.designHeight(st, { h: 183 }) > 0, true);
+  st.back.featH = '30'; st.back.reqH = '110'; assert.equal(C.designHeight(st, { h: 120 }), 0);
 });

@@ -125,12 +125,12 @@ test('Steam: Fehler des Proxys werden in verständliche Meldungen übersetzt', a
   assert.match(none[0].text, /Kein Proxy/); assert.match(none[2].text, /Kein API-Schlüssel/);
 });
 
-test('Projektdatei: Rückseite (Bausteine) und die Bilder der Bildleiste bleiben erhalten', async () => {
-  const state = C.mergeState({ back: { template: 'steam', blocks: C.templateBlocks('steam'), description: 'Text', shotsCount: '4' } });
-  const png = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3]);
-  const zip = F.packProject(state, { shot1: { data: png, type: 'image/png', name: 'a.png' }, shot4: { data: png, type: 'image/png', name: 'd.png' } });
+test('Projektdatei: Bilder der Gestaltungsfläche (d1, d2) und die Elemente überstehen Export und Import, fremde Schlüssel nicht', async () => {
+  const state = C.mergeState({ back: { description: 'Text', items: [{ type: 'image', id: 'e1', img: 'd1', edge: 'torn' }, { type: 'text', id: 'e2', bind: 'description', caps: true }] } });
+  const png = new Uint8Array([137, 80, 78, 71, 1, 2, 3]);
+  const zip = F.packProject(state, { d1: { data: png, type: 'image/png', name: 'shot.png' }, evil: { data: png, type: 'image/png', name: 'x.png' } });
   const out = F.unpackProject(await Z.read(zip));
-  assert.deepEqual(Object.keys(out.images).sort(), ['shot1', 'shot4']);
+  assert.deepEqual(Object.keys(out.images), ['d1']);
   assert.deepEqual(C.mergeState(out.state).back, state.back);
-  assert.ok(F.IMAGE_KEYS.includes('shot1') && F.IMAGE_KEYS.includes('shot4'));
+  assert.ok(F.isImageKey('d12') && F.isImageKey('front') && !F.isImageKey('d') && !F.isImageKey('../x'));
 });

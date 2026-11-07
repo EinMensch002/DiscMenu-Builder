@@ -10,7 +10,7 @@ const en = require('../disc-sleeve/lang-en.js');
 const dir = path.join(__dirname, '..', 'disc-sleeve');
 const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
 const unesc = (s) => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&nbsp;/g, ' ');
-const sources = ['index.html', 'app.js', 'extras.js', 'online.js', 'files.js', 'core.js'].map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
+const sources = ['index.html', 'app.js', 'extras.js', 'online.js', 'files.js', 'core.js', 'back-editor.js', 'back-design.js'].map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
 const flat = unesc(sources).replace(/\\(['"])/g, '$1');
 const norm = (s) => s.replace(/\s+/g, ' ').trim();
 

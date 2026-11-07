@@ -235,26 +235,30 @@ Oben in der Leiste steht ein **Sprachmenü mit Flagge** (Deutsch, English). Es s
 Damit sich das Tool auch ohne Vorkenntnisse bedienen lässt, stehen **Auswahlen mit wenigen Möglichkeiten als Schaltflächen** da (z. B. Anbieter, Hülle, Disc-Medium, Sprache der Beschriftung, Frontbild einpassen, Rücken hell oder dunkel, Farbe von "PC"): Man sieht alle Möglichkeiten auf einen Blick und wählt mit einem Klick statt über eine Aufklappliste. Der **Stil** ist ein Schieberegler mit Farbvorschau. Oben im Formular stehen **Sprungknöpfe zu allen Bereichen** (Hülle und Stil, Titel und Texte, Bilder ...), sie öffnen den Bereich und springen hin.
 
 
-### Rückseite aus Bausteinen
+### Rückseite gestalten (Editor)
 
-Die Rückseite ist aus **Bausteinen von oben nach unten** gebaut (Bereich **"Rückseite"** im Formular). Man wählt eine **Vorlage**, schaltet Bausteine **ein oder aus**, ändert die **Reihenfolge** mit den Pfeilen ▲ ▼ und stellt die **Höhen in mm** ein (Pfeiltasten: 0,25-mm-Schritte). Das **Hintergrundbild füllt den Rest**, die Zeile zeigt, wie viel Platz es noch hat. Die Vorschau und der Druck folgen sofort.
+Die Rückseite besteht aus **zwei Teilen**:
 
-| Baustein | Inhalt | Standardhöhe |
-|---|---|---|
-| **Hintergrundbild** | das Bild "Rückseite oben", füllt den Rest | Rest |
-| **Beschreibung** | Text, die **Schrift passt sich der Höhe an** (bis 4,4 pt, nichts wird abgeschnitten) | 34 mm |
-| **Bildleiste** | 2 bis 4 Bilder nebeneinander (Screenshots) | 30 mm |
-| **Spielfunktionen** | der bisherige Streifen mit den Symbolen | 15 mm |
-| **Systemanforderungen und Logos** | Tabelle, Publisher-Logo, Disc und USK, Copyright | 46 mm |
-| **Freier Text** | ein Hinweis oder eine Widmung, zentriert | 16 mm |
+- **Unten, immer gleich (fester Teil):** der Streifen mit den **Spielfunktionen** und darunter **Systemanforderungen, Logos, USK und Copyright**. Er sieht bei GOG, Epic und Steam gleich aus. Nur die **Höhen** lassen sich von Hand einstellen (Bereich "Rückseite" im Formular, 0,25-mm-Schritte), zum Beispiel für eine Blu-ray-Hülle.
+- **Darüber, frei (Gestaltungsfläche):** Als Grund dient das Bild "Rückseite oben" (Bereich "Bilder"). Darauf liegen beliebig viele **Bilder und Texte**, die man im **Editor** (Pop-up) anordnet. Geöffnet wird er mit **"Rückseite gestalten …"** oder mit einem **Klick auf die Fläche** in der Vorschau. Was über die Fläche hinausragt, wird abgeschnitten (es verschwindet "hinter dem Weiß").
 
-**Vorlagen:** *Wie bisher* (Bild, Spielfunktionen, Anforderungen, das ist der Standard und sieht aus wie vorher), *Beschreibung und Bildleiste* (zusätzlich Beschreibung und Screenshots, wie bei Steam-Hüllen) und *Nur Anforderungen*. Eine Vorlage setzt Reihenfolge und Ein/Aus neu, **Texte und Bilder bleiben erhalten**. Danach kann man alles von Hand anpassen.
+**Im Editor:**
 
-- **Zu hoch:** Sind die Bausteine zusammen höher als die Rückseite (z. B. auf einer Blu-ray-Hülle mit 148 mm), steht ein Hinweis da, und das Hintergrundbild verschwindet. Dann Höhen verkleinern oder Bausteine ausschalten. Das Blatt selbst bleibt unverändert.
-- **Bildmaße:** Bei jedem Bildfeld (Rückseite oben, Bilder der Bildleiste) steht die passende Größe in mm und die dpi, damit die Bilder scharf werden.
-- **Import:** **Steam** und **GOG** übernehmen die **Beschreibung** in das Feld (der Baustein bleibt, wie er ist, man schaltet ihn selbst ein). Im GOG-Dialog lassen sich zusätzlich bis zu **vier Screenshots** für die Bildleiste laden, dann wird der Baustein eingeschaltet.
-- **Gespeichert** wird alles mit dem Projekt (Einstellungen, Bilder, ZIP).
-- Eine **freie Platzierung** per Ziehen gibt es bewusst nicht: Feste Bausteine in einer Spalte sind robust und drucken sauber. Mögliche Ausbaustufen (zwei Spalten, eigene Bausteine) stehen in der Roadmap.
+| Was | Wie |
+|---|---|
+| Hinzufügen | **+ Text**, **+ Bild (Datei)**, **+ Bild von Steam oder GOG** (Suche, Screenshots, Hintergrund und Titelbild; mehrere Bilder auf einmal wählbar) |
+| Verschieben, Größe | Ziehen, Griffe an den Ecken und Kanten (Umschalt hält bei Bildern das Seitenverhältnis), Pfeiltasten (0,25 mm, mit Umschalt 1 mm). Es **rastet** an Rändern, Mitte und anderen Elementen ein (Alt beim Ziehen: nicht einrasten) |
+| Text | Inhalt (eigener Text, **Spieltitel** oder **Beschreibung des Spiels**), Schriftart (Lato, Serif, Schmal, Plakat, Schreibmaschine, Handschrift), Größe in pt, Farbe, Stärke, **kursiv**, **GROSSBUCHSTABEN**, Zeichenabstand, Zeilenhöhe, Ausrichtung (auch Blocksatz, senkrecht), "Schrift an Platz anpassen", Hintergrund hinter dem Text mit Deckkraft |
+| Bild | Einpassen (füllen, ganz zeigen, strecken), Ausschnitt, Deckkraft, Anzeige der Druckauflösung (dpi) |
+| **Rand und Übergang** | Ohne, **Abgerundet**, **Rahmen** (Breite und Farbe), **Weicher Rand** (Bild blendet an den Kanten aus) und **Ausgerissen (Papier)** (unregelmäßiger, ausgefranster Rand) |
+| Ordnung | Nach vorn, nach hinten, Duplizieren (Strg+D), Löschen (Entf) |
+| Rückgängig | Rückgängig und Wiederholen (Strg+Z, Strg+Y), bis zu 50 Schritte |
+| Vorlagen | **Leer**, **Titel und Beschreibung**, **Beschreibung und Bildleiste** (wie bei Steam-Hüllen). Eine Vorlage ersetzt die vorhandenen Elemente (vorher wird gefragt), danach ist alles frei änderbar |
+
+- **Beschreibung:** Steam und GOG übernehmen beim Import die Kurzbeschreibung in das Feld "Beschreibung des Spiels" (Bereich "Rückseite"). Ein Textelement mit Inhalt "Beschreibung des Spiels" zeigt sie an.
+- **Schriften** kommen vom Betriebssystem (nur Lato liegt bei). Auf einem anderen Rechner kann ein Text deshalb etwas anders aussehen. Die Papierkante ("Ausgerissen") sieht bei jedem Zeichnen gleich aus.
+- **Gespeichert** wird alles mit dem Projekt (Einstellungen, Elemente, Bilder, ZIP). Bilder der Gestaltungsfläche heißen `d1`, `d2` und so weiter und werden beim Schließen des Editors entfernt, wenn kein Element sie mehr braucht.
+- **Zu hoch:** Sind die festen Teile zusammen so hoch wie die Rückseite, steht ein Hinweis da. Dann die Höhen verkleinern.
 
 ### Längen in Millimetern und negative Abstände
 

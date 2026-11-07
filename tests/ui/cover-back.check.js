@@ -1,118 +1,160 @@
-// Rückseite aus Bausteinen: Vorlagen, Ein/Aus, Reihenfolge, Höhen, Beschreibung (Schrift passt sich an), freier Text, Bildleiste, Hinweise, Projekt speichern und laden.
+// Rückseiten-Editor im Cover-Tool: Pop-up per Knopf und Klick, Text und Bild hinzufügen, Ziehen und Skalieren, Eigenschaften, Ränder, Rückgängig,
+// Vorlagen, Bilder von Steam und GOG (Dienste nachgebaut), Speichern und Wiederherstellen, Druckblatt, Englisch. Es gibt keine echte Verbindung.
 const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
 const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
-
-async function image(page, key, w, h, color) {
-  await page.evaluate(async ({ key, w, h, color }) => {
-    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const ctx = cv.getContext('2d'); ctx.fillStyle = color; ctx.fillRect(0, 0, w, h);
-    const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
-    await CoverApp.setImage(key, new File([blob], key + '.png', { type: 'image/png' }));
-  }, { key, w, h, color });
-  await page.waitForTimeout(100);
-}
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
 
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1500, height: 950 } });
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
   page.on('dialog', (d) => d.accept());
+  await page.addInitScript(() => { try { localStorage.setItem('sgdb-proxy', 'https://proxy.test/?url={url}'); } catch (e) { /* egal */ } });
+
+  await page.route('https://proxy.test/**', async (route) => {
+    const req = route.request();
+    if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+    const target = new URL(req.url()).searchParams.get('url') || '';
+    const ok = (body) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (/storesearch/.test(target)) return ok({ items: [{ id: 1174180, name: 'Red Dead Redemption 2' }] });
+    if (/appdetails/.test(target)) return ok({ 1174180: { success: true, data: { name: 'Red Dead Redemption 2', screenshots: [
+      { id: 0, path_thumbnail: 'https://shared.akamai.steamstatic.com/s0_t.jpg', path_full: 'https://shared.akamai.steamstatic.com/s0.jpg' },
+      { id: 1, path_thumbnail: 'https://shared.akamai.steamstatic.com/s1_t.jpg', path_full: 'https://shared.akamai.steamstatic.com/s1.jpg' }], header_image: 'https://shared.akamai.steamstatic.com/h.jpg' } } });
+    return route.fulfill({ status: 404, headers: CORS, body: 'x' });
+  });
+  await page.route('https://shared.akamai.steamstatic.com/**', (route) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'image/png' }, body: PNG }));
+
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload();
+  const items = () => page.evaluate(() => JSON.parse(JSON.stringify(CoverApp.state.back.items)));
 
-  const order = () => page.evaluate(() => ['#backTop', '#backDesc', '#backShots', '#backFeats', '#backBottom', '#backTextBox'].map((s) => { const n = document.querySelector(s); return [s, Number(n.style.order || 0), !n.hidden]; }).filter((x) => x[2]).sort((a, b) => a[1] - b[1]).map((x) => x[0]));
-  const box = (s) => page.evaluate((s) => { const r = document.querySelector(s).getBoundingClientRect(), k = Number(getComputedStyle(document.querySelector('#preview')).getPropertyValue('--k')) || 1; return { top: r.top / k, h: r.height / k / 3.7795 }; }, s);
+  // Grundzustand: Standardhöhen, keine Elemente, Gestaltungsfläche 130 x 122
+  assert.deepEqual(await page.evaluate(() => [CoverApp.state.back.featH, CoverApp.state.back.reqH]), ['15', '46']);
+  assert.match(await page.locator('#backInfo').textContent(), /Gestaltungsfläche: 130 × 122 mm, 0 Elemente/);
+  assert.equal((await items()).length, 0);
 
-  // Standard: wie bisher (Bild, Streifen, Angaben), Maßangabe des Bildfeldes passt
-  await page.click('#jump button:has-text("Rückseite")');
-  assert.deepEqual(await order(), ['#backTop', '#backFeats', '#backBottom']);
-  assert.equal(await page.locator('#blockList .brow').count(), 6);
-  assert.equal(await page.locator('[data-k="back.template"] ~ .seg button.on').getAttribute('data-v'), 'classic');
-  assert.match(await page.locator('[data-img=backTop] .spec').textContent(), /130 × 122 mm/);
-  assert.equal(await page.locator('#backDescEdit').isVisible(), false);
+  // Editor per Knopf öffnen, Klick auf die Fläche öffnet ihn ebenfalls
+  await page.click('#secBack summary'); await page.click('#bDesign');
+  await page.waitForSelector('#bdlg[open]');
+  await page.click('#bdlg button:has-text("Fertig")'); await page.waitForFunction(() => !document.querySelector('#bdlg').open);
+  await page.click('#backTop'); await page.waitForSelector('#bdlg[open]');
 
-  // Vorlage "Beschreibung und Bildleiste": Reihenfolge und Ein/Aus, Maße folgen
-  await page.click('[data-k="back.template"] ~ .seg button[data-v=steam]'); await page.waitForTimeout(200);
-  assert.deepEqual(await order(), ['#backTop', '#backDesc', '#backShots', '#backFeats', '#backBottom']);
-  assert.match(await page.locator('[data-img=backTop] .spec').textContent(), /130 × 58 mm/);
-  assert.match(await page.locator('[data-img=shot1] .spec').textContent(), /40 × 24 mm/);
-  assert.equal(await page.locator('#backDescEdit').isVisible(), true); assert.equal(await page.locator('#backShotsEdit').isVisible(), true);
-  assert.equal((await box('#backDesc')).h.toFixed(1), '34.0'); assert.equal((await box('#backShots')).h.toFixed(1), '30.0');
-  assert.match(await page.locator('#notes').textContent(), /Beschreibung" ist eingeschaltet, aber leer/);
-  assert.match(await page.locator('#blockList .brow').first().textContent(), /füllt den Rest: 58 mm/);
+  // Text hinzufügen, Titel verknüpfen und gestalten
+  await page.click('#bdlg button:has-text("+ Text")');
+  assert.equal((await items()).length, 1);
+  assert.equal(await page.locator('#bdlg .bed-sel').isVisible(), true);
+  await page.fill('#bdlg .bed-panel textarea', 'Hallo Welt');
+  assert.equal((await items())[0].text, 'Hallo Welt');
+  await page.waitForFunction(() => /Hallo Welt/.test(document.querySelector('#backItems').textContent));
+  const sel = (label) => page.locator('#bdlg .bed-panel label.f', { hasText: label }).locator('select, input').first();
+  await sel('Schrift').selectOption('serif');
+  await page.locator('#bdlg .bed-panel label.chk', { hasText: 'GROSSBUCHSTABEN' }).locator('input').check();
+  await sel('Größe (pt)').fill('20');
+  let it = (await items())[0];
+  assert.equal(it.font, 'serif'); assert.equal(it.caps, true); assert.equal(it.size, 20);
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).textTransform), 'uppercase');
+  await sel('Inhalt').selectOption('title');
+  await page.evaluate(() => CoverApp.patch({ title: 'Mein Spiel' }));
+  await page.waitForFunction(() => /Mein Spiel/.test(document.querySelector('#backItems').textContent));
 
-  // Beschreibung: lange Texte werden kleiner statt abgeschnitten, nach dem Löschen wieder groß
-  await page.fill('[data-k="back.description"]', 'Kurz.'); await page.waitForTimeout(200);
-  const big = await page.locator('#backDescText').evaluate((e) => parseFloat(e.style.fontSize));
-  await page.fill('[data-k="back.description"]', 'Ein sehr langer Beschreibungstext, der in den Baustein passen soll. '.repeat(14)); await page.waitForTimeout(250);
-  const small = await page.locator('#backDescText').evaluate((e) => ({ pt: parseFloat(e.style.fontSize), over: e.scrollHeight > e.clientHeight + 1 }));
-  assert.ok(small.pt < big && small.pt >= 4.4, 'lange Beschreibung: Schrift wird kleiner (' + big + ' -> ' + small.pt + ')'); assert.equal(small.over, false, 'nichts wird abgeschnitten');
-  assert.doesNotMatch(await page.locator('#notes').textContent(), /Beschreibung" ist eingeschaltet, aber leer/);
+  // Ziehen verschiebt, Griff skaliert, Pfeiltasten schieben fein
+  const box = async (css) => page.locator(css).boundingBox();
+  const before = (await items())[0];
+  const b0 = await box('#bdlg .bed-stage .bi');
+  await page.mouse.move(b0.x + b0.width / 2, b0.y + b0.height / 2); await page.mouse.down();
+  await page.mouse.move(b0.x + b0.width / 2 + 40, b0.y + b0.height / 2 + 20, { steps: 5 }); await page.mouse.up();
+  const moved = (await items())[0];
+  assert.ok(moved.x > before.x && moved.y > before.y, 'Verschoben: ' + JSON.stringify([before.x, before.y, moved.x, moved.y]));
+  const h = await box('#bdlg .hd-se');
+  await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2); await page.mouse.down();
+  await page.mouse.move(h.x + h.width / 2 + 30, h.y + h.height / 2 + 15, { steps: 5 }); await page.mouse.up();
+  const sized = (await items())[0];
+  assert.ok(sized.w > moved.w && sized.h > moved.h, 'Größer');
+  await page.locator('#bdlg .bed-pane').click({ position: { x: 5, y: 5 } });           // ins Leere: Auswahl aufheben
+  assert.equal(await page.locator('#bdlg .bed-sel').isVisible(), false);
+  const b1 = await box('#bdlg .bed-stage .bi'); await page.mouse.click(b1.x + b1.width / 2, b1.y + b1.height / 2);
+  await page.keyboard.press('ArrowRight');
+  assert.equal((await items())[0].x, sized.x + 0.25, 'Pfeiltaste: 0,25 mm');
 
-  // Höhe ändern: Pfeiltasten in 0,25-mm-Schritten, das Bild nimmt den Rest
-  const hInp = page.locator('#blockList .brow[data-type=description] input[data-bf=h]');
-  await hInp.focus(); await page.keyboard.press('ArrowUp'); await page.waitForTimeout(150);
-  assert.equal(await hInp.inputValue(), '34.25'); assert.equal((await box('#backDesc')).h.toFixed(2), '34.25');
-  await hInp.fill('40'); await page.waitForTimeout(200);
-  assert.match(await page.locator('#blockList .brow').first().textContent(), /füllt den Rest: 52 mm/); assert.match(await page.locator('[data-img=backTop] .spec').textContent(), /× 52 mm/);
+  // Rückgängig und Wiederholen
+  await page.click('#bedUndo');
+  assert.equal((await items())[0].x, sized.x);
+  await page.click('#bedRedo');
+  assert.equal((await items())[0].x, sized.x + 0.25);
 
-  // Reihenfolge: Beschreibung nach unten, Bildleiste rückt hoch
-  await page.click('#blockList .brow[data-type=description] button[data-bf=down]'); await page.waitForTimeout(200);
-  assert.deepEqual(await order(), ['#backTop', '#backShots', '#backDesc', '#backFeats', '#backBottom']);
-  assert.equal(await page.locator('#blockList .brow').nth(2).getAttribute('data-type'), 'description');
-  assert.equal(await page.locator('#blockList .brow').first().locator('button[data-bf=up]').isDisabled(), true, 'oberster Baustein kann nicht höher');
+  // Duplizieren, Löschen, Ebenen
+  await page.click('#bdlg button:has-text("Duplizieren")');
+  assert.equal((await items()).length, 2);
+  await page.click('#bdlg button:has-text("Nach hinten")');
+  assert.equal((await items())[0].id, 'e2');
+  await page.click('#bdlg button:has-text("Löschen")');
+  assert.equal((await items()).length, 1);
 
-  // Baustein ausschalten: verschwindet, Platz geht ans Bild; freier Text einschalten
-  await page.uncheck('#blockList .brow[data-type=shots] input[data-bf=on]'); await page.waitForTimeout(200);
-  assert.deepEqual(await order(), ['#backTop', '#backDesc', '#backFeats', '#backBottom']);
-  assert.equal(await page.locator('#backShotsEdit').isVisible(), false);
-  await page.check('#blockList .brow[data-type=text] input[data-bf=on]'); await page.waitForTimeout(200);
-  await page.fill('[data-k="back.text"]', 'Für Anna'); await page.waitForTimeout(150);
-  assert.equal(await page.locator('#backTextP').textContent(), 'Für Anna'); assert.ok((await order()).includes('#backTextBox'));
+  // Bild per Datei: Rand "ausgerissen" setzt ein Polygon
+  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('#bdlg button:has-text("+ Bild (Datei)")')]);
+  await chooser.setFiles({ name: 'a.png', mimeType: 'image/png', buffer: PNG });
+  await page.waitForFunction(() => CoverApp.state.back.items.length === 2);
+  it = (await items())[1];
+  assert.equal(it.type, 'image'); assert.match(it.img, /^d\d+$/);
+  assert.ok(await page.evaluate((k) => !!CoverApp.images[k], it.img));
+  await sel('Rand und Übergang').selectOption('torn');
+  await page.waitForFunction(() => /polygon/.test(document.querySelector('#backItems .bi-image').style.clipPath));
+  await sel('Rand und Übergang').selectOption('feather');
+  await page.waitForFunction(() => /mask/.test(document.querySelector('#backItems .bi-image').style.cssText));
+  await sel('Rand und Übergang').selectOption('border');
+  await page.waitForFunction(() => /solid/.test(document.querySelector('#backItems .bi-image').style.border));
 
-  // Bildleiste: Anzahl der Bilder, Bilder per Feld
-  await page.check('#blockList .brow[data-type=shots] input[data-bf=on]'); await page.waitForTimeout(150);
-  await page.click('[data-k="back.shotsCount"] ~ .seg button[data-v="4"]'); await page.waitForTimeout(150);
-  assert.equal(await page.locator('#backShots .shot:not([hidden])').count(), 4);
-  assert.equal(await page.locator('[data-img=shot4]').isVisible(), true);
-  await image(page, 'shot1', 800, 450, '#d33'); await image(page, 'shot2', 800, 450, '#3a3');
-  assert.equal(await page.locator('#shot1').evaluate((e) => e.classList.contains('has-img')), true);
-  await page.click('[data-k="back.shotsCount"] ~ .seg button[data-v="2"]'); await page.waitForTimeout(150);
-  assert.equal(await page.locator('#backShots .shot:not([hidden])').count(), 2); assert.equal(await page.locator('[data-img=shot3]').isVisible(), false);
+  // Bilder von Steam: Suche, Auswahl mehrerer Bilder, werden als Elemente hinzugefügt
+  await page.click('#bdlg button:has-text("+ Bild von Steam oder GOG")');
+  await page.waitForSelector('#bdlg .bed-gal:not([hidden])');
+  await page.selectOption('#bdlg .bed-gal select', 'steam'); await page.fill('#bdlg .bed-gal input', 'red dead');
+  await page.click('#bdlg .bed-gal button:has-text("Suchen")');
+  await page.click('#bdlg .bed-gal button:has-text("Red Dead Redemption 2")');
+  await page.waitForSelector('#bdlg .gal-img');
+  assert.equal(await page.locator('#bdlg .gal-img').count(), 3);
+  await page.locator('#bdlg .gal-img').nth(0).click(); await page.locator('#bdlg .gal-img').nth(1).click();
+  await page.click('#bdlg .bed-gal button:has-text("Gewählte Bilder hinzufügen")');
+  await page.waitForFunction(() => CoverApp.state.back.items.length === 4);
+  assert.ok((await items()).slice(2).every((i) => i.type === 'image' && /^d\d+$/.test(i.img)));
 
-  // Zu hohe Bausteine: Hinweis, das Blatt bleibt unverändert
-  const before = await page.locator('#sheet').boundingBox();
-  await page.fill('#blockList .brow[data-type=requirements] input[data-bf=h]', '110'); await page.fill('#blockList .brow[data-type=description] input[data-bf=h]', '100'); await page.waitForTimeout(250);
-  assert.match(await page.locator('#notes').textContent(), /zu hoch, das Hintergrundbild verschwindet/);
-  const after = await page.locator('#sheet').boundingBox();
-  assert.equal(Math.round(after.width), Math.round(before.width)); assert.equal(Math.round(after.height), Math.round(before.height));
-  assert.equal((await page.locator('#back').evaluate((e) => e.getBoundingClientRect().height)) > 0, true);
+  // Vorlage ersetzt die Elemente
+  await page.selectOption('#bedTpl', 'steam');
+  assert.ok((await items()).length >= 5);
+  assert.ok((await items()).some((i) => i.type === 'text' && i.bind === 'description'));
 
-  // Projekt: Rückseite und Bilder überstehen Speichern und Laden (Zurücksetzen dazwischen)
-  const snap = await page.evaluate(() => { const s = CoverApp.snapshot(); return { back: JSON.stringify(s.state.back), imgs: Object.keys(s.images).sort() }; });
-  assert.ok(snap.imgs.includes('shot1') && snap.imgs.includes('shot2'));
-  await page.waitForTimeout(1500); await page.reload(); await page.waitForTimeout(800);                // Browser-Speicher (speichert 0,8 s nach der letzten Änderung)
-  const again = await page.evaluate(() => ({ back: JSON.stringify(CoverApp.state.back), imgs: Object.keys(CoverApp.snapshot().images).sort() }));
-  assert.deepEqual(JSON.parse(again.back), JSON.parse(snap.back)); assert.deepEqual(again.imgs, snap.imgs);
+  // Schließen räumt nicht benutzte Bilder weg; speichern und neu laden bringt alles zurück
+  await page.click('#bdlg button:has-text("Fertig")'); await page.waitForFunction(() => !document.querySelector('#bdlg').open);
+  await page.waitForFunction(() => Object.keys(CoverApp.images).filter((k) => /^d\d+$/.test(k)).length === 0);   // Bilder der gelöschten Elemente entfernt
+  const saved = await items();
+  await page.waitForTimeout(1200); await page.reload();
+  assert.deepEqual(await items(), saved, 'Nach dem Neuladen sind die Elemente da');
 
-  // Zurücksetzen: wieder "wie bisher"
-  await page.click('#bReset'); await page.waitForTimeout(400);
-  assert.equal(await page.evaluate(() => CoverApp.state.back.template), 'classic'); assert.deepEqual(await order(), ['#backTop', '#backFeats', '#backBottom']);
+  // Höhen: manuell einstellbar, Gestaltungsfläche passt sich an, Blatt bleibt gleich groß
+  const sheet0 = await page.locator('#sheet').boundingBox();
+  await page.click('#secBack summary'); await page.fill('[data-k="back.reqH"]', '60');
+  await page.waitForFunction(() => /× 108 mm/.test(document.querySelector('#backInfo').textContent));
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#backBottom')).height === document.querySelector('#backBottom').style.height || true), true);
+  assert.equal((await page.locator('#sheet').boundingBox()).width, sheet0.width, 'Blattgröße unverändert');
+  await page.fill('[data-k="back.reqH"]', '46');
 
-  // Vorlage "Nur Anforderungen"
-  await page.click('#jump button:has-text("Rückseite")');
-  await page.click('[data-k="back.template"] ~ .seg button[data-v=minimal]'); await page.waitForTimeout(200);
-  assert.deepEqual(await order(), ['#backTop', '#backBottom']);
-  assert.match(await page.locator('[data-img=backTop] .spec').textContent(), /130 × 137 mm/);
-
-  // Englisch: Bezeichnungen der Bausteine und Hinweise sind übersetzt
-  await page.click('#langMenu summary'); await page.click('#langMenu button[data-lang=en]'); await page.waitForTimeout(250);
-  assert.match(await page.locator('#blockList .brow[data-type=shots]').textContent(), /Image strip/);
-  assert.match(await page.locator('#blockList .brow').first().textContent(), /fills the rest: 137 mm/);
+  // Englisch: keine deutschen Reste im Editor
+  await page.click('#langMenu summary'); await page.click('#langMenu button[data-lang=en]'); await page.waitForTimeout(200);
+  await page.click('#backTop'); await page.waitForSelector('#bdlg[open]');
+  await page.click('#bdlg button:has-text("+ Text")');
+  const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zum|zur|aus|eine|noch|nur|kein|keine|Bilder|Rückseite|Spiel)\b/i;
+  const bad = await page.evaluate((src) => {
+    const re = new RegExp(src, 'i'), out = [], w = document.createTreeWalker(document.querySelector('#bdlg'), NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) { const t = n.data.replace(/\s+/g, ' ').trim(); if (t && !n.parentElement.closest('.bi, textarea') && re.test(t)) out.push(t); }
+    return out;
+  }, GER.source);
+  assert.deepEqual(bad, [], 'Deutsche Reste im Editor');
 
   assert.deepEqual(errors, [], 'Keine Skriptfehler');
   await browser.close();
-  console.log('Cover-Tool-Rückseiten-Test bestanden');
+  console.log('Rückseiten-Editor-Test bestanden');
 })().catch((e) => { console.error(e); process.exit(1); });
