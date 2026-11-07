@@ -106,13 +106,13 @@ test('Steam: Fehler des Proxys werden in verständliche Meldungen übersetzt', a
   O.settings.save('KEY', 'https://proxy.example/?url={url}');
   const good = await run(async (u) => { const b = ok(u); return { ok: true, status: 200, json: async () => b, text: async () => '', blob: async () => ({ size: 1 }) }; }, () => O.testConnection());
   assert.deepEqual(good.map((r) => [r.name, r.ok]), [['Proxy-Worker', true], ['Steam-Shop', true], ['SteamGridDB', true], ['GOG-Katalog', true], ['GOG-Spieldaten', true], ['GOG-Bilder', true], ['Wikidata (Publisher-Logos)', true], ['Brandfetch', true]]);
-  assert.match(good[0].text, /Version \d+ \(aktuell\)/); assert.match(good[4].text, /The Witcher/); assert.match(good[7].text, /optional/);
+  assert.match(good[0].text, /Version \d+ \(aktuell\)/); assert.ok(!good[0].warn); assert.match(good[4].text, /The Witcher/); assert.match(good[7].text, /optional/);
   // Proxy-Worker: veraltet, ohne Versionsangabe, Host fehlt, neuer als das Tool
-  const worker = (body, status = 200) => run(async (u) => (/[?&]info=1/.test(u) ? { ok: status === 200, status, json: async () => { if (body === 'kein JSON') throw new Error('x'); return body; }, text: async () => '' } : { ok: true, status: 200, json: async () => ok(u), text: async () => '' }), () => O.checkWorker().then((t) => ({ ok: true, t }), (e) => ({ ok: false, t: e.message })));
-  assert.deepEqual(await worker({ version: O.WORKER_VERSION - 1, hosts: info.hosts }), { ok: false, t: 'Proxy-Worker Version ' + (O.WORKER_VERSION - 1) + ', aktuell ist ' + O.WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen.' });
-  assert.match((await worker('kein JSON', 400)).t, /Alte Version des Proxy-Workers \(ohne Versionsangabe\)/);
-  const miss = await worker({ version: O.WORKER_VERSION, hosts: info.hosts.filter((h) => !/gog/.test(h)) }); assert.equal(miss.ok, false); assert.match(miss.t, /Er erlaubt nicht: catalog\.gog\.com, api\.gog\.com/);
-  assert.deepEqual(await worker({ version: O.WORKER_VERSION + 1, hosts: info.hosts }), { ok: true, t: 'Version ' + (O.WORKER_VERSION + 1) + ' (neuer als dieses Tool)' });                                   // ohne Client-ID: kein Fehler
+  const worker = (body, status = 200) => run(async (u) => (/[?&]info=1/.test(u) ? { ok: status === 200, status, json: async () => { if (body === 'kein JSON') throw new Error('x'); return body; }, text: async () => '' } : { ok: true, status: 200, json: async () => ok(u), text: async () => '' }), () => O.checkWorker().then((t) => ({ ok: true, ...t }), (e) => ({ ok: false, text: e.message })));
+  assert.deepEqual(await worker({ version: O.WORKER_VERSION - 1, hosts: info.hosts }), { ok: false, text: 'Proxy-Worker Version ' + (O.WORKER_VERSION - 1) + ', aktuell ist ' + O.WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen.' });
+  assert.match((await worker('kein JSON', 400)).text, /Alte Version des Proxy-Workers \(ohne Versionsangabe\)/);
+  const miss = await worker({ version: O.WORKER_VERSION, hosts: info.hosts.filter((h) => !/gog/.test(h)) }); assert.equal(miss.ok, false); assert.match(miss.text, /Er erlaubt nicht: catalog\.gog\.com, api\.gog\.com/);
+  assert.deepEqual(await worker({ version: O.WORKER_VERSION + 1, hosts: info.hosts }), { ok: true, warn: true, text: 'Version ' + (O.WORKER_VERSION + 1) + ' (neuer als dieses Tool)' });                                   // ohne Client-ID: kein Fehler
   O.settings.saveBrandfetch('ID1');
   const bfOk = await run(async (u) => ({ ok: true, status: 200, json: async () => (/brandfetch/.test(u) ? [{ brandId: 'b', name: 'Valve', domain: 'valve.com' }] : { search: [] }), text: async () => '' }), () => O.testConnection());
   assert.deepEqual(bfOk.slice(-2).map((r) => [r.name, r.ok]), [['Wikidata (Publisher-Logos)', true], ['Brandfetch', true]]); assert.match(bfOk[bfOk.length - 1].text, /1 Treffer/);

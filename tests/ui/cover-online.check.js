@@ -299,11 +299,14 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.click('#dlg button:has-text("Verbindung testen")');
   await page.waitForFunction(() => /Alle Verbindungen in Ordnung/.test(document.querySelector('#dlg').textContent));
   assert.match(await page.locator('#dlg').innerText(), /✓ Proxy-Worker: Version 2 \(aktuell\)[\s\S]*✓ Steam-Shop[\s\S]*✓ SteamGridDB[\s\S]*✓ GOG-Katalog[\s\S]*✓ GOG-Spieldaten[\s\S]*✓ GOG-Bilder/);
+  const mark = (sel) => page.locator(sel).first().evaluate((e) => getComputedStyle(e).color);
+  assert.equal(await mark('#dlg .tline.good .tmark'), 'rgb(6, 118, 71)', 'Häkchen sind grün');
   const blocked = (route) => route.fulfill({ status: 403, headers: CORS, body: 'Dieser Host ist nicht erlaubt.' });
   await page.route('https://proxy.test/**', blocked);
   await page.click('#dlg button:has-text("Verbindung testen")');
   await page.waitForFunction(() => /✗ Steam-Shop/.test(document.querySelector('#dlg').textContent));
   assert.match(await page.locator('#dlg').innerText(), /Worker-Code ist wahrscheinlich veraltet/);
+  assert.equal(await mark('#dlg .tline.bad .tmark'), 'rgb(180, 35, 24)', 'Kreuze sind rot');
   await page.click('#dlgX');
 
   // Steam: Fehler des Proxys werden erklärt, die Steam-Adresse umgeht die Suche

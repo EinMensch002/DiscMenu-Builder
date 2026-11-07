@@ -169,6 +169,11 @@ dialog::backdrop{background:rgba(5,7,12,.6);backdrop-filter:blur(3px)}
 dialog.wide{width:min(1360px,98vw)}
 textarea.code{width:100%;min-height:50vh;font:12.5px/1.5 ui-monospace,Consolas,monospace;white-space:pre;tab-size:2;resize:vertical}
 footer{text-align:center;color:var(--mut);font-size:12px;padding:8px 14px 28px;line-height:1.8}
+  /* Verbindungstest: grünes Häkchen, gelbes Warnzeichen (läuft, aber mit Hinweis), rotes Kreuz */
+  .tline .tmark { font-weight: 700; }
+  .tline.good .tmark { color: #067647; }
+  .tline.warn, .tline.warn .tmark { color: #b54708; }
+  .tline.bad, .tline.bad .tmark { color: #b42318; }
 </style>
 </head>
 <body>
@@ -653,13 +658,13 @@ if (typeof module !== 'undefined') module.exports = CORE;
     if (!info || typeof info.version !== 'number') throw new Error('Alte Version des Proxy-Workers (ohne Versionsangabe), aktuell ist Version ' + WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen (Anleitung bei "Proxy einrichten").');
     const missing = REQUIRED_HOSTS.filter(h => !(info.hosts || []).some(src => { try { return new RegExp(src).test(h); } catch (e) { return false; } }));
     if (info.version < WORKER_VERSION || missing.length) throw new Error('Proxy-Worker Version ' + info.version + ', aktuell ist ' + WORKER_VERSION + (missing.length ? '. Er erlaubt nicht: ' + missing.join(', ') : '') + '. Bitte den aktuellen Worker-Code einspielen.');
-    return 'Version ' + info.version + (info.version > WORKER_VERSION ? ' (neuer als dieses Tool)' : ' (aktuell)');
+    return info.version > WORKER_VERSION ? {warn: true, text: 'Version ' + info.version + ' (neuer als dieses Tool)'} : {text: 'Version ' + info.version + ' (aktuell)'};
   }
 
   /* Verbindungstest: jeder Dienst, den der Konfigurator nutzt, einzeln (SteamGridDB, Steam, GOG, Epic Games, Übersetzung), damit man sieht, woran es liegt */
   async function testServices(){
     const out = [];
-    const run = async (name, fn) => { try { out.push({name, ok: true, text: await fn()}); } catch (e) { out.push({name, ok: false, text: e.message || String(e)}); } };
+    const run = async (name, fn) => { try { const v = await fn(); out.push(v && typeof v === 'object' ? {name, ok: true, warn: !!v.warn, text: v.text} : {name, ok: true, text: v}); } catch (e) { out.push({name, ok: false, text: e.message || String(e)}); } };
     const get = async (url, what) => {
       const r = await net(url);
       if (r.status === 403 && /Host/i.test(await r.clone().text().catch(() => ''))) throw new Error('Der Proxy erlaubt ' + what + ' nicht. Der Worker-Code ist wahrscheinlich veraltet, bitte den aktuellen aus docs/steamgriddb.md einspielen.');
@@ -712,7 +717,7 @@ if (typeof module !== 'undefined') module.exports = CORE;
           const res = await testServices();
           const bad = res.filter(r => !r.ok);
           msg.textContent = bad.length ? bad.length + ' von ' + res.length + ' Verbindungen funktionieren nicht: ' + bad.map(r => r.name).join(', ') + '. Details unten.' : 'Alle Verbindungen in Ordnung.';
-          tests.replaceChildren(...res.map(r => h('div', {class: r.ok ? '' : 'err'}, (r.ok ? '✓ ' : '✗ ') + r.name + ': ' + r.text)));
+          tests.replaceChildren(...res.map(r => h('div', {class: 'tline ' + (!r.ok ? 'bad' : r.warn ? 'warn' : 'good')}, h('b', {class: 'tmark'}, !r.ok ? '✗' : r.warn ? '⚠' : '✓'), ' ' + r.name + ': ' + r.text)));
         }}, 'Verbindung testen'),
         h('button', {type:'button', class:'danger', onclick: () => { store.set('sgdb-key',''); store.set('sgdb-proxy',''); key.value = ''; proxy.value = ''; msg.textContent = 'Gespeicherte Werte gelöscht.'; }}, 'Löschen')),
       h('h3', {}, 'Einstellungen sichern'),

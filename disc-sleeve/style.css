@@ -352,3 +352,9 @@ dialog .f small { display: block; margin-top: 3px; }
 .gal small.dpi-low, .dlist small.dpi-low { color: #b42318; font-weight: 700; }
 .gal small.dpi-mid, .dlist small.dpi-mid { color: #b54708; font-weight: 700; }
 .gal small.dpi-ok, .dlist small.dpi-ok { color: #067647; font-weight: 700; }
+
+/* Verbindungstest: grünes Häkchen, gelbes Warnzeichen (läuft, aber mit Hinweis), rotes Kreuz */
+.tline .tmark { font-weight: 700; }
+.tline.good .tmark { color: #067647; }
+.tline.warn, .tline.warn .tmark { color: #b54708; }
+.tline.bad, .tline.bad .tmark { color: #b42318; }

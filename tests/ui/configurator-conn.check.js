@@ -44,6 +44,17 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => /Verbindungen funktionieren nicht: Proxy-Worker/.test(document.querySelector('#dlg').textContent));
   assert.match(await page.locator('#sgTests').innerText(), /✗ Proxy-Worker: Proxy-Worker Version 1, aktuell ist 2\. Bitte den aktuellen Worker-Code einspielen\./);
   assert.match(await page.locator('#dlg').textContent(), /1 von 7 Verbindungen funktionieren nicht: Proxy-Worker\. Details unten\./);
+  // Farben: grünes Häkchen, rotes Kreuz
+  const color = (sel) => page.locator(sel).first().evaluate((e) => getComputedStyle(e).color);
+  assert.equal(await color('#sgTests .tline.bad .tmark'), 'rgb(180, 35, 24)', 'Kreuz ist rot');
+  assert.equal(await color('#sgTests .tline.good .tmark'), 'rgb(6, 118, 71)', 'Häkchen ist grün');
+  // Neuere Version als erwartet: gelb mit Warnzeichen, kein Fehler
+  workerVersion = 9;
+  await page.click('#dlg button:has-text("Verbindung testen")');
+  await page.waitForFunction(() => /Version 9/.test(document.querySelector('#sgTests').textContent));
+  assert.match(await page.locator('#sgTests').innerText(), /⚠ Proxy-Worker: Version 9 \(neuer als dieses Tool\)/);
+  assert.equal(await color('#sgTests .tline.warn .tmark'), 'rgb(181, 71, 8)', 'Warnzeichen ist gelb/orange');
+  assert.match(await page.locator('#dlg').textContent(), /Alle Verbindungen in Ordnung|Verbindungen funktionieren nicht: Epic/);
   workerVersion = 2;
 
   // Ein Dienst fällt aus (Worker veraltet): er steht mit Meldung da, die anderen bleiben grün

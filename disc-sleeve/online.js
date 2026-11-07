@@ -121,13 +121,14 @@
     if (!info || typeof info.version !== 'number') throw new Error('Alte Version des Proxy-Workers (ohne Versionsangabe), aktuell ist Version ' + WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen (Anleitung bei "Proxy einrichten").');
     const missing = REQUIRED_HOSTS.filter((h) => !(info.hosts || []).some((src) => { try { return new RegExp(src).test(h); } catch (e) { return false; } }));
     if (info.version < WORKER_VERSION || missing.length) throw new Error('Proxy-Worker Version ' + info.version + ', aktuell ist ' + WORKER_VERSION + (missing.length ? '. Er erlaubt nicht: ' + missing.join(', ') : '') + '. Bitte den aktuellen Worker-Code einspielen.');
-    return 'Version ' + info.version + (info.version > WORKER_VERSION ? ' (neuer als dieses Tool)' : ' (aktuell)');
+    return info.version > WORKER_VERSION ? { warn: true, text: 'Version ' + info.version + ' (neuer als dieses Tool)' } : { text: 'Version ' + info.version + ' (aktuell)' };
   }
 
   /* Verbindungstest für die Einstellungen: jeder Dienst einzeln, damit man sieht, woran es liegt */
   async function testConnection() {
     const out = [];
-    const run = async (name, fn) => { try { out.push({ name, ok: true, text: await fn() }); } catch (e) { out.push({ name, ok: false, text: e.message || String(e) }); } };
+    /* Eine Prüfung liefert Text oder { text, warn: true } (läuft, aber Hinweis: gelb statt grün) */
+    const run = async (name, fn) => { try { const v = await fn(); out.push(v && typeof v === 'object' ? { name, ok: true, warn: !!v.warn, text: v.text } : { name, ok: true, text: v }); } catch (e) { out.push({ name, ok: false, text: e.message || String(e) }); } };
     if (!settings.proxy) out.push({ name: 'Proxy', ok: false, text: 'Kein Proxy eingetragen. Ohne Proxy blockiert der Browser die Anfragen meist (CORS).' });
     if (settings.proxy) await run('Proxy-Worker', checkWorker);
     await run('Steam-Shop', async () => { const r = await steamSearch('Half-Life'); return r.length + ' Treffer für den Test'; });

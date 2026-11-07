@@ -109,7 +109,7 @@
           const res = await O.testConnection();
           const bad = res.filter((r) => !r.ok);
           say(msg, bad.length ? bad.length + ' von ' + res.length + ' Verbindungen funktionieren nicht: ' + bad.map((r) => r.name).join(', ') + '. Details unten.' : 'Alle Verbindungen in Ordnung.', !!bad.length);
-          tests.replaceChildren(...res.map((r) => h('div', { class: r.ok ? '' : 'err' }, (r.ok ? '✓ ' : '✗ ') + r.name + ': ' + r.text)));
+          tests.replaceChildren(...res.map((r) => h('div', { class: 'tline ' + (!r.ok ? 'bad' : r.warn ? 'warn' : 'good') }, h('b', { class: 'tmark' }, !r.ok ? '✗' : r.warn ? '⚠' : '✓'), ' ' + r.name + ': ' + r.text)));
         } }, 'Verbindung testen'),
         h('button', { type: 'button', onclick: () => { O.settings.save('', ''); O.settings.saveBrandfetch(''); key.value = ''; proxy.value = ''; bf.value = ''; say(msg, 'Gespeicherte Werte gelöscht.'); } }, 'Löschen')),
       tests,
