@@ -60,7 +60,7 @@ Der Player wurde bisher nur unter Linux (Xvfb) und als Windows-Build geprüft. D
 
 # Manuelle Prüfung des Cover-Tools
 
-Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Druck getestet. Diese Punkte brauchen echte Dienste und einen echten Drucker. Voraussetzung für die Dienste: derselbe Proxy und SteamGridDB-Schlüssel wie im Konfigurator (Einstellungen im Cover-Tool prüfen, auf Pages sollten sie schon da sein).
+Das [Cover-Tool](disc-sleeve.md) ist mit nachgebauten Diensten und im Browser-Druck getestet. Diese Punkte brauchen echte Dienste und einen echten Drucker. Voraussetzung für die Dienste: derselbe Proxy und SteamGridDB-Schlüssel wie im Konfigurator (Einstellungen im Cover-Tool prüfen, auf Pages sollten sie schon da sein).
 
 ## Steam und SteamGridDB (mit Proxy)
 

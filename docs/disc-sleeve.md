@@ -2,8 +2,8 @@
 
 **DiscSleeve** ist der Name des Cover-Tools. Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt (A4 quer) mit Rückseite, Rücken und Vorderseite im GOG-Stil, auf Wunsch mit Systemanforderungen, Spielfunktionen und USK-Kennzeichnung. Sie ergänzt den [Konfigurator](configurator.md) und das Menü ([Builder und Player](player-und-builder.md)): Das Menü liegt auf der Disc, das Cover steckt in der Hülle.
 
-**Online:** https://einmensch002.github.io/DiscMenu-Builder/cover/
-**Dateien:** [cover-tool/](../cover-tool/). Zum lokalen Benutzen den Ordner herunterladen und `index.html` im Browser öffnen, dann geht es auch ohne Internet.
+**Online:** https://einmensch002.github.io/DiscMenu-Builder/disc-sleeve/ (die alte Adresse `/cover/` leitet weiter)
+**Dateien:** [disc-sleeve/](../disc-sleeve/). Zum lokalen Benutzen den Ordner herunterladen und `index.html` im Browser öffnen, dann geht es auch ohne Internet.
 
 ## Überblick
 
@@ -149,7 +149,7 @@ Die Bilder werden dabei unverändert übernommen (nicht erneut verkleinert oder 
 
 ## Anbieter
 
-Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games und Steam** ist der Streifen mit den Spielfunktionen auf der Rückseite dunkel statt hell (Steam: Marineblau mit blauer Linie, Epic: Dunkelgrau). Das Logo steht in der Kopfleiste der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Alle Grafiken des Tools (auch die USK-Zeichen, die DVD-/CD-/Blu-ray-Logos und das GOG-Logo, jeweils nur 2 bis 6 KB) sind **SVG**, es gibt keine Rastergrafiken mehr (Voraussetzung für die spätere Ein-Datei-Version). Sie liegen in `cover-tool/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.svg`).
+Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games und Steam** ist der Streifen mit den Spielfunktionen auf der Rückseite dunkel statt hell (Steam: Marineblau mit blauer Linie, Epic: Dunkelgrau). Das Logo steht in der Kopfleiste der Vorderseite und oben auf dem Rücken. Bei Epic Games und Steam steht der Schriftzug unter bzw. neben dem Logo. Die Logos sind weiße Vektorgrafiken (SVG, je 1 bis 3 KB, in jeder Größe scharf) aus dem Projekt [Simple Icons](https://simpleicons.org/) (Lizenz CC0). Alle Grafiken des Tools (auch die USK-Zeichen, die DVD-/CD-/Blu-ray-Logos und das GOG-Logo, jeweils nur 2 bis 6 KB) sind **SVG**, es gibt keine Rastergrafiken mehr (Voraussetzung für die spätere Ein-Datei-Version). Sie liegen in `disc-sleeve/assets/images/` (`epic_logo.svg`, `steam_logo.svg`, GOG: `gog_logo.svg`).
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
@@ -332,5 +332,5 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 ## Hinweise
 
 - GOG, Epic Games, Steam (Namen und Logos) und die USK-Symbole sind Marken ihrer Inhaber. Das Tool ist für den privaten Druck eigener Hüllen gedacht.
-- Die Schrift Lato steht unter der SIL Open Font License (siehe `cover-tool/assets/fonts/README.txt`).
+- Die Schrift Lato steht unter der SIL Open Font License (siehe `disc-sleeve/assets/fonts/README.txt`).
 

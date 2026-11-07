@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const C = require('../cover-tool/core.js');
+const C = require('../disc-sleeve/core.js');
 
 test('Maße: Rücken und Seiten ergeben die Gesamtbreite', () => {
   for (const [name, c] of Object.entries(C.CASES)) {
@@ -178,7 +178,7 @@ test('Anbieter: Farben, Schriftzüge und Hinweise sind vollständig', () => {
 
 test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
   const fs = require('node:fs'), path = require('node:path');
-  const root = path.join(__dirname, '..', 'cover-tool', 'assets', 'images');
+  const root = path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images');
   const need = [
     'gog_logo.svg',
     ...C.USK_VALUES.flatMap((v) => [`usk/usk_${v}.svg`, `usk/usk_${v}_bg.svg`]),          // Raute und Hintergrund (Kachel mit Rand) getrennt
@@ -228,7 +228,7 @@ test('Stil-Auswahl: GOG hat sechs Varianten (von hell nach dunkel), die anderen 
 });
 
 test('Projektdatei: Rückenlogo wird mitgespeichert', async () => {
-  const F = require('../cover-tool/files.js'), Z = require('../cover-tool/zip.js');
+  const F = require('../disc-sleeve/files.js'), Z = require('../disc-sleeve/zip.js');
   assert.ok(F.IMAGE_KEYS.includes('spineLogo'));
   const png = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3]);
   const out = F.unpackProject(await Z.read(F.packProject(C.defaultState(), { spineLogo: { data: png, type: 'image/png', name: 'logo.png' } })));
@@ -259,7 +259,7 @@ test('Logo-Anpassung: Zu breite Logos werden gedreht, das Ergebnis passt immer i
 
 test('Aufgeräumt: keine GOG-Original-Symbole und kein Galaxy-Feld mehr, Unterlagen für Publisher-Logos', () => {
   const fs = require('node:fs'), path = require('node:path');
-  const dir = path.join(__dirname, '..', 'cover-tool', 'assets', 'images', 'features');
+  const dir = path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images', 'features');
   assert.deepEqual(fs.readdirSync(dir), ['line']);                                   // nur noch die SVG-Symbole
   const s = C.defaultState();
   assert.equal('galaxy' in s, false); assert.equal('iconStyle' in s, false);
@@ -272,6 +272,6 @@ test('Aufgeräumt: keine GOG-Original-Symbole und kein Galaxy-Feld mehr, Unterla
 test('Im Bilderordner liegen keine Rastergrafiken', () => {
   const fs = require('node:fs'), path = require('node:path');
   const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]);
-  const bad = walk(path.join(__dirname, '..', 'cover-tool', 'assets', 'images')).filter((f) => /\.(png|jpe?g|gif|webp|bmp)$/i.test(f));
+  const bad = walk(path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images')).filter((f) => /\.(png|jpe?g|gif|webp|bmp)$/i.test(f));
   assert.deepEqual(bad, []);
 });

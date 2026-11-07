@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'configurator/**'
-      - 'cover-tool/**'
+      - 'disc-sleeve/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -27,15 +27,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      # Konfigurator liegt im Wurzelverzeichnis der Seite, das Cover-Tool unter /cover/
+      # Konfigurator liegt im Wurzelverzeichnis der Seite, DiscSleeve (Hüllen) unter /disc-sleeve/, die alte Adresse /cover/ leitet dorthin weiter
       - name: Seite zusammenstellen
         run: |
           mkdir site
           cp -r configurator/. site/
-          cp -r cover-tool site/cover
+          cp -r disc-sleeve site/disc-sleeve
           # Versionsnummer in die Adressen der Dateien schreiben: Browser laden nach jeder Veröffentlichung die neuen Dateien
           # (sonst mischen sie bis zu 10 Minuten lang alte und neue Teile der Seite)
-          sed -i "s/__VERSION__/${GITHUB_SHA::7}/g" site/cover/index.html
+          sed -i "s/__VERSION__/${GITHUB_SHA::7}/g" site/disc-sleeve/index.html
+          # alte Adresse /cover/ weiterleiten (bestehende Lesezeichen und Links)
+          mkdir site/cover
+          printf '%s\n' '<!doctype html><html lang="de"><meta charset="utf-8"><title>DiscSleeve</title><meta http-equiv="refresh" content="0; url=../disc-sleeve/"><link rel="canonical" href="../disc-sleeve/"><p>DiscSleeve ist umgezogen: <a href="../disc-sleeve/">zur neuen Adresse</a>.</p></html>' > site/cover/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

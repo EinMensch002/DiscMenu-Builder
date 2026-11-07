@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const { chromium } = require('playwright');
 const { loadCore } = require('../helpers');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
 
 // ZIP wie aus dem Konfigurator (eine Datei gespeichert, eine komprimiert)
@@ -348,7 +348,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await openMenu('Projekt');
   const proj = await download(() => page.click('#bProjExport'));
   assert.equal(proj.name, 'groessen-test-cover.zip');
-  const CF = require('../../cover-tool/files.js'), CZ = require('../../cover-tool/zip.js');
+  const CF = require('../../disc-sleeve/files.js'), CZ = require('../../disc-sleeve/zip.js');
   const inside = CF.unpackProject(await CZ.read(new Uint8Array(proj.buffer)));
   assert.equal(inside.state.title, 'Größen-Test'); assert.equal(inside.state.provider, 'steam');
   assert.ok(inside.images.front && inside.images.publisher, 'Bilder sind in der Projektdatei');      // Frontcover kam aus dem SteamGridDB-Test

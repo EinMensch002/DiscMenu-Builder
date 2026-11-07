@@ -3,7 +3,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
 
 // Erzeugt ein Bild im Browser und übergibt es dem Tool ("draw" ist der Rumpf einer Funktion (ctx, w, h))
 async function image(page, key, w, h, draw, type = 'image/png') {

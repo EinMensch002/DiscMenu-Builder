@@ -3,7 +3,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
 
 (async () => {
   const browser = await chromium.launch();

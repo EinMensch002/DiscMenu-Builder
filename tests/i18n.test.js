@@ -4,10 +4,10 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const I = require('../cover-tool/i18n.js');
-const en = require('../cover-tool/lang-en.js');
+const I = require('../disc-sleeve/i18n.js');
+const en = require('../disc-sleeve/lang-en.js');
 
-const dir = path.join(__dirname, '..', 'cover-tool');
+const dir = path.join(__dirname, '..', 'disc-sleeve');
 const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
 const unesc = (s) => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&nbsp;/g, ' ');
 const sources = ['index.html', 'app.js', 'extras.js', 'online.js', 'files.js', 'core.js'].map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');

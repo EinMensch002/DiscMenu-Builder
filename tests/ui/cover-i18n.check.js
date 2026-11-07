@@ -4,7 +4,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
 const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zum|zur|aus|ein|eine|noch|nur|kein|keine|wurde|werden|zuerst|lokal|ungespeichert|gespeichert|geöffnet|Treffer|Fehler|Datei|Rückseite|Frontcover)\b/i;
 
 (async () => {
