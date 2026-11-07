@@ -94,7 +94,7 @@
   }
 
   /* ---------- Bilder: auf Druckgröße verkleinern, als Datei-Adresse statt als Base64-Text halten ---------- */
-  const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900, spineLogo: 1200 };
+  const MAX_EDGE = { front: 2300, backTop: 2300, backBottom: 2300, publisher: 900, spineLogo: 1200, spineBg: 2000 };
 
   async function loadImage(key, file) {
     let result;
@@ -347,6 +347,14 @@
       spine.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.3)), url("' + f.url + '")';
       spine.style.backgroundSize = '100% 100%, ' + mm(sw) + ' ' + mm(sh);
       spine.style.backgroundPosition = '0 0, ' + mm(ov - offX) + ' ' + mm(barH - offY);
+    } else if (state.spineArt === 'own' && images.spineBg) {
+      /* Eigenes Rückenbild: füllt den Rücken (zugeschnitten), der Ausschnitt ist links/rechts wählbar, optional abgedunkelt */
+      const dim = num(state.spineBgDim, 25, 0, 80) / 100, x = num(state.spineBgX, 50, 0, 100);
+      spine.classList.add('art');
+      front.style.backgroundSize = ''; front.style.backgroundPosition = '';
+      spine.style.backgroundImage = 'linear-gradient(rgba(0,0,0,' + dim + '), rgba(0,0,0,' + dim + ')), url("' + images.spineBg.url + '")';
+      spine.style.backgroundSize = '100% 100%, cover';
+      spine.style.backgroundPosition = '0 0, ' + x + '% 50%';
     } else {
       front.style.backgroundSize = ''; front.style.backgroundPosition = '';
       spine.style.backgroundImage = ''; spine.style.backgroundSize = ''; spine.style.backgroundPosition = '';

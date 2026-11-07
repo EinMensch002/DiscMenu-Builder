@@ -149,6 +149,31 @@ async function image(page, key, w, h, draw, type = 'image/png') {
   assert.equal(await page.locator('.fold').first().isVisible(), false);
   assert.deepEqual(await sheet(), sizeBefore);
 
+  // ---- Eigenes Rückenbild: füllt den Rücken, der Ausschnitt (links/rechts) ändert die sichtbare Stelle ----
+  await image(page, 'spineBg', 1600, 500, "for(let x=0;x<w;x++){ctx.fillStyle='hsl('+(x/w*300)+',90%,50%)';ctx.fillRect(x,0,1,h);}");
+  await page.selectOption('[data-k=spineArt]', 'own'); await page.waitForTimeout(250);
+  const spineCol = async () => { const r = await page.evaluate(() => { const b = document.querySelector('#spine').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height * 0.55 }; });
+    const shot = await page.screenshot({ clip: { x: r.x, y: r.y, width: 1, height: 1 } });
+    return page.evaluate(async (b64) => { const bmp = await createImageBitmap(await (await fetch('data:image/png;base64,' + b64)).blob()), cv = document.createElement('canvas'); cv.width = 1; cv.height = 1; const c = cv.getContext('2d'); c.drawImage(bmp, 0, 0); const [r2, g, b] = c.getImageData(0, 0, 1, 1).data; return [r2, g, b]; }, shot.toString('base64')); };
+  await page.fill('input[type=text][data-k=spineBgDim]', '0'); await page.fill('input[type=text][data-k=spineBgX]', '5'); await page.waitForTimeout(250);
+  const left = await spineCol();
+  await page.fill('input[type=text][data-k=spineBgX]', '95'); await page.waitForTimeout(250);
+  const right = await spineCol();
+  assert.ok(Math.abs(left[0] - right[0]) + Math.abs(left[1] - right[1]) + Math.abs(left[2] - right[2]) > 120, 'Ausschnitt ändert die Farbe des Rückens: ' + left + ' / ' + right);
+  assert.equal(await page.locator('#spine').evaluate((e) => e.style.backgroundSize), '100% 100%, cover');
+  await page.selectOption('[data-k=spineArt]', 'color');
+  assert.match((await page.locator('[data-img=spineBg] .spec').textContent()), /14 × 183 mm/, 'Maße des Rückenbilds stehen dabei');
+
+  // ---- Bilder überstehen das Neuladen (IndexedDB), Zurücksetzen leert den Speicher ----
+  await page.click('.menu summary:has-text("Projekt")'); await page.click('#bBrowserSave');
+  await page.waitForFunction(() => /Im Browser gesichert/.test(document.querySelector('#autoInfo').textContent)); await page.waitForTimeout(500);
+  await page.reload();
+  await page.waitForFunction(() => document.querySelector('[data-img=spineBg]').classList.contains('has'));
+  assert.equal(await page.locator('[data-img=publisher]').evaluate((e) => e.classList.contains('has')), true);
+  await page.click('#bReset'); await page.waitForTimeout(400); await page.reload(); await page.waitForTimeout(800);
+  assert.equal(await page.locator('[data-img=spineBg]').evaluate((e) => e.classList.contains('has')), false, 'nach Zurücksetzen kommt nichts zurück');
+  assert.equal(await page.locator('#autoInfo').textContent(), '');
+
   assert.deepEqual(errors, []);
   await browser.close();
   console.log('Cover-Tool-Rücken-Test bestanden');

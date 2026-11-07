@@ -50,6 +50,7 @@
       front: { w: c.front, h: theme === 'bar' ? round1(c.h - BAR_HEIGHT) : c.h },
       backTop: { w: c.back, h: round1(c.h - BACK.banner - BACK.bottom) },
       backBottom: { w: c.back, h: BACK.bottom },
+      spineBg: { w: c.spine, h: c.h },
     };
   }
   const round1 = (n) => Math.round(n * 10) / 10;
@@ -262,7 +263,7 @@
       gpu: { nvidia: { on: false, pre: 'RTX', num: '', sfx: '' }, amd: { on: false, pre: 'RX', num: '', sfx: '' }, custom: '' },
       ram: '4', space: '10', dx: '', other: '',
       frontPubPlate: 'none', spinePubPlate: 'white',          /* Unterlage hinter dem Publisher-Logo: 'none' | 'white' | 'black' */
-      spinePC: true, spineTitle: 'center', spineArt: 'color', spineUseLogo: true, spinePub: true,
+      spinePC: true, spineTitle: 'center', spineArt: 'color', spineBgX: '50', spineBgDim: '25', spineUseLogo: true, spinePub: true,
       spineLogoRot: 'auto', spineLogoSide: '1.5', spineLogoTop: '3', spineLogoBottom: '3',      /* Rückenlogo: Drehung, Abstände (mm) zu den Seiten und zu Kopf und Fuß */
       spinePubRot: 'auto', spinePubSide: '1.2', spinePubWidth: '',                             /* Publisher am Fuß: Drehung, Abstand zur Seite (mm), eigene Breite (mm, leer = automatisch) */
       publisher: '', developer: '',         /* z. B. von Steam übernommen, Vorgabe für die Suche nach dem Publisher-Logo */
@@ -298,7 +299,7 @@
     if (!PROVIDERS[out.provider]) out.provider = 'gog';
     for (const k of ['frontPubPlate', 'spinePubPlate']) if (!['none', 'white', 'black'].includes(out[k])) out[k] = k === 'spinePubPlate' ? 'white' : 'none';
     if (out.spineTitle !== 'top') out.spineTitle = 'center';
-    if (out.spineArt !== 'image') out.spineArt = 'color';
+    if (!['image', 'own'].includes(out.spineArt)) out.spineArt = 'color';
     for (const k of ['spineLogoRot', 'spinePubRot']) if (!['auto', 'no', 'yes'].includes(out[k])) out[k] = 'auto';
     out.uskOpacity = String(Math.min(100, Math.max(30, parseInt(out.uskOpacity, 10) || 100)));
     if (out.usk !== 'none' && !USK_VALUES.includes(out.usk)) out.usk = '0';

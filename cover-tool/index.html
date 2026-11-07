@@ -20,11 +20,13 @@
     </details>
     <details class="menu"><summary>Projekt</summary>
       <div class="pop">
+        <button type="button" id="bBrowserSave" title="Sichert Einstellungen und Bilder im Speicher dieses Browsers. Das geschieht auch automatisch, der Stand bleibt nach dem Neuladen erhalten.">Im Browser speichern</button>
         <button type="button" id="bSave" title="Überschreibt die geöffnete oder zuletzt gespeicherte Datei (Strg+S)">Speichern <kbd>Strg+S</kbd></button>
         <button type="button" id="bProjExport">Speichern unter …</button>
         <button type="button" id="bProjImport">Öffnen …</button>
       </div>
     </details>
+    <span class="saveinfo" id="autoInfo" aria-live="polite"></span>
     <span class="saveinfo" id="saveInfo" aria-live="polite"></span>
     <button type="button" id="bSettings">Einstellungen</button>
     <button type="button" id="bReset">Zurücksetzen</button>
@@ -108,7 +110,15 @@
       <label class="f"><span class="lab">Titel auf dem Rücken</span>
         <select data-k="spineTitle"><option value="top">Oben (unter dem Logo)</option><option value="center">Mittig</option></select></label>
       <label class="f"><span class="lab">Hintergrund des Rückens</span>
-        <select data-k="spineArt"><option value="color">Farbe des Anbieters</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
+        <select data-k="spineArt"><option value="color">Farbe des Anbieters</option><option value="own">Eigenes Rückenbild (siehe unten)</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
+      <div class="drop" data-img="spineBg"><input type="file" accept="image/*" aria-label="Rückenbild"><div class="thumb"></div>
+        <div class="dt"><b>Rückenbild <i>(optional, nur bei "Eigenes Rückenbild")</i></b><span class="spec"></span><span class="info">Ein Ausschnitt aus einem breiten Bild (z. B. Hintergrund von SteamGridDB) genügt, unten lässt sich der Ausschnitt wählen.</span></div><button type="button" class="sg" title="Rückenbild bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <div class="two">
+        <label class="f"><span class="lab">Ausschnitt (links ↔ rechts, %)</span>
+          <div class="slide"><input type="range" data-k="spineBgX" min="0" max="100" step="1"><input type="text" data-k="spineBgX" size="4"></div></label>
+        <label class="f"><span class="lab">Abdunkeln (%)</span>
+          <div class="slide"><input type="range" data-k="spineBgDim" min="0" max="80" step="5"><input type="text" data-k="spineBgDim" size="4"></div></label>
+      </div>
       <label class="f"><span class="lab">Anbieter-Logo oben auf dem Rücken</span>
         <select data-k="spineLogo"><option value="fixed">Feste Größe (7 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
       <div class="drop" data-img="spineLogo"><input type="file" accept="image/*" aria-label="Rückenlogo"><div class="thumb"></div>

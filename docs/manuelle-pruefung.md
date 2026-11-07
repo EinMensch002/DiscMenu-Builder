@@ -105,3 +105,6 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 - [ ] **Breites Publisher-Logo (z. B. Valve):** Der Rücken bleibt 14 mm breit, das Logo steht gedreht über "PC", "PC" bleibt bei jedem Logo an derselben Stelle. Auf der Rückseite ragen Disc- und Publisher-Logo nicht unter den Rücken.
 - [ ] **Falzlinien:** "Falzlinien am Rücken" einschalten, das Blatt bleibt sichtbar (Vorschau und Druckansicht), die gestrichelten Linien liegen an den Rückenkanten.
 - [ ] **Unterlage hinter dem Publisher-Logo:** Bei einem durchsichtigen Logo auf unruhigem Frontbild hilft Weiß oder Schwarz, auf dem Ausdruck gut lesbar.
+- [ ] **Browser-Speicher:** Bilder laden, Seite neu laden, alles ist wieder da. Zurücksetzen leert ihn. (In Firefox und Safari ebenfalls prüfen.)
+- [ ] **Rückenbild:** Ein breites Bild (SteamGridDB-Hintergrund) als Rückenbild laden, Ausschnitt und Abdunkeln einstellen, auf dem Ausdruck gut lesbar.
+- [ ] **Rückseite:** Die schmale Spalte mit Publisher, Disc und USK wirkt aufgeräumt, die Angaben sind groß genug lesbar.

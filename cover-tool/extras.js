@@ -129,6 +129,44 @@
       msg2, fin);
   }
 
+  /* ---------- Automatisch im Browser sichern ----------
+     Einstellungen merkt sich das Tool schon in localStorage. Bilder sind zu groß dafür, sie kommen in die IndexedDB des Browsers. Dadurch bleibt der ganze
+     Stand nach dem Neuladen erhalten, ohne Datei. Gespeichert wird kurz nach jeder Änderung, "Im Browser speichern" tut es sofort. "Zurücksetzen" leert den Speicher. */
+  const IDB_NAME = 'discmenu-cover', IDB_STORE = 'project';
+  const idbOpen = () => new Promise((res, rej) => {
+    try { const r = indexedDB.open(IDB_NAME, 1); r.onupgradeneeded = () => r.result.createObjectStore(IDB_STORE); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error || new Error('IndexedDB gesperrt')); }
+    catch (e) { rej(e); }
+  });
+  const idbRun = async (mode, fn) => { const db = await idbOpen(); try { return await new Promise((res, rej) => { const tx = db.transaction(IDB_STORE, mode), q = fn(tx.objectStore(IDB_STORE)); tx.oncomplete = () => res(q && q.result); tx.onerror = tx.onabort = () => rej(tx.error || new Error('Speichern fehlgeschlagen')); }); } finally { db.close(); } };
+  const auto = $('#autoInfo');
+  let browserReady = false, autoTimer = 0, lastAuto = '';
+  const clock = () => new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  async function saveToBrowser() {
+    clearTimeout(autoTimer);
+    try {
+      const snap = App.snapshot();
+      await idbRun('readwrite', (st) => st.put({ images: snap.images, savedAt: Date.now() }, 'current'));
+      lastAuto = 'Im Browser gesichert (' + clock() + ')';
+    } catch (e) { lastAuto = 'Bilder lassen sich in diesem Browser nicht sichern: ' + (e && e.message || e); }
+    auto.textContent = lastAuto; auto.classList.toggle('dirty', /nicht sichern/.test(lastAuto));
+  }
+  App.onChange(() => { if (!browserReady) return; clearTimeout(autoTimer); autoTimer = setTimeout(saveToBrowser, 800); });
+  App.onReset(() => { clearTimeout(autoTimer); idbRun('readwrite', (st) => st.delete('current')).catch(() => {}); auto.textContent = ''; });
+  (async () => {
+    try {
+      const rec = await idbRun('readonly', (st) => st.get('current'));
+      const keys = rec && rec.images ? Object.keys(rec.images) : [];
+      if (keys.length) {
+        const imgs = {};
+        for (const k of keys) imgs[k] = { data: await rec.images[k].blob.arrayBuffer(), type: rec.images[k].type, name: rec.images[k].name };
+        await App.restore(App.state, imgs);                       // die Einstellungen stehen schon (localStorage), nur die Bilder kommen dazu
+        auto.textContent = keys.length + ' Bild(er) aus dem Browser-Speicher geladen';
+        savedAt = App.changes; showInfo();                   // das Laden aus dem Browser zählt nicht als ungespeicherte Änderung der Datei
+      }
+    } catch (e) { /* kein Speicher vorhanden oder gesperrt: dann eben ohne */ }
+    browserReady = true;
+  })();
+
   /* ---------- Projekt speichern, speichern unter und öffnen ----------
      In Chrome und Edge merkt sich das Tool die Datei und "Speichern" überschreibt sie (wie im Menü-Ersteller). In anderen Browsern
      lädt "Speichern" die Datei jeweils neu herunter. */
@@ -296,8 +334,8 @@
   }
 
   /* ---------- Bildsuche bei SteamGridDB ---------- */
-  const DEFAULT_KIND = { front: 'cover', backTop: 'hero', backBottom: 'hero', publisher: 'logo', spineLogo: 'logo' };
-  const TARGET_NAME = { front: 'Frontcover', backTop: 'Rückseite oben', backBottom: 'Rückseite unten', publisher: 'Publisher-Logo', spineLogo: 'Rückenlogo' };
+  const DEFAULT_KIND = { front: 'cover', backTop: 'hero', backBottom: 'hero', publisher: 'logo', spineLogo: 'logo', spineBg: 'hero' };
+  const TARGET_NAME = { front: 'Frontcover', backTop: 'Rückseite oben', backBottom: 'Rückseite unten', publisher: 'Publisher-Logo', spineLogo: 'Rückenlogo', spineBg: 'Rückenbild' };
 
   function openSteamGridDB(key) {
     const input = h('input', { type: 'text', placeholder: 'Spieltitel, z. B. Stronghold' }); input.value = App.state.title || '';
@@ -401,6 +439,7 @@
   const recipeInput = $('#recipeFile'), projectInput = $('#projectFile');
   $('#bRecipe').addEventListener('click', () => recipeInput.click());
   recipeInput.addEventListener('change', () => { const f = recipeInput.files[0]; recipeInput.value = ''; if (f) onRecipeFile(f); });
+  $('#bBrowserSave').addEventListener('click', () => saveToBrowser());
   $('#bSave').addEventListener('click', () => saveProject(false));
   $('#bProjExport').addEventListener('click', () => saveProject(true));
   $('#bProjImport').addEventListener('click', openProject);

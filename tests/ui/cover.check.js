@@ -228,11 +228,16 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.emulateMedia({ media: 'screen' });
   assert.notEqual(await page.locator('#backTop').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(255, 255, 255)');
 
-  // Einstellungen bleiben nach dem Neuladen, Bilder nicht
-  await page.waitForTimeout(200); await page.reload();
+  // Einstellungen UND Bilder bleiben nach dem Neuladen (Einstellungen in localStorage, Bilder in der IndexedDB des Browsers)
+  await giveImage(page, 'front', 600, 900);
+  await page.click('.menu summary:has-text("Projekt")'); await page.click('#bBrowserSave');           // sichert sofort (sonst nach etwa 1 s von selbst)
+  await page.waitForFunction(() => /Im Browser gesichert/.test(document.querySelector('#autoInfo').textContent)); await page.waitForTimeout(400);
+  await page.reload();
   assert.equal(await page.inputValue('[data-k=theme]'), 'classic');
   assert.equal(await page.inputValue('[data-k=title]'), 'Sehr langer Spieltitel: Die Rückkehr der Titel & Co. <b>');
-  assert.equal(await page.locator('[data-img=front]').getAttribute('class'), 'drop');
+  await page.waitForFunction(() => document.querySelector('[data-img=front]').classList.contains('has'));
+  assert.match(await page.locator('#autoInfo').textContent(), /aus dem Browser-Speicher geladen/);
+  await page.waitForFunction(() => /600 × 900 px/.test(document.querySelector('[data-img=front] .info').textContent));
 
   // Druck: genau eine A4-Seite quer, Cover in Originalgröße, Schnittmarken innerhalb des Blatts
   await giveImage(page, 'front', 1500, 2100);
