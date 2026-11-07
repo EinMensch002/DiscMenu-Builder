@@ -386,7 +386,8 @@
     const P = C.PROVIDERS[state.provider];
     const vars = { brand: P.brand, 'on-brand': P.onBrand, dark: P.dark, mid: P.mid, accent: P.accent, bannerA: P.bannerA, bannerB: P.bannerB, barA: P.barA, barB: P.barB, line: P.line, spineBg: P.brand };
     const V = P.variants && P.variants[state.theme];
-    const lightSpine = !!(V && state.gogSpine === 'light');
+    /* Rücken: "passend zur Leiste" (Standard) hell bei hellen und dunkel bei dunklen Leisten, oder fest dunkel bzw. hell */
+    const lightSpine = !!(V && (state.gogSpine === 'light' || (state.gogSpine === 'match' && !V.dk)));
     if (V) Object.assign(vars, { barA: V.barA, barB: V.barB, line: V.line, spineBg: lightSpine ? V.spineLight : V.spine, bannerA: V.bannerA, bannerB: V.bannerB, barFg: V.fg, barGrad: V.grad || 'linear-gradient(' + V.barA + ', ' + V.barB + ')', 'bar-h': C.barHeight(state) + 'mm', 'bar-line': V.barLine });
     else Object.assign(vars, { barFg: P.onBrand, barGrad: 'linear-gradient(' + P.barA + ', ' + P.barB + ')', 'bar-h': C.BAR_HEIGHT + 'mm', 'bar-line': '1.6mm' });
     for (const [k, v] of Object.entries(vars)) cover.style.setProperty('--' + k, v);

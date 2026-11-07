@@ -18,7 +18,7 @@
 
 ## Standardwerte
 
-Neue Projekte starten mit der GOG-Variante **Weiß** und dem Rückentitel mittig. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
+Neue Projekte starten mit **GOG, normaler Hülle (14 mm), DVD, dem Stil Durchsichtig weiß**, dem Rücken passend zur Leiste, dem Rückentitel mittig und **eingeschalteten Falzmarken**. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
 
 ## Schnellstart
 
@@ -203,7 +203,7 @@ Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, da
 - **Dunkel:** anthrazitfarbene Leiste ohne Linie, weißes Kachel-Logo, dunkler Streifen mit den Spielfunktionen.
 - **Dunkel mit Violett-Hauch:** fast schwarz mit einem leichten Violett-Ton, bewusst keine Lila-Fläche (der Unterschied zu Dunkel ist klein).
 
-Bei GOG gibt es außerdem das Feld **"Rücken (GOG)"**: **Dunkel (anthrazit)** oder **Hell, passend zur Leiste** (dann ist auch der Rückentitel dunkel). Die **Naht** zwischen Rücken und Vorderseite ist bei durchscheinender Leiste ohne Strich, weil beide Leisten dort genau aneinanderstoßen.
+Bei GOG gibt es außerdem das Feld **"Rücken (GOG)"**: **Passend zur Leiste** (Standard: der Rücken hat die Farbe der Leiste, also hell bei Weiß, Warmweiß und Durchsichtig weiß und dunkel bei den dunklen Stilen), **Dunkel (anthrazit)** oder **Hell**. Auf hellem Rücken sind Rückentitel und "PC" dunkel. Die **Naht** zwischen Rücken und Vorderseite ist bei durchscheinender Leiste ohne Strich, weil beide Leisten dort genau aneinanderstoßen.
 
 Das **GOG-Logo ist immer zu sehen** (bei Dunkel und durchscheinend die weiße Kachel `gog_logo.svg`, bei Weiß das Rahmen-Logo). Der Schriftzug **"GOG.COM"** daneben lässt sich mit dem Haken "GOG.COM neben dem Logo zeigen" ein- und ausschalten. Rechts in der Leiste steht immer **"PC · DRM-FREI"**. Frühere Stile (GOG-Farben mit Lila und Grün, Dunkel mit Lila) werden beim Laden zu **Dunkel**. Bei Steam und Epic gibt es nichts zu wählen.
 
@@ -257,7 +257,7 @@ Die Rückseite hat feste Plätze: links die **Angaben** (am linken Rand, so brei
 
 1. Auf **Drucken** klicken.
 2. Im Druckdialog: Papier **A4**, Ausrichtung **quer**, Skalierung **100 %** (nicht "Anpassen"), Ränder **Keine**, **Hintergrundgrafiken** einschalten.
-3. Ausdrucken und an den **Schnittmarken** ausschneiden. Die **Falzmarken** (kurze gestrichelte Striche oben und unten außerhalb des Covers, auf Höhe der Rückenkanten; nur wenn eingeschaltet, auch im Druck) helfen beim Falten.
+3. Ausdrucken und an den **Schnittmarken** ausschneiden. Die **Falzmarken** (kurze gestrichelte Striche oben und unten außerhalb des Covers, auf Höhe der Rückenkanten; standardmäßig eingeschaltet, auch im Druck) helfen beim Falten.
 
 Rücken und Vorderseite überlappen um 0,6 mm, damit beim Drucken keine helle Naht zwischen ihnen entsteht. Flächen ohne Bild bleiben im Druck weiß. Ein Test misst die Naht in der Vorschau bei mehreren Maßstäben.
 

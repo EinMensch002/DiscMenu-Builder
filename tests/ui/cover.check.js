@@ -24,6 +24,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(url);
   await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.selectOption('[data-k=theme]', 'white'); await page.waitForTimeout(150);            // die meisten Prüfungen hier gelten für die Leiste über dem Bild (Weiß); Standard ist "Durchsichtig weiß"
 
   // Titel, Funktionen, Systemanforderungen
   await page.fill('[data-k=title]', 'Sehr langer Spieltitel: Die Rückkehr der Titel & Co. <b>');
