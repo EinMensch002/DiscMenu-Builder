@@ -193,7 +193,7 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 
 ## Stil
 
-Es gibt einen Stil für alle Anbieter, die **Leiste**: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten.
+Es gibt einen Stil für alle Anbieter, die **Leiste**: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, Logo (bei Steam und Epic mit Schriftzug, bei GOG schmal, siehe unten) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, Epic hellgrau, GOG nur bei "Dunkel" in feinem Lila). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm bei Steam und Epic, 129 × 173 mm bei GOG, statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten.
 
 Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, damit auf Blu-ray-Hüllen Platz für das Bild bleibt, und es gibt drei Varianten (Feld "Stil"):
 
