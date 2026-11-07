@@ -58,6 +58,7 @@
     const s = node.style;
     s.left = mm(it.x); s.top = mm(it.y); s.width = mm(it.w); s.height = mm(it.h);
     if (it.opacity < 100) s.opacity = String(it.opacity / 100);
+    if (it.rot) s.transform = 'rotate(' + it.rot + 'deg)';
     if (it.type === 'image') {
       const img = env.images && env.images[it.img];
       const inner = document.createElement('div'); inner.className = 'bi-in';
@@ -73,7 +74,7 @@
       const p = document.createElement('p'); p.className = 'bi-p';
       const txt = textOf(it, env.state);
       p.textContent = txt;
-      if (!txt) { if (env.editor) { node.classList.add('empty'); p.textContent = it.bind === 'title' ? 'Spieltitel' : it.bind === 'description' ? 'Beschreibung' : 'Text'; } else node.hidden = true; }
+      if (!txt && !it.bg) { if (env.editor) { node.classList.add('empty'); p.textContent = it.bind === 'title' ? 'Spieltitel' : it.bind === 'description' ? 'Beschreibung' : 'Text'; } else node.hidden = true; }
       const f = FONTS[it.font] || FONTS.sans;
       Object.assign(p.style, { fontFamily: f.css, fontSize: it.size + 'pt', fontWeight: it.weight, fontStyle: it.italic ? 'italic' : 'normal', textTransform: it.caps ? 'uppercase' : 'none',
         letterSpacing: it.spacing / 100 + 'em', lineHeight: String(it.line), textAlign: it.align, color: it.color });

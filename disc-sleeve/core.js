@@ -53,6 +53,7 @@
   const IMAGE_KEY_RE = /^(front|backTop|backBottom|publisher|spineLogo|spineBg|d\d+)$/;
   const isImageKey = (k) => IMAGE_KEY_RE.test(String(k));
 
+  const normRot = (v) => { const n = parseFloat(String(v).replace(',', '.')); if (!isFinite(n)) return 0; let r = ((n % 360) + 360) % 360; if (r > 180) r -= 360; return Math.round(r * 10) / 10; };
   /* Ein Element der Gestaltungsfläche prüfen (fehlende Werte bekommen Standardwerte) */
   function normalizeItem(raw) {
     if (!raw || typeof raw !== 'object' || !['image', 'text'].includes(raw.type)) return null;
@@ -60,7 +61,7 @@
       id: typeof raw.id === 'string' && /^[a-z0-9_-]{1,12}$/i.test(raw.id) ? raw.id : '',
       type: raw.type,
       x: clampN(raw.x, -300, 600, 0), y: clampN(raw.y, -300, 600, 0), w: clampN(raw.w, 2, 600, 40), h: clampN(raw.h, 2, 600, 20),
-      opacity: Math.round(clampN(raw.opacity, 5, 100, 100)),
+      opacity: Math.round(clampN(raw.opacity, 5, 100, 100)), rot: normRot(raw.rot),
       edge: oneOf(raw.edge, BACK_EDGES, 'none'), edgeSize: clampN(raw.edgeSize, 0, 20, 0), borderColor: hexOk(raw.borderColor, '#ffffff'),
     };
     if (it.type === 'image') {
@@ -79,11 +80,12 @@
     }
     return it;
   }
-  function defaultBack() { return { featH: String(BACK.banner), reqH: String(BACK.bottom), description: '', seq: 1, items: [] }; }
+  function defaultBack() { return { featH: String(BACK.banner), reqH: String(BACK.bottom), span: false, description: '', seq: 1, items: [] }; }
   function normalizeBack(saved) {
     const s = saved && typeof saved === 'object' ? saved : {}, out = defaultBack();
     out.featH = String(Math.round(clampN(s.featH, BACK_LIMITS.featH[0], BACK_LIMITS.featH[1], BACK.banner) * 100) / 100);
     out.reqH = String(Math.round(clampN(s.reqH, BACK_LIMITS.reqH[0], BACK_LIMITS.reqH[1], BACK.bottom) * 100) / 100);
+    out.span = !!s.span;
     out.description = typeof s.description === 'string' ? s.description.slice(0, 4000) : '';
     const seen = new Set(); let maxN = 0;
     for (const raw of Array.isArray(s.items) ? s.items.slice(0, MAX_ITEMS) : []) {
@@ -103,9 +105,44 @@
   /* Neues Element mit Standardwerten (Position in mm auf der Gestaltungsfläche) */
   function newItem(type, props) { return normalizeItem({ type, ...(props || {}) }); }
   /* Vorlagen für die Gestaltungsfläche: Elemente, die an die Größe der Fläche angepasst sind (Bilder bleiben leer, bis man sie wählt) */
-  const BACK_TEMPLATES = { none: 'Leer', text: 'Titel und Beschreibung', steam: 'Beschreibung und Bildleiste' };
+  const BACK_TEMPLATES = { none: 'Leer', text: 'Titel und Beschreibung', steam: 'Beschreibung und Bildleiste', among: 'Party-Stil (Among Us)', aoe: 'Vier Bilder (Age of Empires)', spider: 'Spalten (Spider-Man)', halflife: 'Retro (Half-Life)', alyx: 'Ganzes Bild (Alyx)' };
+  /* Vorlagen nach dem Vorbild bekannter Steam-Hüllen. Maße sind Anteile der Gestaltungsfläche (x, y, Breite, Höhe von 0 bis 1), Schriftgrößen gelten für 130 mm Breite.
+     Eine Fläche ("fill") ist ein Textelement ohne Text mit Hintergrund, sie dient als dunkler Grund. */
+  const W = '#ffffff';
+  const fill = (c, o) => ['text', 0, 0, 1, 1, { bg: c, bgOpacity: o || 100, pad: 0 }];
+  const txt = (x, y, w, h, p) => ['text', x, y, w, h, { size: 7, color: W, ...p }];
+  const img = (x, y, w, h, p) => ['image', x, y, w, h, p || {}];
+  const TEMPLATE_DEFS = {
+    among: [fill('#0b0b0f'),
+      txt(0.06, 0.03, 0.88, 0.17, { text: 'Überschrift', font: 'display', size: 17, weight: '900', align: 'center', valign: 'middle' }),
+      txt(0.08, 0.2, 0.84, 0.09, { text: 'Kurzer Text …', size: 8, align: 'center' }),
+      img(0.1, 0.31, 0.8, 0.13), txt(0.1, 0.445, 0.8, 0.05, { text: 'Bildunterschrift', size: 6.5, align: 'center' }),
+      img(0.1, 0.52, 0.8, 0.13), txt(0.1, 0.655, 0.8, 0.05, { text: 'Bildunterschrift', size: 6.5, align: 'center' }),
+      txt(0.06, 0.72, 0.88, 0.26, { bind: 'description', size: 8, align: 'center' })],
+    aoe: [fill('#17110c'),
+      txt(0.05, 0.03, 0.9, 0.1, { text: 'Überschrift', font: 'display', size: 15, weight: '900', caps: true, align: 'center', valign: 'middle', color: '#e8d9b0', spacing: 3 }),
+      img(0.05, 0.16, 0.43, 0.26, { edge: 'border', edgeSize: 0.5, borderColor: '#e8d9b0' }), img(0.52, 0.16, 0.43, 0.26, { edge: 'border', edgeSize: 0.5, borderColor: '#e8d9b0' }),
+      txt(0.05, 0.425, 0.43, 0.12, { text: 'Bildunterschrift', size: 6, color: '#e8d9b0' }), txt(0.52, 0.425, 0.43, 0.12, { text: 'Bildunterschrift', size: 6, color: '#e8d9b0' }),
+      img(0.05, 0.56, 0.43, 0.26, { edge: 'border', edgeSize: 0.5, borderColor: '#e8d9b0' }), img(0.52, 0.56, 0.43, 0.26, { edge: 'border', edgeSize: 0.5, borderColor: '#e8d9b0' }),
+      txt(0.05, 0.825, 0.43, 0.12, { text: 'Bildunterschrift', size: 6, color: '#e8d9b0' }), txt(0.52, 0.825, 0.43, 0.12, { text: 'Bildunterschrift', size: 6, color: '#e8d9b0' })],
+    spider: [fill('#0a0a0c'),
+      txt(0.05, 0.04, 0.9, 0.12, { text: 'Überschrift', font: 'display', size: 18, weight: '900', caps: true, valign: 'top', spacing: 2 }),
+      txt(0.05, 0.2, 0.43, 0.17, { text: 'Kurzer Text …' }), txt(0.05, 0.39, 0.43, 0.17, { text: 'Kurzer Text …' }), txt(0.05, 0.58, 0.43, 0.17, { text: 'Kurzer Text …' }), txt(0.05, 0.77, 0.43, 0.17, { text: 'Kurzer Text …' }),
+      img(0.53, 0.2, 0.42, 0.21), img(0.53, 0.44, 0.42, 0.21), img(0.53, 0.68, 0.42, 0.21)],
+    halflife: [fill('#14110e'),
+      txt(0.04, 0.03, 0.92, 0.1, { text: 'Überschrift', font: 'display', size: 22, weight: '900', caps: true, color: '#f2a33a', valign: 'middle' }),
+      txt(0.06, 0.15, 0.88, 0.14, { bind: 'description', size: 8, italic: true, color: '#f0e6d6', align: 'center' }),
+      img(0.06, 0.33, 0.42, 0.24), txt(0.52, 0.33, 0.42, 0.24, { text: 'Kurzer Text …', color: '#f0e6d6' }),
+      img(0.06, 0.62, 0.42, 0.24), txt(0.52, 0.62, 0.42, 0.24, { text: 'Kurzer Text …', color: '#f0e6d6' })],
+    alyx: [img(0, 0, 1, 1),
+      txt(0.08, 0.55, 0.84, 0.12, { bind: 'title', font: 'display', size: 22, weight: '900', caps: true, align: 'center', valign: 'middle', bg: '#000000', bgOpacity: 40, spacing: 4 }),
+      txt(0.08, 0.69, 0.84, 0.26, { bind: 'description', size: 8, bg: '#000000', bgOpacity: 55, pad: 2 })],
+  };
   function backTemplate(id, w, h) {
     const m = 6, inner = Math.max(10, w - 2 * m);
+    if (TEMPLATE_DEFS[id]) {
+      return TEMPLATE_DEFS[id].map(([type, fx, fy, fw, fh, p]) => newItem(type, { ...p, x: round1(fx * w), y: round1(fy * h), w: round1(fw * w), h: round1(fh * h), ...(p.size ? { size: round1(p.size * w / 130) } : {}) }));
+    }
     if (id === 'text') {
       return [
         newItem('text', { bind: 'title', x: m, y: h * 0.38, w: inner, h: 9, font: 'display', size: 16, weight: '900', caps: true, align: 'center', valign: 'middle', color: '#ffffff', spacing: 4, bg: '#000000', bgOpacity: 45, pad: 1.5 }),
@@ -129,7 +166,7 @@
     const b = (state && state.back) || defaultBack();
     return {
       front: { w: c.front, h: round1(c.h - top) },
-      backTop: { w: c.back, h: designHeight({ back: b }, c) },
+      backTop: { w: c.back, h: b.span ? c.h : designHeight({ back: b }, c) },
       backBottom: { w: c.back, h: Number(b.reqH) },
       spineBg: { w: c.spine, h: c.h },
     };

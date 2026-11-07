@@ -11,7 +11,7 @@
   const round = (n) => Math.round(n * 100) / 100;
   const snap025 = (n) => Math.round(n * 4) / 4;
 
-  let dlg, stage, scaled, itemsBox, selBox, pane, panel, footA, footB;
+  let tplBar, dlg, stage, scaled, itemsBox, selBox, pane, panel, footA, footB;
   let selId = null, k = 1, undoStack = [], redoStack = [], drag = null;
 
   const back = () => App.state.back;
@@ -71,7 +71,10 @@
   function drawStage() {
     const a = area(), base = App.images.backTop;
     stage.style.width = a.w + 'mm'; stage.style.height = a.h + 'mm';
-    stage.style.backgroundImage = base ? 'url("' + base.url + '")' : 'none';
+    const span = !!back().span;
+    scaled.classList.toggle('span', span);
+    scaled.style.backgroundImage = span && base ? 'url("' + base.url + '")' : '';
+    stage.style.backgroundImage = !span && base ? 'url("' + base.url + '")' : 'none';
     footA.style.height = back().featH + 'mm'; footB.style.height = back().reqH + 'mm';
     BD.renderInto(itemsBox, items(), { images: App.images, state: App.state, editor: true });
     drawSel();
@@ -82,7 +85,7 @@
     if (!it) return;
     const s = selBox.style, hd = round(10 / (k * PX));
     s.left = it.x + 'mm'; s.top = it.y + 'mm'; s.width = it.w + 'mm'; s.height = it.h + 'mm';
-    selBox.style.setProperty('--hd', hd + 'mm');
+    selBox.style.setProperty('--hd', hd + 'mm'); s.transform = it.rot ? 'rotate(' + it.rot + 'deg)' : '';
   }
   function refresh(rebuildPanel) {
     fitScale(); drawStage();
@@ -94,7 +97,15 @@
   /* ---------- Ziehen und Skalieren ---------- */
   const HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
   function toMm(ev) { const r = stage.getBoundingClientRect(); return { x: (ev.clientX - r.left) / (PX * k), y: (ev.clientY - r.top) / (PX * k) }; }
-  function hit(p) { const l = items(); for (let i = l.length - 1; i >= 0; i--) { const it = l[i]; if (p.x >= it.x && p.x <= it.x + it.w && p.y >= it.y && p.y <= it.y + it.h) return it; } return null; }
+  const rotPt = (x, y, deg) => { const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return { x: x * c - y * s, y: x * s + y * c }; };
+  function hit(p) {
+    const l = items();
+    for (let i = l.length - 1; i >= 0; i--) {
+      const it = l[i], cx = it.x + it.w / 2, cy = it.y + it.h / 2, q = rotPt(p.x - cx, p.y - cy, -(it.rot || 0));
+      if (Math.abs(q.x) <= it.w / 2 && Math.abs(q.y) <= it.h / 2) return it;
+    }
+    return null;
+  }
   /* Einrasten an Kanten und Mitte der Fläche und anderer Elemente (ca. 4 Bildschirmpunkte) */
   function snapValue(v, targets) { const th = 4 / (PX * k); let best = v, d = th; for (const t of targets) if (Math.abs(t - v) < d) { d = Math.abs(t - v); best = t; } return best; }
   function targets(skip, axis) {
@@ -109,7 +120,7 @@
     if (!it) { selId = null; refresh(true); return; }
     if (selId !== it.id) { selId = it.id; drawSel(); buildPanel(); }
     remember();
-    drag = { id: it.id, mode: hdl ? hdl.dataset.h : 'move', p0: p, o: { x: it.x, y: it.y, w: it.w, h: it.h }, moved: false };
+    drag = { id: it.id, mode: hdl ? hdl.dataset.h : 'move', p0: p, o: { x: it.x, y: it.y, w: it.w, h: it.h, rot: it.rot || 0 }, moved: false };
     ev.preventDefault(); scaled.setPointerCapture(ev.pointerId);
   }
   function onMove(ev) {
@@ -121,19 +132,31 @@
     const tx = targets(it.id, 'x'), ty = targets(it.id, 'y'), noSnap = ev.altKey;
     const sx = (v) => (noSnap ? v : snapValue(v, tx)), sy = (v) => (noSnap ? v : snapValue(v, ty));
     let { x, y, w, h } = o;
+    if (m === 'rot') {
+      const cx = o.x + o.w / 2, cy = o.y + o.h / 2;
+      let a = Math.atan2(p.y - cy, p.x - cx) * 180 / Math.PI + 90;
+      if (ev.shiftKey) a = Math.round(a / 15) * 15;
+      else if (Math.abs(((a % 90) + 90) % 90) < 2 || Math.abs(((a % 90) + 90) % 90 - 90) < 2) a = Math.round(a / 90) * 90;   // rastet bei 0, 90, 180, 270 ein
+      a = ((a + 540) % 360) - 180;
+      update(it, { rot: Math.round(a * 10) / 10 }); drawStage(); syncGeo(); return;
+    }
     if (m === 'move') {
       let nx = o.x + dx, ny = o.y + dy;
       const c = [sx(nx), sx(nx + o.w / 2) - o.w / 2, sx(nx + o.w) - o.w].reduce((b, v) => (Math.abs(v - nx) < Math.abs(b - nx) ? v : b), nx + 99);
       const d = [sy(ny), sy(ny + o.h / 2) - o.h / 2, sy(ny + o.h) - o.h].reduce((b, v) => (Math.abs(v - ny) < Math.abs(b - ny) ? v : b), ny + 99);
       x = Math.abs(c - nx) < 90 ? c : nx; y = Math.abs(d - ny) < 90 ? d : ny;
     } else {
-      if (m.includes('e')) w = sx(o.x + o.w + dx) - o.x;
-      if (m.includes('s')) h = sy(o.y + o.h + dy) - o.y;
-      if (m.includes('w')) { const nx = sx(o.x + dx); w = o.x + o.w - nx; x = nx; }
-      if (m.includes('n')) { const ny = sy(o.y + dy); h = o.y + o.h - ny; y = ny; }
-      if (ev.shiftKey && it.type === 'image' && o.h > 0) { const ratio = o.w / o.h; if (m.includes('e') || m.includes('w')) { const nh = w / ratio; if (m.includes('n')) y = o.y + o.h - nh; h = nh; } else { const nw = h * ratio; if (m.includes('w')) x = o.x + o.w - nw; w = nw; } }
-      if (w < 2) { if (m.includes('w')) x -= 2 - w; w = 2; }
-      if (h < 2) { if (m.includes('n')) y -= 2 - h; h = 2; }
+      /* Skalieren im Rahmen des Elements (auch gedreht): Bewegung in den gedrehten Rahmen umrechnen, gegenüberliegende Kante bleibt stehen */
+      const d = rotPt(dx, dy, -o.rot), cx = o.x + o.w / 2, cy = o.y + o.h / 2;
+      let L = -o.w / 2, R = o.w / 2, T = -o.h / 2, B = o.h / 2;
+      if (m.includes('e')) R += d.x; if (m.includes('w')) L += d.x; if (m.includes('s')) B += d.y; if (m.includes('n')) T += d.y;
+      if (!o.rot && !noSnap) { if (m.includes('e')) R = sx(cx + R) - cx; if (m.includes('w')) L = sx(cx + L) - cx; if (m.includes('s')) B = sy(cy + B) - cy; if (m.includes('n')) T = sy(cy + T) - cy; }
+      if (ev.shiftKey && it.type === 'image' && o.h > 0 && m.length === 2) { const nh = (R - L) / (o.w / o.h); if (m.includes('n')) T = B - nh; else B = T + nh; }
+      if (R - L < 2) { if (m.includes('w')) L = R - 2; else R = L + 2; }
+      if (B - T < 2) { if (m.includes('n')) T = B - 2; else B = T + 2; }
+      w = R - L; h = B - T;
+      const off = rotPt((L + R) / 2, (T + B) / 2, o.rot);
+      x = cx + off.x - w / 2; y = cy + off.y - h / 2;
     }
     update(it, { x: round(x), y: round(y), w: round(w), h: round(h) });
     drawStage(); syncGeo();
@@ -146,7 +169,7 @@
   }
 
   /* ---------- Eigenschaften ---------- */
-  const GEO = ['x', 'y', 'w', 'h'];
+  const GEO = ['x', 'y', 'w', 'h', 'rot'];
   function syncGeo() {
     const it = byId(selId); if (!it) return;
     for (const g of GEO) { const i = panel.querySelector('[data-g="' + g + '"]'); if (i && document.activeElement !== i) i.value = it[g]; }
@@ -249,6 +272,7 @@
     }
     const g = el('div', 'geo');
     g.append(row('X (mm)', num(it, 'x', 0.25)), row('Y (mm)', num(it, 'y', 0.25)), row('Breite (mm)', num(it, 'w', 0.25, 2)), row('Höhe (mm)', num(it, 'h', 0.25, 2)));
+    g.append(row('Drehung (°)', num(it, 'rot', 1, -180, 180)));
     panel.append(g);
     const acts = el('div', 'drow');
     acts.append(
@@ -353,6 +377,33 @@
     }, { panel: true });
     return true;
   }
+  /* Grobe Vorschau einer Vorlage: Bilder als graue Flächen, Texte als Zeilen, dunkle Flächen als Grund */
+  function previewOf(id) {
+    const a = area(), box = el('div', 'tp');
+    box.style.aspectRatio = a.w + ' / ' + Math.max(1, a.h);
+    for (const it of C.backTemplate(id, a.w, a.h)) {
+      const isFill = it.type === 'text' && it.bg && !it.text && !it.bind;
+      if (isFill && it.w >= a.w - 0.5) { box.style.background = it.bg; continue; }
+      const n = el('i', isFill ? 'tp-fill' : 'tp-' + it.type);
+      Object.assign(n.style, { left: it.x / a.w * 100 + '%', top: it.y / a.h * 100 + '%', width: it.w / a.w * 100 + '%', height: it.h / a.h * 100 + '%' });
+      if (it.type === 'text') {
+        if (it.bg) n.style.backgroundColor = isFill ? it.bg : 'transparent';
+        n.style.color = it.color; if (it.size >= 14) n.classList.add('big');
+        if (it.bg && !isFill) { n.style.boxShadow = 'inset 0 0 0 100px rgba(0,0,0,.35)'; }
+      }
+      if (it.rot) n.style.transform = 'rotate(' + it.rot + 'deg)';
+      box.append(n);
+    }
+    return box;
+  }
+  function buildTplBar() {
+    tplBar.replaceChildren(...Object.entries(C.BACK_TEMPLATES).map(([id, label]) => {
+      const c = el('button', 'tpl-card'); c.type = 'button'; c.dataset.tpl = id; c.title = label;
+      c.append(previewOf(id), el('span', '', label));
+      c.addEventListener('click', () => applyTemplate(id));
+      return c;
+    }));
+  }
 
   /* ---------- Aufbau des Pop-ups ---------- */
   function build() {
@@ -361,26 +412,28 @@
     head.append(el('h2', '', 'Rückseite gestalten'), el('span', 'hint', ''), btn('Fertig', () => close(), 'pri'));
     head.children[1].id = 'bedCount';
     const bar = el('div', 'bed-bar');
-    const tpl = el('select'); tpl.id = 'bedTpl'; tpl.title = 'Vorlage';
-    const o0 = el('option', '', 'Vorlage wählen …'); o0.value = ''; tpl.append(o0);
-    Object.entries(C.BACK_TEMPLATES).forEach(([v, l]) => { const o = el('option', '', l); o.value = v; tpl.append(o); });
-    tpl.addEventListener('change', () => { if (tpl.value) applyTemplate(tpl.value); tpl.value = ''; });
+    const tplBtn = btn('Vorlagen', () => { tplBar.hidden = !tplBar.hidden; if (!tplBar.hidden) buildTplBar(); refresh(false); }); tplBtn.id = 'bedTplBtn';
+    const spanL = el('label', 'chk'), spanI = el('input'); spanI.type = 'checkbox'; spanI.id = 'bedSpan';
+    spanI.addEventListener('change', () => { remember(); back().span = spanI.checked; App.touch(); refresh(false); const f = document.querySelector('input[data-k="back.span"]:not(#bedSpan)'); if (f) f.checked = spanI.checked; });
+    spanL.append(spanI, document.createTextNode('Durchgehendes Bild über die ganze Rückseite'));
     const undoB = btn('Rückgängig', undo); undoB.id = 'bedUndo'; const redoB = btn('Wiederholen', redo); redoB.id = 'bedRedo';
     bar.append(
       btn('+ Text', () => change(() => { const w = 60, h = 14; add(C.newItem('text', { ...center(w, h), w, h, text: 'Text', size: 12 })); }, { panel: true }), 'pri'),
       btn('+ Bild (Datei)', () => pickFile((f) => addImageFile(f, null))),
       btn('+ Bild von Steam oder GOG', () => openGallery(null)),
-      tpl, undoB, redoB);
+      tplBtn, spanL, undoB, redoB);
     const main = el('div', 'bed-main');
     pane = el('div', 'bed-pane');
     const wrap = el('div', 'bed-wrap'); scaled = el('div', 'bed-scaled');
     stage = el('div', 'bed-stage'); itemsBox = el('div', 'bitems'); selBox = el('div', 'bed-sel'); selBox.hidden = true;
     HANDLES.forEach((h) => { const d = el('span', 'hd hd-' + h); d.dataset.h = h; selBox.append(d); });
+    { const line = el('span', 'rot-line'), rot = el('span', 'hd hd-rot'); rot.dataset.h = 'rot'; rot.title = 'Drehen (Umschalt: in 15°-Schritten)'; selBox.append(line, rot); }
     stage.append(itemsBox, selBox);
     footA = el('div', 'bed-foot', 'Spielfunktionen (fester Teil)'); footB = el('div', 'bed-foot', 'Systemanforderungen und Logos (fester Teil)');
     scaled.append(stage, footA, footB); wrap.append(scaled); pane.append(wrap);
     panel = el('div', 'bed-panel');
-    main.append(pane, panel);
+    tplBar = el('div', 'bed-tpls'); tplBar.hidden = true;
+    main.append(tplBar, pane, panel);
     dlg.append(head, bar, main);
     document.body.append(dlg);
     buildGallery();
@@ -411,6 +464,7 @@
   function open() {
     if (!dlg) build();
     selId = null; undoStack = []; redoStack = []; gal.hidden = true;
+    $('#bedSpan').checked = !!back().span;
     if (!dlg.open) { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); }
     refresh(true);
     requestAnimationFrame(() => refresh(false));

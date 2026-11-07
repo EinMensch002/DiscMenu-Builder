@@ -469,6 +469,11 @@
   function renderBack(c) {
     const b = state.back, designH = C.designHeight(state, c);
     $('#backFeats').style.height = Number(b.featH) + 'mm'; $('#backBottom').style.height = Number(b.reqH) + 'mm';
+    const sp = !!b.span, backEl = $('#back');
+    backEl.classList.toggle('span', sp);
+    backEl.style.backgroundImage = sp && images.backTop ? 'url("' + images.backTop.url + '")' : '';
+    backEl.style.backgroundSize = 'cover'; backEl.style.backgroundPosition = 'center';
+    if (sp) { setBg($('#backTop'), null); setBg($('#backBottom'), null); }
     const items = $('#backItems');
     if (window.BackDesign) BackDesign.renderInto(items, b.items, { images, state, editor: false });
     items.hidden = designH <= 0;

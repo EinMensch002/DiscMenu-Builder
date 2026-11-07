@@ -251,9 +251,11 @@ Die Rückseite besteht aus **zwei Teilen**:
 | Text | Inhalt (eigener Text, **Spieltitel** oder **Beschreibung des Spiels**), Schriftart (Lato, Serif, Schmal, Plakat, Schreibmaschine, Handschrift), Größe in pt, Farbe, Stärke, **kursiv**, **GROSSBUCHSTABEN**, Zeichenabstand, Zeilenhöhe, Ausrichtung (auch Blocksatz, senkrecht), "Schrift an Platz anpassen", Hintergrund hinter dem Text mit Deckkraft |
 | Bild | Einpassen (füllen, ganz zeigen, strecken), Ausschnitt, Deckkraft, Anzeige der Druckauflösung (dpi) |
 | **Rand und Übergang** | Ohne, **Abgerundet**, **Rahmen** (Breite und Farbe), **Weicher Rand** (Bild blendet an den Kanten aus) und **Ausgerissen (Papier)** (unregelmäßiger, ausgefranster Rand) |
+| **Drehen** | Element anklicken, am **runden Griff oberhalb** ziehen (rastet bei 0°, 90°, 180°, 270° ein, mit Umschalt in 15°-Schritten) oder im Feld **Drehung (°)** eintippen. Gedrehte Elemente lassen sich weiter verschieben und skalieren |
 | Ordnung | Nach vorn, nach hinten, Duplizieren (Strg+D), Löschen (Entf) |
 | Rückgängig | Rückgängig und Wiederholen (Strg+Z, Strg+Y), bis zu 50 Schritte |
-| Vorlagen | **Leer**, **Titel und Beschreibung**, **Beschreibung und Bildleiste** (wie bei Steam-Hüllen). Eine Vorlage ersetzt die vorhandenen Elemente (vorher wird gefragt), danach ist alles frei änderbar |
+| Vorlagen | Der Knopf **Vorlagen** öffnet links eine **Leiste mit Mini-Vorschauen** (Bilder als graue Flächen, Texte als Zeilen). Vorhanden: Leer, Titel und Beschreibung, Beschreibung und Bildleiste, **Party-Stil** (Among Us), **Vier Bilder** (Age of Empires), **Spalten** (Spider-Man), **Retro** (Half-Life) und **Ganzes Bild** (Alyx). Eine Vorlage ersetzt die vorhandenen Elemente (vorher wird gefragt), danach ist alles frei änderbar. Eigene Vorlagen speichern und importieren sind für später geplant |
+| **Durchgehendes Bild** | Haken im Editor (und im Formular): Das Bild "Rückseite oben" geht dann über die **ganze Rückseite** und wird nur vom Streifen mit den Spielfunktionen unterbrochen, unten liegt es hinter dem weißlichen Feld. Standard sind zwei getrennte Bilder (oben und unten). Bildmaße: die ganze Rückseite |
 
 - **Beschreibung:** Steam und GOG übernehmen beim Import die Kurzbeschreibung in das Feld "Beschreibung des Spiels" (Bereich "Rückseite"). Ein Textelement mit Inhalt "Beschreibung des Spiels" zeigt sie an.
 - **Schriften** kommen vom Betriebssystem (nur Lato liegt bei). Auf einem anderen Rechner kann ein Text deshalb etwas anders aussehen. Die Papierkante ("Ausgerissen") sieht bei jedem Zeichnen gleich aus.

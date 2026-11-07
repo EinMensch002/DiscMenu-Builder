@@ -123,9 +123,40 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.ok((await items()).slice(2).every((i) => i.type === 'image' && /^d\d+$/.test(i.img)));
 
   // Vorlage ersetzt die Elemente
-  await page.selectOption('#bedTpl', 'steam');
+  await page.click('#bedTplBtn');
+  assert.equal(await page.locator('#bdlg .tpl-card').count(), 8, 'Vorlagen-Leiste mit Vorschau je Vorlage');
+  assert.ok(await page.locator('#bdlg .tpl-card .tp i').count() > 20, 'Vorschauen zeigen Bilder und Textzeilen');
+  await page.click('#bdlg .tpl-card[data-tpl=aoe]'); assert.equal((await items()).filter((i) => i.type === 'image').length, 4);
+  await page.click('#bdlg .tpl-card[data-tpl=alyx]'); assert.equal((await items())[0].w >= 130, true);
+  await page.click('#bdlg .tpl-card[data-tpl=steam]');
   assert.ok((await items()).length >= 5);
   assert.ok((await items()).some((i) => i.type === 'text' && i.bind === 'description'));
+
+  // Drehen: Feld und Griff; gedrehte Elemente lassen sich weiter greifen
+  const tx = (await items()).findIndex((i) => i.type === 'text' && i.bind === 'description');
+  const bx = await page.locator('#bdlg .bed-stage .bi-text').nth(1).boundingBox();
+  await page.mouse.click(bx.x + bx.width / 2, bx.y + bx.height / 2);
+  await page.locator('#bdlg .bed-panel label.f', { hasText: 'Drehung' }).locator('input').fill('30');
+  assert.equal((await items())[tx].rot, 30);
+  await page.waitForFunction(() => /rotate\(30deg\)/.test(document.querySelector('#backItems .bi-text:nth-child(2)').style.transform));
+  const rh = await page.locator('#bdlg .hd-rot').boundingBox(), c0 = await page.locator('#bdlg .bed-sel').boundingBox();
+  await page.mouse.move(rh.x + rh.width / 2, rh.y + rh.height / 2); await page.mouse.down();
+  await page.mouse.move(c0.x + c0.width / 2 + 200, c0.y + c0.height / 2, { steps: 6 }); await page.mouse.up();
+  assert.equal(Math.abs((await items())[tx].rot - 90) < 1, true, 'Griff zieht auf 90° (rastet ein): ' + (await items())[tx].rot);
+  const w0 = (await items())[tx].w;
+  const se = await page.locator('#bdlg .hd-se').boundingBox();
+  await page.mouse.move(se.x + se.width / 2, se.y + se.height / 2); await page.mouse.down();
+  await page.mouse.move(se.x + se.width / 2, se.y + se.height / 2 + 30, { steps: 4 }); await page.mouse.up();
+  assert.ok((await items())[tx].w > w0, 'Skalieren im gedrehten Rahmen (um 90° gedreht: Mausbewegung nach unten macht es breiter)');
+
+  // Durchgehendes Bild: Schalter im Editor, Spezifikation über die ganze Höhe, Hülle bekommt das Bild
+  assert.equal(await page.evaluate(() => CoverApp.state.back.span), false, 'Standard: zwei getrennte Bilder');
+  await page.check('#bedSpan');
+  assert.equal(await page.evaluate(() => CoverApp.state.back.span), true);
+  assert.equal(await page.evaluate(() => document.querySelector('#bdlg .bed-scaled').classList.contains('span')), true);
+  await page.waitForFunction(() => document.querySelector('#back').classList.contains('span'));
+  assert.match(await page.locator('#bdlg').textContent(), /Durchgehendes Bild/);
+  await page.uncheck('#bedSpan');
 
   // Schließen räumt nicht benutzte Bilder weg; speichern und neu laden bringt alles zurück
   await page.click('#bdlg button:has-text("Fertig")'); await page.waitForFunction(() => !document.querySelector('#bdlg').open);

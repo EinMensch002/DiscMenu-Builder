@@ -308,3 +308,18 @@ test('Rückseite: Bildmaße folgen den Höhen, Vorlagen liefern gültige Element
   assert.equal(C.designHeight(st, { h: 183 }) > 0, true);
   st.back.featH = '30'; st.back.reqH = '110'; assert.equal(C.designHeight(st, { h: 120 }), 0);
 });
+
+test('Rückseite: Drehung, durchgehendes Bild und alle Vorlagen', () => {
+  assert.equal(C.normalizeItem({ type: 'text', rot: 725 }).rot, 5);
+  assert.equal(C.normalizeItem({ type: 'text', rot: 'x' }).rot, 0);
+  const st = C.defaultState(); assert.equal(st.back.span, false);
+  assert.deepEqual(C.imageSpecs(C.caseDims(st), C.frontTop(st), st).backTop, { w: 130, h: 122 });
+  st.back.span = true;
+  assert.deepEqual(C.imageSpecs(C.caseDims(st), C.frontTop(st), st).backTop, { w: 130, h: 183 }, 'durchgehend: ganze Höhe');
+  assert.equal(C.mergeState({ back: { span: true } }).back.span, true);
+  assert.deepEqual(Object.keys(C.BACK_TEMPLATES), ['none', 'text', 'steam', 'among', 'aoe', 'spider', 'halflife', 'alyx']);
+  for (const id of Object.keys(C.BACK_TEMPLATES)) {
+    for (const [w, h] of [[130, 122], [127, 100]]) for (const it of C.backTemplate(id, w, h)) assert.ok(it.x >= -0.01 && it.y >= -0.01 && it.x + it.w <= w + 0.06 && it.y + it.h <= h + 0.06, id + ' passt in die Fläche');
+  }
+  assert.ok(C.backTemplate('spider', 130, 122).filter((i) => i.type === 'image').length === 3);
+});

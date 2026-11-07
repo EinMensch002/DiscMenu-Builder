@@ -3,6 +3,19 @@
 (function (root) {
   'use strict';
   const dict = {
+    'Ein durchgehendes Bild über die ganze Rückseite (statt zwei Bildern oben und unten)': 'One continuous image across the whole back (instead of two images, top and bottom)',
+    'Durchgehendes Bild über die ganze Rückseite': 'Continuous image across the whole back',
+    'Vorlagen': 'Templates',
+    'Drehung (°)': 'Rotation (°)',
+    'Drehen (Umschalt: in 15°-Schritten)': 'Rotate (Shift: in 15° steps)',
+    'Party-Stil (Among Us)': 'Party style (Among Us)',
+    'Vier Bilder (Age of Empires)': 'Four images (Age of Empires)',
+    'Spalten (Spider-Man)': 'Columns (Spider-Man)',
+    'Retro (Half-Life)': 'Retro (Half-Life)',
+    'Ganzes Bild (Alyx)': 'Full image (Alyx)',
+    'Überschrift': 'Headline',
+    'Bildunterschrift': 'Caption',
+    'Kurzer Text …': 'Short text …',
     'Rückseite': 'Back',
     'Unten steht immer derselbe Teil (Spielfunktionen, Systemanforderungen, Logos). Darüber liegt die': 'The same part is always at the bottom (game features, system requirements, logos). Above it is the',
     'Gestaltungsfläche': 'design area',
@@ -19,8 +32,6 @@
     'Fertig': 'Done',
     '+ Bild (Datei)': '+ Image (file)',
     '+ Bild von Steam oder GOG': '+ Image from Steam or GOG',
-    'Vorlage': 'Template',
-    'Vorlage wählen …': 'Choose a template …',
     'Leer': 'Empty',
     'Titel und Beschreibung': 'Title and description',
     'Beschreibung und Bildleiste': 'Description and image strip',
