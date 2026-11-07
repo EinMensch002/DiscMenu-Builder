@@ -9,7 +9,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 - **Läuft komplett im Browser.** Kein Backend, es wird nichts hochgeladen. Bilder werden lokal verarbeitet.
 - **Live-Vorschau:** Links die Einstellungen, rechts das Blatt in Originalproportionen. Jede Änderung ist sofort sichtbar.
-- **Ein Stil für alle Anbieter:** die Leiste (Kopfleiste über die ganze Breite, wie bei Handelsspielen). Bei GOG gibt es zwei Farbvarianten.
+- **Ein Stil für alle Anbieter:** die Leiste (Kopfleiste über die ganze Breite, wie bei Handelsspielen). Bei GOG ist die Leiste schmal (10 mm) und es gibt drei Varianten: Weiß, Dunkel und Dunkel durchscheinend.
 - **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben, Logo und Schriftzug (siehe [Anbieter](#anbieter)).
 - **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB, Publisher-Logos von Wikidata (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional gestrichelte Falzmarken an den Rückenkanten (ebenfalls außerhalb).
@@ -18,7 +18,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 ## Standardwerte
 
-Neue Projekte starten mit dem Stil **Leiste in GOG-Farben** (Lila mit grüner Linie), und dem Rückentitel mittig. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
+Neue Projekte starten mit der GOG-Variante **Dunkel** und dem Rückentitel mittig. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
 
 ## Schnellstart
 
@@ -46,7 +46,7 @@ Die Einstellungen des Covers links:
 
 | Bereich | Inhalt |
 |---|---|
-| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite, bis 18 × 9,5 mm groß). Sprache der Beschriftung. Farbvariante (nur bei GOG: GOG-Farben oder dunkel mit Lila) |
+| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite, bis 18 × 9,5 mm groß). Sprache der Beschriftung. Stil (nur bei GOG: Weiß, Dunkel, Dunkel durchscheinend) und Haken "GOG.COM" zeigen |
 | 2. Titel und Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
 | 3. Bilder | Frontcover, Rückseite oben, Rückseite unten (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
 | 4. Publisher-Logo und Altersfreigabe | Publisher-Logo (Vorderseite, Rückseite und Rücken), **Unterlage dahinter auf der Vorderseite** (keine, weiß oder schwarz), USK-Freigabe (0, 6, 12, 16, 18 oder keine), "USK auch auf der Rückseite zeigen" und Deckkraft der USK vorn (30 bis 100 %) |
@@ -154,7 +154,7 @@ Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games u
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
-| **GOG** | Lila | GOG-Logo | Grüner Streifen, in der Leiste "PC · DRM-FREI", Leiste in Lila mit grüner Linie |
+| **GOG** | Weiß, Dunkel oder Dunkel durchscheinend (neutral, mit feiner lila Linie bei Dunkel) | GOG-Logo (immer sichtbar) und optional "GOG.COM" | Streifen hell (Weiß) oder dunkel (Dunkel, durchscheinend), in der Leiste "PC · DRM-FREI" |
 | **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | dunkler grauer Streifen, Hinweis "Epic Games Launcher" |
 | **Steam** | Marineblau | Logo und Schriftzug "STEAM" | dunkelblauer Streifen mit blauer Akzentlinie, Hinweis "Steam" |
 
@@ -177,7 +177,7 @@ Ohne Bild für "Rückseite unten" setzt sich das obere Bild hinter den Angaben f
 
 | Element | Fläche |
 |---|---|
-| Kopfleiste | oberste 18,6 mm der Vorderseite und des Rückens |
+| Kopfleiste | oberste 10 mm (GOG) bzw. 18,6 mm (Steam, Epic Games) der Vorderseite und des Rückens |
 | USK vorn | 35 × 35 mm, 3 mm vom linken und unteren Rand |
 | Publisher-Logo vorn | bis 32 × 14 mm, 6 mm vom rechten und unteren Rand |
 | Grüner Streifen und Angabenfeld | 15 mm und 46 mm am unteren Rand der Rückseite |
@@ -195,7 +195,13 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 
 Es gibt einen Stil für alle Anbieter, die **Leiste**: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, großes Logo (bei Steam und Epic mit Schriftzug) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, GOG grün, Epic hellgrau). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten.
 
-Bei **GOG** gibt es zwei Farbvarianten (Feld "Farbvariante"): **GOG-Farben** (Lila mit grüner Linie, Standard) und **Dunkel mit Lila** (Anthrazit mit lila Linie, passt zu den meisten Covern, färbt auch den Rücken). Bei Steam und Epic gibt es nichts zu wählen, die Farben sind ohnehin dunkel.
+Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, damit auf Blu-ray-Hüllen Platz für das Bild bleibt, und es gibt drei Varianten (Feld "Stil"):
+
+- **Weiß:** helle Leiste mit dunklem Logo und dunkler Schrift, der Rücken ist anthrazit. Der Streifen mit den Spielfunktionen ist hellgrau.
+- **Dunkel** (Standard): anthrazitfarbene Leiste mit feiner lila Linie, weißes Logo, dunkler Streifen mit den Spielfunktionen. Passt zu den meisten Covern.
+- **Dunkel, durchscheinend:** wie Dunkel, aber ohne Linie, die Leiste liegt als **Verlauf (nach unten durchscheinend) über dem Bild**. Das Frontbild beginnt dann ganz oben (Bildmaß z. B. 129 × 183 mm statt 173 mm).
+
+Das **GOG-Logo ist immer zu sehen**. Der Schriftzug **"GOG.COM"** daneben lässt sich mit dem Haken "GOG.COM neben dem Logo zeigen" ein- und ausschalten. Rechts in der Leiste steht immer **"PC · DRM-FREI"**. Frühere Stile (GOG-Farben mit Lila und Grün, Dunkel mit Lila) werden beim Laden zu **Dunkel**. Bei Steam und Epic gibt es nichts zu wählen.
 
 Beide Anbieter-Farben und die Rückseite (helles Feld mit den Angaben) sind in allen Fällen gleich aufgebaut.
 ## Feste Plätze auf der Rückseite

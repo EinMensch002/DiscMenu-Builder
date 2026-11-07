@@ -142,10 +142,10 @@ test('Gespeicherte Einstellungen: kaputte oder alte Daten stören nicht', () => 
   assert.equal(m.disc, 'bluray');
   assert.equal(m.usk, '0');
   assert.equal(m.lang, 'de');
-  assert.equal(m.theme, 'bar');
-  assert.equal(C.mergeState({ theme: 'modern' }).theme, 'bar');          // alter Stil "Modern" wird zur Leiste
-  assert.equal(C.mergeState({ theme: 'bar' }).theme, 'bar'); assert.equal(C.mergeState({ theme: 'x' }).theme, 'bar');
-  assert.equal(C.mergeState({ theme: 'bunt' }).theme, 'bar');
+  assert.equal(m.theme, 'dark');
+  assert.equal(C.mergeState({ theme: 'modern' }).theme, 'dark');          // alter Stil "Modern" wird zu "Dunkel"
+  assert.equal(C.mergeState({ theme: 'bar' }).theme, 'dark'); assert.equal(C.mergeState({ theme: 'x' }).theme, 'dark');
+  assert.equal(C.mergeState({ theme: 'bunt' }).theme, 'dark');
   assert.equal(m.title, '');
   assert.deepEqual(m.features, ['co_op']);
   assert.deepEqual(m.os.win, ['7']);
@@ -169,7 +169,7 @@ test('Anbieter: Farben, Schriftzüge und Hinweise sind vollständig', () => {
     for (const k of ['brand', 'onBrand', 'dark', 'mid', 'accent', 'bannerA', 'bannerB']) assert.match(p[k], /^#[0-9a-f]{6}$/i, id + '.' + k);
     for (const lang of ['de', 'en']) { assert.ok(p.tag[lang] && p.note[lang], id + ' ' + lang); }
   }
-  assert.equal(C.PROVIDERS.gog.wordmark, '');                           // GOG hat sein Logo
+  assert.equal(C.PROVIDERS.gog.wordmark, 'GOG.COM');                    // GOG: Logo, daneben (abschaltbar) der Schriftzug
   assert.ok(C.PROVIDERS.epic.wordmark && C.PROVIDERS.steam.wordmark);   // die anderen nur einen Schriftzug
   assert.ok(!/GOG/.test(C.PROVIDERS.epic.note.de + C.PROVIDERS.epic.note.en + C.PROVIDERS.steam.note.de + C.PROVIDERS.steam.note.en), 'Hinweise anderer Anbieter nennen nicht GOG');
   const brands = Object.values(C.PROVIDERS).map((p) => p.brand);
@@ -200,14 +200,23 @@ test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
   }
 });
 
-test('Stil-Auswahl: GOG hat zwei Farbvarianten, die anderen Anbieter nur die Leiste', () => {
-  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['bar', 'bar-dark']);
+test('Stil-Auswahl: GOG hat drei Varianten (Weiß, Dunkel, durchscheinend), die anderen Anbieter nur die Leiste', () => {
+  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['white', 'dark', 'glass']);
   assert.deepEqual(C.styleOptions('steam').map((o) => o[0]), ['bar']);
-  assert.equal(C.defaultState().theme, 'bar');                                   // Standard: Leiste in GOG-Farben
-  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar-dark' }).theme, 'bar-dark');
-  assert.equal(C.mergeState({ provider: 'steam', theme: 'bar-dark' }).theme, 'bar');           // dunkle Variante gibt es nur bei GOG
-  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar', gogBar: 'dark' }).theme, 'bar-dark');   // Vorläufer-Einstellung
-  assert.equal(C.mergeState({ provider: 'gog', theme: 'alt-dark' }).theme, 'bar-dark');             // alte Stile werden zur Leiste
+  assert.equal(C.defaultState().theme, 'dark'); assert.equal(C.defaultState().gogText, true);
+  for (const t of ['white', 'dark', 'glass']) assert.equal(C.mergeState({ provider: 'gog', theme: t }).theme, t);
+  assert.equal(C.mergeState({ provider: 'steam', theme: 'white' }).theme, 'bar');                 // Varianten gibt es nur bei GOG
+  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar' }).theme, 'dark');                    // alte Stile werden zu "Dunkel"
+  assert.equal(C.mergeState({ provider: 'gog', theme: 'bar-dark' }).theme, 'dark');
+  assert.equal(C.mergeState({ provider: 'gog', theme: 'alt-dark' }).theme, 'dark');
+  assert.equal(C.mergeState({ gogText: false }).gogText, false); assert.equal(C.mergeState({}).gogText, true);
+  // Leiste: bei GOG schmal; bei "durchscheinend" liegt sie über dem Bild, das Frontbild beginnt ganz oben
+  assert.equal(C.barHeight({ provider: 'gog' }), 10); assert.equal(C.barHeight({ provider: 'steam' }), C.BAR_HEIGHT);
+  assert.equal(C.frontTop({ provider: 'gog', theme: 'white' }), 10); assert.equal(C.frontTop({ provider: 'gog', theme: 'glass' }), 0);
+  assert.equal(C.frontTop({ provider: 'epic', theme: 'bar' }), C.BAR_HEIGHT);
+  const dims = C.caseDims(C.mergeState({}));
+  assert.equal(C.imageSpecs(dims, 0).front.h, dims.h); assert.equal(C.imageSpecs(dims, 10).front.h, dims.h - 10);
+  for (const v of Object.values(C.PROVIDERS.gog.variants)) assert.ok(v.barA && v.barB && v.fg && v.spine && v.bannerA);
   const s = C.defaultState();
   assert.equal(s.spineArt, 'color'); assert.equal(s.spineUseLogo, true); assert.equal(s.spinePub, true);
   assert.equal(C.mergeState({ spineArt: 'komisch' }).spineArt, 'color'); assert.equal(C.mergeState({ spineArt: 'image' }).spineArt, 'image');
