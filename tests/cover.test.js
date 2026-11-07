@@ -195,7 +195,7 @@ test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
     assert.ok(fs.existsSync(p), 'fehlt: ' + f);
     assert.ok(fs.statSync(p).size < 100 * 1024, 'zu groß: ' + f);
     const t = fs.readFileSync(p, 'utf8');
-    assert.match(t, /^<svg /, 'kein SVG: ' + f);               // nur Vektorgrafiken, keine Rastergrafiken (auch nicht eingebettet)
+    assert.match(t, /^(<\?xml[^>]*\?>\s*)?(<!--[\s\S]*?-->\s*)?<svg[\s>]/, 'kein SVG: ' + f);               // nur Vektorgrafiken, keine Rastergrafiken (auch nicht eingebettet)
     assert.doesNotMatch(t, /<image|data:image/, 'eingebettetes Bild: ' + f);
   }
 });
