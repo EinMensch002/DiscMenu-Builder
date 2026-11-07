@@ -99,7 +99,8 @@
     });
   }
 
-  /* Stil-Auswahl: Nur GOG hat zwei Farbvarianten (GOG-Farben oder dunkel). Bei den anderen Anbietern gibt es nichts zu wählen, das Feld ist dann ausgeblendet. */
+  /* Stil-Auswahl: Nur GOG hat mehrere Varianten, sie werden als Schieberegler mit sechs Punkten gezeigt (von hell nach dunkel). Bei den anderen
+     Anbietern gibt es nichts zu wählen, die Zeile ist dann ausgeblendet. Die Auswahlliste (data-k=theme) bleibt als Datenhalter unsichtbar erhalten. */
   let styleFor = null;
   function fillStyleOptions() {
     const sel = $('[data-k=theme]');
@@ -112,12 +113,59 @@
     styleFor = state.provider;
     const opts = C.styleOptions(state.provider);
     sel.replaceChildren(...opts.map(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; return o; }));
-    sel.closest('label').hidden = opts.length < 2;
+    $('#styleRow').hidden = opts.length < 2;
+    const slider = $('#styleSlider'), ticks = $('#styleTicks');
+    slider.max = String(opts.length - 1);
+    ticks.style.gridTemplateColumns = 'repeat(' + opts.length + ', minmax(0, 1fr))';
+    ticks.replaceChildren(...opts.map(([v, l]) => {
+      const b = document.createElement('button'), sw = document.createElement('i'), V = (C.PROVIDERS.gog.variants || {})[v];
+      b.type = 'button'; b.dataset.theme = v; sw.className = 'sw';
+      if (V) sw.style.background = 'linear-gradient(' + V.barA + ', ' + V.barB + '), repeating-conic-gradient(#cfd3dc 0 25%, #fff 0 50%) 0 0 / 8px 8px';
+      b.append(sw, l); return b;
+    }));
+  }
+  function updateStylePicker() {
+    const sel = $('[data-k=theme]'), idx = Math.max(0, [...sel.options].findIndex((o) => o.value === sel.value));
+    $('#styleSlider').value = String(idx);
+    $$('#styleTicks button').forEach((b) => b.classList.toggle('on', b.dataset.theme === sel.value));
+  }
+  function bindStylePicker() {
+    const pick = (v) => { const sel = $('[data-k=theme]'); if (sel.value === v) return; sel.value = v; sel.dispatchEvent(new Event('change', { bubbles: true })); };
+    $('#styleSlider').addEventListener('input', (e) => { const o = $('[data-k=theme]').options[Number(e.target.value)]; if (o) pick(o.value); });
+    $('#styleTicks').addEventListener('click', (e) => { const b = e.target.closest('button[data-theme]'); if (b) pick(b.dataset.theme); });
+  }
+
+  /* Auswahlen mit wenigen Möglichkeiten (data-seg) als Schaltflächen: alle Möglichkeiten auf einen Blick statt Aufklappliste */
+  function renderSeg(sel) {
+    const box = sel._seg, sig = [...sel.options].map((o) => o.value + '|' + o.textContent).join('/');
+    if (box.dataset.sig !== sig) {
+      box.dataset.sig = sig;
+      box.replaceChildren(...[...sel.options].map((o) => { const b = document.createElement('button'); b.type = 'button'; b.dataset.v = o.value; b.textContent = o.textContent; return b; }));
+    }
+    [...box.children].forEach((b) => b.classList.toggle('on', b.dataset.v === sel.value));
+  }
+  function buildSegs() {
+    $$('select[data-seg]').forEach((sel) => {
+      const box = document.createElement('div'); box.className = 'seg'; sel.classList.add('seg-src'); sel.tabIndex = -1; sel.after(box); sel._seg = box;
+      box.addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b || sel.value === b.dataset.v) return; sel.value = b.dataset.v; sel.dispatchEvent(new Event('change', { bubbles: true })); });
+    });
+  }
+
+  /* Sprungleiste: ein Knopf je Bereich, öffnet ihn und springt hin (bei Sprachwechsel neu aufgebaut, damit die Namen zur Sprache passen) */
+  function buildJump() {
+    const nav = $('#jump'); if (!nav) return;
+    nav.replaceChildren(...$$('#form > details.sec').map((d) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = d.querySelector('summary').textContent.trim();
+      b.addEventListener('click', () => { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      return b;
+    }));
   }
   function syncControls() {
     fillStyleOptions();
     renderHw();
     $$('[data-k]').forEach(writeControl);
+    updateStylePicker();
+    $$('select[data-seg]').forEach(renderSeg);
     $$('[data-enable]').forEach((el) => el.classList.toggle('on', !!get(el.dataset.enable)));
   }
   function bindControls() {
@@ -529,11 +577,14 @@
   /* ---------- Start ---------- */
   function init() {
     const ver = $('#ver'); if (ver && /__/.test(ver.textContent)) ver.textContent = 'lokal';
+    buildSegs();
+    bindStylePicker();
     bindControls();
     bindHw();
     ['spineLogoImg', 'spinePubImg'].forEach((id) => $('#' + id).addEventListener('load', refitSpine));
     bindDrops();
     syncControls();
+    buildJump();
     $('#bPrint').addEventListener('click', () => window.print());
     $('#bReset').addEventListener('click', () => {
       if (!confirm('Alle Einstellungen und Bilder zurücksetzen?')) return;
@@ -564,6 +615,7 @@
     onChange(f) { hooks.change.push(f); },
     removeBackground(key) { return removeBackground(key); },
     onReset(f) { hooks.reset.push(f); },
+    buildJump,
     /* Werte aus Rezept oder Steam übernehmen (Listen werden ersetzt, Objekte zusammengeführt) */
     patch(patch) { merge(state, patch); state = C.mergeState(state); syncControls(); changed(); },
     /* Aktuelle Einstellungen und Bilder (für den Projektexport) */

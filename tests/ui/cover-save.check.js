@@ -28,7 +28,7 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
   // Standardwerte: GOG dunkel (schmale Leiste), Titel mittig, USK voll deckend
   const cv = (v) => page.locator('#cover').evaluate((e, n) => getComputedStyle(e).getPropertyValue(n).trim(), v);
   assert.equal(await page.inputValue('[data-k=theme]'), 'white', 'Standard: Weiß');
-  assert.deepEqual(await page.locator('[data-k=theme] option').allTextContents(), ['Weiß', 'Warmweiß', 'Dunkel', 'Dunkel mit Violett-Hauch', 'Dunkel, durchscheinend']);
+  assert.deepEqual(await page.locator('[data-k=theme] option').allTextContents(), ['Weiß', 'Warmweiß', 'Durchsichtig weiß', 'Durchsichtig schwarz', 'Dunkel', 'Dunkel mit Violett-Hauch']);
   await page.selectOption('[data-k=theme]', 'dark'); await page.waitForTimeout(150);
   assert.equal(await cv('--barB'), '#18181c');
   assert.equal(await page.locator('#spine').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(35, 35, 40)');
@@ -40,11 +40,37 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
   assert.equal(await page.locator('#barWm').isVisible(), false); assert.equal(await page.locator('.gog-bar img').isVisible(), true);
   assert.equal(await page.locator('#frontTag').textContent(), 'PC · DRM-FREI'); assert.equal(await page.locator('#frontTag').isVisible(), true);
   await page.check('[data-k=gogText]');
+  // Stil als Schieberegler mit sechs Punkten (von hell nach dunkel), Punkte lassen sich auch anklicken
+  assert.equal(await page.locator('#styleTicks button').count(), 6);
+  assert.deepEqual(await page.locator('#styleTicks button').allTextContents(), ['Weiß', 'Warmweiß', 'Durchsichtig weiß', 'Durchsichtig schwarz', 'Dunkel', 'Dunkel mit Violett-Hauch']);
+  assert.equal(await page.locator('#styleSlider').inputValue(), '4', 'Dunkel ist der fünfte Punkt');
+  await page.locator('#styleSlider').fill('0'); await page.waitForTimeout(150);
+  assert.equal(await page.inputValue('[data-k=theme]'), 'white'); assert.equal(await cv('--barA'), '#ffffff');
+  await page.click('#styleTicks button[data-theme=glasswhite]'); await page.waitForTimeout(150);
+  assert.equal(await page.inputValue('[data-k=theme]'), 'glasswhite'); assert.equal(await page.locator('#styleSlider').inputValue(), '2');
+  assert.match(await cv('--barA'), /rgba\(255, ?255, ?255/); assert.equal(await page.locator('#front').evaluate((e) => getComputedStyle(e).paddingTop), '0px', 'Durchsichtig weiß liegt über dem Bild');
+  assert.equal(await page.locator('#styleTicks button.on').getAttribute('data-theme'), 'glasswhite');
+  await page.click('#styleTicks button[data-theme=dark]'); await page.waitForTimeout(150);
+  // Auswahlen mit wenigen Möglichkeiten sind Schaltflächen; Bereiche lassen sich über die Sprungleiste öffnen
+  assert.equal(await page.locator('[data-k=frontFit] ~ .seg button').count(), 2);
+  await page.click('[data-k=frontFit] ~ .seg button[data-v=crop]'); await page.waitForTimeout(150);
+  assert.equal(await page.inputValue('[data-k=frontFit]'), 'crop'); assert.equal(await page.locator('#frontCropBox').isVisible(), true);
+  await page.click('[data-k=frontFit] ~ .seg button[data-v=stretch]'); await page.waitForTimeout(100);
+  assert.equal(await page.locator('[data-k=frontFit] ~ .seg button.on').getAttribute('data-v'), 'stretch');
+  assert.equal(await page.locator('#jump button').count(), await page.locator('#form > details.sec').count());
+  await page.click('#jump button:has-text("Rücken")'); await page.waitForTimeout(200);
+  assert.equal(await page.locator('#form > details.sec:has(summary:text-is("Rücken"))').evaluate((e) => e.open), true);
+  // Kopfleiste: Reihenfolge von rechts: Drucken, Sprache, Zurücksetzen, Einstellungen, Daten übernehmen, Projekt; kein Link zum Konfigurator
+  const ids = await page.evaluate(() => [...document.querySelectorAll('.top nav > *')].map((e) => e.id || (e.querySelector && e.querySelector('summary') ? e.querySelector('summary').textContent.trim() : '')));
+  assert.deepEqual(ids.filter(Boolean).slice(-6), ['Projekt', 'Daten übernehmen', 'bSettings', 'bReset', 'langMenu', 'bPrint']);
+  assert.equal(await page.locator('.top a').count(), 0, 'Der Link zum Konfigurator ist entfernt');
+  assert.match(await page.locator('h1').textContent(), /DiscSleeve/);
+
   // Warmweiß und Violett-Hauch: eigene Farben, gleiche Logik
   await page.selectOption('[data-k=theme]', 'warm'); await page.waitForTimeout(150);
   assert.equal(await cv('--barA'), '#f8f6f2'); assert.equal(await page.locator('.gog-bar img').getAttribute('src'), 'assets/images/gog_logo_outline.svg');
   await page.selectOption('[data-k=theme]', 'violet'); await page.waitForTimeout(150);
-  assert.equal(await cv('--barA'), '#241e30'); assert.equal(await page.locator('#cover').evaluate((e) => e.classList.contains('gog-dk')), true);
+  assert.equal(await cv('--barA'), '#2a2238'); assert.equal(await page.locator('#cover').evaluate((e) => e.classList.contains('gog-dk')), true);
   await page.selectOption('[data-k=theme]', 'dark'); await page.waitForTimeout(100);
   // Rücken hell und Farbe von "PC": automatisch passend, oder fest Weiß/Schwarz
   const pcColor = () => page.locator('#spine .pc').evaluate((e) => getComputedStyle(e).color);

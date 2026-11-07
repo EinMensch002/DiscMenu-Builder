@@ -45,9 +45,9 @@ const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zu
   assert.equal(await page.locator('html').getAttribute('lang'), 'en');
   assert.equal(await page.locator('#bPrint').textContent(), 'Print');
   assert.equal(await page.locator('#bSettings').textContent(), 'Settings');
-  assert.match(await page.locator('h1').textContent(), /Cover Tool/);
+  assert.match(await page.locator('h1').textContent(), /DiscSleeve/);
   assert.match(await page.locator('#langMenu summary').textContent(), /English/);
-  assert.equal(await page.title(), 'Cover Tool for Disc Cases');
+  assert.equal(await page.title(), 'DiscSleeve – Cover Tool for Disc Cases');
   assert.equal(await page.getAttribute('[data-k=title]', 'placeholder'), 'e.g. The Witcher: Enhanced Edition');
   assert.equal(await page.locator('[data-k=lang]').isVisible(), false, 'Bei Englisch entfällt das Feld "Sprache der Beschriftung"');
   assert.equal(await page.evaluate(() => CoverApp.state.lang), 'en', 'Das Cover wird englisch beschriftet');
@@ -93,7 +93,7 @@ const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zu
   // Zurück auf Deutsch: alles wie vorher, das Feld ist wieder da
   await page.click('#langMenu summary'); await page.click('#langMenu button[data-lang=de]'); await page.waitForTimeout(200);
   assert.equal(await page.locator('#bPrint').textContent(), 'Drucken');
-  assert.equal(await page.title(), 'Cover-Tool für Disc-Hüllen');
+  assert.equal(await page.title(), 'DiscSleeve – Cover-Tool für Disc-Hüllen');
   assert.equal(await page.getAttribute('[data-k=title]', 'placeholder'), 'z. B. The Witcher: Enhanced Edition');
   assert.equal(await page.locator('[data-k=lang]').isVisible(), true);
   assert.match(await page.locator('#notes').textContent(), /Es fehlt noch das Frontcover/);

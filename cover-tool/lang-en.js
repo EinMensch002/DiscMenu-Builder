@@ -4,11 +4,10 @@
   'use strict';
   const dict = {
     /* Kopfzeile */
-    'Cover-Tool für Disc-Hüllen': 'Cover Tool for Disc Cases',
-    '💿 Cover-Tool': '💿 Cover Tool',
+    'DiscSleeve – Cover-Tool für Disc-Hüllen': 'DiscSleeve – Cover Tool for Disc Cases',
+    'Bereiche': 'Sections',
     'Hüllen für selbst gebrannte GOG-Discs, zum Ausdrucken': 'Cases for self-burned GOG discs, ready to print',
     'Stand dieser Seite: zeigt, welche Version geladen wurde': 'State of this page: shows which version was loaded',
-    'Zum Konfigurator': 'To the Configurator',
     'Daten übernehmen': 'Import data',
     'Aus Rezept (ZIP oder menu.json) …': 'From recipe (ZIP or menu.json) …',
     'Anforderungen von Steam …': 'Requirements from Steam …',
@@ -46,7 +45,8 @@
     'Warmweiß': 'Warm white',
     'Dunkel': 'Dark',
     'Dunkel mit Violett-Hauch': 'Dark with a hint of violet',
-    'Dunkel, durchscheinend': 'Dark, translucent',
+    'Durchsichtig weiß': 'Transparent white',
+    'Durchsichtig schwarz': 'Transparent black',
     /* Titel und Texte */
     'Titel und Texte': 'Title and texts',
     'Spieletitel (Rücken)': 'Game title (spine)',

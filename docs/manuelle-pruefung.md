@@ -90,7 +90,7 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 - [ ] **Slim:** 266 × 183 mm mit 7 mm Rücken.
 - [ ] **Blu-ray-Vorlage:** Die Richtwerte (269 × 148 mm, 14 mm Rücken) passen zu deinem Einleger, sonst eigene Maße notieren und das Ergebnis melden.
 - [ ] Der Titel auf dem Rücken liest sich in der Hülle richtig herum, USK vorn (35 mm) und das Motiv sind nicht abgeschnitten.
-- [ ] Die Leiste und alle drei Anbieter (GOG in allen fünf Varianten) sehen gedruckt gut aus (Farben, Lesbarkeit). Bei der Leiste: Die Akzentlinie läuft sauber über den Rücken, das Logo oben ragt nirgends heraus.
+- [ ] Die Leiste und alle drei Anbieter (GOG in allen sechs Varianten) sehen gedruckt gut aus (Farben, Lesbarkeit). Bei der Leiste: Die Akzentlinie läuft sauber über den Rücken, das Logo oben ragt nirgends heraus.
 
 - [ ] **Steam-Import mit Titel und Cover:** Nach dem Übernehmen steht der Spielname auf dem Rücken und das Steam-Hochformat-Cover vorn. Falls das Cover nicht lädt: Meldung lesen (ggf. `cdn.akamai.steamstatic.com` im Proxy erlauben).
 - [ ] **Publisher-Logo (Wikidata):** 🔎 beim Publisher-Logo zeigt den Publisher aus dem Steam-Import vorbelegt, Logos erscheinen und lassen sich übernehmen (z. B. Valve, CD PROJEKT RED).
@@ -98,7 +98,7 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 - [ ] **Steam und Epic Games:** Die dunkle Kopfleiste vorn (Logo, Schriftzug, Akzentlinie) und der dunkle Streifen mit den Spielfunktionen hinten gefallen auf dem Ausdruck, in beiden Stilen.
 - [ ] **Speichern:** In Chrome/Edge: Speichern, etwas ändern, Strg+S, die Datei wird überschrieben (nicht neu angelegt) und wieder ladbar. In Firefox: Speichern lädt jedes Mal neu herunter.
 - [ ] **Brandfetch:** Client-ID eintragen, im Publisher-Dialog die Quelle Brandfetch wählen (z. B. "Team Cherry"). Treffer erscheinen und das Logo lässt sich übernehmen. (Antwortformat und Bilder von Brandfetch wurden nur nachgebaut geprüft.)
-- [ ] **GOG-Leiste:** Weiß, Dunkel und Dunkel durchscheinend auf dem Ausdruck zu hellen und dunklen Covern ansehen. Das Logo ist scharf, der Verlauf bei "durchscheinend" sieht gedruckt gut aus, "PC · DRM-FREI" ist lesbar. Auf einer Blu-ray-Hülle (148 mm hoch) reicht das Bild.
+- [ ] **GOG-Leiste:** Alle sechs Varianten auf dem Ausdruck zu hellen und dunklen Covern ansehen. Das Logo ist scharf, der Verlauf bei "durchscheinend" sieht gedruckt gut aus, "PC · DRM-FREI" ist lesbar. Auf einer Blu-ray-Hülle (148 mm hoch) reicht das Bild.
 - [ ] **Rückenlogo und Publisher am Fuß:** Auf dem Ausdruck sind das gedrehte Logo und das Publisher-Logo unter "PC" gut lesbar. Bei einem Spiel mit Steam-Logo (`logo.png`) zeigt der Import es auf dem Rücken.
 - [ ] **Bild über den Rücken:** Das Motiv geht an den Falzkanten ohne Sprung weiter, der Rücken ist nicht zu dunkel.
 - [ ] **Hintergrund transparent (◧):** Bei Logos von Brandfetch verschwindet der weiße Hintergrund, die Kante hat keinen hellen Saum.
@@ -111,5 +111,5 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 - [ ] **Minimum/Empfohlen:** "Minimum" und "Empfohlen" stehen mittig über ihrem Text, gleiche Sätze bei "Sonstiges" mittig über beiden Spalten, die Schrift ist gedruckt lesbar.
 - [ ] **Frontbild einpassen:** Auf einer Blu-ray-Hülle (148 mm hoch) mit einem Hochformat-Cover: "Strecken" füllt die Fläche, "Zuschneiden" mit Zoom und Ausschnitt sieht gedruckt gut aus.
 - [ ] **USK-Hintergrund:** Bei 0 % steht nur die Raute (kein roter Rand), bei 100 % wie gewohnt. Auf der Rückseite nur die Raute.
-- [ ] **GOG-Varianten:** Weiß, Warmweiß, Dunkel, Dunkel mit Violett-Hauch und durchscheinend sehen gedruckt gut aus. Bei "durchscheinend" kein Strich links oder rechts oben in der Leiste (Linien im Bild selbst sind Teil des Covers). "Rücken hell" und die Farbe von "PC" (Weiß/Schwarz) wirken auf dem Ausdruck gut.
+- [ ] **GOG-Varianten:** Weiß, Warmweiß, Durchsichtig weiß, Durchsichtig schwarz, Dunkel und Dunkel mit Violett-Hauch sehen gedruckt gut aus. Bei "durchscheinend" kein Strich links oder rechts oben in der Leiste (Linien im Bild selbst sind Teil des Covers). "Rücken hell" und die Farbe von "PC" (Weiß/Schwarz) wirken auf dem Ausdruck gut.
 - [ ] **Englische Oberfläche:** Sprache oben auf English stellen: alle Beschriftungen, Dialoge und Meldungen sind englisch, das Feld "Sprache der Beschriftung" fehlt, das Cover ist englisch beschriftet.

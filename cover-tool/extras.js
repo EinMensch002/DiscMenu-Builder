@@ -454,6 +454,7 @@
     const syncLang = (code) => {
       const lab = document.querySelector('[data-k=lang]').closest('label');
       lab.hidden = code !== 'de';
+      App.buildJump();
       if (code !== 'de' && App.state.lang !== 'en') App.patch({ lang: 'en' });
     };
     I18n.onChange(syncLang);

@@ -1,6 +1,6 @@
-# Cover-Tool
+# DiscSleeve (Cover-Tool)
 
-Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt (A4 quer) mit Rückseite, Rücken und Vorderseite im GOG-Stil, auf Wunsch mit Systemanforderungen, Spielfunktionen und USK-Kennzeichnung. Sie ergänzt den [Konfigurator](configurator.md) und das Menü ([Builder und Player](player-und-builder.md)): Das Menü liegt auf der Disc, das Cover steckt in der Hülle.
+**DiscSleeve** ist der Name des Cover-Tools. Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt (A4 quer) mit Rückseite, Rücken und Vorderseite im GOG-Stil, auf Wunsch mit Systemanforderungen, Spielfunktionen und USK-Kennzeichnung. Sie ergänzt den [Konfigurator](configurator.md) und das Menü ([Builder und Player](player-und-builder.md)): Das Menü liegt auf der Disc, das Cover steckt in der Hülle.
 
 **Online:** https://einmensch002.github.io/DiscMenu-Builder/cover/
 **Dateien:** [cover-tool/](../cover-tool/). Zum lokalen Benutzen den Ordner herunterladen und `index.html` im Browser öffnen, dann geht es auch ohne Internet.
@@ -9,7 +9,7 @@ Eine Web-App für die **Hüllen** der Discs. Sie erzeugt ein druckfertiges Blatt
 
 - **Läuft komplett im Browser.** Kein Backend, es wird nichts hochgeladen. Bilder werden lokal verarbeitet.
 - **Live-Vorschau:** Links die Einstellungen, rechts das Blatt in Originalproportionen. Jede Änderung ist sofort sichtbar.
-- **Ein Stil für alle Anbieter:** die Leiste (Kopfleiste über die ganze Breite, wie bei Handelsspielen). Bei GOG ist die Leiste schmal (10 mm) und es gibt fünf Varianten (Weiß, Warmweiß, Dunkel, Dunkel mit Violett-Hauch, Dunkel durchscheinend).
+- **Ein Stil für alle Anbieter:** die Leiste (Kopfleiste über die ganze Breite, wie bei Handelsspielen). Bei GOG ist die Leiste schmal (10 mm) und es gibt sechs Varianten (Weiß, Warmweiß, Durchsichtig weiß, Durchsichtig schwarz, Dunkel, Dunkel mit Violett-Hauch).
 - **Drei Anbieter:** GOG, Epic Games und Steam mit eigenen Farben, Logo und Schriftzug (siehe [Anbieter](#anbieter)).
 - **Daten übernehmen:** Titel, Anbieter und Cover aus einem Rezept, Systemanforderungen und Funktionen von Steam, Bilder von SteamGridDB, Publisher-Logos von Wikidata (siehe [Daten übernehmen](#daten-übernehmen)).
 - **Druckfertig:** A4 quer, Cover in Originalgröße mittig, Schnittmarken außerhalb des Covers, optional gestrichelte Falzmarken an den Rückenkanten (ebenfalls außerhalb).
@@ -31,11 +31,10 @@ Neue Projekte starten mit der GOG-Variante **Weiß** und dem Rückentitel mittig
 
 ## Bedienung
 
-Links stehen die **Einstellungen des Covers**, rechts die Vorschau. Alles, was nicht direkt das Cover einstellt, liegt in der **oberen Leiste**:
+Links stehen die **Einstellungen des Covers**, rechts die Vorschau. Alles, was nicht direkt das Cover einstellt, liegt in der **oberen Leiste** (von links: Name, Speicherstand, dann Projekt, Daten übernehmen, Einstellungen, Zurücksetzen, **Sprache** mit Flagge und ganz rechts **Drucken**):
 
 | Knopf | Aufgabe |
 |---|---|
-| **Zum Konfigurator** | Wechselt zur Menü-Web-App |
 | **Daten übernehmen** | Menü mit "Aus Rezept (ZIP oder `menu.json`)" und "Anforderungen von Steam" |
 | **Projekt** | Menü mit "Im Browser speichern", "Speichern" (Strg+S), "Speichern unter" und "Öffnen". Daneben steht, ob Änderungen noch nicht in der Datei gespeichert sind und wann der Browser zuletzt gesichert hat |
 | **Einstellungen** | SteamGridDB-Schlüssel, Proxy, Verbindungstest und Sicherung der Einstellungen in einer Datei |
@@ -46,7 +45,7 @@ Die Einstellungen des Covers links:
 
 | Bereich | Inhalt |
 |---|---|
-| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite, bis 18 × 9,5 mm groß). Sprache der Beschriftung. Stil (nur bei GOG: Weiß, Warmweiß, Dunkel, Dunkel mit Violett-Hauch, Dunkel durchscheinend), Rücken (hell oder dunkel) und Haken "GOG.COM" zeigen |
+| 1. Hülle und Stil | Anbieter (GOG, Epic Games, Steam). Hülle: Normal (14 mm Rücken), Slim (7 mm) oder Eigene Maße (mit Vorlagen für Blu-ray). Medium: CD, DVD oder Blu-ray (nur das Logo auf der Rückseite, bis 18 × 9,5 mm groß). Sprache der Beschriftung. Stil (nur bei GOG: Schieberegler mit sechs Varianten von Weiß bis Dunkel mit Violett-Hauch), Rücken (hell oder dunkel) und Haken "GOG.COM" zeigen |
 | 2. Titel und Texte | Spieletitel für den Rücken, Copyright-Text (unten mittig auf der Rückseite) |
 | 3. Bilder | Frontcover, Rückseite oben, Rückseite unten (optional). Pro Bild stehen die Maße dabei, nach dem Laden zeigt das Tool Dateiname, Pixelgröße und wie scharf es gedruckt wird. Bilder lassen sich per Drag-and-drop oder Klick laden, bei SteamGridDB suchen (🔎) und wieder entfernen |
 | 4. Publisher-Logo und Altersfreigabe | Publisher-Logo (Vorderseite, Rückseite und Rücken), **Unterlage dahinter auf der Vorderseite** (keine, weiß oder schwarz), USK-Freigabe (0, 6, 12, 16, 18 oder keine), "USK auch auf der Rückseite zeigen" und Hintergrund der USK vorn (Deckkraft 0 bis 100 %, 0 = nur die Raute) |
@@ -154,7 +153,7 @@ Der Anbieter bestimmt Farben, Logo und Schriftzug der Hülle. Bei **Epic Games u
 
 | Anbieter | Farbe | Vorderseite und Rücken | Besonderheiten |
 |---|---|---|---|
-| **GOG** | Weiß, Dunkel oder Dunkel durchscheinend (neutral, ohne Lila) | GOG-Logo (immer sichtbar) und optional "GOG.COM" | Streifen hell (Weiß) oder dunkel (Dunkel, durchscheinend), in der Leiste "PC · DRM-FREI" |
+| **GOG** | sechs Varianten von hell nach dunkel (neutral, ohne Lila) | GOG-Logo (immer sichtbar) und optional "GOG.COM" | Streifen hell (Weiß) oder dunkel (Dunkel, durchscheinend), in der Leiste "PC · DRM-FREI" |
 | **Epic Games** | Anthrazit | Logo und Schriftzug "EPIC GAMES" | dunkler grauer Streifen, Hinweis "Epic Games Launcher" |
 | **Steam** | Marineblau | Logo und Schriftzug "STEAM" | dunkelblauer Streifen mit blauer Akzentlinie, Hinweis "Steam" |
 
@@ -195,13 +194,14 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 
 Es gibt einen Stil für alle Anbieter, die **Leiste**: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, Logo (bei Steam und Epic mit Schriftzug, bei GOG schmal, siehe unten) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, Epic hellgrau, GOG nur bei "Dunkel" in feinem Lila). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm bei Steam und Epic, 129 × 173 mm bei GOG, statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten.
 
-Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, damit auf Blu-ray-Hüllen Platz für das Bild bleibt, und es gibt fünf Varianten (Feld "Stil"). **Weiß** ist der Standard:
+Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, damit auf Blu-ray-Hüllen Platz für das Bild bleibt, und es gibt sechs Varianten (Feld "Stil", ein **Schieberegler mit sechs Punkten** von hell nach dunkel, die Punkte lassen sich auch anklicken). **Weiß** ist der Standard:
 
 - **Weiß:** helle Leiste mit feiner Trennlinie, dem **Rahmen-Logo** (`gog_logo_outline.svg`, dunkel gezeichnet) und dunkler Schrift. Der Streifen mit den Spielfunktionen ist hellgrau.
 - **Warmweiß:** wie Weiß, aber mit warmem Hellgrau statt reinem Weiß (auf Papier weniger kalt).
+- **Durchsichtig weiß:** weiße Leiste als **weicher Verlauf über dem Bild** (läuft nach unten ganz durchsichtig aus, ohne harte Kante), dunkle Schrift und dunkles Logo. Das Frontbild beginnt dann ganz oben (Bildmaß z. B. 129 × 183 mm statt 173 mm).
+- **Durchsichtig schwarz:** dasselbe in Dunkel (dunkler Verlauf, weiße Schrift, weißes Logo).
 - **Dunkel:** anthrazitfarbene Leiste ohne Linie, weißes Kachel-Logo, dunkler Streifen mit den Spielfunktionen.
-- **Dunkel mit Violett-Hauch:** fast schwarz mit einem leichten Violett-Ton, bewusst keine Lila-Fläche (und deutlich anders als das Grau von Epic Games).
-- **Dunkel, durchscheinend:** dunkel, aber die Leiste liegt als **weicher Verlauf (läuft nach unten ganz durchsichtig aus, ohne harte Kante) über dem Bild**. Das Frontbild beginnt dann ganz oben (Bildmaß z. B. 129 × 183 mm statt 173 mm).
+- **Dunkel mit Violett-Hauch:** fast schwarz mit einem leichten Violett-Ton, bewusst keine Lila-Fläche (der Unterschied zu Dunkel ist klein).
 
 Bei GOG gibt es außerdem das Feld **"Rücken (GOG)"**: **Dunkel (anthrazit)** oder **Hell, passend zur Leiste** (dann ist auch der Rückentitel dunkel). Die **Naht** zwischen Rücken und Vorderseite ist bei durchscheinender Leiste ohne Strich, weil beide Leisten dort genau aneinanderstoßen.
 
@@ -228,6 +228,11 @@ Oben in der Leiste steht ein **Sprachmenü mit Flagge** (Deutsch, English). Es s
 - Das **Cover selbst** wird nie von der Oberfläche übersetzt, es folgt allein der Beschriftungssprache.
 
 **Weitere Sprachen:** Deutsch ist die Grundsprache, im HTML und im Code stehen die deutschen Texte. Eine Sprache ist ein **Sprachpaket** (`lang-en.js`), das den deutschen Text auf die Zielsprache abbildet. Für eine neue Sprache legt man `lang-xx.js` an (`I18n.register('xx', { name, flag, dict, parts, rules })`), bindet sie in `index.html` ein und legt eine Flagge in `assets/images/flags/` ab. Das Menü zeigt sie dann automatisch an. `dict` enthält ganze Texte, `parts` Bruchstücke zusammengesetzter Meldungen ("... hat mit Fehler 500 geantwortet.") und `rules` Muster mit Zahlen. Ein Test (`tests/i18n.test.js`) prüft, dass jeder deutsche Text im HTML übersetzt ist und keine Schlüssel Tippfehler enthalten, ein Browsertest (`tests/ui/cover-i18n.check.js`) sucht in Oberfläche und Dialogen nach deutschen Resten.
+
+
+### Bedienung: Schaltflächen und Sprungleiste
+
+Damit sich das Tool auch ohne Vorkenntnisse bedienen lässt, stehen **Auswahlen mit wenigen Möglichkeiten als Schaltflächen** da (z. B. Anbieter, Hülle, Disc-Medium, Sprache der Beschriftung, Frontbild einpassen, Rücken hell oder dunkel, Farbe von "PC"): Man sieht alle Möglichkeiten auf einen Blick und wählt mit einem Klick statt über eine Aufklappliste. Der **Stil** ist ein Schieberegler mit Farbvorschau. Oben im Formular stehen **Sprungknöpfe zu allen Bereichen** (Hülle und Stil, Titel und Texte, Bilder ...), sie öffnen den Bereich und springen hin.
 
 ## Feste Plätze auf der Rückseite
 

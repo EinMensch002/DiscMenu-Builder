@@ -25,7 +25,7 @@ function uiTexts() {
 }
 
 /* Texte, die in beiden Sprachen gleich lauten (Namen, Einheiten, Kürzel) */
-const SAME = /^(Version .*|GOG|Epic Games|Steam|Normal \(14 mm\)|Slim \(7 mm\)|Blu-ray|Blu-ray Slim|CD|DVD|Deutsch|English|Zoom \(%\)|\(optional\)|Single-Player|Co-op|Multi-Player|Online|LAN|Controller|Cloud Saves|Mods|VR|Win .*|macOS|Linux|\+ Intel|\+ AMD|\+ GeForce|\+ Radeon|Version 11)$/;
+const SAME = /^(💿 DiscSleeve|Version .*|GOG|Epic Games|Steam|Normal \(14 mm\)|Slim \(7 mm\)|Blu-ray|Blu-ray Slim|CD|DVD|Deutsch|English|Zoom \(%\)|\(optional\)|Single-Player|Co-op|Multi-Player|Online|LAN|Controller|Cloud Saves|Mods|VR|Win .*|macOS|Linux|\+ Intel|\+ AMD|\+ GeForce|\+ Radeon|Version 11)$/;
 
 test('Englisch: jeder deutsche Text der Oberfläche im HTML ist übersetzt', () => {
   const missing = uiTexts().filter((t) => !SAME.test(t) && en.dict[t] === undefined);

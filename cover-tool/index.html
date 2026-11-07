@@ -3,22 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cover-Tool für Disc-Hüllen</title>
+<title>DiscSleeve – Cover-Tool für Disc-Hüllen</title>
 <link rel="stylesheet" href="style.css?v=__VERSION__">
 </head>
 <body>
 <header class="top no-print">
-  <h1>💿 Cover-Tool</h1>
+  <h1>💿 DiscSleeve</h1>
   <span class="sub">Hüllen für selbst gebrannte GOG-Discs, zum Ausdrucken</span><span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version __VERSION__</span>
   <nav>
-    <a class="link" href="../">Zum Konfigurator</a>
-    <details class="menu" id="langMenu" data-notr><summary></summary><div class="pop"></div></details>
-    <details class="menu"><summary>Daten übernehmen</summary>
-      <div class="pop">
-        <button type="button" id="bRecipe">Aus Rezept (ZIP oder menu.json) …</button>
-        <button type="button" id="bSteam">Anforderungen von Steam …</button>
-      </div>
-    </details>
+    <span class="saveinfo" id="autoInfo" aria-live="polite"></span>
+    <span class="saveinfo" id="saveInfo" aria-live="polite"></span>
     <details class="menu"><summary>Projekt</summary>
       <div class="pop">
         <button type="button" id="bBrowserSave" title="Sichert Einstellungen und Bilder im Speicher dieses Browsers. Das geschieht auch automatisch, der Stand bleibt nach dem Neuladen erhalten.">Im Browser speichern</button>
@@ -27,10 +21,15 @@
         <button type="button" id="bProjImport">Öffnen …</button>
       </div>
     </details>
-    <span class="saveinfo" id="autoInfo" aria-live="polite"></span>
-    <span class="saveinfo" id="saveInfo" aria-live="polite"></span>
+    <details class="menu"><summary>Daten übernehmen</summary>
+      <div class="pop">
+        <button type="button" id="bRecipe">Aus Rezept (ZIP oder menu.json) …</button>
+        <button type="button" id="bSteam">Anforderungen von Steam …</button>
+      </div>
+    </details>
     <button type="button" id="bSettings">Einstellungen</button>
     <button type="button" id="bReset">Zurücksetzen</button>
+    <details class="menu" id="langMenu" data-notr><summary></summary><div class="pop"></div></details>
     <button type="button" id="bPrint" class="pri">Drucken</button>
   </nav>
   <input type="file" id="recipeFile" accept=".zip,.json,application/zip,application/json" hidden>
@@ -39,11 +38,12 @@
 
 <main class="app">
   <form class="panel no-print" id="form" autocomplete="off" onsubmit="return false">
+    <nav class="jump" id="jump" aria-label="Bereiche"></nav>
 
     <details class="sec" open>
       <summary>Hülle und Stil</summary>
       <label class="f"><span class="lab">Anbieter (Farben und Schriftzug auf der Hülle)</span>
-        <select data-k="provider"><option value="gog">GOG</option><option value="epic">Epic Games</option><option value="steam">Steam</option></select></label>
+        <select data-k="provider" data-seg><option value="gog">GOG</option><option value="epic">Epic Games</option><option value="steam">Steam</option></select></label>
       <div class="grp"><span class="lab">Hülle</span>
         <div class="tiles">
           <label class="tile"><input type="radio" name="caseType" data-k="caseType" value="normal"><span>Normal (14 mm)</span></label>
@@ -70,11 +70,12 @@
         </div>
       </div>
       <label class="f"><span class="lab">Sprache der Beschriftung</span>
-        <select data-k="lang"><option value="de">Deutsch</option><option value="en">English</option></select></label>
-      <label class="f"><span class="lab">Stil</span>
-        <select data-k="theme"></select></label>
+        <select data-k="lang" data-seg><option value="de">Deutsch</option><option value="en">English</option></select></label>
+      <div class="f" id="styleRow"><span class="lab">Stil</span>
+        <select data-k="theme" class="seg-src" tabindex="-1"></select>
+        <div class="stylepick"><input type="range" id="styleSlider" min="0" max="5" step="1" aria-label="Stil"><div class="ticks" id="styleTicks"></div></div></div>
       <label class="f" id="gogSpineRow"><span class="lab">Rücken (GOG)</span>
-        <select data-k="gogSpine"><option value="dark">Dunkel (anthrazit)</option><option value="light">Hell, passend zur Leiste</option></select></label>
+        <select data-k="gogSpine" data-seg><option value="dark">Dunkel (anthrazit)</option><option value="light">Hell, passend zur Leiste</option></select></label>
       <label class="chk" id="gogTextRow"><input type="checkbox" data-k="gogText"> "GOG.COM" neben dem Logo zeigen</label>
     </details>
 
@@ -90,7 +91,7 @@
       <div class="drop" data-img="front"><input type="file" accept="image/*" aria-label="Frontcover"><div class="thumb"></div>
         <div class="dt"><b>Frontcover</b><span class="spec"></span><span class="info"></span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <label class="f"><span class="lab">Frontbild einpassen</span>
-        <select data-k="frontFit"><option value="stretch">Strecken (das ganze Bild füllt die Fläche)</option><option value="crop">Zuschneiden (Zoom und Ausschnitt)</option></select></label>
+        <select data-k="frontFit" data-seg><option value="stretch">Strecken (das ganze Bild füllt die Fläche)</option><option value="crop">Zuschneiden (Zoom und Ausschnitt)</option></select></label>
       <div id="frontCropBox" hidden>
         <label class="f"><span class="lab">Zoom (%)</span><div class="slide"><input type="range" data-k="frontZoom" min="100" max="300" step="5"><input type="text" data-k="frontZoom" size="4"></div></label>
         <label class="f"><span class="lab">Ausschnitt waagerecht (0 = links, 100 = rechts)</span><div class="slide"><input type="range" data-k="frontX" min="0" max="100" step="1"><input type="text" data-k="frontX" size="4"></div></label>
@@ -107,7 +108,7 @@
       <div class="drop" data-img="publisher"><input type="file" accept="image/*" aria-label="Publisher-Logo"><div class="thumb"></div>
         <div class="dt"><b>Publisher-Logo <i>(optional)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, etwa 2:1</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Publisher-Logo suchen (Wikidata)">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <label class="f"><span class="lab">Unterlage hinter dem Publisher-Logo auf der Vorderseite</span>
-        <select data-k="frontPubPlate"><option value="none">Keine</option><option value="white">Weiß</option><option value="black">Schwarz</option></select></label>
+        <select data-k="frontPubPlate" data-seg><option value="none">Keine</option><option value="white">Weiß</option><option value="black">Schwarz</option></select></label>
       <p class="hint">Eine Unterlage hilft bei durchsichtigen Logos auf unruhigem Bild: weiß für dunkle, schwarz für helle Logos.</p>
       <label class="f"><span class="lab">USK-Altersfreigabe</span>
         <select data-k="usk"><option value="none">Keine anzeigen</option><option value="0">ab 0 Jahren</option><option value="6">ab 6 Jahren</option><option value="12">ab 12 Jahren</option><option value="16">ab 16 Jahren</option><option value="18">ab 18 Jahren</option></select></label>
@@ -119,11 +120,11 @@
     <details class="sec" open>
       <summary>Rücken</summary>
       <label class="f"><span class="lab">Titel auf dem Rücken</span>
-        <select data-k="spineTitle"><option value="top">Oben (unter dem Logo)</option><option value="center">Mittig</option></select></label>
+        <select data-k="spineTitle" data-seg><option value="top">Oben (unter dem Logo)</option><option value="center">Mittig</option></select></label>
       <label class="f"><span class="lab">Farbe von "PC" am Fuß des Rückens</span>
-        <select data-k="pcColor"><option value="auto">Automatisch (passend zum Rücken)</option><option value="white">Weiß</option><option value="black">Schwarz</option></select></label>
+        <select data-k="pcColor" data-seg><option value="auto">Automatisch (passend zum Rücken)</option><option value="white">Weiß</option><option value="black">Schwarz</option></select></label>
       <label class="f"><span class="lab">Hintergrund des Rückens</span>
-        <select data-k="spineArt"><option value="color">Farbe des Anbieters</option><option value="own">Eigenes Rückenbild (siehe unten)</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
+        <select data-k="spineArt" data-seg><option value="color">Farbe des Anbieters</option><option value="own">Eigenes Rückenbild (siehe unten)</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
       <div class="drop" data-img="spineBg"><input type="file" accept="image/*" aria-label="Rückenbild"><div class="thumb"></div>
         <div class="dt"><b>Rückenbild <i>(optional, nur bei "Eigenes Rückenbild")</i></b><span class="spec"></span><span class="info">Ein Ausschnitt aus einem breiten Bild (z. B. Hintergrund von SteamGridDB) genügt, unten lässt sich der Ausschnitt wählen.</span></div><button type="button" class="sg" title="Rückenbild bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <div class="two">
@@ -133,13 +134,13 @@
           <div class="slide"><input type="range" data-k="spineBgDim" min="0" max="80" step="5"><input type="text" data-k="spineBgDim" size="4"></div></label>
       </div>
       <label class="f"><span class="lab">Anbieter-Logo oben auf dem Rücken</span>
-        <select data-k="spineLogo"><option value="fixed">Feste Größe (7 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
+        <select data-k="spineLogo" data-seg><option value="fixed">Feste Größe (7 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
       <div class="drop" data-img="spineLogo"><input type="file" accept="image/*" aria-label="Rückenlogo"><div class="thumb"></div>
         <div class="dt"><b>Logo für den Rücken <i>(optional, statt des Titels)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, breiter als hoch (wird gedreht)</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Spiel-Logo bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
       <label class="chk"><input type="checkbox" data-k="spineUseLogo"> Statt des Titels das Rückenlogo zeigen (wenn eins geladen ist)</label>
       <div class="two">
         <label class="f"><span class="lab">Rückenlogo: Ausrichtung</span>
-          <select data-k="spineLogoRot"><option value="auto">Automatisch (gedreht, wenn breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
+          <select data-k="spineLogoRot" data-seg><option value="auto">Automatisch (gedreht, wenn breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
         <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spineLogoSide" size="4" inputmode="decimal"></label>
       </div>
       <div class="two">
@@ -148,10 +149,10 @@
       </div>
       <label class="chk"><input type="checkbox" data-k="spinePub"> Publisher-Logo am Fuß des Rückens anzeigen (über "PC", das immer ganz unten steht)</label>
       <label class="f"><span class="lab">Unterlage hinter dem Publisher-Logo auf dem Rücken</span>
-        <select data-k="spinePubPlate"><option value="white">Weiß</option><option value="black">Schwarz</option><option value="none">Keine</option></select></label>
+        <select data-k="spinePubPlate" data-seg><option value="white">Weiß</option><option value="black">Schwarz</option><option value="none">Keine</option></select></label>
       <div class="two">
         <label class="f"><span class="lab">Publisher-Logo: Ausrichtung</span>
-          <select data-k="spinePubRot"><option value="auto">Automatisch (gedreht, wenn zu breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
+          <select data-k="spinePubRot" data-seg><option value="auto">Automatisch (gedreht, wenn zu breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
         <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spinePubSide" size="4" inputmode="decimal"></label>
       </div>
       <label class="f"><span class="lab">Publisher-Logo: Breite in mm (leer = automatisch)</span><input type="text" data-k="spinePubWidth" size="4" inputmode="decimal" placeholder="automatisch"></label>

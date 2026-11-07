@@ -201,14 +201,14 @@ test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
   }
 });
 
-test('Stil-Auswahl: GOG hat drei Varianten (Weiß, Dunkel, durchscheinend), die anderen Anbieter nur die Leiste', () => {
-  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['white', 'warm', 'dark', 'violet', 'glass']);
+test('Stil-Auswahl: GOG hat sechs Varianten (von hell nach dunkel), die anderen Anbieter nur die Leiste', () => {
+  assert.deepEqual(C.styleOptions('gog').map((o) => o[0]), ['white', 'warm', 'glasswhite', 'glass', 'dark', 'violet']);
   assert.deepEqual(C.styleOptions('steam').map((o) => o[0]), ['bar']);
   assert.equal(C.defaultState().theme, 'white'); assert.equal(C.defaultState().gogText, true);
   assert.equal(C.defaultState().gogSpine, 'dark'); assert.equal(C.defaultState().pcColor, 'auto');
   assert.equal(C.mergeState({ gogSpine: 'x', pcColor: 'rot' }).gogSpine, 'dark'); assert.equal(C.mergeState({ gogSpine: 'x', pcColor: 'rot' }).pcColor, 'auto');
   assert.equal(C.mergeState({ gogSpine: 'light', pcColor: 'black' }).pcColor, 'black'); assert.equal(C.mergeState({ gogSpine: 'light' }).gogSpine, 'light');
-  for (const t of ['white', 'warm', 'dark', 'violet', 'glass']) assert.equal(C.mergeState({ provider: 'gog', theme: t }).theme, t);
+  for (const t of ['white', 'warm', 'glasswhite', 'glass', 'dark', 'violet']) assert.equal(C.mergeState({ provider: 'gog', theme: t }).theme, t);
   assert.equal(C.mergeState({ provider: 'steam', theme: 'white' }).theme, 'bar');                 // Varianten gibt es nur bei GOG
   assert.equal(C.mergeState({ provider: 'gog', theme: 'bar' }).theme, 'dark');                    // alte Stile werden zu "Dunkel"
   assert.equal(C.mergeState({ provider: 'gog', theme: 'bar-dark' }).theme, 'dark');
@@ -216,7 +216,7 @@ test('Stil-Auswahl: GOG hat drei Varianten (Weiß, Dunkel, durchscheinend), die 
   assert.equal(C.mergeState({ gogText: false }).gogText, false); assert.equal(C.mergeState({}).gogText, true);
   // Leiste: bei GOG schmal; bei "durchscheinend" liegt sie über dem Bild, das Frontbild beginnt ganz oben
   assert.equal(C.barHeight({ provider: 'gog' }), 10); assert.equal(C.barHeight({ provider: 'steam' }), C.BAR_HEIGHT);
-  assert.equal(C.frontTop({ provider: 'gog', theme: 'white' }), 10); assert.equal(C.frontTop({ provider: 'gog', theme: 'glass' }), 0);
+  assert.equal(C.frontTop({ provider: 'gog', theme: 'white' }), 10); assert.equal(C.frontTop({ provider: 'gog', theme: 'glass' }), 0); assert.equal(C.frontTop({ provider: 'gog', theme: 'glasswhite' }), 0);
   assert.equal(C.frontTop({ provider: 'epic', theme: 'bar' }), C.BAR_HEIGHT);
   const dims = C.caseDims(C.mergeState({}));
   assert.equal(C.imageSpecs(dims, 0).front.h, dims.h); assert.equal(C.imageSpecs(dims, 10).front.h, dims.h - 10);

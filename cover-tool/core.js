@@ -84,17 +84,18 @@
         white: { logo: 'gog_logo_outline.svg', barA: '#ffffff', barB: '#f1f1f4', fg: '#1c1c22', line: 'rgba(0,0,0,.18)', barLine: '.25mm', spine: '#2b2b31', spineLight: '#f3f3f5', bannerA: '#e6e6ec', bannerB: '#d1d1da', tint: true, dk: false, over: false },
         warm: { logo: 'gog_logo_outline.svg', barA: '#f8f6f2', barB: '#ece9e3', fg: '#25221e', line: 'rgba(70,55,40,.22)', barLine: '.25mm', spine: '#2b2b31', spineLight: '#efece6', bannerA: '#ebe8e1', bannerB: '#d9d5cc', tint: true, dk: false, over: false },
         dark: { barA: '#323238', barB: '#18181c', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#232328', spineLight: '#e9e9ee', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: false },
-        violet: { barA: '#241e30', barB: '#0d0b12', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#17141d', spineLight: '#ebe9f0', bannerA: '#2b2536', bannerB: '#17131f', tint: false, dk: true, over: false },
+        violet: { barA: '#2a2238', barB: '#0f0b17', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#17141d', spineLight: '#ebe9f0', bannerA: '#2b2536', bannerB: '#17131f', tint: false, dk: true, over: false },
+        glasswhite: { logo: 'gog_logo_outline.svg', barA: 'rgba(255,255,255,.92)', barB: 'rgba(255,255,255,0)', grad: 'linear-gradient(rgba(255,255,255,.92), rgba(255,255,255,.72) 45%, rgba(255,255,255,0))', fg: '#15151a', line: 'transparent', barLine: '0mm', spine: '#2b2b31', spineLight: '#f3f3f5', bannerA: '#e6e6ec', bannerB: '#d1d1da', tint: true, dk: false, over: true },
         glass: { barA: 'rgba(12,12,16,.9)', barB: 'rgba(12,12,16,0)', grad: 'linear-gradient(rgba(12,12,16,.9), rgba(12,12,16,.7) 45%, rgba(12,12,16,0))', fg: '#ffffff', line: 'transparent', barLine: '0mm', spine: '#232328', spineLight: '#e9e9ee', bannerA: '#3a3a42', bannerB: '#222227', tint: false, dk: true, over: true },
       },
       tag: { de: 'PC · DRM-FREI', en: 'PC · DRM-FREE' }, note: { de: 'Einige Funktionen erfordern GOG Galaxy', en: 'Some features require GOG Galaxy' } },
     epic: { name: 'Epic Games', logo: 'epic_logo.svg', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#0f0f12', mid: '#26262b', accent: '#d6dae4', bannerA: '#3a3a42', bannerB: '#222227', barA: '#3a3a42', barB: '#222227', line: '#d6dae4', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
     steam: { name: 'Steam', logo: 'steam_logo.svg', wordmark: 'STEAM', brand: '#23394c', onBrand: '#e3e9f0', dark: '#06090d', mid: '#1a2939', accent: '#29abe1', bannerA: '#2a465c', bannerB: '#1a2939', barA: '#2a465c', barB: '#1a2939', line: '#29abe1', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern Steam', en: 'Some features require Steam' } },
   };
-  const THEMES = { bar: 'Leiste', white: 'Weiß', dark: 'Dunkel', glass: 'Dunkel, durchscheinend' };
+  const THEMES = { bar: 'Leiste', white: 'Weiß', warm: 'Warmweiß', glasswhite: 'Durchsichtig weiß', glass: 'Durchsichtig schwarz', dark: 'Dunkel', violet: 'Dunkel mit Violett-Hauch' };
   /* Auswahl im Stil-Menü: Nur GOG hat zwei Farbvarianten (Lila mit Grün, dunkel mit Lila), bei Steam und Epic sind die Farben ohnehin dunkel. */
   function styleOptions(provider) {
-    return provider === 'gog' ? [['white', 'Weiß'], ['warm', 'Warmweiß'], ['dark', 'Dunkel'], ['violet', 'Dunkel mit Violett-Hauch'], ['glass', 'Dunkel, durchscheinend']] : [['bar', 'Leiste']];
+    return provider === 'gog' ? [['white', 'Weiß'], ['warm', 'Warmweiß'], ['glasswhite', 'Durchsichtig weiß'], ['glass', 'Durchsichtig schwarz'], ['dark', 'Dunkel'], ['violet', 'Dunkel mit Violett-Hauch']] : [['bar', 'Leiste']];
   }
   /* Höhe der Leiste (mm) und Beginn des Frontbildes: GOG hat eine schmale Leiste, bei "durchscheinend" liegt sie über dem Bild (Bild beginnt ganz oben) */
   const GOG_BAR_HEIGHT = 10;
@@ -357,7 +358,7 @@
     if (!LABELS[out.lang]) out.lang = 'de';
     if (!PROVIDERS[out.provider]) out.provider = 'gog';
     /* GOG: Weiß, Warmweiß, Dunkel, Dunkel mit Violett-Hauch oder durchscheinend. Alle früheren Stile (Leiste in GOG-Farben, dunkel mit Lila, Modern ...) werden zu "Dunkel" */
-    out.theme = out.provider === 'gog' ? (['white', 'warm', 'dark', 'violet', 'glass'].includes(out.theme) ? out.theme : 'dark') : 'bar';
+    out.theme = out.provider === 'gog' ? (['white', 'warm', 'glasswhite', 'glass', 'dark', 'violet'].includes(out.theme) ? out.theme : 'dark') : 'bar';
     if (!['dark', 'light'].includes(out.gogSpine)) out.gogSpine = 'dark';
     if (!['auto', 'white', 'black'].includes(out.pcColor)) out.pcColor = 'auto';
     out.gogText = out.gogText !== false;
