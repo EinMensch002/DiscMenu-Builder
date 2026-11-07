@@ -176,12 +176,12 @@ test('Anbieter: Farben, Schriftzüge und Hinweise sind vollständig', () => {
   assert.equal(new Set(brands).size, 3, 'Jeder Anbieter hat eine eigene Farbe');
 });
 
-test('Alle Grafiken, die das Tool lädt, sind vorhanden und nicht übergroß', () => {
+test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
   const fs = require('node:fs'), path = require('node:path');
   const root = path.join(__dirname, '..', 'cover-tool', 'assets', 'images');
   const need = [
-    'gog_logo.png',
-    ...C.USK_VALUES.map((v) => `usk/usk_${v}.png`),
+    'gog_logo.svg',
+    ...C.USK_VALUES.map((v) => `usk/usk_${v}.svg`),
     ...Object.values(C.DISCS).map((f) => `disc/${f}`),
   ];
   for (const f of C.FEATURE_ORDER) {                         // Linien-Symbole: alle Funktionen, klein und schwarz
@@ -193,9 +193,10 @@ test('Alle Grafiken, die das Tool lädt, sind vorhanden und nicht übergroß', (
   for (const f of need) {
     const p = path.join(root, f);
     assert.ok(fs.existsSync(p), 'fehlt: ' + f);
-    assert.ok(fs.statSync(p).size < 200 * 1024, 'zu groß: ' + f);
-    const b = fs.readFileSync(p);
-    assert.equal(b.readUInt32BE(16) <= 1000 && b.readUInt32BE(20) <= 1000, true, 'Bild zu hoch aufgelöst: ' + f);   // PNG-Kopf: Breite und Höhe
+    assert.ok(fs.statSync(p).size < 100 * 1024, 'zu groß: ' + f);
+    const t = fs.readFileSync(p, 'utf8');
+    assert.match(t, /^<svg /, 'kein SVG: ' + f);               // nur Vektorgrafiken, keine Rastergrafiken (auch nicht eingebettet)
+    assert.doesNotMatch(t, /<image|data:image/, 'eingebettetes Bild: ' + f);
   }
 });
 
@@ -252,4 +253,11 @@ test('Aufgeräumt: keine GOG-Original-Symbole und kein Galaxy-Feld mehr, Unterla
   assert.equal(C.mergeState({ frontPubPlate: 'black' }).frontPubPlate, 'black');
   assert.equal(C.mergeState({ frontPubPlate: 'rot', spinePubPlate: 'rot' }).spinePubPlate, 'white');
   assert.equal(C.mergeState({ galaxy: true }).galaxy, undefined);                    // alte Einstellung wird ignoriert
+});
+
+test('Im Bilderordner liegen keine Rastergrafiken', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]);
+  const bad = walk(path.join(__dirname, '..', 'cover-tool', 'assets', 'images')).filter((f) => /\.(png|jpe?g|gif|webp|bmp)$/i.test(f));
+  assert.deepEqual(bad, []);
 });

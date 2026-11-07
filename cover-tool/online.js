@@ -115,6 +115,9 @@
     await run('Steam-Shop', async () => { const r = await steamSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
     if (settings.key) await run('SteamGridDB', async () => { const r = await sgSearch('Half-Life'); return r.length + ' Treffer für den Test'; });
     else out.push({ name: 'SteamGridDB', ok: false, text: 'Kein API-Schlüssel eingetragen.' });
+    await run('Wikidata (Publisher-Logos)', async () => { await logoSearch('Valve'); return 'erreichbar'; });
+    if (settings.brandfetch) await run('Brandfetch', async () => { const r = await brandSearch('Valve'); return 'erreichbar, ' + r.length + ' Treffer für den Test'; });
+    else out.push({ name: 'Brandfetch', ok: true, text: 'Keine Client-ID eingetragen (optional).' });
     return out;
   }
 

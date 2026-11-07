@@ -174,7 +174,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.ok(cdnCalls.some((u) => /steam\/apps\/70\/logo\.png/.test(u)), 'Spiel-Logo für den Rücken wurde geladen');
   assert.equal(await page.locator('#spineLogoImg').isVisible(), true, 'Rücken zeigt das Logo statt des Titels');
   assert.deepEqual(await page.evaluate(() => [CoverApp.state.publisher, CoverApp.state.developer]), ['Valve', 'Valve']);
-  await page.waitForFunction(() => document.querySelector('#frontUsk').getAttribute('src') === 'assets/images/usk/usk_12.png');      // Altersfreigabe von Steam
+  await page.waitForFunction(() => document.querySelector('#frontUsk').getAttribute('src') === 'assets/images/usk/usk_12.svg');      // Altersfreigabe von Steam
   assert.equal(await page.inputValue('[data-k=usk]'), '12');
   // Prozessor: ein Intel-Eintrag in den Auswahlfeldern, die alte Grafikkarte bleibt Text (ohne NVIDIA davor)
   const cpuRows = page.locator('[data-pane=min] [data-hw=cpu] .hwrow'), gpuRows = page.locator('[data-pane=min] [data-hw=gpu] .hwrow');

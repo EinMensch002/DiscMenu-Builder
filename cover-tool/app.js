@@ -296,7 +296,7 @@
     setImg($('#backPub'), pubUrl);
 
     /* Alterskennzeichen (USK) */
-    const usk = state.usk === 'none' ? '' : 'assets/images/usk/usk_' + state.usk + '.png';
+    const usk = state.usk === 'none' ? '' : 'assets/images/usk/usk_' + state.usk + '.svg';
     setImg($('#frontUsk'), usk);
     setImg($('#backUsk'), state.uskBack ? usk : '');
     $('#frontUsk').style.opacity = String(Number(state.uskOpacity) / 100);

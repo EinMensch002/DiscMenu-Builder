@@ -221,7 +221,7 @@
     <details class="sec" open>
       <summary>Drucken</summary>
       <label class="chk"><input type="checkbox" data-k="cropMarks"> Schnittmarken an den Ecken</label>
-      <label class="chk"><input type="checkbox" data-k="foldLines"> Falzlinien am Rücken (gestrichelt)</label>
+      <label class="chk"><input type="checkbox" data-k="foldLines"> Falzmarken außerhalb des Covers (gestrichelt, an den Rückenkanten)</label>
       <p class="hint">Drucken: A4 quer, Skalierung 100 %, Ränder „Keine“, Hintergrundgrafiken aktivieren.</p>
     </details>
   </form>
@@ -233,6 +233,7 @@
         <div class="wrap" id="wrap">
           <span class="mark tl-v"></span><span class="mark tl-h"></span><span class="mark tr-v"></span><span class="mark tr-h"></span>
           <span class="mark bl-v"></span><span class="mark bl-h"></span><span class="mark br-v"></span><span class="mark br-h"></span>
+          <span class="fold f1t"></span><span class="fold f1b"></span><span class="fold f2t"></span><span class="fold f2b"></span>
           <div class="cover theme-bar" id="cover">
 
             <section class="back" id="back">
@@ -254,19 +255,18 @@
             </section>
 
             <section class="spine" id="spine">
-              <div class="spine-head"><img class="spine-logo brand-logo" id="spineLogo" src="assets/images/gog_logo.png" alt="GOG"><span class="wm" id="spineWm"></span></div>
+              <div class="spine-head"><img class="spine-logo brand-logo" id="spineLogo" src="assets/images/gog_logo.svg" alt="GOG"><span class="wm" id="spineWm"></span></div>
               <div class="spine-box" id="spineBox"><i class="mmprobe" id="mmProbe"></i><span class="spine-title" id="spineTitle"></span><img class="spine-art" id="spineLogoImg" alt="" hidden></div>
               <div class="spine-foot" id="spineFoot"><span class="spine-pubbox" id="spinePubBox" hidden><img class="spine-pub" id="spinePubImg" alt="" hidden></span><span class="pc">PC</span></div>
             </section>
 
             <section class="front" id="front">
               <span class="ph">Frontcover</span>
-              <div class="gog-bar"><img class="brand-logo" src="assets/images/gog_logo.png" alt="GOG"><span class="wm" id="barWm"></span><b id="frontTag"></b></div>
+              <div class="gog-bar"><img class="brand-logo" src="assets/images/gog_logo.svg" alt="GOG"><span class="wm" id="barWm"></span><b id="frontTag"></b></div>
               <img class="usk" id="frontUsk" alt="">
               <img class="front-pub" id="frontPub" alt="">
             </section>
 
-            <span class="fold f1"></span><span class="fold f2"></span>
           </div>
         </div>
       </div>

@@ -89,7 +89,7 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   await page.selectOption('[data-k=usk]', 'none');
   await page.waitForFunction(() => document.querySelector('#frontUsk').hidden);
   await page.selectOption('[data-k=usk]', '18');
-  await page.waitForFunction(() => document.querySelector('#frontUsk').getAttribute('src') === 'assets/images/usk/usk_18.png');
+  await page.waitForFunction(() => document.querySelector('#frontUsk').getAttribute('src') === 'assets/images/usk/usk_18.svg');
   const wNormal = (await page.locator('#cover').boundingBox()).width;
   await page.check('[data-k=caseType][value=slim]');
   await page.waitForTimeout(100);

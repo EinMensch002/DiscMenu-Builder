@@ -103,9 +103,16 @@ test('Steam: Fehler des Proxys werden in verständliche Meldungen übersetzt', a
   const ok = (url) => { const t = new URL(url).searchParams.get('url'); return /storesearch/.test(t) ? { items: [{ id: 70, name: 'Half-Life' }] } : { success: true, data: [{ id: 1 }] }; };
   O.settings.save('KEY', 'https://proxy.example/?url={url}');
   const good = await run(async (u) => { const b = ok(u); return { ok: true, status: 200, json: async () => b, text: async () => '' }; }, () => O.testConnection());
-  assert.deepEqual(good.map((r) => [r.name, r.ok]), [['Steam-Shop', true], ['SteamGridDB', true]]);
+  assert.deepEqual(good.map((r) => [r.name, r.ok]), [['Steam-Shop', true], ['SteamGridDB', true], ['Wikidata (Publisher-Logos)', true], ['Brandfetch', true]]);
+  assert.match(good[3].text, /optional/);                                   // ohne Client-ID: kein Fehler
+  O.settings.saveBrandfetch('ID1');
+  const bfOk = await run(async (u) => ({ ok: true, status: 200, json: async () => (/brandfetch/.test(u) ? [{ brandId: 'b', name: 'Valve', domain: 'valve.com' }] : { search: [] }), text: async () => '' }), () => O.testConnection());
+  assert.deepEqual(bfOk.slice(-2).map((r) => [r.name, r.ok]), [['Wikidata (Publisher-Logos)', true], ['Brandfetch', true]]); assert.match(bfOk[bfOk.length - 1].text, /1 Treffer/);
+  const bfBad = await run(async (u) => ({ ok: false, status: /brandfetch/.test(u) ? 403 : 200, json: async () => ({ search: [] }), text: async () => '' }), () => O.testConnection());
+  assert.equal(bfBad[bfBad.length - 1].ok, false); assert.match(bfBad[bfBad.length - 1].text, /abgelehnt/);
+  O.settings.saveBrandfetch('');
   O.settings.save('', '');
   const none = await run(async () => { throw new TypeError('x'); }, () => O.testConnection());
-  assert.deepEqual(none.map((r) => [r.name, r.ok]), [['Proxy', false], ['Steam-Shop', false], ['SteamGridDB', false]]);
+  assert.deepEqual(none.map((r) => [r.name, r.ok]), [['Proxy', false], ['Steam-Shop', false], ['SteamGridDB', false], ['Wikidata (Publisher-Logos)', false], ['Brandfetch', true]]);
   assert.match(none[0].text, /Kein Proxy/); assert.match(none[2].text, /Kein API-Schlüssel/);
 });

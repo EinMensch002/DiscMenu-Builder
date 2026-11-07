@@ -74,7 +74,7 @@
   function openSettings() {
     const key = h('input', { type: 'password', autocomplete: 'off', placeholder: 'API-Schlüssel' }); key.value = O.settings.key;
     const proxy = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', placeholder: 'https://mein-proxy.example.workers.dev/?url={url}' }); proxy.value = O.settings.proxy;
-    const bf = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', placeholder: 'Client-ID von Brandfetch (optional)' }); bf.value = O.settings.brandfetch;
+    const bf = h('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', placeholder: 'Client-ID von Brandfetch (optional)' }); bf.value = O.settings.brandfetch;
     const pw = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'Passwort (optional)' });
     const msg = h('p', { class: 'dmsg' }), msg2 = h('p', { class: 'dmsg' }), tests = h('div', { class: 'dmsg' });
     const fin = h('input', { type: 'file', accept: '.json,application/json', hidden: true, onchange: async () => {

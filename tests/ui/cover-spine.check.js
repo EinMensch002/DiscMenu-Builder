@@ -133,10 +133,16 @@ async function image(page, key, w, h, draw, type = 'image/png') {
   const sheet = async () => page.evaluate(() => { const r = document.querySelector('#wrap').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
   const sizeBefore = await sheet();
 
-  // ---- Falzlinien: Das Blatt bleibt sichtbar (früher verschwand es), die Linien erscheinen, auch im Druck ----
+  // ---- Falzmarken: Das Blatt bleibt sichtbar (früher verschwand es), die Linien erscheinen, auch im Druck ----
   await page.check('[data-k=foldLines]'); await page.waitForTimeout(200);
   assert.deepEqual(await sheet(), sizeBefore, 'Blatt behält seine Größe');
   assert.equal(await page.locator('.fold').first().isVisible(), true);
+  // Falzmarken liegen außerhalb des Covers (oben und unten) auf Höhe der Rückenkanten, nicht auf dem Cover
+  const cb = await page.locator('#cover').boundingBox(), fb = await page.locator('.fold').evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y, b: r.bottom }; }));
+  assert.equal(fb.length, 4);
+  for (const f of fb) assert.ok(f.b <= cb.y + 0.5 || f.y >= cb.y + cb.height - 0.5, 'Marke liegt außerhalb des Covers');
+  const edges = await page.evaluate(() => { const k = document.querySelector('#cover').getBoundingClientRect().width / CoverApp.state.caseW; return k; }).catch(() => null);
+  assert.ok(Math.abs(fb[2].x - fb[0].x) > 5, 'zwei verschiedene Kanten'); assert.ok(Math.abs(fb[0].x - fb[1].x) < 1 && Math.abs(fb[2].x - fb[3].x) < 1, 'oben und unten auf gleicher Höhe');
   assert.equal(await page.locator('#cover').isVisible(), true);
   await page.emulateMedia({ media: 'print' });
   assert.equal(await page.locator('.fold').first().isVisible(), true, 'Falzlinien auch im Druck');

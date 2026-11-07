@@ -103,7 +103,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 ### Cover-Tool (Web-App, live unter /cover/)
 
 - [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, Deutsch oder Englisch
-- [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzlinien (Test im Browser)
+- [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzmarken (Test im Browser)
 - [x] Prozessoren und Grafikkarten als Listen (mehrere Einträge, an- und ausschaltbar, GeForce/Radeon, Speicher in GB), Import zerlegt "or" in einzelne Zeilen
 - [x] Rückseite mit festen Plätzen: nichts verschiebt sich beim Ausblenden der USK
 - [x] Stil "Leiste" (Kopfleiste wie bei Handelsspielen) für alle Anbieter, bei GOG in zwei Farbvarianten

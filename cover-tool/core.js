@@ -39,7 +39,7 @@
   }
 
   /* Rückseite: oben das Bild, dann der grüne Streifen, unten die Angaben. */
-  const BACK = { banner: 13, bottom: 46 };
+  const BACK = { banner: 15, bottom: 46 };
 
   /* Größe, in der die Bilder für den Druck angelegt werden sollten */
   /* Höhe der Kopfleiste (mm): Das Frontbild füllt nur den Teil darunter */
@@ -77,7 +77,7 @@
   const USK_VALUES = ['0', '6', '12', '16', '18'];
   /* Anbieter: Farben und Schriftzug. Es gibt nur Text und Farben, keine Logos (außer dem vorhandenen GOG-Logo). */
   const PROVIDERS = {
-    gog: { name: 'GOG', logo: 'gog_logo.png', wordmark: '', brand: '#89268d', onBrand: '#ffffff', dark: '#17101f', mid: '#2b1842', accent: '#d65cff', bannerA: '#a8e02a', bannerB: '#84c01a', barA: '#9b32a3', barB: '#6c1c72', line: '#a8e02a', darkBar: { barA: '#37373e', barB: '#1b1b1f', line: '#b45ad1', spine: '#232328' }, tag: { de: 'PC · DRM-FREI', en: 'PC · DRM-FREE' }, note: { de: 'Einige Funktionen erfordern GOG Galaxy', en: 'Some features require GOG Galaxy' } },
+    gog: { name: 'GOG', logo: 'gog_logo.svg', wordmark: '', brand: '#89268d', onBrand: '#ffffff', dark: '#17101f', mid: '#2b1842', accent: '#d65cff', bannerA: '#a8e02a', bannerB: '#84c01a', barA: '#9b32a3', barB: '#6c1c72', line: '#a8e02a', darkBar: { barA: '#37373e', barB: '#1b1b1f', line: '#b45ad1', spine: '#232328' }, tag: { de: 'PC · DRM-FREI', en: 'PC · DRM-FREE' }, note: { de: 'Einige Funktionen erfordern GOG Galaxy', en: 'Some features require GOG Galaxy' } },
     epic: { name: 'Epic Games', logo: 'epic_logo.svg', wordmark: 'EPIC GAMES', brand: '#2d2d33', onBrand: '#ffffff', dark: '#0f0f12', mid: '#26262b', accent: '#d6dae4', bannerA: '#3a3a42', bannerB: '#222227', barA: '#3a3a42', barB: '#222227', line: '#d6dae4', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern den Epic Games Launcher', en: 'Some features require the Epic Games Launcher' } },
     steam: { name: 'Steam', logo: 'steam_logo.svg', wordmark: 'STEAM', brand: '#23394c', onBrand: '#e3e9f0', dark: '#06090d', mid: '#1a2939', accent: '#29abe1', bannerA: '#2a465c', bannerB: '#1a2939', barA: '#2a465c', barB: '#1a2939', line: '#29abe1', tag: { de: 'PC', en: 'PC' }, note: { de: 'Einige Funktionen erfordern Steam', en: 'Some features require Steam' } },
   };
@@ -86,7 +86,7 @@
   function styleOptions(provider) {
     return provider === 'gog' ? [['bar', 'GOG-Farben (Lila mit Grün)'], ['bar-dark', 'Dunkel mit Lila']] : [['bar', 'Leiste']];
   }
-  const DISCS = { cd: 'cd.png', dvd: 'dvd.png', bluray: 'blu-ray.png' };
+  const DISCS = { cd: 'cd.svg', dvd: 'dvd.svg', bluray: 'blu-ray.svg' };
 
   /* 0,5 -> "500 MB", 4 -> "4 GB", "4,5" -> "4.5 GB" */
   function formatStorage(value, unit) {
