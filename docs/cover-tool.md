@@ -18,7 +18,7 @@
 
 ## Standardwerte
 
-Neue Projekte starten mit **GOG, normaler Hülle (14 mm), DVD, dem Stil Durchsichtig weiß**, dem Rücken passend zur Leiste, dem Rückentitel mittig und **eingeschalteten Falzmarken**. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
+Neue Projekte starten mit **GOG, normaler Hülle (14 mm), DVD, dem Stil Durchsichtig schwarz**, sichtbarem "GOG.COM", dem Rücken passend zur Leiste, dem Rückentitel mittig und **eingeschalteten Falzmarken**. Wer schon gespeicherte Einstellungen im Browser hat, behält diese. "Zurücksetzen" in der Leiste stellt die Standardwerte her.
 
 ## Schnellstart
 
@@ -194,7 +194,7 @@ Für Hüllen mit anderen Maßen (z. B. Blu-ray) gibt es "Eigene Maße": Breite d
 
 Es gibt einen Stil für alle Anbieter, die **Leiste**: Kopfleiste mit Farbverlauf über die ganze Breite der Vorderseite, Logo (bei Steam und Epic mit Schriftzug, bei GOG schmal, siehe unten) und Hinweis "PC", darunter eine **Akzentlinie, die über den Rücken durchläuft** (Steam blau, Epic hellgrau, GOG nur bei "Dunkel" in feinem Lila). Auf dem Rücken steht das Logo in derselben Leiste. Das **Frontbild beginnt unter der Leiste** (es wird nicht überdeckt), die Maßangabe am Bildfeld zeigt dafür die passende Höhe (z. B. 129 × 164,4 mm bei Steam und Epic, 129 × 173 mm bei GOG, statt 183 mm). Passt das Seitenverhältnis nicht, wird unten statt oben abgeschnitten.
 
-Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, damit auf Blu-ray-Hüllen Platz für das Bild bleibt, und es gibt sechs Varianten (Feld "Stil", ein **Schieberegler mit sechs Punkten** von hell nach dunkel, die Punkte lassen sich auch anklicken). **Weiß** ist der Standard:
+Bei **GOG** ist die Leiste wie bei den echten GOG-Hüllen **schmal (10 mm)**, damit auf Blu-ray-Hüllen Platz für das Bild bleibt, und es gibt sechs Varianten (Feld "Stil", ein **Schieberegler mit sechs Punkten** von hell nach dunkel, die Punkte lassen sich auch anklicken). **Durchsichtig schwarz** ist der Standard:
 
 - **Weiß:** helle Leiste mit feiner Trennlinie, dem **Rahmen-Logo** (`gog_logo_outline.svg`, dunkel gezeichnet) und dunkler Schrift. Der Streifen mit den Spielfunktionen ist hellgrau.
 - **Warmweiß:** wie Weiß, aber mit warmem Hellgrau statt reinem Weiß (auf Papier weniger kalt).

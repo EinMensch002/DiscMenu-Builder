@@ -316,7 +316,7 @@
   /* --- Standardwerte und Speichern --- */
   function defaultState() {
     return {
-      caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'glasswhite', gogText: true, gogSpine: 'match', pcColor: 'auto', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
+      caseType: 'normal', disc: 'dvd', lang: 'de', theme: 'glass', gogText: true, gogSpine: 'match', pcColor: 'auto', provider: 'gog', title: '', copyright: '© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.',
       custom: { back: '130', spine: '14', front: '129', h: '183' },
       usk: '0', uskOpacity: '100', frontFit: 'stretch', frontZoom: '100', frontX: '50', frontY: '50', uskBack: true, spineLogo: 'fixed', cropMarks: true, foldLines: true, breakHw: false,
       features: ['single_player'],

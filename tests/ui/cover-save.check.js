@@ -27,10 +27,11 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'cover-tool', 'index
 
   // Standardwerte: GOG dunkel (schmale Leiste), Titel mittig, USK voll deckend
   const cv = (v) => page.locator('#cover').evaluate((e, n) => getComputedStyle(e).getPropertyValue(n).trim(), v);
-  assert.equal(await page.inputValue('[data-k=theme]'), 'glasswhite', 'Standard: Durchsichtig weiß');
+  assert.equal(await page.inputValue('[data-k=theme]'), 'glass', 'Standard: Durchsichtig schwarz');
+  assert.equal(await page.locator('[data-k=gogText]').isChecked(), true, 'GOG.COM ist standardmäßig sichtbar'); assert.equal(await page.locator('#barWm').isVisible(), true);
   assert.equal(await page.inputValue('[data-k=gogSpine]'), 'match'); assert.equal(await page.locator('[data-k=foldLines]').isChecked(), true, 'Falzmarken sind standardmäßig an');
   assert.equal(await page.inputValue('[data-k=caseType]:checked'), 'normal'); assert.equal(await page.inputValue('[data-k=disc]:checked'), 'dvd');
-  assert.equal(await page.locator('#spine').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(241, 241, 244)', 'Rücken passt zur hellen Leiste');
+  assert.equal(await page.locator('#spine').evaluate((e) => getComputedStyle(e).backgroundColor), 'rgb(35, 35, 40)', 'Rücken passt zur dunklen Leiste');
   assert.deepEqual(await page.locator('[data-k=theme] option').allTextContents(), ['Weiß', 'Warmweiß', 'Durchsichtig weiß', 'Durchsichtig schwarz', 'Dunkel', 'Dunkel mit Violett-Hauch']);
   await page.selectOption('[data-k=theme]', 'dark'); await page.waitForTimeout(150);
   assert.equal(await cv('--barB'), '#18181c');

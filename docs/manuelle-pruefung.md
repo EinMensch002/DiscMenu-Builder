@@ -113,4 +113,4 @@ Das [Cover-Tool](cover-tool.md) ist mit nachgebauten Diensten und im Browser-Dru
 - [ ] **USK-Hintergrund:** Bei 0 % steht nur die Raute (kein roter Rand), bei 100 % wie gewohnt. Auf der Rückseite nur die Raute.
 - [ ] **GOG-Varianten:** Weiß, Warmweiß, Durchsichtig weiß, Durchsichtig schwarz, Dunkel und Dunkel mit Violett-Hauch sehen gedruckt gut aus. Bei "durchscheinend" kein Strich links oder rechts oben in der Leiste (Linien im Bild selbst sind Teil des Covers). "Rücken hell" und die Farbe von "PC" (Weiß/Schwarz) wirken auf dem Ausdruck gut.
 - [ ] **Englische Oberfläche:** Sprache oben auf English stellen: alle Beschriftungen, Dialoge und Meldungen sind englisch, das Feld "Sprache der Beschriftung" fehlt, das Cover ist englisch beschriftet.
-- [ ] **Standardstart:** Nach "Zurücksetzen" ist GOG, normale Hülle, DVD, Durchsichtig weiß mit passendem hellem Rücken eingestellt, die Falzmarken stehen unten und oben außerhalb des Covers.
+- [ ] **Standardstart:** Nach "Zurücksetzen" ist GOG, normale Hülle, DVD, Durchsichtig schwarz mit passendem dunklem Rücken und sichtbarem GOG.COM eingestellt, die Falzmarken stehen unten und oben außerhalb des Covers.
