@@ -178,6 +178,31 @@ async function image(page, key, w, h, draw, type = 'image/png') {
   assert.equal(await page.locator('[data-img=spineBg]').evaluate((e) => e.classList.contains('has')), false, 'nach Zurücksetzen kommt nichts zurück');
   assert.equal(await page.locator('#autoInfo').textContent(), '');
 
+  // Längen in Millimetern: Pfeiltasten in 0,25-mm-Schritten, bei den Abständen am Rücken sind negative Werte erlaubt (Logo wird größer, überstehender Rand wird abgeschnitten)
+  await page.evaluate(() => CoverApp.reset && CoverApp.reset());
+  await page.reload(); await page.waitForTimeout(500);
+  await image(page, 'spineLogo', 400, 100, "ctx.fillStyle='#09f';ctx.fillRect(0,0,w,h);");
+  await page.evaluate(() => CoverApp.patch({ spineUseLogo: true, spineLogoRot: 'yes', spineLogoSide: '1.5', spineLogoTop: '3', spineLogoBottom: '3' }));
+  for (const k of ['spineLogoSide', 'spineLogoTop', 'spineLogoBottom', 'spinePubSide', 'spinePubWidth', 'custom.back', 'custom.spine', 'custom.front', 'custom.h']) {
+    assert.equal(await page.locator('[data-k="' + k + '"]').getAttribute('type'), 'number', k + ' ist ein Zahlenfeld');
+    assert.equal(await page.locator('[data-k="' + k + '"]').getAttribute('step'), '0.25', k + ' geht in 0,25-mm-Schritten');
+  }
+  const logoW = () => page.evaluate(() => document.querySelector('#spineLogoImg').getBoundingClientRect().width);
+  await page.fill('[data-k=spineLogoSide]', '1.5'); await page.waitForTimeout(150);
+  const w0 = await logoW();
+  await page.locator('[data-k=spineLogoSide]').focus(); await page.keyboard.press('ArrowUp'); await page.waitForTimeout(100);
+  assert.equal(await page.inputValue('[data-k=spineLogoSide]'), '1.75', 'Pfeil nach oben: +0,25 mm');
+  await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown'); await page.waitForTimeout(100);
+  assert.equal(await page.inputValue('[data-k=spineLogoSide]'), '1.25', 'Pfeil nach unten: -0,25 mm');
+  await page.fill('[data-k=spineLogoSide]', '-2'); await page.waitForTimeout(200);
+  assert.equal(await page.inputValue('[data-k=spineLogoSide]'), '-2', 'negative Zahl bleibt stehen');
+  assert.ok(await logoW() > w0 + 1, 'Negativer Abstand macht das Logo größer');
+  await page.fill('[data-k=spineLogoTop]', '-3'); await page.waitForTimeout(200);
+  assert.equal(await page.locator('#spineBox').evaluate((e) => e.classList.contains('free')), true, 'Mit negativem Abstand darf das Logo über das Feld hinausragen');
+  await page.fill('[data-k=spineLogoTop]', '3'); await page.waitForTimeout(150);
+  assert.equal(await page.locator('#spineBox').evaluate((e) => e.classList.contains('free')), false);
+  assert.ok((await page.locator('#sheet').boundingBox()).width > 100, 'Blatt bleibt sichtbar');
+
   assert.deepEqual(errors, []);
   await browser.close();
   console.log('Cover-Tool-Rücken-Test bestanden');

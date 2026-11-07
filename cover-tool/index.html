@@ -53,10 +53,10 @@
         <div class="custom" id="customBox" hidden>
           <p class="hint">Maße des ausgebreiteten Einlegers in Millimetern. Miss am besten deinen Einleger nach, die Werte der Hersteller weichen ab. Das Cover plus Schnittmarken muss auf A4 quer passen (bis 285 mm Breite, 198 mm Höhe).</p>
           <div class="four">
-            <label class="f"><span class="lab">Rückseite (Breite)</span><input type="text" inputmode="decimal" data-k="custom.back" size="5"></label>
-            <label class="f"><span class="lab">Rücken</span><input type="text" inputmode="decimal" data-k="custom.spine" size="5"></label>
-            <label class="f"><span class="lab">Vorderseite (Breite)</span><input type="text" inputmode="decimal" data-k="custom.front" size="5"></label>
-            <label class="f"><span class="lab">Höhe</span><input type="text" inputmode="decimal" data-k="custom.h" size="5"></label>
+            <label class="f"><span class="lab">Rückseite (Breite)</span><input type="number" inputmode="decimal" step="0.25" data-k="custom.back"></label>
+            <label class="f"><span class="lab">Rücken</span><input type="number" inputmode="decimal" step="0.25" data-k="custom.spine"></label>
+            <label class="f"><span class="lab">Vorderseite (Breite)</span><input type="number" inputmode="decimal" step="0.25" data-k="custom.front"></label>
+            <label class="f"><span class="lab">Höhe</span><input type="number" inputmode="decimal" step="0.25" data-k="custom.h"></label>
           </div>
           <div class="drow"><span class="dmsg">Vorlagen (Richtwerte):</span>
             <button type="button" data-preset="bluray">Blu-ray</button><button type="button" data-preset="blurayslim">Blu-ray Slim</button></div>
@@ -141,11 +141,11 @@
       <div class="two">
         <label class="f"><span class="lab">Rückenlogo: Ausrichtung</span>
           <select data-k="spineLogoRot" data-seg><option value="auto">Automatisch (gedreht, wenn breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
-        <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spineLogoSide" size="4" inputmode="decimal"></label>
+        <label class="f"><span class="lab">Abstand zur Seite (mm, auch negativ)</span><input type="number" step="0.25" data-k="spineLogoSide" inputmode="decimal"></label>
       </div>
       <div class="two">
-        <label class="f"><span class="lab">Rückenlogo: Abstand zum Kopf oben (mm)</span><input type="text" data-k="spineLogoTop" size="4" inputmode="decimal"></label>
-        <label class="f"><span class="lab">Abstand zum Fuß unten (mm)</span><input type="text" data-k="spineLogoBottom" size="4" inputmode="decimal"></label>
+        <label class="f"><span class="lab">Rückenlogo: Abstand zum Kopf oben (mm, auch negativ)</span><input type="number" step="0.25" data-k="spineLogoTop" inputmode="decimal"></label>
+        <label class="f"><span class="lab">Abstand zum Fuß unten (mm, auch negativ)</span><input type="number" step="0.25" data-k="spineLogoBottom" inputmode="decimal"></label>
       </div>
       <label class="chk"><input type="checkbox" data-k="spinePub"> Publisher-Logo am Fuß des Rückens anzeigen (über "PC", das immer ganz unten steht)</label>
       <label class="f"><span class="lab">Unterlage hinter dem Publisher-Logo auf dem Rücken</span>
@@ -153,9 +153,9 @@
       <div class="two">
         <label class="f"><span class="lab">Publisher-Logo: Ausrichtung</span>
           <select data-k="spinePubRot" data-seg><option value="auto">Automatisch (gedreht, wenn zu breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
-        <label class="f"><span class="lab">Abstand zur Seite (mm)</span><input type="text" data-k="spinePubSide" size="4" inputmode="decimal"></label>
+        <label class="f"><span class="lab">Abstand zur Seite (mm, auch negativ)</span><input type="number" step="0.25" data-k="spinePubSide" inputmode="decimal"></label>
       </div>
-      <label class="f"><span class="lab">Publisher-Logo: Breite in mm (leer = automatisch)</span><input type="text" data-k="spinePubWidth" size="4" inputmode="decimal" placeholder="automatisch"></label>
+      <label class="f"><span class="lab">Publisher-Logo: Breite in mm (leer = automatisch)</span><input type="number" step="0.25" min="0" data-k="spinePubWidth" inputmode="decimal" placeholder="automatisch"></label>
       <label class="chk"><input type="checkbox" data-k="spinePC"> "PC" am Fuß des Rückens</label>
     </details>
 

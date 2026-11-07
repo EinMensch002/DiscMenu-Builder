@@ -45,8 +45,8 @@ button.pri:hover { filter: brightness(1.1); }
 .f { display: block; margin-bottom: 10px; }
 .grp { margin-bottom: 12px; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-input[type=text], input[type=password], select { width: 100%; padding: 7px 10px; border: 1px solid #c8cdd8; border-radius: 7px; font: inherit; background: #fff; color: var(--txt); }
-input[type=text]:focus, input[type=password]:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--acc) 40%, transparent); border-color: var(--acc); }
+input[type=text], input[type=number], input[type=password], select { width: 100%; padding: 7px 10px; border: 1px solid #c8cdd8; border-radius: 7px; font: inherit; background: #fff; color: var(--txt); }
+input[type=text]:focus, input[type=number]:focus, input[type=password]:focus, select:focus { outline: 2px solid color-mix(in srgb, var(--acc) 40%, transparent); border-color: var(--acc); }
 .chk { display: flex; gap: 8px; align-items: center; font-size: 13.5px; cursor: pointer; margin: 6px 0; }
 .chk input { margin: 0; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
@@ -344,3 +344,6 @@ dialog .f small { display: block; margin-top: 3px; }
 .jump { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: #fafbfc; position: sticky; top: 58px; z-index: 5; }
 .jump button { padding: 4px 10px; font-size: 12px; border-radius: 999px; }
 .jump button.on { border-color: var(--acc); color: var(--acc); background: var(--acc-soft); }
+
+/* Negative Abstände beim Rückenlogo: Es darf über den Rand seines Feldes (zum Kopf und Fuß hin) hinausragen, auf dem Rücken bleibt es sichtbar */
+.spine-box.free { overflow: visible; }

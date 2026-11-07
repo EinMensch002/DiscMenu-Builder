@@ -234,6 +234,11 @@ Oben in der Leiste steht ein **Sprachmenü mit Flagge** (Deutsch, English). Es s
 
 Damit sich das Tool auch ohne Vorkenntnisse bedienen lässt, stehen **Auswahlen mit wenigen Möglichkeiten als Schaltflächen** da (z. B. Anbieter, Hülle, Disc-Medium, Sprache der Beschriftung, Frontbild einpassen, Rücken hell oder dunkel, Farbe von "PC"): Man sieht alle Möglichkeiten auf einen Blick und wählt mit einem Klick statt über eine Aufklappliste. Der **Stil** ist ein Schieberegler mit Farbvorschau. Oben im Formular stehen **Sprungknöpfe zu allen Bereichen** (Hülle und Stil, Titel und Texte, Bilder ...), sie öffnen den Bereich und springen hin.
 
+
+### Längen in Millimetern und negative Abstände
+
+Alle Felder, in denen man eine Länge in **Millimetern** eingibt (eigene Hüllenmaße, Abstände und Breite von Rückenlogo und Publisher-Logo am Rücken), sind Zahlenfelder: Mit **Pfeil nach oben und unten** (oder den kleinen Pfeilen im Feld) geht der Wert in **0,25-mm-Schritten**. Bei den **Abständen am Rücken** (zur Seite, zum Kopf oben, zum Fuß unten) sind auch **negative Zahlen** erlaubt: Das Logo wird dann größer und ragt über seinen Rahmen hinaus. Das hilft bei Logos mit viel leerem Rand ums Bild. Zur Seite hin wird alles am Rand des Rückens abgeschnitten, damit nichts auf Vorder- oder Rückseite zu sehen ist. Nach oben und unten darf das Logo über sein Feld hinaus in den Bereich von Leiste und "PC" ragen. Das kann dort etwas überdecken, bitte im Ausdruck prüfen.
+
 ## Feste Plätze auf der Rückseite
 
 Die Rückseite hat feste Plätze: links die **Angaben** (am linken Rand, so breit wie möglich), rechts eine **schmale Spalte** mit **Publisher-Logo, Disc-Logo und USK** übereinander, unten in der Mitte das **Copyright**. Schaltet man die USK auf der Rückseite aus, **bleibt der Platz frei** und nichts rutscht. Die Angaben beginnen immer an derselben Stelle, fehlt eine Zeile, bleibt unten Platz. Das prüft ein automatischer Test.

@@ -522,7 +522,7 @@
     box.hidden = !(state.spinePub && pub);
     if (box.hidden) return;
     const c = C.caseDims(state), pad = 0.6;
-    const side = num(state.spinePubSide, 1.2, 0, Math.max(0, c.spine / 2 - 2)), manual = num(state.spinePubWidth, 0, 0, 60);
+    const side = num(state.spinePubSide, 1.2, -10, Math.max(0, c.spine / 2 - 2)), manual = num(state.spinePubWidth, 0, 0, 60);
     const across = Math.max(2, c.spine - 2 * side) - 2 * pad;
     const fit = C.fitLogo(aspectOf(pub, el), state.spinePubRot, across, 30, manual > 0 ? manual - 2 * pad : 0, 4);
     const w = fit.w, h = fit.h, mm = (n) => n.toFixed(2) + 'mm';
@@ -535,7 +535,8 @@
     const box = $('#spineBox'), li = $('#spineLogoImg'), sl = images.spineLogo;
     if (li.hidden || !sl) return;
     const c = C.caseDims(state), probe = $('#mmProbe'), k = probe.offsetWidth / 10 || 3.78;          // Pixel je mm (unabhängig von der Vorschaugröße)
-    const side = num(state.spineLogoSide, 1.5, 0, Math.max(0, c.spine / 2 - 2)), top = num(state.spineLogoTop, 3, 0, 60), bottom = num(state.spineLogoBottom, 3, 0, 60);
+    const side = num(state.spineLogoSide, 1.5, -10, Math.max(0, c.spine / 2 - 2)), top = num(state.spineLogoTop, 3, -30, 60), bottom = num(state.spineLogoBottom, 3, -30, 60);
+    box.classList.toggle('free', top < 0 || bottom < 0);
     const along = Math.max(5, box.clientHeight / k - top - bottom), across = Math.max(2, c.spine - 2 * side);
     const a = aspectOf(sl, li), fit = C.fitLogo(a, state.spineLogoRot === 'auto' ? (a > 1.4 ? 'yes' : 'no') : state.spineLogoRot, across, along, 0, 0);
     li.style.width = (fit.w * k) + 'px'; li.style.height = (fit.h * k) + 'px';
