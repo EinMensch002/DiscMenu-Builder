@@ -58,17 +58,20 @@
     const w = 40, h = kind === 'triangle' ? 35 : 40;
     change(() => { add(C.newItem('shape', { shape: kind, color: '#e8a33a', ...center(w, h), w, h, pts: C.defaultPts(kind) })); }, { panel: true });
   }
-  /* Schriftdatei wählen und für dieses Textelement verwenden */
+  /* Schriftdateien wählen (mehrere möglich). Die zuletzt hinzugefügte gilt für dieses Textelement. */
   function addFontFile(it) {
-    const inp = el('input'); inp.type = 'file'; inp.accept = '.woff2,.woff,.ttf,.otf,font/*'; inp.id = 'bedFontFile';
+    const inp = el('input'); inp.type = 'file'; inp.accept = '.woff2,.woff,.ttf,.otf,font/*'; inp.multiple = true; inp.id = 'bedFontFile';
     inp.addEventListener('change', async () => {
-      const f = inp.files[0]; if (!f) return;
-      try {
-        const raw = await App.fonts.fromFile(f);
-        const same = App.fonts.list().find((x) => x.name.toLowerCase() === raw.name.toLowerCase());
-        const rec = same ? await App.fonts.replace(raw.name, raw) : await App.fonts.add(raw);
-        change(() => update(it, { font: rec.id }), { panel: true });
-      } catch (e) { alert(e.message); }
+      const files = [...inp.files]; let last = null; const errs = [];
+      for (const f of files) {
+        try {
+          const raw = await App.fonts.fromFile(f);
+          const same = App.fonts.list().find((x) => x.name.toLowerCase() === raw.name.toLowerCase());
+          last = same ? await App.fonts.replace(raw.name, raw) : await App.fonts.add(raw);
+        } catch (e) { errs.push(e.message); }
+      }
+      if (last) change(() => update(it, { font: last.id }), { panel: true });
+      [...new Set(errs)].forEach((m) => alert(m));
     });
     inp.hidden = true; document.body.append(inp); inp.click(); setTimeout(() => inp.remove(), 60000);
   }
@@ -558,8 +561,8 @@
   }
   function buildTplBar() {
     const own = App.templates.list();
-    const fin = el('input'); fin.type = 'file'; fin.accept = '.json,application/json'; fin.hidden = true; fin.id = 'bedTplFile';
-    fin.addEventListener('change', () => { const f = fin.files[0]; fin.value = ''; if (f) importTemplates(f); });
+    const fin = el('input'); fin.type = 'file'; fin.accept = '.json,application/json'; fin.multiple = true; fin.hidden = true; fin.id = 'bedTplFile';
+    fin.addEventListener('change', async () => { const files = [...fin.files]; fin.value = ''; for (const f of files) await importTemplates(f); });
     const nodes = Object.entries(C.BACK_TEMPLATES).map(([id, label]) => tplCard(id, label));
     if (own.length) nodes.push(el('h4', 'tpl-h', 'Eigene Vorlagen'));
     for (const t of own) {

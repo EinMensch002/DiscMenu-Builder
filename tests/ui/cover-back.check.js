@@ -78,6 +78,13 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForTimeout(300);
   assert.ok(dialogs.some((m) => /keine Schriftdatei/.test(m)));
   assert.equal(await page.evaluate(() => CoverApp.fonts.list().length), 1, 'Nur die gültige Schrift wurde gespeichert');
+  // Mehrere Schriftdateien auf einmal: die zuletzt hinzugefügte gilt für den Text
+  const fchM = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
+  await (await fchM).setFiles([path.resolve(path.dirname(latoPath), 'Lato-Regular.ttf'), path.resolve(path.dirname(latoPath), 'Lato-Light.ttf')]);
+  await page.waitForFunction(() => CoverApp.fonts.list().length === 3);
+  assert.deepEqual(await page.evaluate(() => CoverApp.fonts.list().map((f) => f.name)), ['Lato Bold', 'Lato Regular', 'Lato Light']);
+  assert.equal((await items())[0].font, await page.evaluate(() => CoverApp.fonts.list()[2].id));
+  await page.evaluate(async () => { for (const f of CoverApp.fonts.list().slice(1)) await CoverApp.fonts.remove(f.id); });
   await page.evaluate((id) => CoverApp.fonts.remove(id), fid);
   assert.equal(await page.evaluate((id) => !window.BackDesign.FONTS[id], fid), true);
   assert.match(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).fontFamily), /Lato/, 'Ohne die Schrift: Rückfall auf Normal');
@@ -184,6 +191,9 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), null, 'Zugangsdaten aus der Vorlagen-Importfunktion werden nie übernommen');
   await page.locator('#bdlg [data-del]').first().click();
   await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 1);
+  const mk = (name) => ({ name: name + '.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ type: 'discmenu-settings', version: 1, templates: [{ name, ref: { w: 130, h: 122 }, items: [{ type: 'text', text: name, x: 5, y: 5, w: 40, h: 10 }] }] })) });
+  await page.setInputFiles('#bedTplFile', [mk('Mehrfach A'), mk('Mehrfach B')]);          // mehrere Dateien auf einmal
+  await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 3);
   await page.click('#bdlg .tpl-card[data-tpl=steam]');
 
   // Drehen: Feld und Griff; gedrehte Elemente lassen sich weiter greifen
