@@ -471,4 +471,4 @@ dialog.bed .dh h2 { margin: 0; font-size: 17px; flex: 1; }
 .bed-panel .prow { display: grid; grid-template-columns: 22px 1fr 1fr 30px; gap: 6px; align-items: center; margin-bottom: 4px; }
 .tp .tp-fill { background: #555; }
 
-.bed-panel select optgroup { font: 700 13px Lato, "Segoe UI", Arial, sans-serif; font-style: normal; text-transform: none; letter-spacing: normal; }
+.bed-panel select optgroup { font: 900 12px Lato, "Segoe UI", Arial, sans-serif; font-style: normal; text-transform: uppercase; letter-spacing: .06em; color: #6b1a6e; background: #efe3f2; padding: 5px 6px; }

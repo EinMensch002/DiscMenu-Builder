@@ -272,7 +272,7 @@
     const s = el('select');
     for (const [label, test] of [['Systemschriften', (f) => !f.custom && f.group !== 'game'], ['Spiele-Schriften', (f) => f.group === 'game'], ['Eigene Schriften', (f) => f.custom]]) {
       const list = Object.entries(BD.FONTS).filter(([, f]) => test(f)); if (!list.length) continue;
-      const g = document.createElement('optgroup'); g.label = label; g.style.fontFamily = UI_FONT; g.style.fontStyle = 'normal'; g.style.fontWeight = '700'; g.style.textTransform = 'none'; g.style.letterSpacing = 'normal';   // Überschrift nicht in der Schrift des Feldes
+      const g = document.createElement('optgroup'); g.label = label; g.style.fontFamily = UI_FONT; g.style.fontStyle = 'normal'; g.style.fontWeight = '900'; g.style.fontSize = '12px'; g.style.textTransform = 'uppercase'; g.style.letterSpacing = '.06em'; g.style.color = '#6b1a6e'; g.style.backgroundColor = '#efe3f2'; g.style.padding = '5px 6px';   // Überschrift nicht in der Schrift des Feldes
       for (const [v, f] of list) { const o = el('option', '', f.label); o.value = v; o.style.fontFamily = f.css; o.dataset.notr = ''; g.append(o); }
       s.append(g);
     }
