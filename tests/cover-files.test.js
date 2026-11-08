@@ -191,8 +191,8 @@ test('Sicherungsdatei: Konflikte fragen nach, leere Felder löschen nichts, Name
 
 test('Sicherungsdatei: Verschlüsselung, kaputte Schriften und Vorlagen werden verworfen', async () => {
   const t = C.templateFromItems(layout(), { w: 130, h: 122 }, 'V1');
-  const enc = await F.packBundle({ creds: { key: 'GEHEIM' }, templates: [t] }, 'pw');
-  assert.ok(!enc.includes('GEHEIM') && !enc.includes('V1'));
+  const enc = await F.packBundle({ creds: { key: 'GEHEIM' }, templates: [{ ...t, name: 'Zebrastreifen' }] }, 'pw');
+  assert.ok(!enc.includes('GEHEIM') && !enc.includes('Zebrastreifen'));
   await assert.rejects(F.unpackBundle(enc, ''), /PASSWORD_NEEDED/);
   assert.equal((await F.unpackBundle(enc, 'pw')).creds.key, 'GEHEIM');
   const raw = JSON.stringify({ type: 'discmenu-settings', version: 1, templates: [{ name: '' }, t], fonts: [{ name: 'x', ext: 'exe', data: FONT.data }, { name: 'klein', ext: 'ttf', data: 'AAAA' }, { name: 'ok', ext: 'woff2', data: FONT.data }, 'quatsch'] });

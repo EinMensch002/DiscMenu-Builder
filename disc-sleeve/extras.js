@@ -80,11 +80,9 @@
     const fin = h('input', { type: 'file', accept: '.json,application/json', hidden: true, onchange: async () => {
       const f = fin.files[0]; fin.value = ''; if (!f) return;
       try {
-        const v = await F.unpackSettings(await f.text(), pw.value);
-        if (v.proxy && !v.proxy.includes('{url}')) throw new Error('Die Proxy-Adresse in der Datei enthält keinen Platzhalter {url}.');
-        key.value = v.key; proxy.value = v.proxy; O.settings.save(v.key, v.proxy);
-        if (v.brandfetch) { bf.value = v.brandfetch; O.settings.saveBrandfetch(v.brandfetch); }
-        say(msg2, 'Einstellungen eingelesen und gespeichert.');
+        const b = await F.unpackBundle(await f.text(), pw.value);
+        if (!b.creds && !(b.templates || []).length && !(b.fonts || []).length) throw new Error('Die Datei enthält nichts, was sich einlesen lässt.');
+        openRestore(b);
       } catch (e) { say(msg2, e.message === 'PASSWORD_NEEDED' ? 'Die Datei ist verschlüsselt. Bitte das Passwort eintragen und die Datei erneut einlesen.' : e.message, true); }
     } });
     const saveCfg = () => {
@@ -114,20 +112,105 @@
         h('button', { type: 'button', onclick: () => { O.settings.save('', ''); O.settings.saveBrandfetch(''); key.value = ''; proxy.value = ''; bf.value = ''; say(msg, 'Gespeicherte Werte gelöscht.'); } }, 'Löschen')),
       tests,
       h('h3', {}, 'Einstellungen sichern'),
-      h('p', { class: 'dmsg' }, 'Speichert Schlüssel und Proxy-Adresse in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Die Datei enthält deinen Schlüssel: nicht weitergeben und nicht ins Repository legen. ', ext('Mehr dazu', LINKS.backup)),
-      wrapField('Passwort (optional)', pw, 'Wird beim Sichern zum Verschlüsseln und beim Einlesen zum Entschlüsseln benutzt. Ein vergessenes Passwort lässt sich nicht wiederherstellen.'),
+      h('p', { class: 'dmsg' }, 'Speichert Zugangsdaten, eigene Vorlagen und eigene Schriften in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Beim Sichern wählst Du, was in die Datei kommt (eingebaute Vorlagen und Schriften sind nie dabei). Beim Einlesen wird nur verändert, was in der Datei steht. Eine Datei mit Zugangsdaten enthält deinen Schlüssel: nicht weitergeben und nicht ins Repository legen. ', ext('Mehr dazu', LINKS.backup)),
+      wrapField('Passwort (optional)', pw, 'Wird zum Entschlüsseln beim Einlesen benutzt. Das Passwort zum Verschlüsseln wählst Du beim Sichern. Ein vergessenes Passwort lässt sich nicht wiederherstellen.'),
       h('div', { class: 'drow' },
-        h('button', { type: 'button', onclick: async () => {
-          const vals = { key: key.value.trim(), proxy: proxy.value.trim(), brandfetch: bf.value.trim() };
-          if (!vals.key && !vals.proxy && !vals.brandfetch) { say(msg2, 'Es gibt noch nichts zu sichern.', true); return; }
-          try {
-            const text = await F.packSettings(vals, pw.value);
-            const where = await saveFile(new Blob([text], { type: 'application/json' }), 'discmenu-einstellungen.json', 'Einstellungen (JSON)', 'application/json', '.json');
-            if (where) say(msg2, (pw.value ? 'Verschlüsselte Datei "' : 'Datei "') + where + '" gespeichert.' + (pw.value ? '' : ' Sie ist nicht verschlüsselt, also gut aufbewahren.'));
-          } catch (e) { say(msg2, e.message, true); }
-        } }, 'In Datei sichern'),
+        h('button', { type: 'button', onclick: () => openBackup({ key: key.value.trim(), proxy: proxy.value.trim(), brandfetch: bf.value.trim() }) }, 'In Datei sichern'),
         h('button', { type: 'button', onclick: () => fin.click() }, 'Aus Datei einlesen')),
       msg2, fin);
+  }
+
+  /* ---------- Sichern und Einlesen mit Auswahl ---------- */
+  const tick = (checked, disabled) => h('input', { type: 'checkbox', checked: !!checked, disabled: !!disabled });
+  /* Bereich mit Haken und (bei Listen) einem Haken je Eintrag. rows: [{ box, node }] */
+  function section(title, count, rows, head) {
+    head.addEventListener('change', () => rows.forEach((r) => { r.box.checked = head.checked; }));
+    rows.forEach((r) => r.box.addEventListener('change', () => { head.checked = rows.some((x) => x.box.checked); }));
+    return h('div', { class: 'bgrp' }, h('label', { class: 'chk' }, head, h('b', {}, title), count == null ? null : h('small', { class: 'dmsg' }, '(' + count + ')')), rows.map((r) => r.node));
+  }
+  const backTo = () => h('button', { type: 'button', onclick: () => openSettings() }, 'Zurück zu den Einstellungen');
+
+  function openBackup(vals) {
+    const tpls = App.templates.list(), fts = App.fonts.list(), hasCreds = !!(vals.key || vals.proxy || vals.brandfetch);
+    const pwb = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'Passwort (optional)' }), msg = h('p', { class: 'dmsg' });
+    const names = [vals.key && 'API-Schlüssel', vals.proxy && 'Proxy-Adresse', vals.brandfetch && 'Brandfetch-Client-ID'].filter(Boolean);
+    const hc = tick(hasCreds, !hasCreds), ht = tick(tpls.length, !tpls.length), hf = tick(fts.length, !fts.length);
+    const rowsOf = (list, disabled) => list.map((x) => { const box = tick(!disabled, disabled); return { box, node: h('label', { class: 'chk brow' }, box, x.name) }; });
+    const rt = rowsOf(tpls), rf = rowsOf(fts);
+    const gc = section('Zugangsdaten', null, names.map((n) => ({ box: { checked: true, addEventListener() {} }, node: h('div', { class: 'dmsg brow' }, n) })), hc);
+    if (!hasCreds) gc.append(h('div', { class: 'dmsg brow' }, 'Noch keine eingetragen.'));
+    const gt = section('Eigene Vorlagen', tpls.length, rt, ht), gf = section('Eigene Schriften', fts.length, rf, hf);
+    if (!tpls.length) gt.append(h('div', { class: 'dmsg brow' }, 'Noch keine eigenen Vorlagen.'));
+    if (!fts.length) gf.append(h('div', { class: 'dmsg brow' }, 'Noch keine eigenen Schriften.'));
+    openDlg('Einstellungen sichern',
+      h('p', { class: 'dmsg' }, 'Wähle, was in die Datei kommt.'), gc, gt, gf,
+      wrapField('Passwort (optional)', pwb, 'Verschlüsselt die ganze Datei. Empfohlen, wenn Zugangsdaten dabei sind. Ein vergessenes Passwort lässt sich nicht wiederherstellen.'),
+      msg,
+      h('div', { class: 'drow' },
+        h('button', { type: 'button', class: 'pri', onclick: async () => {
+          const parts = {};
+          if (hc.checked && hasCreds) parts.creds = vals;
+          if (ht.checked) parts.templates = tpls.filter((_, i) => rt[i].box.checked);
+          if (hf.checked) parts.fonts = fts.filter((_, i) => rf[i].box.checked);
+          if (!parts.creds && !(parts.templates || []).length && !(parts.fonts || []).length) { say(msg, 'Bitte mindestens einen Eintrag auswählen.', true); return; }
+          try {
+            const text = await F.packBundle(parts, pwb.value);
+            const where = await saveFile(new Blob([text], { type: 'application/json' }), parts.creds ? 'discmenu-einstellungen.json' : 'discsleeve-vorlagen-schriften.json', 'Einstellungen (JSON)', 'application/json', '.json');
+            if (where) say(msg, (pwb.value ? 'Verschlüsselte Datei "' : 'Datei "') + where + '" gespeichert.' + (pwb.value || !parts.creds ? '' : ' Sie ist nicht verschlüsselt, also gut aufbewahren.'));
+          } catch (e) { say(msg, e.message, true); }
+        } }, 'Sichern'),
+        backTo()));
+  }
+
+  function openRestore(b) {
+    const cur = { creds: { key: O.settings.key, proxy: O.settings.proxy, brandfetch: O.settings.brandfetch }, templates: App.templates.list(), fonts: App.fonts.list() };
+    const plan = F.planImport(b, cur), msg = h('p', { class: 'dmsg' });
+    const nodes = [h('p', { class: 'dmsg' }, 'Wähle, was übernommen wird. Alles, was nicht in der Datei steht, bleibt unverändert.')];
+    if (b.skipped) nodes.push(h('p', { class: 'dmsg err' }, 'Einige Einträge in der Datei waren fehlerhaft und wurden übersprungen.'));
+    const LAB = { key: 'API-Schlüssel', proxy: 'Proxy-Adresse', brandfetch: 'Brandfetch-Client-ID' };
+    const hc = tick(true), credMode = h('select', {}, h('option', { value: 'skip' }, 'Vorhandene Werte behalten'), h('option', { value: 'replace' }, 'Vorhandene Werte überschreiben'));
+    if (plan.creds) {
+      const rows = plan.creds.map((e) => ({ box: { checked: true }, node: h('div', { class: 'dmsg brow' }, LAB[e.field] + ' ', h('b', {}, e.conflict ? 'hat schon einen anderen Wert' : 'neu')) }));
+      const g = section('Zugangsdaten', null, [], hc); g.append(...rows.map((r) => r.node));
+      if (plan.creds.some((e) => e.conflict)) g.append(h('div', { class: 'brow' }, credMode));
+      nodes.push(g);
+    }
+    const lists = {};
+    for (const [sec, title] of [['templates', 'Eigene Vorlagen'], ['fonts', 'Eigene Schriften']]) {
+      if (!plan[sec]) continue;
+      const head = tick(true);
+      const rows = plan[sec].map((e) => {
+        const box = tick(true), sel = e.conflict ? h('select', {}, h('option', { value: 'both' }, 'Beide behalten'), h('option', { value: 'replace' }, 'Ersetzen')) : null;
+        return { box, sel, node: h('div', { class: 'brow' }, h('label', { class: 'chk' }, box, e.name), h('small', { class: 'dmsg' }, e.conflict ? 'gibt es schon' : 'neu'), sel) };
+      });
+      lists[sec] = { head, rows }; nodes.push(section(title, plan[sec].length, rows, head));
+    }
+    const apply = async () => {
+      const choices = { sections: { creds: !plan.creds || hc.checked, templates: !lists.templates || lists.templates.head.checked, fonts: !lists.fonts || lists.fonts.head.checked }, creds: credMode.value };
+      for (const sec of ['templates', 'fonts']) if (lists[sec]) choices[sec] = lists[sec].rows.map((r) => (!r.box.checked ? 'skip' : r.sel ? r.sel.value : 'add'));
+      const res = F.applyImport(plan, cur, choices), out = [];
+      if (res.creds && res.creds.proxy && !res.creds.proxy.includes('{url}')) { say(msg, 'Die Proxy-Adresse in der Datei enthält keinen Platzhalter {url}.', true); return; }   // vor jeder Änderung prüfen
+      if (res.creds && Object.keys(res.creds).length) {
+        O.settings.save(res.creds.key !== undefined ? res.creds.key : O.settings.key, res.creds.proxy !== undefined ? res.creds.proxy : O.settings.proxy);
+        if (res.creds.brandfetch) O.settings.saveBrandfetch(res.creds.brandfetch);
+        out.push(h('p', { class: 'dmsg' }, 'Zugangsdaten übernommen.'));
+      }
+      const errs = [];
+      if (res.templates) {
+        let n = 0;
+        res.templates.replace.forEach((r) => { if (App.templates.replace(r.name, r.item)) n++; });
+        res.templates.add.forEach((t) => { if (App.templates.add(t)) n++; else errs.push('Zu viele eigene Vorlagen. Bitte zuerst eine löschen.'); });
+        if (n) out.push(h('p', { class: 'dmsg' }, 'Vorlagen übernommen: ' + n));
+      }
+      if (res.fonts) {
+        let n = 0;
+        for (const r of res.fonts.replace) { try { await App.fonts.replace(r.name, r.item); n++; } catch (e) { errs.push(e.message); } }
+        for (const t of res.fonts.add) { try { await App.fonts.add(t); n++; } catch (e) { errs.push(e.message); } }
+        if (n) out.push(h('p', { class: 'dmsg' }, 'Schriften übernommen: ' + n));
+      }
+      openDlg('Einlesen abgeschlossen', out.length ? out : h('p', { class: 'dmsg' }, 'Es wurde nichts übernommen.'), [...new Set(errs)].map((t) => h('p', { class: 'dmsg err' }, t)), h('div', { class: 'drow' }, backTo()));
+    };
+    openDlg('Aus Datei einlesen', nodes, msg, h('div', { class: 'drow' }, h('button', { type: 'button', class: 'pri', onclick: apply }, 'Übernehmen'), h('button', { type: 'button', onclick: () => openSettings() }, 'Abbrechen')));
   }
 
   /* ---------- Automatisch im Browser sichern ----------

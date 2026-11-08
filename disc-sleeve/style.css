@@ -423,6 +423,10 @@ dialog.bed .dh h2 { margin: 0; font-size: 17px; flex: 1; }
 .tpl-acts { display: flex; gap: 4px; }
 .tpl-acts button { flex: 1; font-size: 11px; padding: 3px 4px; }
 .tpl-add { font-size: 12px; }
+.bgrp { margin: 10px 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.bgrp .brow { margin: 3px 0 3px 22px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bgrp .brow.chk { margin-left: 22px; }
+.bgrp select { width: auto; max-width: 100%; }
 .tpl-card span { font-size: 12px; font-weight: 600; }
 .tp { position: relative; width: 100%; background: #f4f5f8; border: 1px solid #c5cad6; overflow: hidden; }
 .tp i { position: absolute; display: block; box-sizing: border-box; }
