@@ -276,6 +276,12 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.equal(await page.evaluate(() => document.querySelector('#bdlg .bed-scaled').classList.contains('span')), true);
   await page.waitForFunction(() => document.querySelector('#back').classList.contains('span'));
   assert.match(await page.locator('#bdlg').textContent(), /Durchgehendes Bild/);
+  assert.notEqual(await page.evaluate(() => getComputedStyle(document.querySelector('#backTop .ph')).display), 'none', 'Ohne Bild bleibt der Platzhalter sichtbar');
+  await page.evaluate(async (b64) => { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); await CoverApp.setImage('backTop', new File([u], 'a.png', { type: 'image/png' })); }, PNG.toString('base64'));
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('#backTop .ph')).display === 'none');   // Vorschau zeigt das durchgehende Bild statt des Platzhalters
+  assert.match(await page.evaluate(() => document.querySelector('#back').style.backgroundImage), /url/);
+  await page.evaluate(() => CoverApp.clearImage('backTop'));
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('#backTop .ph')).display !== 'none');
   await page.uncheck('#bedSpan');
 
   // Formen: Dreieck, Punkte ziehen (rasten ein), Punkte per Feld, Punkt löschen/hinzufügen, Stern, freie Fläche

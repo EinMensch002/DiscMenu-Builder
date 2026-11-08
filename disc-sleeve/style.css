@@ -431,6 +431,7 @@ dialog.bed .dh h2 { margin: 0; font-size: 17px; flex: 1; }
 .bed-bar select { width: auto; }
 
 .back.span .back-top, .back.span .back-bottom { background: none !important; }
+.back.spanimg .ph { display: none; }
 @media print { .back.span .back-top, .back.span .back-bottom { background: none !important; } }
 /* Vorlagen-Leiste im Editor */
 .bed-tpls { flex: none; width: 190px; overflow: auto; padding: 10px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; background: color-mix(in srgb, var(--panel) 92%, #888); }

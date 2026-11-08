@@ -471,6 +471,7 @@
     $('#backFeats').style.height = Number(b.featH) + 'mm'; $('#backBottom').style.height = Number(b.reqH) + 'mm';
     const sp = !!b.span, backEl = $('#back');
     backEl.classList.toggle('span', sp);
+    backEl.classList.toggle('spanimg', sp && !!images.backTop);      // durchgehendes Bild da: Platzhalter "Rückseite oben" darf es nicht verdecken
     backEl.style.backgroundImage = sp && images.backTop ? 'url("' + images.backTop.url + '")' : '';
     backEl.style.backgroundSize = 'cover'; backEl.style.backgroundPosition = 'center';
     if (sp) { setBg($('#backTop'), null); setBg($('#backBottom'), null); }
