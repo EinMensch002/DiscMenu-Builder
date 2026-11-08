@@ -51,6 +51,30 @@
     return it.text || '';
   }
 
+  /* Form: Punkte in Prozent des Rahmens (null = Ellipse). Der Stern wird aus Zackenzahl und Tiefe berechnet. */
+  function shapePoints(it) {
+    if (it.shape === 'ellipse') return null;
+    if (it.shape === 'star') {
+      const n = it.sides, r = it.inner / 100, pts = [];
+      for (let i = 0; i < 2 * n; i++) { const a = -Math.PI / 2 + i * Math.PI / n, rad = i % 2 ? r : 1; pts.push([Math.round((50 + 50 * rad * Math.cos(a)) * 10) / 10, Math.round((50 + 50 * rad * Math.sin(a)) * 10) / 10]); }
+      return pts;
+    }
+    return it.pts;
+  }
+  const clipOf = (it) => { const p = shapePoints(it); return p ? 'polygon(' + p.map((q) => q[0] + '% ' + q[1] + '%').join(',') + ')' : 'ellipse(50% 50% at 50% 50%)'; };
+  /* Bild im Rahmen: füllen mit Zoom und Ausschnitt (Anteile), sonst einpassen */
+  function paintImage(layer, it, img) {
+    const st = layer.style;
+    st.backgroundImage = 'url("' + img.url + '")'; st.backgroundRepeat = 'no-repeat';
+    if (it.fit === 'cover' && img.w > 0 && img.h > 0) {
+      const k = Math.max(it.w / img.w, it.h / img.h) * (it.zoom || 100) / 100, sw = img.w * k, sh = img.h * k;
+      st.backgroundSize = mm(sw) + ' ' + mm(sh); st.backgroundPosition = mm((it.w - sw) * it.posX / 100) + ' ' + mm((it.h - sh) * it.posY / 100);
+    } else {
+      st.backgroundSize = it.fit === 'contain' ? 'contain' : it.fit === 'stretch' ? '100% 100%' : 'cover';
+      st.backgroundPosition = it.fit === 'cover' ? it.posX + '% ' + it.posY + '%' : 'center';
+    }
+  }
+
   /* env: { images: { schlüssel: { url, w, h } }, state, editor: Wahr im Editor (leere Elemente sind sichtbar) } */
   function buildNode(it, env) {
     const node = document.createElement('div');
@@ -59,15 +83,23 @@
     s.left = mm(it.x); s.top = mm(it.y); s.width = mm(it.w); s.height = mm(it.h);
     if (it.opacity < 100) s.opacity = String(it.opacity / 100);
     if (it.rot) s.transform = 'rotate(' + it.rot + 'deg)';
+    if (it.type === 'shape') {
+      const img = it.useImg && env.images && env.images[it.img];
+      const inner = document.createElement('div'); inner.className = 'bi-in'; inner.style.clipPath = clipOf(it);
+      if (it.useImg) {
+        if (img) {
+          if (env.editor && env.selId === it.id) { const dim = document.createElement('div'); dim.className = 'bi-dim'; paintImage(dim, it, img); node.append(dim); }
+          paintImage(inner, it, img);
+        } else if (env.editor) { inner.style.backgroundColor = '#cfd4df'; } else node.hidden = true;
+      } else inner.style.backgroundColor = it.color;
+      node.append(inner);
+      return node;
+    }
     if (it.type === 'image') {
       const img = env.images && env.images[it.img];
       const inner = document.createElement('div'); inner.className = 'bi-in';
-      if (img) {
-        inner.style.backgroundImage = 'url("' + img.url + '")';
-        inner.style.backgroundSize = it.fit === 'contain' ? 'contain' : it.fit === 'stretch' ? '100% 100%' : 'cover';
-        inner.style.backgroundPosition = it.fit === 'cover' ? it.posX + '% ' + it.posY + '%' : 'center';
-        inner.style.backgroundRepeat = 'no-repeat';
-      } else if (env.editor) { node.classList.add('empty'); inner.textContent = 'Bild'; }
+      if (img) paintImage(inner, it, img);
+      else if (env.editor) { node.classList.add('empty'); inner.textContent = 'Bild'; }
       else node.hidden = true;
       node.append(inner);
     } else {
@@ -104,7 +136,7 @@
     });
   }
 
-  const api = { FONTS, EDGES, tornPolygon, applyEdge, buildNode, renderInto, fitTexts, textOf, hash, rng };
+  const api = { shapePoints, clipOf, paintImage, FONTS, EDGES, tornPolygon, applyEdge, buildNode, renderInto, fitTexts, textOf, hash, rng };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.BackDesign = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -11,7 +11,7 @@
   const round = (n) => Math.round(n * 100) / 100;
   const snap025 = (n) => Math.round(n * 4) / 4;
 
-  let tplBar, dlg, stage, scaled, itemsBox, selBox, pane, panel, footA, footB;
+  let imgMode = false, shapeMenu, tplBar, dlg, stage, scaled, itemsBox, selBox, pane, panel, footA, footB;
   let selId = null, k = 1, undoStack = [], redoStack = [], drag = null;
 
   const back = () => App.state.back;
@@ -50,8 +50,13 @@
     const img = App.images[key], ratio = img && img.w ? img.w / img.h : 1.5, a = area();
     let w = Math.min(a.w * 0.6, 70), h = round(w / ratio);
     if (h > a.h * 0.8) { h = round(a.h * 0.8); w = round(h * ratio); }
-    if (target) change(() => update(target, { img: key }), { panel: true });
+    if (target) change(() => update(target, target.type === 'shape' ? { img: key, useImg: true } : { img: key }), { panel: true });
     else change(() => { add(C.newItem('image', { ...center(w, h), w, h, img: key })); }, { panel: true });
+  }
+  const SHAPE_LABELS = [['ellipse', 'Kreis / Ellipse'], ['triangle', 'Dreieck'], ['rect', 'Viereck'], ['star', 'Stern'], ['poly', 'Freie Fläche']];
+  function addShape(kind) {
+    const w = 40, h = kind === 'triangle' ? 35 : 40;
+    change(() => { add(C.newItem('shape', { shape: kind, color: '#e8a33a', ...center(w, h), w, h, pts: C.defaultPts(kind) })); }, { panel: true });
   }
   function pickFile(cb) {
     const inp = el('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
@@ -76,7 +81,7 @@
     scaled.style.backgroundImage = span && base ? 'url("' + base.url + '")' : '';
     stage.style.backgroundImage = !span && base ? 'url("' + base.url + '")' : 'none';
     footA.style.height = back().featH + 'mm'; footB.style.height = back().reqH + 'mm';
-    BD.renderInto(itemsBox, items(), { images: App.images, state: App.state, editor: true });
+    BD.renderInto(itemsBox, items(), { images: App.images, state: App.state, editor: true, selId });
     drawSel();
   }
   function drawSel() {
@@ -85,6 +90,8 @@
     if (!it) return;
     const s = selBox.style, hd = round(10 / (k * PX));
     s.left = it.x + 'mm'; s.top = it.y + 'mm'; s.width = it.w + 'mm'; s.height = it.h + 'mm';
+    selBox.querySelectorAll('.pt').forEach((n) => n.remove());
+    if (it.type === 'shape' && ['rect', 'triangle', 'poly'].includes(it.shape)) it.pts.forEach((q, i) => { const d = el('span', 'pt'); d.dataset.i = i; d.style.left = q[0] + '%'; d.style.top = q[1] + '%'; d.title = 'Punkt ziehen'; selBox.append(d); });
     selBox.style.setProperty('--hd', hd + 'mm'); s.transform = it.rot ? 'rotate(' + it.rot + 'deg)' : '';
   }
   function refresh(rebuildPanel) {
@@ -98,11 +105,24 @@
   const HANDLES = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
   function toMm(ev) { const r = stage.getBoundingClientRect(); return { x: (ev.clientX - r.left) / (PX * k), y: (ev.clientY - r.top) / (PX * k) }; }
   const rotPt = (x, y, deg) => { const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return { x: x * c - y * s, y: x * s + y * c }; };
+  /* liegt der Punkt (Prozent des Rahmens) in der Form? */
+  function inShape(it, fx, fy) {
+    const pts = BD.shapePoints(it);
+    if (!pts) return ((fx - 50) / 50) ** 2 + ((fy - 50) / 50) ** 2 <= 1;
+    let inside = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const [xi, yi] = pts[i], [xj, yj] = pts[j];
+      if ((yi > fy) !== (yj > fy) && fx < (xj - xi) * (fy - yi) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  }
   function hit(p) {
     const l = items();
     for (let i = l.length - 1; i >= 0; i--) {
       const it = l[i], cx = it.x + it.w / 2, cy = it.y + it.h / 2, q = rotPt(p.x - cx, p.y - cy, -(it.rot || 0));
-      if (Math.abs(q.x) <= it.w / 2 && Math.abs(q.y) <= it.h / 2) return it;
+      if (Math.abs(q.x) > it.w / 2 || Math.abs(q.y) > it.h / 2) continue;
+      if (it.type === 'shape' && !inShape(it, (q.x + it.w / 2) / it.w * 100, (q.y + it.h / 2) / it.h * 100)) continue;
+      return it;
     }
     return null;
   }
@@ -110,17 +130,20 @@
   function snapValue(v, targets) { const th = 4 / (PX * k); let best = v, d = th; for (const t of targets) if (Math.abs(t - v) < d) { d = Math.abs(t - v); best = t; } return best; }
   function targets(skip, axis) {
     const a = area(), t = axis === 'x' ? [0, a.w / 2, a.w] : [0, a.h / 2, a.h];
-    for (const o of items()) if (o.id !== skip) t.push(axis === 'x' ? o.x : o.y, axis === 'x' ? o.x + o.w : o.y + o.h);
+    for (const o of items()) {
+      if (o.id !== skip) t.push(axis === 'x' ? o.x : o.y, axis === 'x' ? o.x + o.w : o.y + o.h);
+      if (o.type === 'shape' && !o.rot && ['rect', 'triangle', 'poly'].includes(o.shape)) for (const q of o.pts) t.push(axis === 'x' ? o.x + q[0] / 100 * o.w : o.y + q[1] / 100 * o.h);
+    }
     return t;
   }
   function onDown(ev) {
     if (ev.button !== 0) return;
-    const hdl = ev.target.closest('.hd'), p = toMm(ev);
-    let it = hdl ? byId(selId) : hit(p);
+    const hdl = ev.target.closest('.hd'), pt = ev.target.closest('.pt'), p = toMm(ev);
+    let it = hdl || pt ? byId(selId) : hit(p);
     if (!it) { selId = null; refresh(true); return; }
-    if (selId !== it.id) { selId = it.id; drawSel(); buildPanel(); }
+    if (selId !== it.id) { selId = it.id; imgMode = false; drawStage(); buildPanel(); }
     remember();
-    drag = { id: it.id, mode: hdl ? hdl.dataset.h : 'move', p0: p, o: { x: it.x, y: it.y, w: it.w, h: it.h, rot: it.rot || 0 }, moved: false };
+    drag = { id: it.id, mode: hdl ? hdl.dataset.h : pt ? 'pt' : imgMode && it.img ? 'pan' : 'move', pi: pt ? Number(pt.dataset.i) : -1, p0: p, o: { x: it.x, y: it.y, w: it.w, h: it.h, rot: it.rot || 0, posX: it.posX, posY: it.posY, pts: it.pts ? clone(it.pts) : null }, moved: false };
     ev.preventDefault(); scaled.setPointerCapture(ev.pointerId);
   }
   function onMove(ev) {
@@ -139,6 +162,24 @@
       else if (Math.abs(((a % 90) + 90) % 90) < 2 || Math.abs(((a % 90) + 90) % 90 - 90) < 2) a = Math.round(a / 90) * 90;   // rastet bei 0, 90, 180, 270 ein
       a = ((a + 540) % 360) - 180;
       update(it, { rot: Math.round(a * 10) / 10 }); drawStage(); syncGeo(); return;
+    }
+    if (m === 'pt') {                                              // Punkt einer Form ziehen (rastet an Kanten, Mitte und Punkten ein)
+      const cx = o.x + o.w / 2, cy = o.y + o.h / 2, q = rotPt(p.x - cx, p.y - cy, -o.rot);
+      let lx = q.x + o.w / 2, ly = q.y + o.h / 2;
+      if (!o.rot && !noSnap) {
+        const own = (ax) => o.pts.filter((_, i) => i !== drag.pi).map((r) => (ax === 'x' ? o.x + r[0] / 100 * o.w : o.y + r[1] / 100 * o.h));
+        lx = snapValue(o.x + lx, tx.concat(own('x'))) - o.x; ly = snapValue(o.y + ly, ty.concat(own('y'))) - o.y;
+      }
+      const pts = clone(o.pts); pts[drag.pi] = [Math.min(100, Math.max(0, lx / o.w * 100)), Math.min(100, Math.max(0, ly / o.h * 100))];
+      update(it, { pts }); drawStage(); syncGeo(); return;
+    }
+    if (m === 'pan') {                                             // Bild im Rahmen verschieben
+      const img = App.images[it.img];
+      if (img && img.w) {
+        const d = rotPt(dx, dy, -o.rot), kk = Math.max(o.w / img.w, o.h / img.h) * (it.zoom || 100) / 100, fw = o.w - img.w * kk, fh = o.h - img.h * kk;
+        update(it, { posX: fw ? o.posX + d.x / fw * 100 : o.posX, posY: fh ? o.posY + d.y / fh * 100 : o.posY }); drawStage(); syncGeo();
+      }
+      return;
     }
     if (m === 'move') {
       let nx = o.x + dx, ny = o.y + dy;
@@ -169,10 +210,11 @@
   }
 
   /* ---------- Eigenschaften ---------- */
-  const GEO = ['x', 'y', 'w', 'h', 'rot'];
+  const GEO = ['x', 'y', 'w', 'h', 'rot', 'zoom', 'posX', 'posY'];
   function syncGeo() {
     const it = byId(selId); if (!it) return;
     for (const g of GEO) { const i = panel.querySelector('[data-g="' + g + '"]'); if (i && document.activeElement !== i) i.value = it[g]; }
+    if (it.pts) panel.querySelectorAll('[data-p]').forEach((n) => { const [i, ax] = n.dataset.p.split(':').map(Number); if (it.pts[i] && document.activeElement !== n) n.value = it.pts[i][ax]; });
     const info = panel.querySelector('#bedDpi'); if (info) info.replaceWith(dpiNode(it));
   }
   function dpiNode(it) {
@@ -196,6 +238,7 @@
   }
   function range(it, key, min, max, step) {
     const i = el('input'); i.type = 'range'; i.min = min; i.max = max; i.step = step || 1; i.value = it[key];
+    if (GEO.includes(key)) i.dataset.g = key;
     let first = true;
     i.addEventListener('input', () => { if (first) { remember(); first = false; } update(it, { [key]: Number(i.value) }); App.touch(); drawStage(); });
     i.addEventListener('change', () => { first = true; refresh(false); });
@@ -226,7 +269,7 @@
       const d = el('p', 'hint'); d.textContent = 'Fläche: ' + area().w + ' × ' + area().h + ' mm.'; panel.append(d);
       return;
     }
-    panel.append(el('h3', '', it.type === 'image' ? 'Bild' : 'Text'));
+    panel.append(el('h3', '', it.type === 'image' ? 'Bild' : it.type === 'shape' ? 'Form' : 'Text'));
     if (it.type === 'text') {
       const bind = select(it, 'bind', [['', 'Eigener Text'], ['title', 'Spieltitel'], ['description', 'Beschreibung des Spiels']]);
       panel.append(row('Inhalt', bind));
@@ -253,6 +296,8 @@
       bgi.addEventListener('change', () => change(() => update(it, { bg: bgi.checked ? '#000000' : '' }), { panel: true })); bgOn.append(bgi, document.createTextNode('Hintergrund hinter dem Text'));
       panel.append(bgOn);
       if (hasBg) { const t = el('div', 'two'); t.append(row('Hintergrundfarbe', color(it, 'bg')), row('Deckkraft (%)', range(it, 'bgOpacity', 0, 100))); panel.append(t, row('Innenabstand (mm)', num(it, 'pad', 0.25, 0, 20))); }
+    } else if (it.type === 'shape') {
+      shapePanel(it);
     } else {
       const src = el('div', 'drow');
       src.append(btn('Datei wählen …', () => pickFile((f) => addImageFile(f, it))), btn('Von Steam oder GOG …', () => openGallery(it)));
@@ -260,10 +305,10 @@
       const img = App.images[it.img];
       panel.append(el('p', 'hint', img ? 'Bild: ' + (img.name || it.img) + (img.w ? ' (' + img.w + ' × ' + img.h + ' px)' : '') : 'Noch kein Bild gewählt.'), dpiNode(it));
       panel.append(row('Einpassen', select(it, 'fit', [['cover', 'Füllen (zuschneiden)'], ['contain', 'Ganz zeigen'], ['stretch', 'Strecken']])));
-      if (it.fit === 'cover') { const t = el('div', 'two'); t.append(row('Ausschnitt waagerecht', range(it, 'posX', 0, 100)), row('Ausschnitt senkrecht', range(it, 'posY', 0, 100))); panel.append(t); }
+      if (it.fit === 'cover') imageTools(it);
     }
     panel.append(row('Deckkraft (%)', range(it, 'opacity', 5, 100)));
-    panel.append(row('Rand und Übergang', select(it, 'edge', Object.entries(BD.EDGES))));
+    if (it.type !== 'shape') panel.append(row('Rand und Übergang', select(it, 'edge', Object.entries(BD.EDGES))));
     if (it.edge !== 'none') {
       const unit = it.edge === 'torn' ? 'Zacken (mm)' : it.edge === 'round' ? 'Rundung (mm)' : it.edge === 'feather' ? 'Breite des Übergangs (mm)' : 'Rahmenbreite (mm)';
       const t = el('div', 'two'); t.append(row(unit, num(it, 'edgeSize', 0.25, 0, 20)));
@@ -279,6 +324,54 @@
       btn('Nach vorn', () => moveLayer(it, 1)), btn('Nach hinten', () => moveLayer(it, -1)),
       btn('Duplizieren', () => duplicate(it)), btn('Löschen', () => remove(it), 'danger'));
     panel.append(acts);
+  }
+  /* Zoom, Ausschnitt und Verschieben des Bildes im Rahmen (bei Bildern mit "Füllen" und bei Formen mit Bild) */
+  function imageTools(it) {
+    const t = el('div', 'two'); t.append(row('Ausschnitt waagerecht', range(it, 'posX', 0, 100, 0.5)), row('Ausschnitt senkrecht', range(it, 'posY', 0, 100, 0.5))); panel.append(t);
+    panel.append(row('Zoom (%)', range(it, 'zoom', 100, 500)));
+    if (!App.images[it.img]) return;
+    const b = btn(imgMode ? 'Bild verschieben beenden' : 'Bild im Ausschnitt verschieben', () => { imgMode = !imgMode; buildPanel(); }, imgMode ? 'pri' : '');
+    const dr = el('div', 'drow'); dr.append(b);
+    panel.append(dr, el('p', 'hint', imgMode ? 'Ziehe auf der Fläche, um das Bild im Rahmen zu verschieben, das Mausrad zoomt. Außerhalb der Form ist das Bild grau zu sehen (nur hier, nicht im Druck).' : 'Mit diesem Knopf schiebst und zoomst Du das Bild innerhalb der Form oder des Rahmens.'));
+  }
+  /* Eigenschaften einer Form */
+  function shapePanel(it) {
+    const usesPts = ['rect', 'triangle', 'poly'].includes(it.shape);
+    if (!it.useImg) panel.append(row('Füllfarbe', color(it, 'color')));
+    panel.append(check(it, 'useImg', 'Bild statt Farbe'));
+    if (it.useImg) {
+      const src = el('div', 'drow'); src.append(btn('Datei wählen …', () => pickFile((f) => addImageFile(f, it))), btn('Von Steam oder GOG …', () => openGallery(it))); panel.append(src);
+      const img = App.images[it.img];
+      panel.append(el('p', 'hint', img ? 'Bild: ' + (img.name || it.img) + (img.w ? ' (' + img.w + ' × ' + img.h + ' px)' : '') : 'Noch kein Bild gewählt.'), dpiNode(it));
+      imageTools(it);
+    }
+    if (it.shape === 'star') { const t = el('div', 'two'); t.append(row('Zacken', num(it, 'sides', 1, 3, 12)), row('Tiefe der Zacken (%)', range(it, 'inner', 10, 90))); panel.append(t); }
+    if (!usesPts) {
+      panel.append(btn('Als freie Fläche bearbeiten', () => change(() => {
+        const pts = it.shape === 'ellipse' ? Array.from({ length: 16 }, (_, i) => [round(50 + 50 * Math.cos(i * Math.PI / 8)), round(50 + 50 * Math.sin(i * Math.PI / 8))]) : BD.shapePoints(it);
+        update(it, { shape: 'poly', pts });
+      }, { panel: true })));
+      return;
+    }
+    panel.append(el('h3', '', 'Punkte'), el('p', 'hint', 'Ziehe die Punkte auf der Fläche (sie rasten an Kanten, Mitte und anderen Punkten ein, Alt: nicht einrasten) oder tippe die Werte ein (in Prozent des Rahmens).'));
+    it.pts.forEach((q, i) => {
+      const r = el('div', 'prow'); r.append(el('span', '', String(i + 1)));
+      [0, 1].forEach((ax) => {
+        const n = el('input'); n.type = 'number'; n.step = '0.5'; n.min = 0; n.max = 100; n.value = q[ax]; n.dataset.p = i + ':' + ax; let first = true;
+        n.addEventListener('input', () => { if (n.value === '' || isNaN(Number(n.value))) return; if (first) { remember(); first = false; } const pts = clone(it.pts); pts[i][ax] = Number(n.value); update(it, { pts }); App.touch(); drawStage(); });
+        n.addEventListener('change', () => { first = true; refresh(false); });
+        r.append(n);
+      });
+      const d = btn('✕', () => change(() => update(it, { pts: it.pts.filter((_, j) => j !== i) }), { panel: true })); d.title = 'Punkt löschen'; d.disabled = it.pts.length <= 3; r.append(d);
+      panel.append(r);
+    });
+    const add1 = btn('Punkt hinzufügen', () => change(() => {
+      const pts = clone(it.pts); let bi = 0, bl = -1;
+      pts.forEach((q, i) => { const n = pts[(i + 1) % pts.length], l = Math.hypot(n[0] - q[0], n[1] - q[1]); if (l > bl) { bl = l; bi = i; } });
+      const a = pts[bi], b = pts[(bi + 1) % pts.length]; pts.splice(bi + 1, 0, [round((a[0] + b[0]) / 2), round((a[1] + b[1]) / 2)]);
+      if (pts.length <= C.MAX_PTS) update(it, { shape: 'poly', pts });
+    }, { panel: true }));
+    panel.append(add1);
   }
   function moveLayer(it, dir) { change(() => { const l = items(), i = l.indexOf(it), j = i + dir; if (j < 0 || j >= l.length) return; l.splice(i, 1); l.splice(j, 0, it); }); }
   function duplicate(it) { change(() => { const c = clone(it); const n = add(c); if (n) { n.x = round(n.x + 3); n.y = round(n.y + 3); } }, { panel: true }); }
@@ -382,6 +475,13 @@
     const a = area(), box = el('div', 'tp');
     box.style.aspectRatio = a.w + ' / ' + Math.max(1, a.h);
     for (const it of C.backTemplate(id, a.w, a.h)) {
+      if (it.type === 'shape') {
+        if (!it.useImg && it.w >= a.w - 0.5 && it.h >= a.h - 0.5 && it.shape === 'rect') { box.style.background = it.color; continue; }
+        const f = el('i', it.useImg ? 'tp-image' : 'tp-fill');
+        Object.assign(f.style, { left: it.x / a.w * 100 + '%', top: it.y / a.h * 100 + '%', width: it.w / a.w * 100 + '%', height: it.h / a.h * 100 + '%', clipPath: BD.clipOf(it) });
+        if (!it.useImg) f.style.backgroundColor = it.color;
+        box.append(f); continue;
+      }
       const isFill = it.type === 'text' && it.bg && !it.text && !it.bind;
       if (isFill && it.w >= a.w - 0.5) { box.style.background = it.bg; continue; }
       const n = el('i', isFill ? 'tp-fill' : 'tp-' + it.type);
@@ -411,6 +511,8 @@
     const head = el('div', 'dh');
     head.append(el('h2', '', 'Rückseite gestalten'), el('span', 'hint', ''), btn('Fertig', () => close(), 'pri'));
     head.children[1].id = 'bedCount';
+    shapeMenu = el('span', 'shape-menu'); shapeMenu.hidden = true;
+    SHAPE_LABELS.forEach(([kind, label]) => shapeMenu.append(btn(label, () => { addShape(kind); shapeMenu.hidden = true; })));
     const bar = el('div', 'bed-bar');
     const tplBtn = btn('Vorlagen', () => { tplBar.hidden = !tplBar.hidden; if (!tplBar.hidden) buildTplBar(); refresh(false); }); tplBtn.id = 'bedTplBtn';
     const spanL = el('label', 'chk'), spanI = el('input'); spanI.type = 'checkbox'; spanI.id = 'bedSpan';
@@ -421,6 +523,8 @@
       btn('+ Text', () => change(() => { const w = 60, h = 14; add(C.newItem('text', { ...center(w, h), w, h, text: 'Text', size: 12 })); }, { panel: true }), 'pri'),
       btn('+ Bild (Datei)', () => pickFile((f) => addImageFile(f, null))),
       btn('+ Bild von Steam oder GOG', () => openGallery(null)),
+      btn('+ Form', () => { shapeMenu.hidden = !shapeMenu.hidden; }),
+      shapeMenu,
       tplBtn, spanL, undoB, redoB);
     const main = el('div', 'bed-main');
     pane = el('div', 'bed-pane');
@@ -437,9 +541,10 @@
     dlg.append(head, bar, main);
     document.body.append(dlg);
     buildGallery();
-    pane.addEventListener('pointerdown', (ev) => { if (!scaled.contains(ev.target) && selId) { selId = null; refresh(true); } });
+    pane.addEventListener('pointerdown', (ev) => { if (!ev.composedPath().includes(scaled) && selId) { selId = null; refresh(true); } });
+    scaled.addEventListener('wheel', (ev) => { const it = byId(selId); if (!imgMode || !it || !it.img) return; ev.preventDefault(); update(it, { zoom: (it.zoom || 100) - ev.deltaY / 4 }); App.touch(); drawStage(); syncGeo(); }, { passive: false });
     scaled.addEventListener('pointerdown', onDown); scaled.addEventListener('pointermove', onMove); scaled.addEventListener('pointerup', onUp); scaled.addEventListener('pointercancel', onUp);
-    dlg.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', (ev) => { if (dlg.open && gal.hidden) onKey(ev); });
     dlg.addEventListener('close', onClosed);
     window.addEventListener('resize', () => { if (dlg.open) refresh(false); });
   }
@@ -463,7 +568,7 @@
   }
   function open() {
     if (!dlg) build();
-    selId = null; undoStack = []; redoStack = []; gal.hidden = true;
+    selId = null; imgMode = false; undoStack = []; redoStack = []; gal.hidden = true;
     $('#bedSpan').checked = !!back().span;
     if (!dlg.open) { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); }
     refresh(true);

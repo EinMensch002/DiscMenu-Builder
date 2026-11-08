@@ -53,10 +53,15 @@
   const IMAGE_KEY_RE = /^(front|backTop|backBottom|publisher|spineLogo|spineBg|d\d+)$/;
   const isImageKey = (k) => IMAGE_KEY_RE.test(String(k));
 
+  /* Formen: Kreis, Dreieck, Viereck, Stern und freie Fläche. Punkte liegen in Prozent des Rahmens (0 bis 100), so wachsen sie beim Skalieren mit. */
+  const SHAPE_KINDS = ['rect', 'ellipse', 'triangle', 'star', 'poly'];
+  const MAX_PTS = 24;
+  const DEFAULT_PTS = { rect: [[0, 0], [100, 0], [100, 100], [0, 100]], triangle: [[50, 0], [100, 100], [0, 100]], poly: [[12, 8], [92, 0], [100, 68], [52, 100], [0, 62]] };
+  const defaultPts = (kind) => (DEFAULT_PTS[kind] || DEFAULT_PTS.poly).map((q) => q.slice());
   const normRot = (v) => { const n = parseFloat(String(v).replace(',', '.')); if (!isFinite(n)) return 0; let r = ((n % 360) + 360) % 360; if (r > 180) r -= 360; return Math.round(r * 10) / 10; };
   /* Ein Element der Gestaltungsfläche prüfen (fehlende Werte bekommen Standardwerte) */
   function normalizeItem(raw) {
-    if (!raw || typeof raw !== 'object' || !['image', 'text'].includes(raw.type)) return null;
+    if (!raw || typeof raw !== 'object' || !['image', 'text', 'shape'].includes(raw.type)) return null;
     const it = {
       id: typeof raw.id === 'string' && /^[a-z0-9_-]{1,12}$/i.test(raw.id) ? raw.id : '',
       type: raw.type,
@@ -64,10 +69,17 @@
       opacity: Math.round(clampN(raw.opacity, 5, 100, 100)), rot: normRot(raw.rot),
       edge: oneOf(raw.edge, BACK_EDGES, 'none'), edgeSize: clampN(raw.edgeSize, 0, 20, 0), borderColor: hexOk(raw.borderColor, '#ffffff'),
     };
-    if (it.type === 'image') {
+    if (it.type === 'image' || it.type === 'shape') {
       it.img = isImageKey(raw.img) ? raw.img : '';
-      it.fit = oneOf(raw.fit, ['cover', 'contain', 'stretch'], 'cover');
-      it.posX = Math.round(clampN(raw.posX, 0, 100, 50)); it.posY = Math.round(clampN(raw.posY, 0, 100, 50));
+      it.fit = it.type === 'shape' ? 'cover' : oneOf(raw.fit, ['cover', 'contain', 'stretch'], 'cover');
+      it.posX = Math.round(clampN(raw.posX, 0, 100, 50) * 10) / 10; it.posY = Math.round(clampN(raw.posY, 0, 100, 50) * 10) / 10; it.zoom = Math.round(clampN(raw.zoom, 100, 500, 100));
+      if (it.type === 'shape') {
+        it.shape = oneOf(raw.shape, SHAPE_KINDS, 'rect'); it.color = hexOk(raw.color, '#2f2f36'); it.useImg = !!raw.useImg;
+        it.sides = Math.round(clampN(raw.sides, 3, 12, 5)); it.inner = Math.round(clampN(raw.inner, 10, 90, 40));
+        const ok = Array.isArray(raw.pts) && raw.pts.length >= 3 && raw.pts.length <= MAX_PTS && raw.pts.every((q) => Array.isArray(q) && q.length === 2);
+        it.pts = ok ? raw.pts.map((q) => [Math.round(clampN(q[0], 0, 100, 0) * 10) / 10, Math.round(clampN(q[1], 0, 100, 0) * 10) / 10]) : defaultPts(it.shape);
+        it.edge = 'none';
+      }
     } else {
       it.text = typeof raw.text === 'string' ? raw.text.slice(0, 4000) : '';
       it.bind = oneOf(raw.bind, ['', 'title', 'description'], '');
@@ -105,11 +117,13 @@
   /* Neues Element mit Standardwerten (Position in mm auf der Gestaltungsfläche) */
   function newItem(type, props) { return normalizeItem({ type, ...(props || {}) }); }
   /* Vorlagen für die Gestaltungsfläche: Elemente, die an die Größe der Fläche angepasst sind (Bilder bleiben leer, bis man sie wählt) */
-  const BACK_TEMPLATES = { none: 'Leer', text: 'Titel und Beschreibung', steam: 'Beschreibung und Bildleiste', among: 'Party-Stil (Among Us)', aoe: 'Vier Bilder (Age of Empires)', spider: 'Spalten (Spider-Man)', halflife: 'Retro (Half-Life)', alyx: 'Ganzes Bild (Alyx)' };
+  const BACK_TEMPLATES = { none: 'Leer', text: 'Titel und Beschreibung', steam: 'Beschreibung und Bildleiste', among: 'Party-Stil (Among Us)', aoe: 'Vier Bilder (Age of Empires)', spider: 'Spalten (Spider-Man)', halflife: 'Retro (Half-Life)', alyx: 'Zersplittert (Alyx)' };
   /* Vorlagen nach dem Vorbild bekannter Steam-Hüllen. Maße sind Anteile der Gestaltungsfläche (x, y, Breite, Höhe von 0 bis 1), Schriftgrößen gelten für 130 mm Breite.
      Eine Fläche ("fill") ist ein Textelement ohne Text mit Hintergrund, sie dient als dunkler Grund. */
   const W = '#ffffff';
-  const fill = (c, o) => ['text', 0, 0, 1, 1, { bg: c, bgOpacity: o || 100, pad: 0 }];
+  const fill = (c, o) => ['shape', 0, 0, 1, 1, { shape: 'rect', color: c, opacity: o || 100 }];
+  /* Bildfläche mit beliebigen Ecken: Punkte als Anteile der ganzen Fläche, daraus wird der Rahmen berechnet */
+  const facet = (pts, p) => { const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]), x0 = Math.min(...xs), y0 = Math.min(...ys), x1 = Math.max(...xs), y1 = Math.max(...ys); return ['shape', x0, y0, x1 - x0, y1 - y0, { shape: 'poly', useImg: true, pts: pts.map((q) => [(q[0] - x0) / (x1 - x0) * 100, (q[1] - y0) / (y1 - y0) * 100]), ...(p || {}) }]; };
   const txt = (x, y, w, h, p) => ['text', x, y, w, h, { size: 7, color: W, ...p }];
   const img = (x, y, w, h, p) => ['image', x, y, w, h, p || {}];
   const TEMPLATE_DEFS = {
@@ -134,9 +148,12 @@
       txt(0.06, 0.15, 0.88, 0.14, { bind: 'description', size: 8, italic: true, color: '#f0e6d6', align: 'center' }),
       img(0.06, 0.33, 0.42, 0.24), txt(0.52, 0.33, 0.42, 0.24, { text: 'Kurzer Text …', color: '#f0e6d6' }),
       img(0.06, 0.62, 0.42, 0.24), txt(0.52, 0.62, 0.42, 0.24, { text: 'Kurzer Text …', color: '#f0e6d6' })],
-    alyx: [img(0, 0, 1, 1),
-      txt(0.08, 0.55, 0.84, 0.12, { bind: 'title', font: 'display', size: 22, weight: '900', caps: true, align: 'center', valign: 'middle', bg: '#000000', bgOpacity: 40, spacing: 4 }),
-      txt(0.08, 0.69, 0.84, 0.26, { bind: 'description', size: 8, bg: '#000000', bgOpacity: 55, pad: 2 })],
+    alyx: [fill('#1c1c1f'),
+      facet([[0, 0], [1, 0], [1, 0.47], [0.62, 0.43], [0, 0.33]]),
+      facet([[0, 0.33], [0.62, 0.43], [0.62, 0.6], [0, 0.5]]),
+      facet([[0, 0.5], [0.62, 0.6], [0.5, 1], [0, 1]]),
+      facet([[0.62, 0.43], [1, 0.47], [1, 1], [0.5, 1], [0.62, 0.6]]),
+      txt(0.28, 0.36, 0.7, 0.08, { bind: 'description', size: 6.5, align: 'center', valign: 'middle', bg: '#000000', bgOpacity: 55, pad: 1 })],
   };
   function backTemplate(id, w, h) {
     const m = 6, inner = Math.max(10, w - 2 * m);
@@ -530,7 +547,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { BACK_LIMITS, BACK_FONTS, BACK_EDGES, BACK_TEMPLATES, MAX_ITEMS, isImageKey, normalizeItem, normalizeBack, defaultBack, designHeight, newItem, backTemplate, BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { SHAPE_KINDS, MAX_PTS, defaultPts, BACK_LIMITS, BACK_FONTS, BACK_EDGES, BACK_TEMPLATES, MAX_ITEMS, isImageKey, normalizeItem, normalizeBack, defaultBack, designHeight, newItem, backTemplate, BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

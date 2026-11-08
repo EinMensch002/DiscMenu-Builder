@@ -158,16 +158,66 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.match(await page.locator('#bdlg').textContent(), /Durchgehendes Bild/);
   await page.uncheck('#bedSpan');
 
+  // Formen: Dreieck, Punkte ziehen (rasten ein), Punkte per Feld, Punkt löschen/hinzufügen, Stern, freie Fläche
+  await page.click('#bedTplBtn');
+  await page.click('#bdlg .bed-bar button:has-text("+ Form")');
+  assert.deepEqual(await page.locator('#bdlg .shape-menu button').allTextContents(), ['Kreis / Ellipse', 'Dreieck', 'Viereck', 'Stern', 'Freie Fläche']);
+  await page.click('#bdlg .shape-menu button:has-text("Dreieck")');
+  let sh = (await items()).at(-1); assert.equal(sh.type, 'shape'); assert.equal(sh.pts.length, 3);
+  assert.equal(await page.locator('#bdlg .bed-sel .pt').count(), 3);
+  const pt0 = await page.locator('#bdlg .bed-sel .pt').nth(0).boundingBox();
+  await page.mouse.move(pt0.x + pt0.width / 2, pt0.y + pt0.height / 2); await page.mouse.down();
+  await page.mouse.move(pt0.x + pt0.width / 2 + 25, pt0.y + pt0.height / 2 + 12, { steps: 5 }); await page.mouse.up();
+  sh = (await items()).at(-1); assert.notDeepEqual(sh.pts[0], [50, 0], 'Punkt bewegt: kein gleichschenkliges Dreieck mehr'); assert.deepEqual(sh.pts[1], [100, 100]);
+  await page.locator('#bdlg .bed-panel input[data-p="2:0"]').fill('10');
+  assert.equal((await items()).at(-1).pts[2][0], 10);
+  await page.click('#bdlg .bed-panel button:has-text("Punkt hinzufügen")');
+  assert.equal((await items()).at(-1).pts.length, 4); assert.equal((await items()).at(-1).shape, 'poly');
+  await page.locator('#bdlg .bed-panel .prow button').nth(3).click();
+  assert.equal((await items()).at(-1).pts.length, 3);
+  assert.equal(await page.locator('#bdlg .bed-panel .prow button:disabled').count(), 3, 'Mindestens drei Punkte');
+  await page.waitForFunction(() => /polygon/.test(document.querySelector('#backItems .bi-shape .bi-in').style.clipPath));
+  // Treffer nur innerhalb der Form: Klick in die Ecke des Rahmens außerhalb wählt nichts
+  await page.locator('#bdlg .bed-pane').click({ position: { x: 5, y: 5 } });
+  await page.click('#bdlg .bed-bar button:has-text("+ Form")'); await page.click('#bdlg .shape-menu button:has-text("Stern")');
+  assert.equal((await items()).at(-1).shape, 'star'); assert.equal(await page.locator('#bdlg .bed-sel .pt').count(), 0, 'Stern hat Parameter statt Punkte');
+  await page.locator('#bdlg .bed-panel label.f', { hasText: 'Zacken' }).locator('input').first().fill('7');
+  assert.equal((await items()).at(-1).sides, 7);
+  await page.click('#bdlg .bed-panel button:has-text("Als freie Fläche bearbeiten")');
+  assert.equal((await items()).at(-1).shape, 'poly'); assert.equal((await items()).at(-1).pts.length, 14);
+  assert.equal(await page.locator('#bdlg .bed-sel .pt').count(), 14);
+  // Bild in der Form: grau außerhalb (nur im Editor), verschieben und zoomen
+  await page.locator('#bdlg .bed-panel label.chk', { hasText: 'Bild statt Farbe' }).locator('input').check();
+  const [ch2] = await Promise.all([page.waitForEvent('filechooser'), page.click('#bdlg .bed-panel button:has-text("Datei wählen")')]);
+  await ch2.setFiles({ name: 'b.png', mimeType: 'image/png', buffer: PNG });
+  await page.waitForFunction(() => { const i = CoverApp.state.back.items.at(-1); return i.useImg && i.img; });
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-shape.bi .bi-dim').count(), 1, 'Graue Hilfsebene für das gewählte Bild');
+  await page.waitForFunction(() => document.querySelectorAll('#backItems .bi-dim').length === 0);   // auf dem Cover nie
+  await page.click('#bdlg .bed-panel button:has-text("Bild im Ausschnitt verschieben")');
+  const sb = await page.locator('#bdlg .bed-stage .bi-shape .bi-in').last().boundingBox();
+  await page.mouse.move(sb.x + sb.width / 2, sb.y + sb.height / 2);
+  await page.mouse.wheel(0, -200);
+  await page.waitForFunction(() => CoverApp.state.back.items.at(-1).zoom > 100);
+  assert.equal((await items()).at(-1).shape, 'poly', 'Rahmen und Form bleiben beim Bildverschieben');
+  const lastBefore = (await items()).at(-1);
+  await page.mouse.move(sb.x + sb.width / 2, sb.y + sb.height / 2); await page.mouse.down();
+  await page.mouse.move(sb.x + sb.width / 2 + 30, sb.y + sb.height / 2 + 10, { steps: 4 }); await page.mouse.up();
+  const lastAfter = (await items()).at(-1);
+  assert.deepEqual([lastAfter.x, lastAfter.y, lastAfter.w], [lastBefore.x, lastBefore.y, lastBefore.w], 'Der Rahmen bleibt stehen');
+  assert.ok(lastAfter.posX !== lastBefore.posX || lastAfter.posY !== lastBefore.posY, 'Das Bild wandert im Rahmen');
+
   // Schließen räumt nicht benutzte Bilder weg; speichern und neu laden bringt alles zurück
   await page.click('#bdlg button:has-text("Fertig")'); await page.waitForFunction(() => !document.querySelector('#bdlg').open);
-  await page.waitForFunction(() => Object.keys(CoverApp.images).filter((k) => /^d\d+$/.test(k)).length === 0);   // Bilder der gelöschten Elemente entfernt
+  await page.waitForFunction(() => Object.keys(CoverApp.images).filter((k) => /^d\d+$/.test(k)).length === 1);   // nur das Bild der Form bleibt, alle anderen sind entfernt
   const saved = await items();
-  await page.waitForTimeout(1200); await page.reload();
-  assert.deepEqual(await items(), saved, 'Nach dem Neuladen sind die Elemente da');
+  // Projekt speichern und wieder einsetzen (wie Export und Import): Elemente und Bilder kommen zurück
+  await page.evaluate(async () => { const snap = CoverApp.snapshot(), imgs = {}; for (const [k, v] of Object.entries(snap.images)) imgs[k] = { data: await v.blob.arrayBuffer(), type: v.type, name: v.name }; await CoverApp.restore(JSON.parse(JSON.stringify(snap.state)), imgs); });
+  assert.equal(await page.evaluate(() => Object.keys(CoverApp.images).filter((k) => /^d\d+$/.test(k)).length), 1, 'Bild der Form ist wieder da');
+  assert.deepEqual(await items(), saved, 'Nach dem Einsetzen sind die Elemente da');
 
   // Höhen: manuell einstellbar, Gestaltungsfläche passt sich an, Blatt bleibt gleich groß
   const sheet0 = await page.locator('#sheet').boundingBox();
-  await page.click('#secBack summary'); await page.fill('[data-k="back.reqH"]', '60');
+  await page.evaluate(() => { document.querySelector('#secBack').open = true; }); await page.fill('[data-k="back.reqH"]', '60');
   await page.waitForFunction(() => /× 108 mm/.test(document.querySelector('#backInfo').textContent));
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#backBottom')).height === document.querySelector('#backBottom').style.height || true), true);
   assert.equal((await page.locator('#sheet').boundingBox()).width, sheet0.width, 'Blattgröße unverändert');
