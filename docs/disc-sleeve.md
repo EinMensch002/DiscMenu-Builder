@@ -264,6 +264,19 @@ Die Rückseite besteht aus **zwei Teilen**:
 - **Gespeichert** wird alles mit dem Projekt (Einstellungen, Elemente, Bilder, ZIP). Bilder der Gestaltungsfläche heißen `d1`, `d2` und so weiter und werden beim Schließen des Editors entfernt, wenn kein Element sie mehr braucht.
 - **Zu hoch:** Sind die festen Teile zusammen so hoch wie die Rückseite, steht ein Hinweis da. Dann die Höhen verkleinern.
 
+### Ideen für die nächsten Schritte
+
+Geplant für einen eigenen Pull Request nach dem Rückseiten-Editor (Reihenfolge wie unten, die Schriften wegen der vielen Dateien eventuell als zweiter PR):
+
+1. **Umriss im Editor.** Die gewählte Form bekommt einen gut sichtbaren, farbigen Umriss mit Linien zwischen den Punkten. Andere Formen zeigen einen feinen, hellen Umriss, damit man mehrere übereinanderliegende Flächen auseinanderhält. Der Umriss erscheint nur im Editor, nicht auf dem Cover und nicht im Druck. Zusätzlich ein optionaler **echter Rand** (Farbe, Breite) pro Form als Gestaltungsmittel.
+2. **Eigene Vorlagen.**
+   - Ganz unten in der Vorlagenleiste ein **"+"**, das eine Vorlagendatei importiert.
+   - Format: eine kleine **JSON-Datei** mit Name und Elementen (dieselben Daten wie im Projekt, Maße als Anteile der Gestaltungsfläche, Bilder als leere Plätze). Beim Einlesen wird sie wie eine Projektdatei geprüft, Fehlerhaftes wird abgelehnt.
+   - **"Aktuelles Layout als Vorlage speichern"** und Vorlagen löschen, damit man eigene Vorlagen auch selbst erstellen kann.
+   - Eigene Vorlagen bleiben im Browser gespeichert und gehören zu den Einstellungen (siehe nächster Punkt).
+3. **Sichern und Einlesen der Einstellungen.** Beim Sichern erscheint ein **Auswahlfenster mit Häkchen**: Zugangsdaten (SteamGridDB-Schlüssel, Proxy), eigene Vorlagen, eigene Schriften. Beim Einlesen dasselbe, damit man gezielt wählen kann.
+4. **Standardschriften.** Etwa **10 bis 20 Schriften mit offener Lizenz** (zum Beispiel aus Google Fonts) werden mitgeliefert, damit Texte auf jedem Rechner gleich aussehen. Die Dateigröße ist dabei nebensächlich. Beim Zusammenführen zu einer einzigen HTML-Datei werden sie als Base64 eingebettet (wie Lato). Dazu können **eigene Schriftdateien importiert** werden, auch sie gehören ins Sichern der Einstellungen. Die Schriftdateien müssen dafür von einer Quelle mit offener Lizenz geholt werden (die Lizenz pro Schrift wird in den Hinweisen genannt).
+
 ### Längen in Millimetern und negative Abstände
 
 Alle Felder, in denen man eine Länge in **Millimetern** eingibt (eigene Hüllenmaße, Abstände und Breite von Rückenlogo und Publisher-Logo am Rücken), sind Zahlenfelder: Mit **Pfeil nach oben und unten** (oder den kleinen Pfeilen im Feld) geht der Wert in **0,25-mm-Schritten**. Bei den **Abständen am Rücken** (zur Seite, zum Kopf oben, zum Fuß unten) sind auch **negative Zahlen** erlaubt: Das Logo wird dann größer und ragt über seinen Rahmen hinaus. Das hilft bei Logos mit viel leerem Rand ums Bild. Zur Seite hin wird alles am Rand des Rückens abgeschnitten, damit nichts auf Vorder- oder Rückseite zu sehen ist. Nach oben und unten darf das Logo über sein Feld hinaus in den Bereich von Leiste und "PC" ragen. Das kann dort etwas überdecken, bitte im Ausdruck prüfen.
