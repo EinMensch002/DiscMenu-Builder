@@ -134,3 +134,69 @@ test('Projektdatei: Bilder der Gestaltungsfläche (d1, d2) und die Elemente übe
   assert.deepEqual(C.mergeState(out.state).back, state.back);
   assert.ok(F.isImageKey('d12') && F.isImageKey('front') && !F.isImageKey('d') && !F.isImageKey('../x'));
 });
+
+const FONT = { name: 'Meine Schrift', ext: 'ttf', data: Buffer.alloc(300, 7).toString('base64') };
+const layout = () => [C.newItem('text', { text: 'Hallo', x: 13, y: 12.2, w: 65, h: 24.4, size: 10, font: 'uf-abc1' }), C.newItem('image', { x: 13, y: 61, w: 32.5, h: 30.5, img: 'd3' }),
+  C.newItem('shape', { shape: 'poly', useImg: true, img: 'd4', x: 0, y: 0, w: 130, h: 122, pts: [[0, 0], [100, 0], [50, 100]] })];
+
+test('Eigene Vorlage: Layout speichern (ohne Bilder), prüfen und auf andere Flächengröße anwenden', () => {
+  const t = C.templateFromItems(layout(), { w: 130, h: 122 }, '  Meine   Vorlage ');
+  assert.equal(t.name, 'Meine Vorlage'); assert.deepEqual(t.ref, { w: 130, h: 122 });
+  assert.ok(t.items.every((i) => i.id === '') && t.items.filter((i) => i.type !== 'text').every((i) => i.img === ''), 'Bilder bleiben Platzhalter');
+  assert.equal(t.items[0].font, 'uf-abc1', 'eigene Schrift bleibt erhalten');
+  assert.equal(t.items[2].useImg, true);
+  const half = C.instantiateTemplate(t, 65, 61);
+  assert.deepEqual([half[0].x, half[0].w, half[0].size], [6.5, 32.5, 5]);
+  assert.deepEqual(half[2].pts, [[0, 0], [100, 0], [50, 100]], 'Punkte sind Prozent des Rahmens');
+  assert.equal(C.normalizeTemplate(JSON.parse(JSON.stringify(t))).items.length, 3);
+  assert.equal(C.normalizeTemplate({ name: '  ' }), null); assert.equal(C.normalizeTemplate('x'), null);
+  const bad = C.normalizeTemplate({ name: 'A', ref: { w: 9999, h: -1 }, items: [{ type: 'quatsch' }, null, { type: 'text', text: 'ok' }] });
+  assert.deepEqual(bad.ref, { w: 400, h: 20 }); assert.equal(bad.items.length, 1, 'kaputte Elemente werden weggelassen');
+  assert.equal(C.normalizeItem({ type: 'text', font: 'uf-../x' }).font, 'sans');
+});
+
+test('Sicherungsdatei: Bereiche einzeln, Teilimport lässt alles andere unberührt', async () => {
+  const t = C.templateFromItems(layout(), { w: 130, h: 122 }, 'V1');
+  const credsFile = await F.packBundle({ creds: { key: 'K', proxy: 'https://p/?url={url}' } }, '');
+  const tplFile = await F.packBundle({ templates: [t], fonts: [FONT] }, '');
+  assert.ok(!JSON.parse(credsFile).templates && !JSON.parse(credsFile).fonts, 'leere Bereiche stehen nicht in der Datei');
+  assert.ok(!JSON.parse(tplFile).sgdbKey && !('proxy' in JSON.parse(tplFile)), 'Vorlagendatei enthält keine Zugangsdaten');
+  assert.deepEqual(await F.unpackSettings(credsFile, ''), { key: 'K', proxy: 'https://p/?url={url}' }, 'alter Leser versteht die Datei');
+  const b = await F.unpackBundle(tplFile, '');
+  assert.equal(b.creds, undefined); assert.equal(b.templates.length, 1); assert.equal(b.fonts[0].name, 'Meine Schrift');
+  // Zugangsdaten sind schon da; die Vorlagendatei darf sie nicht anfassen
+  const cur = { creds: { key: 'ALT', proxy: 'https://alt/?url={url}', brandfetch: 'B' }, templates: [], fonts: [] };
+  const out = F.applyImport(F.planImport(b, cur), cur, {});
+  assert.equal(out.creds, undefined, 'Zugangsdaten nicht in der Datei: nichts ändern');
+  assert.equal(out.templates.add.length, 1); assert.equal(out.fonts.add.length, 1);
+  // Umgekehrt: die Zugangsdatei lässt Vorlagen und Schriften in Ruhe
+  const c2 = F.applyImport(F.planImport(await F.unpackBundle(credsFile, ''), { creds: {}, templates: [t] }), { creds: {}, templates: [t] }, {});
+  assert.deepEqual(c2.creds, { key: 'K', proxy: 'https://p/?url={url}' }); assert.equal(c2.templates, undefined); assert.equal(c2.fonts, undefined);
+});
+
+test('Sicherungsdatei: Konflikte fragen nach, leere Felder löschen nichts, Namensgleichheit', async () => {
+  const t = C.templateFromItems(layout(), { w: 130, h: 122 }, 'V1');
+  const b = await F.unpackBundle(await F.packBundle({ creds: { key: 'NEU', proxy: '', brandfetch: 'B' }, templates: [t] }, ''), '');
+  const cur = { creds: { key: 'ALT', proxy: 'https://alt/?url={url}', brandfetch: 'B' }, templates: [{ name: 'v1' }] };
+  const plan = F.planImport(b, cur);
+  assert.deepEqual(plan.creds.map((e) => [e.field, e.conflict]), [['key', true], ['brandfetch', false]], 'leerer Proxy in der Datei wird gar nicht erst angeboten');
+  assert.deepEqual(F.applyImport(plan, cur, {}).creds, { brandfetch: 'B' }, 'ohne Zustimmung bleibt der alte Schlüssel');
+  assert.deepEqual(F.applyImport(plan, cur, { creds: 'replace' }).creds, { key: 'NEU', brandfetch: 'B' });
+  assert.equal(plan.templates[0].conflict, true, 'Name gleich (Groß/Klein egal)');
+  assert.equal(F.applyImport(plan, cur, {}).templates.add[0].name, 'V1 (2)', 'Standard: beide behalten');
+  assert.equal(F.applyImport(plan, cur, { templates: ['replace'] }).templates.replace[0].name, 'V1');
+  assert.equal(F.applyImport(plan, cur, { templates: ['skip'] }).templates.add.length, 0);
+  assert.equal(F.applyImport(plan, cur, { sections: { templates: false } }).templates, undefined, 'abgewählter Bereich');
+});
+
+test('Sicherungsdatei: Verschlüsselung, kaputte Schriften und Vorlagen werden verworfen', async () => {
+  const t = C.templateFromItems(layout(), { w: 130, h: 122 }, 'V1');
+  const enc = await F.packBundle({ creds: { key: 'GEHEIM' }, templates: [t] }, 'pw');
+  assert.ok(!enc.includes('GEHEIM') && !enc.includes('V1'));
+  await assert.rejects(F.unpackBundle(enc, ''), /PASSWORD_NEEDED/);
+  assert.equal((await F.unpackBundle(enc, 'pw')).creds.key, 'GEHEIM');
+  const raw = JSON.stringify({ type: 'discmenu-settings', version: 1, templates: [{ name: '' }, t], fonts: [{ name: 'x', ext: 'exe', data: FONT.data }, { name: 'klein', ext: 'ttf', data: 'AAAA' }, { name: 'ok', ext: 'woff2', data: FONT.data }, 'quatsch'] });
+  const b = await F.unpackBundle(raw, '');
+  assert.equal(b.templates.length, 1); assert.deepEqual(b.fonts.map((f) => f.name), ['ok']); assert.equal(b.skipped, 4);
+  assert.equal(await F.packBundle({ creds: {}, templates: [], fonts: [] }, '').then((x) => Object.keys(JSON.parse(x)).join()), 'type,version', 'ganz leer: nur Kopf');
+});
