@@ -210,6 +210,48 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 3);
   await page.click('#bdlg .tpl-card[data-tpl=steam]');
 
+  // Mehrfachauswahl: Strg/Umschalt-Klick, gemeinsam verschieben und drehen (jedes um die eigene Mitte), Auswahl bleibt
+  const gctr = async (i) => { const b = await page.locator('#bdlg .bed-stage .bi').nth(i).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
+  const clickWith = async (key, i) => { const c = await gctr(i); if (key) await page.keyboard.down(key); await page.mouse.click(c.x, c.y); if (key) await page.keyboard.up(key); };
+  const imgIgdx = (await items()).map((it, i) => (it.type === 'image' ? i : -1)).filter((i) => i >= 0);
+  assert.equal(imgIgdx.length, 3);
+  await clickWith(null, imgIgdx[0]);
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-sel').isVisible(), true, 'Einzelauswahl hat Griffe');
+  await clickWith('Control', imgIgdx[1]); await clickWith('Shift', imgIgdx[2]);
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-sel, #bdlg .bed-stage .bi-out-sel').count(), 3, 'Alle drei sind gewählt');
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-grp').isVisible(), true);
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-sel').isVisible(), false, 'Keine Einzelgriffe bei Mehrfachauswahl');
+  assert.match(await page.locator('#bdlg .bed-panel h3').textContent(), /3\s*Elemente gewählt/);
+  const gm0 = await items(), gpos0 = imgIgdx.map((i) => [gm0[i].x, gm0[i].y]);
+  const gc0 = await gctr(imgIgdx[1]);
+  await page.mouse.move(gc0.x, gc0.y); await page.mouse.down(); await page.mouse.move(gc0.x + 30, gc0.y + 20, { steps: 5 }); await page.mouse.up();
+  const gm1 = await items(), gpos1 = imgIgdx.map((i) => [gm1[i].x, gm1[i].y]);
+  const gdx = gpos1[0][0] - gpos0[0][0], gdy = gpos1[0][1] - gpos0[0][1];
+  assert.ok(gdx !== 0 || gdy !== 0, 'Auswahl wurde verschoben');
+  gpos1.forEach((p, n) => { assert.ok(Math.abs(p[0] - gpos0[n][0] - gdx) < 0.02 && Math.abs(p[1] - gpos0[n][1] - gdy) < 0.02, 'Alle um dasselbe Stück verschoben'); });
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-sel, #bdlg .bed-stage .bi-out-sel').count(), 3, 'Auswahl bleibt nach dem Verschieben');
+  await page.locator('#bedGroupRot').fill('20'); await page.locator('#bedGroupRot').press('Tab');
+  const gm2 = await items();
+  assert.deepEqual(imgIgdx.map((i) => gm2[i].rot), [20, 20, 20]); assert.deepEqual(imgIgdx.map((i) => [gm2[i].x, gm2[i].y]), gpos1, 'Drehen um die eigene Mitte: Positionen bleiben');
+  const ghb = await page.locator('#bdlg .bed-grp .hd-grot').boundingBox();
+  await page.mouse.move(ghb.x + ghb.width / 2, ghb.y + ghb.height / 2); await page.mouse.down(); await page.mouse.move(ghb.x + ghb.width / 2 + 120, ghb.y + ghb.height / 2 + 60, { steps: 6 }); await page.mouse.up();
+  const gm3 = await items(), grots = imgIgdx.map((i) => gm3[i].rot);
+  assert.ok(grots[0] !== 20 && grots.every((r) => r === grots[0]), 'Drehgriff dreht alle gleich');
+  assert.deepEqual(imgIgdx.map((i) => [gm3[i].x, gm3[i].y]), gpos1, 'Positionen unverändert');
+  await page.evaluate(() => document.activeElement && document.activeElement.blur());
+  await clickWith('Control', imgIgdx[2]);
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-sel, #bdlg .bed-stage .bi-out-sel').count(), 2, 'Strg-Klick nimmt ein Element aus der Auswahl');
+  await page.keyboard.press('Control+a');
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-sel, #bdlg .bed-stage .bi-out-sel').count(), (await items()).length, 'Strg+A wählt alles');
+  const gAll = (await items()).length;
+  await page.keyboard.press('Delete');
+  assert.equal((await items()).length, 0, 'Entf löscht alle gewählten');
+  await page.keyboard.press('Control+z');
+  assert.equal((await items()).length, gAll, 'Rückgängig bringt sie zurück');
+  await clickWith(null, imgIgdx[0]);
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-sel').isVisible(), true); assert.equal(await page.locator('#bdlg .bed-stage .bed-grp').isVisible(), false);
+  await page.click('#bdlg .tpl-card[data-tpl=steam]');
+
   // Drehen: Feld und Griff; gedrehte Elemente lassen sich weiter greifen
   const tx = (await items()).findIndex((i) => i.type === 'text' && i.bind === 'description');
   const bx = await page.locator('#bdlg .bed-stage .bi-text').nth(1).boundingBox();

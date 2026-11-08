@@ -112,6 +112,7 @@
     node.className = 'bi bi-' + it.type; node.dataset.id = it.id;
     const s = node.style;
     s.left = mm(it.x); s.top = mm(it.y); s.width = mm(it.w); s.height = mm(it.h);
+    if (env.editor && env.selIds && env.selIds.size > 1 && env.selIds.has(it.id) && it.type !== 'shape') node.classList.add('bi-sel');   // Mehrfachauswahl: Rahmen (Formen haben ihren Umriss)
     if (it.opacity < 100) s.opacity = String(it.opacity / 100);
     if (it.rot) s.transform = 'rotate(' + it.rot + 'deg)';
     if (it.type === 'shape') {
@@ -125,7 +126,7 @@
       } else inner.style.backgroundColor = it.color;
       node.append(inner);
       if (it.strokeW > 0) { const o = outlineSvg(it, 'bi-rand'); o.g.setAttribute('stroke', it.borderColor); o.g.setAttribute('stroke-width', String(it.strokeW * 2)); o.svg.style.clipPath = clipOf(it); node.append(o.svg); }
-      if (env.editor) node.append(outlineSvg(it, env.selId === it.id ? 'bi-out bi-out-sel' : 'bi-out').svg);   // Umriss nur im Editor
+      if (env.editor) node.append(outlineSvg(it, (env.selIds ? env.selIds.has(it.id) : env.selId === it.id) ? 'bi-out bi-out-sel' : 'bi-out').svg);   // Umriss nur im Editor
       return node;
     }
     if (it.type === 'image') {

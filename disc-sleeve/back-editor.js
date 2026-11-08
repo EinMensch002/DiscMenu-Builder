@@ -11,19 +11,23 @@
   const round = (n) => Math.round(n * 100) / 100;
   const snap025 = (n) => Math.round(n * 4) / 4;
 
-  let imgMode = false, shapeMenu, tplBar, dlg, stage, scaled, itemsBox, selBox, pane, panel, footA, footB;
-  let selId = null, k = 1, undoStack = [], redoStack = [], drag = null;
+  let imgMode = false, shapeMenu, tplBar, dlg, stage, scaled, itemsBox, selBox, grpBox, pane, panel, footA, footB;
+  let selId = null, sel = [], k = 1, undoStack = [], redoStack = [], drag = null;
 
   const back = () => App.state.back;
   const items = () => back().items;
   const byId = (id) => items().find((i) => i.id === id);
+  /* Auswahl: sel = Ids aller gewählten Elemente. selId gibt es nur, wenn genau eines gewählt ist (dann gelten Griffe und Eigenschaften). */
+  const setSel = (ids) => { sel = ids.filter((id) => byId(id)); selId = sel.length === 1 ? sel[0] : null; };
+  const isSel = (id) => sel.includes(id);
+  const selItems = () => sel.map(byId).filter(Boolean);
   const dims = () => App.caseDims();
   const area = () => { const d = dims(); return { w: d.back, h: C.designHeight(App.state, d) }; };
 
   /* ---------- Rückgängig ---------- */
   const clone = (o) => JSON.parse(JSON.stringify(o));
   function remember() { undoStack.push(clone({ items: items(), seq: back().seq, description: back().description })); if (undoStack.length > 50) undoStack.shift(); redoStack = []; }
-  function restoreFrom(snap) { Object.assign(back(), clone(snap)); if (!byId(selId)) selId = null; App.touch(); refresh(true); }
+  function restoreFrom(snap) { Object.assign(back(), clone(snap)); setSel(sel); App.touch(); refresh(true); }
   function undo() { if (!undoStack.length) return; redoStack.push(clone({ items: items(), seq: back().seq, description: back().description })); restoreFrom(undoStack.pop()); }
   function redo() { if (!redoStack.length) return; undoStack.push(clone({ items: items(), seq: back().seq, description: back().description })); restoreFrom(redoStack.pop()); }
 
@@ -39,7 +43,7 @@
   function add(it) {
     if (items().length >= C.MAX_ITEMS) { alert('Mehr als ' + C.MAX_ITEMS + ' Elemente passen nicht auf die Rückseite.'); return null; }
     let n = 1; while (byId('e' + n)) n++;
-    it.id = 'e' + n; items().push(it); selId = it.id; return it;
+    it.id = 'e' + n; items().push(it); setSel([it.id]); return it;
   }
   function newKey() { const key = 'd' + back().seq; back().seq++; return key; }
   const center = (w, h) => { const a = area(); return { x: round((a.w - w) / 2), y: round((a.h - h) / 2) }; };
@@ -99,14 +103,30 @@
     stage.style.backgroundImage = !span && base ? 'url("' + base.url + '")' : 'none';
     footA.style.height = back().featH + 'mm'; footB.style.height = back().reqH + 'mm';
     itemsBox.style.setProperty('--ol', round(2 / (k * PX)) + 'mm');   // Umriss immer ca. 2 Bildschirmpunkte dick
-    BD.renderInto(itemsBox, items(), { images: App.images, state: App.state, editor: true, selId });
+    BD.renderInto(itemsBox, items(), { images: App.images, state: App.state, editor: true, selId, selIds: new Set(sel) });
     drawSel();
   }
+  /* Umgebendes Rechteck mehrerer (auch gedrehter) Elemente */
+  function groupBounds(list) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const it of list) {
+      const cx = it.x + it.w / 2, cy = it.y + it.h / 2;
+      for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+        const q = rotPt(sx * it.w / 2, sy * it.h / 2, it.rot || 0);
+        x0 = Math.min(x0, cx + q.x); x1 = Math.max(x1, cx + q.x); y0 = Math.min(y0, cy + q.y); y1 = Math.max(y1, cy + q.y);
+      }
+    }
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
   function drawSel() {
-    const it = byId(selId);
-    selBox.hidden = !it;
+    const it = byId(selId), list = selItems(), hd = round(10 / (k * PX));
+    selBox.hidden = !it; grpBox.hidden = list.length < 2;
+    if (list.length > 1) {                                  // mehrere gewählt: gestrichelter Rahmen mit Drehgriff um alle
+      const b = groupBounds(list), g = grpBox.style;
+      g.left = round(b.x) + 'mm'; g.top = round(b.y) + 'mm'; g.width = round(b.w) + 'mm'; g.height = round(b.h) + 'mm'; g.setProperty('--hd', hd + 'mm');
+    }
     if (!it) return;
-    const s = selBox.style, hd = round(10 / (k * PX));
+    const s = selBox.style;
     s.left = it.x + 'mm'; s.top = it.y + 'mm'; s.width = it.w + 'mm'; s.height = it.h + 'mm';
     selBox.querySelectorAll('.pt').forEach((n) => n.remove());
     if (it.type === 'shape' && ['rect', 'triangle', 'poly'].includes(it.shape)) it.pts.forEach((q, i) => { const d = el('span', 'pt'); d.dataset.i = i; d.style.left = q[0] + '%'; d.style.top = q[1] + '%'; d.title = 'Punkt ziehen'; selBox.append(d); });
@@ -149,23 +169,56 @@
   function targets(skip, axis) {
     const a = area(), t = axis === 'x' ? [0, a.w / 2, a.w] : [0, a.h / 2, a.h];
     for (const o of items()) {
-      if (o.id !== skip) t.push(axis === 'x' ? o.x : o.y, axis === 'x' ? o.x + o.w : o.y + o.h);
+      if (!(skip instanceof Set ? skip.has(o.id) : o.id === skip)) t.push(axis === 'x' ? o.x : o.y, axis === 'x' ? o.x + o.w : o.y + o.h);
       if (o.type === 'shape' && !o.rot && ['rect', 'triangle', 'poly'].includes(o.shape)) for (const q of o.pts) t.push(axis === 'x' ? o.x + q[0] / 100 * o.w : o.y + q[1] / 100 * o.h);
     }
     return t;
   }
+  function startGroup(ev, mode, p, collapseId) {
+    const list = selItems(); remember();
+    drag = { group: true, mode, ids: list.map((i) => i.id), p0: p, box: groupBounds(list), o: Object.fromEntries(list.map((i) => [i.id, { x: i.x, y: i.y, rot: i.rot || 0 }])), collapse: collapseId || null, moved: false };
+    drag.c = { x: drag.box.x + drag.box.w / 2, y: drag.box.y + drag.box.h / 2 };
+    ev.preventDefault(); scaled.setPointerCapture(ev.pointerId);
+  }
   function onDown(ev) {
     if (ev.button !== 0) return;
     const hdl = ev.target.closest('.hd'), pt = ev.target.closest('.pt'), p = toMm(ev);
+    if (hdl && hdl.closest('.bed-grp')) { startGroup(ev, 'grot', p); return; }          // Drehgriff der Mehrfachauswahl
+    if (!hdl && !pt && (ev.ctrlKey || ev.metaKey || ev.shiftKey)) {                      // Strg oder Umschalt: Element zur Auswahl hinzufügen oder herausnehmen
+      const h = hit(p);
+      if (h) { setSel(isSel(h.id) ? sel.filter((i) => i !== h.id) : [...sel, h.id]); imgMode = false; refresh(true); ev.preventDefault(); }
+      return;
+    }
     let it = hdl || pt ? byId(selId) : hit(p);
-    if (!it) { selId = null; refresh(true); return; }
-    if (selId !== it.id) { selId = it.id; imgMode = false; drawStage(); buildPanel(); }
+    if (!it) { setSel([]); refresh(true); return; }
+    if (!hdl && !pt && sel.length > 1 && isSel(it.id)) { startGroup(ev, 'gmove', p, it.id); return; }   // alle gewählten gemeinsam ziehen
+    if (selId !== it.id) { setSel([it.id]); imgMode = false; drawStage(); buildPanel(); }
     remember();
     drag = { id: it.id, mode: hdl ? hdl.dataset.h : pt ? 'pt' : imgMode && it.img ? 'pan' : 'move', pi: pt ? Number(pt.dataset.i) : -1, p0: p, o: { x: it.x, y: it.y, w: it.w, h: it.h, rot: it.rot || 0, posX: it.posX, posY: it.posY, pts: it.pts ? clone(it.pts) : null }, moved: false };
     ev.preventDefault(); scaled.setPointerCapture(ev.pointerId);
   }
+  /* Mehrfachauswahl ziehen (rastet mit dem umgebenden Rechteck ein) oder drehen (jedes Element um seine eigene Mitte) */
+  function onGroupMove(ev) {
+    const p = toMm(ev), dx = p.x - drag.p0.x, dy = p.y - drag.p0.y;
+    if (!drag.moved && Math.hypot(dx, dy) * PX * k < 2) return;
+    drag.moved = true;
+    const list = drag.ids.map(byId).filter(Boolean);
+    if (drag.mode === 'grot') {
+      let d = (Math.atan2(p.y - drag.c.y, p.x - drag.c.x) - Math.atan2(drag.p0.y - drag.c.y, drag.p0.x - drag.c.x)) * 180 / Math.PI;
+      if (ev.shiftKey) d = Math.round(d / 15) * 15;
+      for (const it of list) update(it, { rot: Math.round((drag.o[it.id].rot + d) * 10) / 10 });
+      drawStage(); return;
+    }
+    const skip = new Set(drag.ids), tx = targets(skip, 'x'), ty = targets(skip, 'y'), b = drag.box;
+    const pick = (n, size, t) => [snapValue(n, t), snapValue(n + size / 2, t) - size / 2, snapValue(n + size, t) - size].reduce((best, v) => (Math.abs(v - n) < Math.abs(best - n) ? v : best), n + 99);
+    let nx = b.x + dx, ny = b.y + dy;
+    if (!ev.altKey) { const cx = pick(nx, b.w, tx), cy = pick(ny, b.h, ty); if (Math.abs(cx - nx) < 90) nx = cx; if (Math.abs(cy - ny) < 90) ny = cy; }
+    for (const it of list) update(it, { x: round(drag.o[it.id].x + nx - b.x), y: round(drag.o[it.id].y + ny - b.y) });
+    drawStage();
+  }
   function onMove(ev) {
     if (!drag) return;
+    if (drag.group) { onGroupMove(ev); return; }
     const it = byId(drag.id); if (!it) return;
     const p = toMm(ev), dx = p.x - drag.p0.x, dy = p.y - drag.p0.y, o = drag.o, m = drag.mode;
     if (!drag.moved && Math.hypot(dx, dy) * PX * k < 2) return;
@@ -222,9 +275,11 @@
   }
   function onUp(ev) {
     if (!drag) return;
-    const moved = drag.moved; drag = null;
+    const d = drag; drag = null;
     try { scaled.releasePointerCapture(ev.pointerId); } catch (e) { /* egal */ }
-    if (moved) { App.touch(); refresh(false); } else undoStack.pop();
+    if (d.moved) { App.touch(); refresh(false); return; }
+    undoStack.pop();
+    if (d.collapse) { setSel([d.collapse]); imgMode = false; refresh(true); }       // Klick ohne Ziehen auf ein Element der Auswahl: nur dieses behalten
   }
 
   /* ---------- Eigenschaften ---------- */
@@ -293,11 +348,24 @@
   }
   function btn(label, fn, cls) { const b = el('button', cls || '', label); b.type = 'button'; b.addEventListener('click', fn); return b; }
 
+  /* Eigenschaften bei Mehrfachauswahl: gemeinsam drehen, Reihenfolge, duplizieren, löschen */
+  function multiPanel(list) {
+    const h = el('h3'); h.append(el('b', '', String(list.length)), el('span', '', ' Elemente gewählt')); panel.append(h);
+    panel.append(el('p', 'hint', 'Ziehen verschiebt alle gemeinsam (auch die Pfeiltasten). Der Griff oben dreht alle, jedes Element um seine eigene Mitte. Mit Strg oder Umschalt anklicken fügt Elemente hinzu oder nimmt sie aus der Auswahl.'));
+    const rot = el('input'); rot.type = 'number'; rot.step = '1'; rot.value = '0'; rot.id = 'bedGroupRot';
+    rot.addEventListener('change', () => { const d = Number(rot.value); rot.value = '0'; if (d && !isNaN(d)) change(() => list.forEach((it) => update(it, { rot: (it.rot || 0) + d }))); });
+    panel.append(row('Alle drehen um (°)', rot));
+    const acts = el('div', 'drow');
+    acts.append(btn('Nach vorn', () => moveLayers(list, 1)), btn('Nach hinten', () => moveLayers(list, -1)), btn('Duplizieren', () => duplicate(list)), btn('Löschen', () => remove(list), 'danger'));
+    panel.append(acts, btn('Auswahl aufheben', () => { setSel([]); refresh(true); }));
+  }
   function buildPanel() {
     panel.replaceChildren();
-    const it = byId(selId);
+    const it = byId(selId), many = selItems();
+    if (many.length > 1) { multiPanel(many); return; }
     if (!it) {
       panel.append(el('h3', '', 'Kein Element gewählt'), el('p', 'hint', 'Klicke ein Element auf der Fläche an oder füge oben ein Bild oder einen Text hinzu. Mit den Griffen änderst Du die Größe, mit den Pfeiltasten verschiebst Du fein (Umschalt: größere Schritte, Alt beim Ziehen: nicht einrasten).'));
+      panel.append(el('p', 'hint', 'Mehrere Elemente wählst Du mit gedrückter Strg- oder Umschalttaste (Strg+A: alle).'));
       const d = el('p', 'hint'); d.textContent = 'Fläche: ' + area().w + ' × ' + area().h + ' mm.'; panel.append(d);
       return;
     }
@@ -355,8 +423,8 @@
     panel.append(g);
     const acts = el('div', 'drow');
     acts.append(
-      btn('Nach vorn', () => moveLayer(it, 1)), btn('Nach hinten', () => moveLayer(it, -1)),
-      btn('Duplizieren', () => duplicate(it)), btn('Löschen', () => remove(it), 'danger'));
+      btn('Nach vorn', () => moveLayers([it], 1)), btn('Nach hinten', () => moveLayers([it], -1)),
+      btn('Duplizieren', () => duplicate([it])), btn('Löschen', () => remove([it]), 'danger'));
     panel.append(acts);
   }
   /* Zoom, Ausschnitt und Verschieben des Bildes im Rahmen (bei Bildern mit "Füllen" und bei Formen mit Bild) */
@@ -408,9 +476,22 @@
     }, { panel: true }));
     panel.append(add1);
   }
-  function moveLayer(it, dir) { change(() => { const l = items(), i = l.indexOf(it), j = i + dir; if (j < 0 || j >= l.length) return; l.splice(i, 1); l.splice(j, 0, it); }); }
-  function duplicate(it) { change(() => { const c = clone(it); const n = add(c); if (n) { n.x = round(n.x + 3); n.y = round(n.y + 3); } }, { panel: true }); }
-  function remove(it) { change(() => { const l = items(); l.splice(l.indexOf(it), 1); selId = null; }, { panel: true }); }
+  /* Reihenfolge: gewählte Elemente eine Ebene nach vorn (1) oder hinten (-1), ihre Reihenfolge untereinander bleibt */
+  function moveLayers(list, dir) {
+    change(() => {
+      const l = items(), ids = new Set(list.map((i) => i.id)), idx = l.map((_, i) => i).filter((i) => ids.has(l[i].id));
+      if (dir > 0) idx.reverse();
+      for (const i of idx) { const j = i + dir; if (j < 0 || j >= l.length || ids.has(l[j].id)) continue; [l[i], l[j]] = [l[j], l[i]]; }
+    });
+  }
+  function duplicate(list) {
+    change(() => {
+      const ids = [];
+      for (const it of list) { const n = add(clone(it)); if (n) { n.x = round(n.x + 3); n.y = round(n.y + 3); ids.push(n.id); } }
+      setSel(ids);
+    }, { panel: true });
+  }
+  function remove(list) { change(() => { const l = items(); for (const it of list) l.splice(l.indexOf(it), 1); setSel([]); }, { panel: true }); }
 
   /* ---------- Bilder von Steam und GOG ---------- */
   let gal;
@@ -502,9 +583,9 @@
     if (items().length && !confirm('Die vorhandenen Elemente werden durch die Vorlage ersetzt. Weitermachen?')) return false;
     const a = area();
     change(() => {
-      back().items = []; selId = null;
+      back().items = []; setSel([]);
       tplItems(id, a).forEach((it) => { add(it); });
-      selId = null;
+      setSel([]);
     }, { panel: true });
     return true;
   }
@@ -618,7 +699,9 @@
     stage = el('div', 'bed-stage'); itemsBox = el('div', 'bitems'); selBox = el('div', 'bed-sel'); selBox.hidden = true;
     HANDLES.forEach((h) => { const d = el('span', 'hd hd-' + h); d.dataset.h = h; selBox.append(d); });
     { const line = el('span', 'rot-line'), rot = el('span', 'hd hd-rot'); rot.dataset.h = 'rot'; rot.title = 'Drehen (Umschalt: in 15°-Schritten)'; selBox.append(line, rot); }
-    stage.append(itemsBox, selBox);
+    grpBox = el('div', 'bed-grp'); grpBox.hidden = true;
+    { const line = el('span', 'rot-line'), rot = el('span', 'hd hd-grot'); rot.dataset.h = 'grot'; rot.title = 'Alle drehen (Umschalt: in 15°-Schritten)'; grpBox.append(line, rot); }
+    stage.append(itemsBox, selBox, grpBox);
     footA = el('div', 'bed-foot', 'Spielfunktionen (fester Teil)'); footB = el('div', 'bed-foot', 'Systemanforderungen und Logos (fester Teil)');
     scaled.append(stage, footA, footB); wrap.append(scaled); pane.append(wrap);
     panel = el('div', 'bed-panel');
@@ -627,7 +710,7 @@
     dlg.append(head, bar, main);
     document.body.append(dlg);
     buildGallery();
-    pane.addEventListener('pointerdown', (ev) => { if (!ev.composedPath().includes(scaled) && selId) { selId = null; refresh(true); } });
+    pane.addEventListener('pointerdown', (ev) => { if (!ev.composedPath().includes(scaled) && sel.length) { setSel([]); refresh(true); } });
     scaled.addEventListener('wheel', (ev) => { const it = byId(selId); if (!imgMode || !it || !it.img) return; ev.preventDefault(); update(it, { zoom: (it.zoom || 100) - ev.deltaY / 4 }); App.touch(); drawStage(); syncGeo(); }, { passive: false });
     scaled.addEventListener('pointerdown', onDown); scaled.addEventListener('pointermove', onMove); scaled.addEventListener('pointerup', onUp); scaled.addEventListener('pointercancel', onUp);
     document.addEventListener('keydown', (ev) => { if (dlg.open && gal.hidden) onKey(ev); });
@@ -640,11 +723,12 @@
     const mod = ev.ctrlKey || ev.metaKey, key = ev.key.toLowerCase();
     if (mod && key === 'z') { ev.preventDefault(); ev.shiftKey ? redo() : undo(); return; }
     if (mod && key === 'y') { ev.preventDefault(); redo(); return; }
-    const it = byId(selId); if (!it) return;
-    if (mod && key === 'd') { ev.preventDefault(); duplicate(it); return; }
-    if (key === 'delete' || key === 'backspace') { ev.preventDefault(); remove(it); return; }
+    if (mod && key === 'a') { ev.preventDefault(); setSel(items().map((i) => i.id)); imgMode = false; refresh(true); return; }
+    const list = selItems(); if (!list.length) return;
+    if (mod && key === 'd') { ev.preventDefault(); duplicate(list); return; }
+    if (key === 'delete' || key === 'backspace') { ev.preventDefault(); remove(list); return; }
     const step = ev.shiftKey ? 1 : 0.25, d = { arrowleft: [-step, 0], arrowright: [step, 0], arrowup: [0, -step], arrowdown: [0, step] }[key];
-    if (d) { ev.preventDefault(); change(() => update(it, { x: round(it.x + d[0]), y: round(it.y + d[1]) })); }
+    if (d) { ev.preventDefault(); change(() => list.forEach((it) => update(it, { x: round(it.x + d[0]), y: round(it.y + d[1]) }))); }
   }
   /* Beim Schließen nicht mehr benutzte Bilder der Gestaltungsfläche entfernen (Speicher und Projektdatei bleiben klein) */
   function onClosed() {
@@ -654,7 +738,7 @@
   }
   function open() {
     if (!dlg) build();
-    selId = null; imgMode = false; undoStack = []; redoStack = []; gal.hidden = true;
+    setSel([]); imgMode = false; undoStack = []; redoStack = []; gal.hidden = true;
     $('#bedSpan').checked = !!back().span;
     if (!dlg.open) { if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', ''); }
     refresh(true);

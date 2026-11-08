@@ -404,7 +404,7 @@ dialog.bed .dh h2 { margin: 0; font-size: 17px; flex: 1; }
 .bed-stage .bi { cursor: move; }
 .bed-foot { display: flex; align-items: center; justify-content: center; font: 600 3.2mm Lato, sans-serif; color: #667; background: repeating-linear-gradient(45deg, #dfe3ea 0 3mm, #e9ecf2 3mm 6mm); border-top: .3mm solid #b8bec9; }
 .bed-sel { position: absolute; outline: .35mm solid #2f7df6; pointer-events: none; z-index: 5; }
-.bed-sel .hd { position: absolute; width: var(--hd); height: var(--hd); background: #fff; border: .3mm solid #2f7df6; pointer-events: auto; margin: calc(var(--hd) / -2) 0 0 calc(var(--hd) / -2); }
+.bed-sel .hd, .bed-grp .hd { position: absolute; width: var(--hd); height: var(--hd); background: #fff; border: .3mm solid #2f7df6; pointer-events: auto; margin: calc(var(--hd) / -2) 0 0 calc(var(--hd) / -2); }
 .hd-nw { left: 0; top: 0; cursor: nwse-resize; } .hd-n { left: 50%; top: 0; cursor: ns-resize; } .hd-ne { left: 100%; top: 0; cursor: nesw-resize; }
 .hd-e { left: 100%; top: 50%; cursor: ew-resize; } .hd-se { left: 100%; top: 100%; cursor: nwse-resize; } .hd-s { left: 50%; top: 100%; cursor: ns-resize; }
 .hd-sw { left: 0; top: 100%; cursor: nesw-resize; } .hd-w { left: 0; top: 50%; cursor: ew-resize; }
@@ -453,8 +453,10 @@ dialog.bed .dh h2 { margin: 0; font-size: 17px; flex: 1; }
 .tp .tp-image { background: #8e98ad linear-gradient(135deg, rgba(255,255,255,.28) 25%, transparent 25% 50%, rgba(255,255,255,.28) 50% 75%, transparent 75%) 0 0 / 8px 8px; }
 .tp .tp-text { background-image: repeating-linear-gradient(currentColor 0 1.5px, transparent 1.5px 5px); opacity: .7; }
 .tp .tp-text.big { background-image: repeating-linear-gradient(currentColor 0 4px, transparent 4px 7px); opacity: .9; }
-.bed-sel .hd-rot { left: 50%; top: calc(var(--hd) * -4); border-radius: 50%; cursor: grab; background: #2f7df6; }
-.bed-sel .rot-line { position: absolute; left: 50%; top: calc(var(--hd) * -4); width: .3mm; height: calc(var(--hd) * 4); background: #2f7df6; pointer-events: none; }
+.bed-sel .hd-rot, .bed-grp .hd-grot { left: 50%; top: calc(var(--hd) * -4); border-radius: 50%; cursor: grab; background: #2f7df6; }
+.bed-stage .bi.bi-sel { outline: var(--ol, .5mm) solid #ff9f1c; outline-offset: calc(var(--ol, .5mm) / -2); }
+.bed-grp { position: absolute; outline: .35mm dashed #2f7df6; pointer-events: none; z-index: 5; }
+.bed-sel .rot-line, .bed-grp .rot-line { position: absolute; left: 50%; top: calc(var(--hd) * -4); width: .3mm; height: calc(var(--hd) * 4); background: #2f7df6; pointer-events: none; }
 .bed-scaled.span { background-size: cover; background-position: center top; }
 .bed-scaled.span .bed-stage { background: none; }
 .bed-scaled.span .bed-foot { background: rgba(255, 255, 255, .85); }
