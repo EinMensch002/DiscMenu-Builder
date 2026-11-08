@@ -62,6 +62,18 @@
     return it.pts;
   }
   const clipOf = (it) => { const p = shapePoints(it); return p ? 'polygon(' + p.map((q) => q[0] + '% ' + q[1] + '%').join(',') + ')' : 'ellipse(50% 50% at 50% 50%)'; };
+  /* Linie um die Form als SVG in Millimetern (gleichmäßig dick, auch bei breiten oder schmalen Formen) */
+  const round2 = (v) => Math.round(v * 100) / 100;
+  function outlineSvg(it, cls) {
+    const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), p = shapePoints(it);
+    svg.setAttribute('class', cls); svg.setAttribute('viewBox', '0 0 ' + it.w + ' ' + it.h); svg.setAttribute('preserveAspectRatio', 'none');
+    let g;
+    if (p) { g = document.createElementNS(NS, 'polygon'); g.setAttribute('points', p.map((q) => round2(q[0] * it.w / 100) + ',' + round2(q[1] * it.h / 100)).join(' ')); } else {
+      g = document.createElementNS(NS, 'ellipse'); g.setAttribute('cx', String(it.w / 2)); g.setAttribute('cy', String(it.h / 2)); g.setAttribute('rx', String(it.w / 2)); g.setAttribute('ry', String(it.h / 2));
+    }
+    g.setAttribute('fill', 'none'); g.setAttribute('stroke-linejoin', 'round'); svg.append(g);
+    return { svg, g };
+  }
   /* Bild im Rahmen: füllen mit Zoom und Ausschnitt (Anteile), sonst einpassen */
   function paintImage(layer, it, img) {
     const st = layer.style;
@@ -93,6 +105,8 @@
         } else if (env.editor) { inner.style.backgroundColor = '#cfd4df'; } else node.hidden = true;
       } else inner.style.backgroundColor = it.color;
       node.append(inner);
+      if (it.strokeW > 0) { const o = outlineSvg(it, 'bi-rand'); o.g.setAttribute('stroke', it.borderColor); o.g.setAttribute('stroke-width', String(it.strokeW * 2)); o.svg.style.clipPath = clipOf(it); node.append(o.svg); }
+      if (env.editor) node.append(outlineSvg(it, env.selId === it.id ? 'bi-out bi-out-sel' : 'bi-out').svg);   // Umriss nur im Editor
       return node;
     }
     if (it.type === 'image') {

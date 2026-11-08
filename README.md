@@ -151,7 +151,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Rückseite: Drehen von Elementen, Vorlagen-Leiste mit Vorschau (nach Steam-Hüllen: Among Us, Age of Empires, Spider-Man, Half-Life, Alyx) und durchgehendes Bild über die ganze Rückseite
 - [x] Rückseite: Formen (Kreis, Dreieck, Viereck, Stern, freie Fläche) mit beweglichen, einrastenden Punkten; Bilder in Formen mit Verschieben und Zoom (außerhalb grau); Vorlage "Zersplittert" nach Half-Life: Alyx
 - [ ] **Rückseite, nächste Stufen** (Reihenfolge wie geplant, Details in [docs/disc-sleeve.md](docs/disc-sleeve.md#ideen-für-die-nächsten-schritte)):
-  - [ ] **Umriss im Editor:** gewählte Form mit farbigem Umriss und Linien zwischen den Punkten, andere Formen mit feinem hellem Umriss (nur im Editor); optional echter Rand (Farbe, Breite) als Gestaltungsmittel
+  - [x] **Umriss im Editor:** gewählte Form mit orangem Umriss und Linien zwischen den Punkten, andere Formen mit feinem hellem Umriss (nur im Editor); dazu ein echter Rand (Breite in mm, Farbe) pro Form als Gestaltungsmittel
   - [ ] **Eigene Vorlagen:** "+" unten in der Vorlagenleiste importiert eine Vorlagendatei (kleine JSON-Datei, wird geprüft), "Aktuelles Layout als Vorlage speichern" und Löschen
   - [ ] **Sichern und Einlesen der Einstellungen:** Auswahlfenster mit Häkchen (Zugangsdaten, Vorlagen, eigene Schriften)
   - [ ] **Standardschriften:** etwa 10 bis 20 Schriften mit offener Lizenz eingebaut (später als Base64 in der einen HTML-Datei), eigene Schriftdateien importierbar

@@ -81,6 +81,7 @@
     scaled.style.backgroundImage = span && base ? 'url("' + base.url + '")' : '';
     stage.style.backgroundImage = !span && base ? 'url("' + base.url + '")' : 'none';
     footA.style.height = back().featH + 'mm'; footB.style.height = back().reqH + 'mm';
+    itemsBox.style.setProperty('--ol', round(2 / (k * PX)) + 'mm');   // Umriss immer ca. 2 Bildschirmpunkte dick
     BD.renderInto(itemsBox, items(), { images: App.images, state: App.state, editor: true, selId });
     drawSel();
   }
@@ -345,6 +346,7 @@
       panel.append(el('p', 'hint', img ? 'Bild: ' + (img.name || it.img) + (img.w ? ' (' + img.w + ' × ' + img.h + ' px)' : '') : 'Noch kein Bild gewählt.'), dpiNode(it));
       imageTools(it);
     }
+    { const t = el('div', 'two'); t.append(row('Rand (mm)', num(it, 'strokeW', 0.25, 0, 10)), row('Randfarbe', color(it, 'borderColor'))); panel.append(t); }
     if (it.shape === 'star') { const t = el('div', 'two'); t.append(row('Zacken', num(it, 'sides', 1, 3, 12)), row('Tiefe der Zacken (%)', range(it, 'inner', 10, 90))); panel.append(t); }
     if (!usesPts) {
       panel.append(btn('Als freie Fläche bearbeiten', () => change(() => {

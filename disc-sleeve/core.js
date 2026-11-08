@@ -78,7 +78,7 @@
         it.sides = Math.round(clampN(raw.sides, 3, 12, 5)); it.inner = Math.round(clampN(raw.inner, 10, 90, 40));
         const ok = Array.isArray(raw.pts) && raw.pts.length >= 3 && raw.pts.length <= MAX_PTS && raw.pts.every((q) => Array.isArray(q) && q.length === 2);
         it.pts = ok ? raw.pts.map((q) => [Math.round(clampN(q[0], 0, 100, 0) * 10) / 10, Math.round(clampN(q[1], 0, 100, 0) * 10) / 10]) : defaultPts(it.shape);
-        it.edge = 'none';
+        it.edge = 'none'; it.strokeW = Math.round(clampN(raw.strokeW, 0, 10, 0) * 4) / 4;
       }
     } else {
       it.text = typeof raw.text === 'string' ? raw.text.slice(0, 4000) : '';

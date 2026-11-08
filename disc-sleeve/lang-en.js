@@ -18,6 +18,8 @@
     'Zacken': 'Points',
     'Bild statt Farbe': 'Image instead of color',
     'Füllfarbe': 'Fill color',
+    'Rand (mm)': 'Border (mm)',
+    'Randfarbe': 'Border color',
     'Form': 'Shape',
     'Freie Fläche': 'Free shape',
     'Stern': 'Star',

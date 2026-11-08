@@ -186,6 +186,14 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.click('#bdlg .bed-panel button:has-text("Als freie Fläche bearbeiten")');
   assert.equal((await items()).at(-1).shape, 'poly'); assert.equal((await items()).at(-1).pts.length, 14);
   assert.equal(await page.locator('#bdlg .bed-sel .pt').count(), 14);
+  // Umriss nur im Editor: gewählte Form orange, andere fein hell; echter Rand (Randbreite) erscheint auch auf dem Cover
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-out-sel').count(), 1, 'Gewählte Form hat den auffälligen Umriss');
+  assert.ok(await page.locator('#bdlg .bed-stage .bi-out:not(.bi-out-sel)').count() >= 1, 'Andere Formen haben einen feinen Umriss');
+  assert.equal(await page.locator('#backItems .bi-out').count(), 0, 'Auf dem Cover kein Editor-Umriss');
+  assert.equal(await page.locator('#backItems .bi-rand').count(), 0, 'Ohne Randbreite kein echter Rand');
+  await page.locator('#bdlg .bed-panel label.f', { hasText: 'Rand (mm)' }).locator('input').fill('1.5');
+  await page.waitForFunction(() => CoverApp.state.back.items.at(-1).strokeW === 1.5);
+  await page.waitForFunction(() => document.querySelectorAll('#backItems .bi-rand').length === 1 && document.querySelectorAll('#backItems .bi-out').length === 0);
   // Bild in der Form: grau außerhalb (nur im Editor), verschieben und zoomen
   await page.locator('#bdlg .bed-panel label.chk', { hasText: 'Bild statt Farbe' }).locator('input').check();
   const [ch2] = await Promise.all([page.waitForEvent('filechooser'), page.click('#bdlg .bed-panel button:has-text("Datei wählen")')]);

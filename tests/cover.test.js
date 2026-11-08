@@ -333,6 +333,8 @@ test('Formen: Prüfung, Standardpunkte, Bild in der Form, Vorlage "Zersplittert"
   assert.deepEqual(p.pts, [[0, 50], [100, 0], [50.6, 100]]); assert.equal(p.sides, 12); assert.equal(p.inner, 10); assert.equal(p.zoom, 500); assert.equal(p.img, 'd3');
   assert.equal(C.normalizeItem({ type: 'shape', pts: Array.from({ length: 40 }, () => [1, 1]) }).pts.length, 4, 'zu viele Punkte: Standard');
   assert.equal(C.normalizeItem({ type: 'image', zoom: 50 }).zoom, 100);
+  assert.equal(t.strokeW, 0, 'Standard: kein Rand');
+  assert.equal(C.normalizeItem({ type: 'shape', strokeW: 99 }).strokeW, 10); assert.equal(C.normalizeItem({ type: 'shape', strokeW: 1.3 }).strokeW, 1.25); assert.equal(C.normalizeItem({ type: 'shape', strokeW: -2 }).strokeW, 0);
   const al = C.backTemplate('alyx', 130, 122);
   assert.equal(al.filter((i) => i.type === 'shape' && i.useImg).length, 4);
   for (const f of al.filter((i) => i.type === 'shape' && i.useImg)) { assert.ok(f.pts.length >= 4); assert.ok(f.pts.every((q) => q[0] >= 0 && q[0] <= 100 && q[1] >= 0 && q[1] <= 100)); }
