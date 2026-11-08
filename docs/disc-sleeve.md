@@ -251,16 +251,31 @@ Die Rückseite besteht aus **zwei Teilen**:
 | Text | Inhalt (eigener Text, **Spieltitel** oder **Beschreibung des Spiels**), Schriftart (Lato, Serif, Schmal, Plakat, Schreibmaschine, Handschrift), Größe in pt, Farbe, Stärke, **kursiv**, **GROSSBUCHSTABEN**, Zeichenabstand, Zeilenhöhe, Ausrichtung (auch Blocksatz, senkrecht), "Schrift an Platz anpassen", Hintergrund hinter dem Text mit Deckkraft |
 | Bild | Einpassen (füllen, ganz zeigen, strecken), Ausschnitt, Deckkraft, Anzeige der Druckauflösung (dpi) |
 | **Rand und Übergang** | Ohne, **Abgerundet**, **Rahmen** (Breite und Farbe), **Weicher Rand** (Bild blendet an den Kanten aus) und **Ausgerissen (Papier)** (unregelmäßiger, ausgefranster Rand) |
+| **Formen** | **+ Form**: Kreis/Ellipse, Dreieck, Viereck, Stern und **freie Fläche**. Füllfarbe, Deckkraft, Drehung, Größe wie bei allen Elementen. Bei Dreieck, Viereck und freier Fläche zeigt die gewählte Form **orange Punkte**: Zieh sie, dann entsteht jede beliebige Form (ein schiefes Dreieck, ein verzogenes Viereck). Die Punkte **rasten** an den Rändern und der Mitte der Fläche, an anderen Elementen und an den Punkten anderer Formen ein (Alt beim Ziehen: nicht einrasten). Im Bereich **Punkte** rechts lassen sich die Werte eintippen (Prozent des Rahmens), Punkte löschen (mindestens drei) und hinzufügen. Stern (Zacken, Tiefe) und Kreis kann man mit **Als freie Fläche bearbeiten** in Punkte umwandeln |
+| **Bild in der Form** | Haken **Bild statt Farbe**, dann Datei oder Steam/GOG. Mit **Bild im Ausschnitt verschieben** (oder dem Mausrad zum Zoomen) schiebst Du das Bild innerhalb der Form. Beim Bearbeiten ist das Bild außerhalb der Form **grau und blass** zu sehen, in der Form in voller Farbe. Gedruckt und im Cover erscheint nur der Teil in der Form. Das gilt auch für Bilder mit "Füllen" (Zoom und Ausschnitt) |
 | **Drehen** | Element anklicken, am **runden Griff oberhalb** ziehen (rastet bei 0°, 90°, 180°, 270° ein, mit Umschalt in 15°-Schritten) oder im Feld **Drehung (°)** eintippen. Gedrehte Elemente lassen sich weiter verschieben und skalieren |
 | Ordnung | Nach vorn, nach hinten, Duplizieren (Strg+D), Löschen (Entf) |
 | Rückgängig | Rückgängig und Wiederholen (Strg+Z, Strg+Y), bis zu 50 Schritte |
-| Vorlagen | Der Knopf **Vorlagen** öffnet links eine **Leiste mit Mini-Vorschauen** (Bilder als graue Flächen, Texte als Zeilen). Vorhanden: Leer, Titel und Beschreibung, Beschreibung und Bildleiste, **Party-Stil** (Among Us), **Vier Bilder** (Age of Empires), **Spalten** (Spider-Man), **Retro** (Half-Life) und **Ganzes Bild** (Alyx). Eine Vorlage ersetzt die vorhandenen Elemente (vorher wird gefragt), danach ist alles frei änderbar. Eigene Vorlagen speichern und importieren sind für später geplant |
+| Vorlagen | Der Knopf **Vorlagen** öffnet links eine **Leiste mit Mini-Vorschauen** (Bilder als graue Flächen, Texte als Zeilen). Vorhanden: Leer, Titel und Beschreibung, Beschreibung und Bildleiste, **Party-Stil** (Among Us), **Vier Bilder** (Age of Empires), **Spalten** (Spider-Man), **Retro** (Half-Life) und **Zersplittert** (Alyx, vier schräge Bildflächen aus freien Formen). Die dunklen Gründe der Vorlagen sind jetzt Formen (Vierecke), keine Textfelder mehr. Eine Vorlage ersetzt die vorhandenen Elemente (vorher wird gefragt), danach ist alles frei änderbar. Eigene Vorlagen speichern und importieren sind für später geplant |
 | **Durchgehendes Bild** | Haken im Editor (und im Formular): Das Bild "Rückseite oben" geht dann über die **ganze Rückseite** und wird nur vom Streifen mit den Spielfunktionen unterbrochen, unten liegt es hinter dem weißlichen Feld. Standard sind zwei getrennte Bilder (oben und unten). Bildmaße: die ganze Rückseite |
 
 - **Beschreibung:** Steam und GOG übernehmen beim Import die Kurzbeschreibung in das Feld "Beschreibung des Spiels" (Bereich "Rückseite"). Ein Textelement mit Inhalt "Beschreibung des Spiels" zeigt sie an.
 - **Schriften** kommen vom Betriebssystem (nur Lato liegt bei). Auf einem anderen Rechner kann ein Text deshalb etwas anders aussehen. Die Papierkante ("Ausgerissen") sieht bei jedem Zeichnen gleich aus.
 - **Gespeichert** wird alles mit dem Projekt (Einstellungen, Elemente, Bilder, ZIP). Bilder der Gestaltungsfläche heißen `d1`, `d2` und so weiter und werden beim Schließen des Editors entfernt, wenn kein Element sie mehr braucht.
 - **Zu hoch:** Sind die festen Teile zusammen so hoch wie die Rückseite, steht ein Hinweis da. Dann die Höhen verkleinern.
+
+### Ideen für die nächsten Schritte
+
+Geplant für einen eigenen Pull Request nach dem Rückseiten-Editor (Reihenfolge wie unten, die Schriften wegen der vielen Dateien eventuell als zweiter PR):
+
+1. **Umriss im Editor.** Die gewählte Form bekommt einen gut sichtbaren, farbigen Umriss mit Linien zwischen den Punkten. Andere Formen zeigen einen feinen, hellen Umriss, damit man mehrere übereinanderliegende Flächen auseinanderhält. Der Umriss erscheint nur im Editor, nicht auf dem Cover und nicht im Druck. Zusätzlich ein optionaler **echter Rand** (Farbe, Breite) pro Form als Gestaltungsmittel.
+2. **Eigene Vorlagen.**
+   - Ganz unten in der Vorlagenleiste ein **"+"**, das eine Vorlagendatei importiert.
+   - Format: eine kleine **JSON-Datei** mit Name und Elementen (dieselben Daten wie im Projekt, Maße als Anteile der Gestaltungsfläche, Bilder als leere Plätze). Beim Einlesen wird sie wie eine Projektdatei geprüft, Fehlerhaftes wird abgelehnt.
+   - **"Aktuelles Layout als Vorlage speichern"** und Vorlagen löschen, damit man eigene Vorlagen auch selbst erstellen kann.
+   - Eigene Vorlagen bleiben im Browser gespeichert und gehören zu den Einstellungen (siehe nächster Punkt).
+3. **Sichern und Einlesen der Einstellungen.** Beim Sichern erscheint ein **Auswahlfenster mit Häkchen**: Zugangsdaten (SteamGridDB-Schlüssel, Proxy), eigene Vorlagen, eigene Schriften. Beim Einlesen dasselbe, damit man gezielt wählen kann.
+4. **Standardschriften.** Etwa **10 bis 20 Schriften mit offener Lizenz** (zum Beispiel aus Google Fonts) werden mitgeliefert, damit Texte auf jedem Rechner gleich aussehen. Die Dateigröße ist dabei nebensächlich. Beim Zusammenführen zu einer einzigen HTML-Datei werden sie als Base64 eingebettet (wie Lato). Dazu können **eigene Schriftdateien importiert** werden, auch sie gehören ins Sichern der Einstellungen. Die Schriftdateien müssen dafür von einer Quelle mit offener Lizenz geholt werden (die Lizenz pro Schrift wird in den Hinweisen genannt).
 
 ### Längen in Millimetern und negative Abstände
 

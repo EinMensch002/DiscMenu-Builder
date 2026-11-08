@@ -323,3 +323,22 @@ test('Rückseite: Drehung, durchgehendes Bild und alle Vorlagen', () => {
   }
   assert.ok(C.backTemplate('spider', 130, 122).filter((i) => i.type === 'image').length === 3);
 });
+
+test('Formen: Prüfung, Standardpunkte, Bild in der Form, Vorlage "Zersplittert"', () => {
+  const t = C.normalizeItem({ type: 'shape', shape: 'triangle' });
+  assert.deepEqual(t.pts, [[50, 0], [100, 100], [0, 100]]); assert.equal(t.shape, 'triangle'); assert.equal(t.useImg, false); assert.equal(t.edge, 'none');
+  assert.equal(C.normalizeItem({ type: 'shape', shape: 'kreuz' }).shape, 'rect');
+  assert.equal(C.normalizeItem({ type: 'shape', shape: 'poly', pts: [[1, 2], [3, 4]] }).pts.length, 5, 'zu wenige Punkte: Standard');
+  const p = C.normalizeItem({ type: 'shape', shape: 'poly', pts: [[-5, 50], [120, 0], [50.55, 100]], sides: 99, inner: 1, zoom: 9999, img: 'd3', useImg: true });
+  assert.deepEqual(p.pts, [[0, 50], [100, 0], [50.6, 100]]); assert.equal(p.sides, 12); assert.equal(p.inner, 10); assert.equal(p.zoom, 500); assert.equal(p.img, 'd3');
+  assert.equal(C.normalizeItem({ type: 'shape', pts: Array.from({ length: 40 }, () => [1, 1]) }).pts.length, 4, 'zu viele Punkte: Standard');
+  assert.equal(C.normalizeItem({ type: 'image', zoom: 50 }).zoom, 100);
+  const al = C.backTemplate('alyx', 130, 122);
+  assert.equal(al.filter((i) => i.type === 'shape' && i.useImg).length, 4);
+  for (const f of al.filter((i) => i.type === 'shape' && i.useImg)) { assert.ok(f.pts.length >= 4); assert.ok(f.pts.every((q) => q[0] >= 0 && q[0] <= 100 && q[1] >= 0 && q[1] <= 100)); }
+  assert.equal(C.backTemplate('among', 130, 122)[0].type, 'shape', 'Dunkler Grund ist jetzt eine Form');
+  const BD = require('../disc-sleeve/back-design.js');
+  assert.equal(BD.shapePoints({ shape: 'star', sides: 5, inner: 40 }).length, 10);
+  assert.equal(BD.shapePoints({ shape: 'ellipse' }), null);
+  assert.match(BD.clipOf({ shape: 'triangle', pts: C.defaultPts('triangle') }), /^polygon\(50% 0%,100% 100%,0% 100%\)$/);
+});
