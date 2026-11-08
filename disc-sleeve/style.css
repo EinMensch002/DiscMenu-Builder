@@ -470,3 +470,5 @@ dialog.bed .dh h2 { margin: 0; font-size: 17px; flex: 1; }
 .shape-menu[hidden] { display: none; }
 .bed-panel .prow { display: grid; grid-template-columns: 22px 1fr 1fr 30px; gap: 6px; align-items: center; margin-bottom: 4px; }
 .tp .tp-fill { background: #555; }
+
+.bed-panel select optgroup { font: 700 13px Lato, "Segoe UI", Arial, sans-serif; font-style: normal; text-transform: none; letter-spacing: normal; }

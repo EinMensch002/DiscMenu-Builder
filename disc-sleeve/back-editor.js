@@ -267,11 +267,12 @@
     s.value = String(it[key]); s.addEventListener('change', () => change(() => update(it, { [key]: s.value }), { panel: true })); return s;
   }
   /* Schriftauswahl: jeder Eintrag steht in seiner eigenen Schrift (gruppiert: System, Spiele, eigene) */
+  const UI_FONT = 'Lato, "Segoe UI", Arial, sans-serif';
   function fontSelect(it) {
     const s = el('select');
     for (const [label, test] of [['Systemschriften', (f) => !f.custom && f.group !== 'game'], ['Spiele-Schriften', (f) => f.group === 'game'], ['Eigene Schriften', (f) => f.custom]]) {
       const list = Object.entries(BD.FONTS).filter(([, f]) => test(f)); if (!list.length) continue;
-      const g = document.createElement('optgroup'); g.label = label;
+      const g = document.createElement('optgroup'); g.label = label; g.style.fontFamily = UI_FONT; g.style.fontStyle = 'normal'; g.style.fontWeight = '700'; g.style.textTransform = 'none'; g.style.letterSpacing = 'normal';   // Überschrift nicht in der Schrift des Feldes
       for (const [v, f] of list) { const o = el('option', '', f.label); o.value = v; o.style.fontFamily = f.css; o.dataset.notr = ''; g.append(o); }
       s.append(g);
     }
