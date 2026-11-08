@@ -652,8 +652,74 @@
     remove(id) { const i = userTpls.findIndex((o) => o.id === id); if (i >= 0) { userTpls.splice(i, 1); tplSave(); } },
   };
 
+  /* ---------- Eigene Schriften (Dateien im Browser, IndexedDB) ----------
+     Jede Schrift bekommt eine Kennung uf-<id>. Elemente merken sich nur diese Kennung. Fehlt die Schrift, zeichnet das Tool mit "Normal". */
+  const F = window.CoverFiles, BDf = window.BackDesign;
+  const FDB = 'discsleeve-fonts', FST = 'fonts';
+  let userFonts = [];
+  const faces = {};
+  const fdbRun = (mode, fn) => new Promise((res, rej) => {
+    let r; try { r = indexedDB.open(FDB, 1); } catch (e) { rej(e); return; }
+    r.onupgradeneeded = () => r.result.createObjectStore(FST, { keyPath: 'id' });
+    r.onerror = () => rej(r.error || new Error('IndexedDB gesperrt'));
+    r.onsuccess = () => {
+      const db = r.result;
+      try { const tx = db.transaction(FST, mode), q = fn(tx.objectStore(FST)); tx.oncomplete = () => { db.close(); res(q && q.result); }; tx.onerror = tx.onabort = () => { db.close(); rej(tx.error || new Error('Speichern fehlgeschlagen')); }; } catch (e) { db.close(); rej(e); }
+    };
+  });
+  const newFontId = () => { let id; do { id = 'uf-' + Math.random().toString(36).slice(2, 9); } while (userFonts.some((f) => f.id === id)); return id; };
+  async function fontRegister(f) {
+    const face = new FontFace(f.id, F.fromBase64(f.data).buffer);
+    await face.load(); document.fonts.add(face); faces[f.id] = face;
+    if (BDf) BDf.FONTS[f.id] = { label: f.name, css: '"' + f.id + '", Lato, "Segoe UI", Arial, sans-serif', custom: true };
+  }
+  function fontUnregister(id) { if (faces[id]) { document.fonts.delete(faces[id]); delete faces[id]; } if (BDf) delete BDf.FONTS[id]; }
+  const fontStore = (fn) => fdbRun('readwrite', fn).catch(() => { /* Speicher gesperrt: die Schrift gilt nur bis zum Neuladen */ });
+  const fonts = {
+    list() { return userFonts.map((f) => ({ ...f })); },
+    /* Beim Start: gespeicherte Schriften laden und anmelden */
+    async init() {
+      let rec = []; try { rec = (await fdbRun('readonly', (st) => st.getAll())) || []; } catch (e) { /* kein Speicher */ }
+      for (const r of rec.slice(0, C.MAX_FONTS)) {
+        const n = F.normalizeFont(r); if (!n || !/^uf-[a-z0-9]{1,12}$/.test(r.id)) continue;
+        try { await fontRegister({ ...n, id: r.id }); userFonts.push({ ...n, id: r.id }); } catch (e) { /* beschädigte Schrift überspringen */ }
+      }
+      if (userFonts.length) render();
+    },
+    /* Schrift aus einer Datei lesen (Ergebnis: { name, ext, data }) */
+    async fromFile(file) {
+      const m = /\.([a-z0-9]+)$/i.exec(file.name || ''), ext = m ? m[1].toLowerCase() : '';
+      if (!F.FONT_MIME[ext]) throw new Error('Das ist keine Schriftdatei (erlaubt: .woff2, .woff, .ttf, .otf).');
+      if (file.size > F.MAX_FONT_BYTES) throw new Error('Die Schriftdatei ist zu groß (höchstens 1,5 MB).');
+      const raw = { name: file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim(), ext, data: F.toBase64(new Uint8Array(await file.arrayBuffer())) };
+      if (!F.normalizeFont(raw)) throw new Error('Die Schriftdatei konnte nicht gelesen werden.');
+      return raw;
+    },
+    /* Schrift hinzufügen (Namen vorher eindeutig machen). Fehler als Exception mit lesbarem Text. */
+    async add(raw) {
+      const n = F.normalizeFont(raw); if (!n) throw new Error('Die Schriftdatei konnte nicht gelesen werden.');
+      if (userFonts.length >= C.MAX_FONTS) throw new Error('Zu viele eigene Schriften. Bitte zuerst eine löschen.');
+      const rec = { ...n, id: newFontId() };
+      try { await fontRegister(rec); } catch (e) { throw new Error('Die Schriftdatei konnte nicht gelesen werden.'); }
+      userFonts.push(rec); await fontStore((st) => st.put(rec)); render(); return { ...rec };
+    },
+    /* Schrift mit diesem Namen ersetzen, die Kennung bleibt (Elemente behalten ihre Schrift) */
+    async replace(name, raw) {
+      const i = userFonts.findIndex((f) => f.name.toLowerCase() === String(name).toLowerCase()), n = F.normalizeFont(raw);
+      if (i < 0 || !n) throw new Error('Die Schriftdatei konnte nicht gelesen werden.');
+      const rec = { ...n, id: userFonts[i].id }; fontUnregister(rec.id);
+      try { await fontRegister(rec); } catch (e) { throw new Error('Die Schriftdatei konnte nicht gelesen werden.'); }
+      userFonts[i] = rec; await fontStore((st) => st.put(rec)); render(); return { ...rec };
+    },
+    async remove(id) {
+      const i = userFonts.findIndex((f) => f.id === id); if (i < 0) return;
+      userFonts.splice(i, 1); fontUnregister(id); await fontStore((st) => st.delete(id)); render();
+    },
+  };
+  fonts.init();
+
   window.CoverApp = {
-    templates,
+    templates, fonts,
     get state() { return state; },
     get changes() { return changes; },
     get hasImages() { return Object.keys(images).length > 0; },

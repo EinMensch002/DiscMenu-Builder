@@ -59,6 +59,28 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   let it = (await items())[0];
   assert.equal(it.font, 'serif'); assert.equal(it.caps, true); assert.equal(it.size, 20);
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).textTransform), 'uppercase');
+  // Eigene Schrift: Datei hinzufügen, benutzen, speichern, ungültige Datei ablehnen, löschen (Rückfall auf Normal)
+  const latoPath = path.resolve(__dirname, '..', '..', 'disc-sleeve', 'assets', 'fonts', 'Lato-Bold.ttf');
+  const fch = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
+  await (await fch).setFiles(latoPath);
+  await page.waitForFunction(() => /^uf-/.test(CoverApp.state.back.items[0].font));
+  const fid = (await items())[0].font;
+  assert.equal(await page.evaluate((id) => !!window.BackDesign.FONTS[id] && document.fonts.check('12px "' + id + '"'), fid), true, 'Schrift ist angemeldet und geladen');
+  await page.waitForFunction((id) => getComputedStyle(document.querySelector('#backItems .bi-p')).fontFamily.includes(id), fid);
+  assert.equal(await page.evaluate(() => CoverApp.fonts.list().map((f) => f.name).join()), 'Lato Bold', 'Name aus dem Dateinamen');
+  assert.equal(await page.evaluate(() => new Promise((res) => { const r = indexedDB.open('discsleeve-fonts', 1); r.onsuccess = () => { const q = r.result.transaction('fonts').objectStore('fonts').count(); q.onsuccess = () => res(q.result); }; })), 1, 'Schrift steht im Browser-Speicher');
+  const fch2 = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
+  await (await fch2).setFiles({ name: 'kaputt.ttf', mimeType: 'font/ttf', buffer: Buffer.alloc(500, 1) });
+  await page.waitForFunction(() => true); await page.waitForTimeout(300);
+  assert.ok(dialogs.some((m) => /konnte nicht gelesen werden/.test(m)), 'Kaputte Schriftdatei wird abgelehnt');
+  const fch3 = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
+  await (await fch3).setFiles({ name: 'x.exe', mimeType: 'application/octet-stream', buffer: Buffer.alloc(500, 1) });
+  await page.waitForTimeout(300);
+  assert.ok(dialogs.some((m) => /keine Schriftdatei/.test(m)));
+  assert.equal(await page.evaluate(() => CoverApp.fonts.list().length), 1, 'Nur die gültige Schrift wurde gespeichert');
+  await page.evaluate((id) => CoverApp.fonts.remove(id), fid);
+  assert.equal(await page.evaluate((id) => !window.BackDesign.FONTS[id], fid), true);
+  assert.match(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).fontFamily), /Lato/, 'Ohne die Schrift: Rückfall auf Normal');
   await sel('Inhalt').selectOption('title');
   await page.evaluate(() => CoverApp.patch({ title: 'Mein Spiel' }));
   await page.waitForFunction(() => /Mein Spiel/.test(document.querySelector('#backItems').textContent));

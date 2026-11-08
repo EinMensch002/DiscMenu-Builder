@@ -220,7 +220,7 @@
     return { state: j.state, images, missing };
   }
 
-  const api = { packSettings, unpackSettings, packBundle, unpackBundle, planImport, applyImport, freeName, normalizeFont, FONT_MIME, MAX_FONT_BYTES, buildZip, crc32, packProject, unpackProject, IMAGE_KEYS, isImageKey, TYPE_BY_EXT, PROJECT_TYPE };
+  const api = { packSettings, unpackSettings, packBundle, unpackBundle, planImport, applyImport, freeName, toBase64: b64, fromBase64: unb64, normalizeFont, FONT_MIME, MAX_FONT_BYTES, buildZip, crc32, packProject, unpackProject, IMAGE_KEYS, isImageKey, TYPE_BY_EXT, PROJECT_TYPE };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverFiles = api;
 })(typeof window !== 'undefined' ? window : globalThis);

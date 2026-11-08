@@ -58,6 +58,20 @@
     const w = 40, h = kind === 'triangle' ? 35 : 40;
     change(() => { add(C.newItem('shape', { shape: kind, color: '#e8a33a', ...center(w, h), w, h, pts: C.defaultPts(kind) })); }, { panel: true });
   }
+  /* Schriftdatei wählen und für dieses Textelement verwenden */
+  function addFontFile(it) {
+    const inp = el('input'); inp.type = 'file'; inp.accept = '.woff2,.woff,.ttf,.otf,font/*'; inp.id = 'bedFontFile';
+    inp.addEventListener('change', async () => {
+      const f = inp.files[0]; if (!f) return;
+      try {
+        const raw = await App.fonts.fromFile(f);
+        const same = App.fonts.list().find((x) => x.name.toLowerCase() === raw.name.toLowerCase());
+        const rec = same ? await App.fonts.replace(raw.name, raw) : await App.fonts.add(raw);
+        change(() => update(it, { font: rec.id }), { panel: true });
+      } catch (e) { alert(e.message); }
+    });
+    inp.hidden = true; document.body.append(inp); inp.click(); setTimeout(() => inp.remove(), 60000);
+  }
   function pickFile(cb) {
     const inp = el('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
     inp.addEventListener('change', async () => { for (const f of [...inp.files]) await cb(f); });
@@ -284,7 +298,8 @@
       }
       panel.append(row('Text', ta));
       panel.append(row('Schrift', select(it, 'font', Object.entries(BD.FONTS).map(([v, f]) => [v, f.label]))));
-      panel.append(el('p', 'hint', 'Schriften kommen vom Betriebssystem und sehen auf anderen Rechnern etwas anders aus.'));
+      panel.append(el('p', 'hint', 'Systemschriften sehen auf anderen Rechnern etwas anders aus. Eigene Schriften sehen überall gleich aus, wenn sie dort auch hinzugefügt sind.'));
+      panel.append(btn('Eigene Schrift hinzufügen …', () => addFontFile(it)));
       const two = el('div', 'two');
       two.append(row('Größe (pt)', num(it, 'size', 0.5, 3, 120)), row('Farbe', color(it, 'color')));
       panel.append(two);
