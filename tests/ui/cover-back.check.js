@@ -13,7 +13,8 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   const page = await browser.newPage({ viewport: { width: 1500, height: 950 } });
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
-  page.on('dialog', (d) => d.accept());
+  const dialogs = [];
+  page.on('dialog', (d) => { dialogs.push(d.message()); d.accept(d.type() === 'prompt' ? d.defaultValue() : undefined); });
   await page.addInitScript(() => { try { localStorage.setItem('sgdb-proxy', 'https://proxy.test/?url={url}'); } catch (e) { /* egal */ } });
 
   await page.route('https://proxy.test/**', async (route) => {
@@ -131,6 +132,37 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.click('#bdlg .tpl-card[data-tpl=steam]');
   assert.ok((await items()).length >= 5);
   assert.ok((await items()).some((i) => i.type === 'text' && i.bind === 'description'));
+
+  // Eigene Vorlagen: Layout speichern (ohne Bilder), anwenden, ersetzen, als Datei sichern, importieren, löschen
+  const nSteam = (await items()).length;
+  await page.click('#bedTplSave');
+  await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 1);
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('discsleeve-templates')));
+  assert.equal(stored.length, 1); assert.equal(stored[0].name, 'Eigene Vorlage'); assert.equal(stored[0].items.length, nSteam);
+  assert.ok(stored[0].items.every((i) => i.type === 'text' || i.img === ''), 'In der Vorlage stehen keine Bilder');
+  await page.click('#bdlg .tpl-card[data-tpl=alyx]'); assert.notEqual((await items()).length, nSteam);
+  await page.click('#bdlg .tpl-card[data-tpl^="u-"]'); assert.equal((await items()).length, nSteam, 'Eigene Vorlage anwenden');
+  await page.click('#bedTplSave');                                   // gleicher Name: Rückfrage wird mit OK beantwortet = ersetzen
+  assert.ok(dialogs.some((m) => /schon eine Vorlage mit diesem Namen/.test(m)));
+  assert.equal(await page.locator('#bdlg .tpl-card[data-tpl^="u-"]').count(), 1, 'Ersetzt statt doppelt');
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bdlg .tpl-acts button:has-text("Als Datei")')]);
+  const exported = JSON.parse(require('node:fs').readFileSync(await dl.path(), 'utf8'));
+  assert.equal(exported.type, 'discmenu-settings'); assert.equal(exported.templates.length, 1); assert.ok(!('sgdbKey' in exported), 'Vorlagendatei ohne Zugangsdaten');
+  const imp = { type: 'discmenu-settings', version: 1, templates: [{ name: 'Importiert', ref: { w: 130, h: 122 }, items: [{ type: 'text', text: 'Hallo', x: 10, y: 10, w: 50, h: 10 }, { type: 'image', img: 'd9', x: 10, y: 30, w: 50, h: 30 }] }, { name: 'eigene vorlage', ref: { w: 130, h: 122 }, items: [] }, { name: '' }] };
+  await page.setInputFiles('#bedTplFile', { name: 'v.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imp)) });
+  await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 2);
+  assert.ok(dialogs.some((m) => /gibt es schon/.test(m)) && dialogs.some((m) => /fehlerhaft/.test(m)), 'Namensgleiche Vorlage und fehlerhafter Eintrag melden sich');
+  const stored2 = await page.evaluate(() => JSON.parse(localStorage.getItem('discsleeve-templates')));
+  assert.deepEqual(stored2.map((t) => t.name), ['eigene vorlage', 'Importiert'], 'OK = ersetzt; der Rest bleibt');
+  assert.equal(stored2[1].items.find((i) => i.type === 'image').img, '', 'Bild aus fremder Datei wird zum Platzhalter');
+  dialogs.length = 0;
+  await page.setInputFiles('#bedTplFile', { name: 'k.json', mimeType: 'application/json', buffer: Buffer.from('{"type":"discmenu-settings","version":1,"sgdbKey":"X"}') });
+  await page.waitForFunction(() => true); await page.waitForTimeout(150);
+  assert.ok(dialogs.some((m) => /keine Vorlagen/.test(m)), 'Datei ohne Vorlagen'); assert.equal(await page.locator('#bdlg .tpl-card[data-tpl^="u-"]').count(), 2);
+  assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), null, 'Zugangsdaten aus der Vorlagen-Importfunktion werden nie übernommen');
+  await page.locator('#bdlg [data-del]').first().click();
+  await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 1);
+  await page.click('#bdlg .tpl-card[data-tpl=steam]');
 
   // Drehen: Feld und Griff; gedrehte Elemente lassen sich weiter greifen
   const tx = (await items()).findIndex((i) => i.type === 'text' && i.bind === 'description');

@@ -629,7 +629,31 @@
       else target[k] = v;
     }
   }
+  /* ---------- Eigene Vorlagen (nur Layout, keine Bilder; im Browser gespeichert) ---------- */
+  const TPL_STORE = 'discsleeve-templates';
+  let userTpls = [];
+  const sameTplName = (a, b) => a.toLowerCase() === b.toLowerCase();
+  const newTplId = () => { let id; do { id = 'u-' + Math.random().toString(36).slice(2, 9); } while (userTpls.some((t) => t.id === id)); return id; };
+  function tplLoad() {
+    try { const l = JSON.parse(localStorage.getItem(TPL_STORE)); userTpls = (Array.isArray(l) ? l : []).slice(0, C.MAX_TEMPLATES).map(C.normalizeTemplate).filter(Boolean); } catch (e) { userTpls = []; }
+    userTpls.forEach((t, i) => { if (!t.id || userTpls.findIndex((o) => o.id === t.id) !== i) t.id = newTplId(); });
+  }
+  function tplSave() { try { localStorage.setItem(TPL_STORE, JSON.stringify(userTpls)); } catch (e) { /* Speicher gesperrt: egal */ } }
+  tplLoad();
+  const templates = {
+    list() { return userTpls.slice(); },
+    /* Neue Vorlage anlegen (Namen vorher eindeutig machen). Ergebnis null, wenn ungültig oder zu viele. */
+    add(t) { const n = C.normalizeTemplate(t); if (!n || userTpls.length >= C.MAX_TEMPLATES) return null; n.id = newTplId(); userTpls.push(n); tplSave(); return n; },
+    /* Vorlage mit diesem Namen ersetzen (Name egal ob groß oder klein) */
+    replace(name, t) {
+      const i = userTpls.findIndex((o) => sameTplName(o.name, name)), n = C.normalizeTemplate(t);
+      if (i < 0 || !n) return null; n.id = userTpls[i].id; userTpls[i] = n; tplSave(); return n;
+    },
+    remove(id) { const i = userTpls.findIndex((o) => o.id === id); if (i >= 0) { userTpls.splice(i, 1); tplSave(); } },
+  };
+
   window.CoverApp = {
+    templates,
     get state() { return state; },
     get changes() { return changes; },
     get hasImages() { return Object.keys(images).length > 0; },

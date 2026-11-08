@@ -418,6 +418,11 @@ dialog.bed .dh h2 { margin: 0; font-size: 17px; flex: 1; }
 .bed-tpls[hidden] { display: none; }
 .tpl-card { display: flex; flex-direction: column; gap: 5px; padding: 6px; border: 2px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; font: inherit; text-align: center; color: var(--txt); }
 .tpl-card:hover { border-color: var(--acc); }
+.tpl-h { margin: 6px 0 0; font-size: 12px; opacity: .75; }
+.tpl-wrap { display: flex; flex-direction: column; gap: 4px; }
+.tpl-acts { display: flex; gap: 4px; }
+.tpl-acts button { flex: 1; font-size: 11px; padding: 3px 4px; }
+.tpl-add { font-size: 12px; }
 .tpl-card span { font-size: 12px; font-weight: 600; }
 .tp { position: relative; width: 100%; background: #f4f5f8; border: 1px solid #c5cad6; overflow: hidden; }
 .tp i { position: absolute; display: block; box-sizing: border-box; }

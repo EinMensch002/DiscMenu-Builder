@@ -3,7 +3,7 @@
    Die Daten liegen in CoverApp.state.back.items (siehe core.js); gezeichnet wird mit BackDesign (back-design.js), genau wie auf dem Cover. */
 (function () {
   'use strict';
-  const C = window.CoverCore, O = window.CoverOnline, App = window.CoverApp, BD = window.BackDesign;
+  const C = window.CoverCore, O = window.CoverOnline, App = window.CoverApp, BD = window.BackDesign, F = window.CoverFiles;
   if (!C || !App || !BD) return;
   const PX = 96 / 25.4;                                   // Bildschirmpunkte je mm
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -462,12 +462,15 @@
   }
 
   /* ---------- Vorlagen ---------- */
+  const customTpl = (id) => App.templates.list().find((t) => t.id === id);
+  /* Elemente einer Vorlage (eingebaut oder eigene) für die aktuelle Fläche */
+  function tplItems(id, a) { const t = customTpl(id); return t ? C.instantiateTemplate(t, a.w, a.h) : C.backTemplate(id, a.w, a.h); }
   function applyTemplate(id) {
     if (items().length && !confirm('Die vorhandenen Elemente werden durch die Vorlage ersetzt. Weitermachen?')) return false;
     const a = area();
     change(() => {
       back().items = []; selId = null;
-      C.backTemplate(id, a.w, a.h).forEach((it) => { add(it); });
+      tplItems(id, a).forEach((it) => { add(it); });
       selId = null;
     }, { panel: true });
     return true;
@@ -476,7 +479,7 @@
   function previewOf(id) {
     const a = area(), box = el('div', 'tp');
     box.style.aspectRatio = a.w + ' / ' + Math.max(1, a.h);
-    for (const it of C.backTemplate(id, a.w, a.h)) {
+    for (const it of tplItems(id, a)) {
       if (it.type === 'shape') {
         if (!it.useImg && it.w >= a.w - 0.5 && it.h >= a.h - 0.5 && it.shape === 'rect') { box.style.background = it.color; continue; }
         const f = el('i', it.useImg ? 'tp-image' : 'tp-fill');
@@ -498,13 +501,61 @@
     }
     return box;
   }
+  function tplCard(id, label) {
+    const c = el('button', 'tpl-card'); c.type = 'button'; c.dataset.tpl = id; c.title = label;
+    c.append(previewOf(id), el('span', '', label));
+    c.addEventListener('click', () => applyTemplate(id));
+    return c;
+  }
+  const slugOf = (t) => String(t).normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'vorlage';
+  async function exportTemplate(t) {
+    const blob = new Blob([await F.packBundle({ templates: [t] }, '')], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'discsleeve-vorlage-' + slugOf(t.name) + '.json';
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  /* Aktuelles Layout als eigene Vorlage speichern (ohne Bilder) */
+  function saveAsTemplate() {
+    if (!items().length) { alert('Das Layout ist leer. Es gibt nichts zu speichern.'); return; }
+    const name = prompt('Name der Vorlage:', 'Eigene Vorlage'); if (name == null) return;
+    const t = C.templateFromItems(items(), area(), name);
+    if (!t.name) { alert('Bitte einen Namen eingeben.'); return; }
+    const list = App.templates.list(), same = list.find((o) => o.name.toLowerCase() === t.name.toLowerCase());
+    let saved;
+    if (same && confirm('Es gibt schon eine Vorlage mit diesem Namen. Ersetzen? (Abbrechen: unter einem neuen Namen speichern)')) saved = App.templates.replace(t.name, t);
+    else { t.name = F.freeName(t.name, list.map((o) => o.name)); saved = App.templates.add(t); }
+    if (!saved) alert('Zu viele eigene Vorlagen. Bitte zuerst eine löschen.');
+    tplBar.hidden = false; buildTplBar(); refresh(false);
+  }
+  /* Vorlagen aus einer Datei hinzufügen; bei gleichem Namen wird gefragt, nichts anderes wird verändert */
+  async function importTemplates(file) {
+    let b;
+    try { b = await F.unpackBundle(await file.text(), ''); } catch (e) { alert(e.message === 'PASSWORD_NEEDED' ? 'Die Datei ist verschlüsselt. Bitte in den Einstellungen mit "Aus Datei einlesen" öffnen.' : e.message); return; }
+    if (!b.templates || !b.templates.length) { alert('Die Datei enthält keine Vorlagen.'); return; }
+    const cur = { templates: App.templates.list() }, plan = F.planImport({ templates: b.templates }, cur);
+    const choices = plan.templates.map((e) => (e.conflict ? (confirm('Die Vorlage gibt es schon. Ersetzen? (Abbrechen: beide behalten)') ? 'replace' : 'both') : 'add'));
+    const res = F.applyImport(plan, cur, { templates: choices }).templates;
+    let full = false;
+    res.replace.forEach((r) => App.templates.replace(r.name, r.item));
+    res.add.forEach((t) => { if (!App.templates.add(t)) full = true; });
+    if (full) alert('Zu viele eigene Vorlagen. Bitte zuerst eine löschen.');
+    else if (b.skipped) alert('Einige Einträge in der Datei waren fehlerhaft und wurden übersprungen.');
+    buildTplBar();
+  }
   function buildTplBar() {
-    tplBar.replaceChildren(...Object.entries(C.BACK_TEMPLATES).map(([id, label]) => {
-      const c = el('button', 'tpl-card'); c.type = 'button'; c.dataset.tpl = id; c.title = label;
-      c.append(previewOf(id), el('span', '', label));
-      c.addEventListener('click', () => applyTemplate(id));
-      return c;
-    }));
+    const own = App.templates.list();
+    const fin = el('input'); fin.type = 'file'; fin.accept = '.json,application/json'; fin.hidden = true; fin.id = 'bedTplFile';
+    fin.addEventListener('change', () => { const f = fin.files[0]; fin.value = ''; if (f) importTemplates(f); });
+    const nodes = Object.entries(C.BACK_TEMPLATES).map(([id, label]) => tplCard(id, label));
+    if (own.length) nodes.push(el('h4', 'tpl-h', 'Eigene Vorlagen'));
+    for (const t of own) {
+      const w = el('div', 'tpl-wrap'), acts = el('div', 'tpl-acts');
+      const ex = btn('Als Datei', () => exportTemplate(t)); ex.title = 'Als Datei sichern';
+      const del = btn('Löschen', () => { if (confirm('Diese Vorlage löschen?')) { App.templates.remove(t.id); buildTplBar(); } }); del.title = 'Vorlage löschen'; del.dataset.del = t.id;
+      acts.append(ex, del); w.append(tplCard(t.id, t.name), acts); nodes.push(w);
+    }
+    const addB = btn('Layout als Vorlage speichern …', saveAsTemplate, 'tpl-add'); addB.id = 'bedTplSave';
+    const impB = btn('+ Vorlage importieren …', () => fin.click(), 'tpl-add'); impB.id = 'bedTplImport';
+    tplBar.replaceChildren(...nodes, addB, impB, fin);
   }
 
   /* ---------- Aufbau des Pop-ups ---------- */
