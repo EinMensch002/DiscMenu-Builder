@@ -126,6 +126,7 @@ test('Einstellungen sichern: mit und ohne Passwort, falsches Passwort', async ()
   assert.ok(!enc.includes('abc'));
   assert.deepEqual(await C.unpackSettings(enc, 'geheim'), v);
   await assert.rejects(C.unpackSettings(enc, 'falsch'), /Falsches Passwort/);
+  await assert.rejects(C.unpackSettings('{"type":"discmenu-settings","version":1,"templates":[]}', ''), /keine Zugangsdaten/, 'Datei nur mit Vorlagen leert die Zugangsdaten nicht');
 });
 
 test('Disc-Prüfung: gefunden, fehlt, Ordner statt Datei, Links ausgenommen', async () => {

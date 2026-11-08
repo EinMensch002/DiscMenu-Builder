@@ -40,5 +40,5 @@ npm run test:ui   # Browser-Tests mit Playwright (Chromium ist vorinstalliert), 
 
 ## Roadmap (kurz, Details in `README.md`)
 - Beide Web-Tools zusammenführen mit gemeinsamer Projektdatei (`assets/`, `cover.json`, `recipe.json`), eine einzige HTML-Datei als Ausgabe (Code bleibt getrennt, ein Build fügt zusammen), ein Repository bleibt.
-- Rückseite, nächste Schritte (Reihenfolge): eigene Vorlagen importieren/speichern, Auswahlfenster beim Sichern der Einstellungen, 10 bis 20 eingebaute Schriften (Details in `docs/disc-sleeve.md`, Abschnitt "Ideen für die nächsten Schritte").
+- Rückseite, nächster Schritt: 10 bis 20 eingebaute Schriften mit offener Lizenz (Details in `docs/disc-sleeve.md`, Abschnitt "Ideen für die nächsten Schritte"). Eigene Vorlagen, eigene Schriften und das Sichern/Einlesen mit Auswahl sind fertig (Format und Regeln: `files.js` `packBundle`/`planImport`/`applyImport`, beim Einlesen wird nur verändert, was in der Datei steht).
 - Offene manuelle Prüfungen (echter Druck, Firefox/Safari, echter Proxy) stehen in `docs/manuelle-pruefung.md`.
