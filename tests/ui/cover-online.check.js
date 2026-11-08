@@ -356,6 +356,10 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.click('#dlg button.pri:has-text("Sichern")');
   await page.waitForFunction(() => /mindestens einen Eintrag/.test(document.querySelector('#dlg').textContent));
   await page.click('#dlg button:has-text("Zurück zu den Einstellungen")');
+  // Eigene Schriften in den Einstellungen: Liste und Löschen
+  assert.equal(await page.locator('#dlg .frow').count(), 2);
+  await page.locator('#dlg .frow button').first().click();
+  await page.waitForFunction(() => document.querySelectorAll('#dlg .frow').length === 1 && CoverApp.fonts.list().length === 1);
   await page.evaluate(async () => { for (const t of CoverApp.templates.list()) CoverApp.templates.remove(t.id); for (const f of CoverApp.fonts.list()) await CoverApp.fonts.remove(f.id); });
   await page.click('#dlgX');
   await page.click('#bSettings');

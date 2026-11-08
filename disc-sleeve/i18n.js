@@ -44,7 +44,7 @@
   if (typeof document === 'undefined') { const api = { register, tr, packs, setLang(c) { lang = c; }, lang: () => lang }; if (typeof module !== 'undefined') module.exports = api; return; }
 
   /* ---- Oberfläche umschalten ---- */
-  const ATTRS = ['placeholder', 'title', 'aria-label'];
+  const ATTRS = ['placeholder', 'title', 'aria-label', 'label'];
   const textRec = new WeakMap();      // Textknoten -> { src: deutscher Text, out: aktuell gesetzter Text }
   const attrRec = new WeakMap();      // Element -> { attr: { src, out } }
   /* Das Cover (#sheet) wird nicht übersetzt, nur seine Platzhalter (.ph, "Frontcover" usw.) */

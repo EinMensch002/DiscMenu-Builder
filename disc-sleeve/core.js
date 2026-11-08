@@ -44,7 +44,7 @@
      Elemente (Bilder und Texte) mit Position und Größe in mm, in der Reihenfolge von unten nach oben. Bearbeitet wird sie im Editor (Pop-up). */
   const BACK = { banner: 15, bottom: 46 };                                           // Standardhöhen unten (mm)
   const BACK_LIMITS = { featH: [10, 30], reqH: [30, 110] };
-  const BACK_FONTS = ['sans', 'serif', 'condensed', 'display', 'mono', 'hand'];
+  const BACK_FONTS = ['sans', 'serif', 'condensed', 'display', 'mono', 'hand', 'g-pressstart', 'g-silkscreen', 'g-vt323', 'g-orbitron', 'g-audiowide', 'g-rajdhani', 'g-russoone', 'g-blackops', 'g-bebas', 'g-bungee', 'g-bangers', 'g-specialelite', 'g-marker', 'g-cinzel', 'g-medieval', 'g-pirata', 'g-creepster', 'g-uncial'];   // Namen und Dateien der Spiele-Schriften: BackDesign.FONTS
   /* Eigene Schriften heißen uf-<id>. Ob es die Schrift auf diesem Rechner gibt, entscheidet erst das Zeichnen (sonst Rückfall auf Normal). */
   const isCustomFont = (v) => typeof v === 'string' && /^uf-[a-z0-9]{1,12}$/.test(v);
   const BACK_EDGES = ['none', 'round', 'border', 'feather', 'torn'];

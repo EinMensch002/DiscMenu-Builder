@@ -85,6 +85,13 @@
         openRestore(b);
       } catch (e) { say(msg2, e.message === 'PASSWORD_NEEDED' ? 'Die Datei ist verschlüsselt. Bitte das Passwort eintragen und die Datei erneut einlesen.' : e.message, true); }
     } });
+    const fontList = h('div', { class: 'flist' });
+    const fillFonts = () => {
+      const list = App.fonts.list();
+      fontList.replaceChildren(...(list.length ? list.map((f) => h('div', { class: 'frow' }, h('span', { style: 'font-family:"' + f.id + '", sans-serif', 'data-notr': '' }, f.name),
+        h('button', { type: 'button', onclick: async () => { if (!confirm('Diese Schrift löschen? Texte, die sie benutzen, werden auf "Normal" gesetzt.')) return; await App.fonts.remove(f.id); fillFonts(); } }, 'Löschen'))) : [h('p', { class: 'dmsg' }, 'Noch keine eigenen Schriften.')]));
+    };
+    fillFonts();
     const saveCfg = () => {
       const p = proxy.value.trim();
       if (p && !p.includes('{url}')) { say(msg, 'Die Proxy-Adresse muss den Platzhalter {url} enthalten.', true); return false; }
@@ -111,6 +118,9 @@
         } }, 'Verbindung testen'),
         h('button', { type: 'button', onclick: () => { O.settings.save('', ''); O.settings.saveBrandfetch(''); key.value = ''; proxy.value = ''; bf.value = ''; say(msg, 'Gespeicherte Werte gelöscht.'); } }, 'Löschen')),
       tests,
+      h('h3', {}, 'Eigene Schriften'),
+      h('p', { class: 'dmsg' }, 'Schriften, die Du im Rückseiten-Editor hinzugefügt hast. Hier lassen sie sich wieder löschen.'),
+      fontList,
       h('h3', {}, 'Einstellungen sichern'),
       h('p', { class: 'dmsg' }, 'Speichert Zugangsdaten, eigene Vorlagen und eigene Schriften in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Beim Sichern wählst Du, was in die Datei kommt (eingebaute Vorlagen und Schriften sind nie dabei). Beim Einlesen wird nur verändert, was in der Datei steht. Eine Datei mit Zugangsdaten enthält deinen Schlüssel: nicht weitergeben und nicht ins Repository legen. ', ext('Mehr dazu', LINKS.backup)),
       wrapField('Passwort (optional)', pw, 'Wird zum Entschlüsseln beim Einlesen benutzt. Das Passwort zum Verschlüsseln wählst Du beim Sichern. Ein vergessenes Passwort lässt sich nicht wiederherstellen.'),

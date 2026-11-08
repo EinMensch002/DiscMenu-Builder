@@ -344,3 +344,21 @@ test('Formen: Prüfung, Standardpunkte, Bild in der Form, Vorlage "Zersplittert"
   assert.equal(BD.shapePoints({ shape: 'ellipse' }), null);
   assert.match(BD.clipOf({ shape: 'triangle', pts: C.defaultPts('triangle') }), /^polygon\(50% 0%,100% 100%,0% 100%\)$/);
 });
+
+test('Spiele-Schriften: Schlüssel, Dateien, @font-face und Lizenzliste passen zusammen', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const BD = require('../disc-sleeve/back-design.js'), dir = path.join(__dirname, '..', 'disc-sleeve');
+  const css = fs.readFileSync(path.join(dir, 'style.css'), 'utf8'), lic = fs.readFileSync(path.join(dir, 'assets', 'fonts', 'games', 'LIZENZEN.txt'), 'utf8').split(String.fromCharCode(13,10)).join(String.fromCharCode(10));
+  const game = Object.entries(BD.FONTS).filter(([, f]) => f.group === 'game');
+  assert.ok(game.length >= 10 && game.length <= 20, 'etwa 10 bis 20 Spiele-Schriften');
+  assert.deepEqual(Object.keys(BD.FONTS).sort(), [...C.BACK_FONTS].sort(), 'core.js und back-design.js kennen dieselben Schriften');
+  for (const [id, f] of game) {
+    const file = path.join(dir, 'assets', 'fonts', 'games', f.file + '.woff2');
+    assert.ok(fs.existsSync(file) && fs.statSync(file).size > 1000, id + ': Schriftdatei fehlt');
+    assert.ok(css.includes('font-family: "' + f.label + '"') && css.includes('assets/fonts/games/' + f.file + '.woff2'), id + ': @font-face fehlt');
+    assert.ok(lic.includes(f.label + '\n  Datei: ' + f.file + '.woff2'), id + ': Lizenzeintrag fehlt');
+    assert.ok(f.css.startsWith('"' + f.label + '"'), id + ': Schriftfamilie');
+    assert.equal(C.normalizeItem({ type: 'text', font: id }).font, id);
+  }
+  assert.equal(new Set(game.map(([id]) => id)).size, game.length);
+});

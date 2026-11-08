@@ -3,6 +3,25 @@
 @font-face { font-family: Lato; font-weight: 400; src: url(assets/fonts/Lato-Regular.ttf) format("truetype"); }
 @font-face { font-family: Lato; font-weight: 700; src: url(assets/fonts/Lato-Bold.ttf) format("truetype"); }
 @font-face { font-family: Lato; font-weight: 900; src: url(assets/fonts/Lato-Black.ttf) format("truetype"); }
+/* Spiele-Schriften (freie Lizenzen, siehe assets/fonts/games/LIZENZEN.txt) */
+@font-face { font-family: "Press Start 2P"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/press-start-2p.woff2) format("woff2"); }
+@font-face { font-family: "Silkscreen"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/silkscreen.woff2) format("woff2"); }
+@font-face { font-family: "VT323"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/vt323.woff2) format("woff2"); }
+@font-face { font-family: "Orbitron"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Audiowide"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/audiowide.woff2) format("woff2"); }
+@font-face { font-family: "Rajdhani"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/rajdhani.woff2) format("woff2"); }
+@font-face { font-family: "Russo One"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/russo-one.woff2) format("woff2"); }
+@font-face { font-family: "Black Ops One"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/black-ops-one.woff2) format("woff2"); }
+@font-face { font-family: "Bebas Neue"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/bebas-neue.woff2) format("woff2"); }
+@font-face { font-family: "Bungee"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/bungee.woff2) format("woff2"); }
+@font-face { font-family: "Bangers"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/bangers.woff2) format("woff2"); }
+@font-face { font-family: "Special Elite"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/special-elite.woff2) format("woff2"); }
+@font-face { font-family: "Permanent Marker"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/permanent-marker.woff2) format("woff2"); }
+@font-face { font-family: "Cinzel"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/cinzel.woff2) format("woff2"); }
+@font-face { font-family: "MedievalSharp"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/medievalsharp.woff2) format("woff2"); }
+@font-face { font-family: "Pirata One"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/pirata-one.woff2) format("woff2"); }
+@font-face { font-family: "Creepster"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/creepster.woff2) format("woff2"); }
+@font-face { font-family: "Uncial Antiqua"; font-weight: 400; font-display: swap; src: url(assets/fonts/games/uncial-antiqua.woff2) format("woff2"); }
 
 /* ===== Oberfläche ===== */
 :root { --acc: #89268d; --acc-soft: #f6e9f7; --bg: #eef0f4; --panel: #fff; --line: #d9dde6; --txt: #1d2230; --mut: #667085; }
@@ -426,6 +445,7 @@ dialog.bed .dh h2 { margin: 0; font-size: 17px; flex: 1; }
 .bgrp { margin: 10px 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
 .bgrp .brow { margin: 3px 0 3px 22px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .bgrp .brow.chk { margin-left: 22px; }
+.flist .frow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0; font-size: 16px; }
 .bgrp select { width: auto; max-width: 100%; }
 .tpl-card span { font-size: 12px; font-weight: 600; }
 .tp { position: relative; width: 100%; background: #f4f5f8; border: 1px solid #c5cad6; overflow: hidden; }

@@ -266,6 +266,19 @@
     const s = el('select'); for (const [v, l] of opts) { const o = el('option', '', l); o.value = v; s.append(o); }
     s.value = String(it[key]); s.addEventListener('change', () => change(() => update(it, { [key]: s.value }), { panel: true })); return s;
   }
+  /* Schriftauswahl: jeder Eintrag steht in seiner eigenen Schrift (gruppiert: System, Spiele, eigene) */
+  function fontSelect(it) {
+    const s = el('select');
+    for (const [label, test] of [['Systemschriften', (f) => !f.custom && f.group !== 'game'], ['Spiele-Schriften', (f) => f.group === 'game'], ['Eigene Schriften', (f) => f.custom]]) {
+      const list = Object.entries(BD.FONTS).filter(([, f]) => test(f)); if (!list.length) continue;
+      const g = document.createElement('optgroup'); g.label = label;
+      for (const [v, f] of list) { const o = el('option', '', f.label); o.value = v; o.style.fontFamily = f.css; o.dataset.notr = ''; g.append(o); }
+      s.append(g);
+    }
+    const cur = BD.FONTS[it.font] ? it.font : 'sans'; s.value = cur; s.style.fontFamily = BD.FONTS[cur].css;
+    s.addEventListener('change', () => change(() => update(it, { font: s.value }), { panel: true }));
+    return s;
+  }
   function color(it, key) {
     const i = el('input'); i.type = 'color'; i.value = it[key] || '#000000'; let first = true;
     i.addEventListener('input', () => { if (first) { remember(); first = false; } update(it, { [key]: i.value }); App.touch(); drawStage(); });
@@ -300,7 +313,8 @@
         ta.addEventListener('change', () => { first = true; });
       }
       panel.append(row('Text', ta));
-      panel.append(row('Schrift', select(it, 'font', Object.entries(BD.FONTS).map(([v, f]) => [v, f.label]))));
+      panel.append(row('Schrift', fontSelect(it)));
+      if (BD.FONTS[it.font] && BD.FONTS[it.font].custom) panel.append(btn('Diese eigene Schrift löschen', () => { if (confirm('Diese Schrift löschen? Texte, die sie benutzen, werden auf "Normal" gesetzt.')) App.fonts.remove(it.font).then(() => refresh(true)); }));
       panel.append(el('p', 'hint', 'Systemschriften sehen auf anderen Rechnern etwas anders aus. Eigene Schriften sehen überall gleich aus, wenn sie dort auch hinzugefügt sind.'));
       panel.append(btn('Eigene Schrift hinzufügen …', () => addFontFile(it)));
       const two = el('div', 'two');

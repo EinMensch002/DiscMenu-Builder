@@ -3,7 +3,7 @@
 (function (root) {
   'use strict';
 
-  /* Schriftarten: Systemschriften (je nach Rechner etwas anders aussehend). Lato liegt als Datei bei, die anderen kommen vom Betriebssystem. */
+  /* Schriftarten: Systemschriften (je nach Rechner etwas anders aussehend, Lato liegt bei) und Spiele-Schriften (group game, als Dateien mitgeliefert). Eigene Schriften kommen zur Laufzeit dazu (custom). */
   const FONTS = {
     sans: { label: 'Normal (Lato)', css: 'Lato, "Segoe UI", Arial, sans-serif' },
     serif: { label: 'Serif (Georgia)', css: 'Georgia, "Times New Roman", Times, serif' },
@@ -11,6 +11,25 @@
     display: { label: 'Plakat (Impact)', css: 'Impact, Haettenschweiler, "Arial Black", "Franklin Gothic Heavy", sans-serif' },
     mono: { label: 'Schreibmaschine', css: '"Courier New", Courier, monospace' },
     hand: { label: 'Handschrift', css: '"Segoe Script", "Brush Script MT", "Bradley Hand", cursive' },
+    /* Spiele-Schriften: liegen im Ordner assets/fonts/games (siehe LIZENZEN.txt) und sehen überall gleich aus */
+    'g-pressstart': { label: 'Press Start 2P', css: '"Press Start 2P", monospace', group: 'game', file: 'press-start-2p' },
+    'g-silkscreen': { label: 'Silkscreen', css: '"Silkscreen", monospace', group: 'game', file: 'silkscreen' },
+    'g-vt323': { label: 'VT323', css: '"VT323", monospace', group: 'game', file: 'vt323' },
+    'g-orbitron': { label: 'Orbitron', css: '"Orbitron", sans-serif', group: 'game', file: 'orbitron' },
+    'g-audiowide': { label: 'Audiowide', css: '"Audiowide", sans-serif', group: 'game', file: 'audiowide' },
+    'g-rajdhani': { label: 'Rajdhani', css: '"Rajdhani", sans-serif', group: 'game', file: 'rajdhani' },
+    'g-russoone': { label: 'Russo One', css: '"Russo One", sans-serif', group: 'game', file: 'russo-one' },
+    'g-blackops': { label: 'Black Ops One', css: '"Black Ops One", sans-serif', group: 'game', file: 'black-ops-one' },
+    'g-bebas': { label: 'Bebas Neue', css: '"Bebas Neue", Impact, sans-serif', group: 'game', file: 'bebas-neue' },
+    'g-bungee': { label: 'Bungee', css: '"Bungee", sans-serif', group: 'game', file: 'bungee' },
+    'g-bangers': { label: 'Bangers', css: '"Bangers", cursive', group: 'game', file: 'bangers' },
+    'g-specialelite': { label: 'Special Elite', css: '"Special Elite", monospace', group: 'game', file: 'special-elite' },
+    'g-marker': { label: 'Permanent Marker', css: '"Permanent Marker", cursive', group: 'game', file: 'permanent-marker' },
+    'g-cinzel': { label: 'Cinzel', css: '"Cinzel", serif', group: 'game', file: 'cinzel' },
+    'g-medieval': { label: 'MedievalSharp', css: '"MedievalSharp", serif', group: 'game', file: 'medievalsharp' },
+    'g-pirata': { label: 'Pirata One', css: '"Pirata One", serif', group: 'game', file: 'pirata-one' },
+    'g-creepster': { label: 'Creepster', css: '"Creepster", cursive', group: 'game', file: 'creepster' },
+    'g-uncial': { label: 'Uncial Antiqua', css: '"Uncial Antiqua", serif', group: 'game', file: 'uncial-antiqua' },
   };
   const EDGES = { none: 'Ohne', round: 'Abgerundet', border: 'Rahmen', feather: 'Weicher Rand (ausgeblendet)', torn: 'Ausgerissen (Papier)' };
 
@@ -138,6 +157,10 @@
   function renderInto(container, items, env) {
     container.replaceChildren(...items.map((it) => buildNode(it, env)));
     fitTexts(container);
+    /* Mitgelieferte Schriften laden erst bei der ersten Benutzung: danach noch einmal an den Platz anpassen */
+    if (typeof document === 'undefined' || !document.fonts || !document.fonts.load) return;
+    const need = [...new Set(items.filter((it) => it.type === 'text' && FONTS[it.font] && FONTS[it.font].file).map((it) => FONTS[it.font].label))].filter((n) => !document.fonts.check('16px "' + n + '"'));
+    if (need.length) Promise.all(need.map((n) => document.fonts.load('16px "' + n + '"'))).then(() => fitTexts(container)).catch(() => { /* egal, Ersatzschrift bleibt */ });
   }
   /* Text so groß wie eingestellt, aber so klein wie nötig, damit nichts abgeschnitten wird (nicht unter 4 pt) */
   function fitTexts(container) {

@@ -59,6 +59,16 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   let it = (await items())[0];
   assert.equal(it.font, 'serif'); assert.equal(it.caps, true); assert.equal(it.size, 20);
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).textTransform), 'uppercase');
+  // Schriftauswahl: gruppiert, jeder Eintrag in seiner eigenen Schrift; Spiele-Schriften werden geladen und benutzt
+  assert.deepEqual(await page.locator('#bdlg .bed-panel label.f', { hasText: 'Schrift' }).first().locator('optgroup').evaluateAll((g) => g.map((x) => x.label)), ['Systemschriften', 'Spiele-Schriften']);
+  const gameOpts = page.locator('#bdlg .bed-panel optgroup[label="Spiele-Schriften"] option');
+  assert.ok(await gameOpts.count() >= 10, 'Mindestens zehn Spiele-Schriften');
+  assert.match(await gameOpts.first().evaluate((o) => o.style.fontFamily), /Press Start 2P/, 'Eintrag zeigt sich in der eigenen Schrift');
+  await sel('Schrift').selectOption('g-pressstart');
+  assert.equal((await items())[0].font, 'g-pressstart');
+  await page.waitForFunction(() => document.fonts.check('16px "Press Start 2P"'));
+  assert.match(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).fontFamily), /Press Start 2P/);
+  await sel('Schrift').selectOption('serif');
   // Eigene Schrift: Datei hinzufügen, benutzen, speichern, ungültige Datei ablehnen, löschen (Rückfall auf Normal)
   const latoPath = path.resolve(__dirname, '..', '..', 'disc-sleeve', 'assets', 'fonts', 'Lato-Bold.ttf');
   const fch = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
@@ -84,8 +94,12 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => CoverApp.fonts.list().length === 3);
   assert.deepEqual(await page.evaluate(() => CoverApp.fonts.list().map((f) => f.name)), ['Lato Bold', 'Lato Regular', 'Lato Light']);
   assert.equal((await items())[0].font, await page.evaluate(() => CoverApp.fonts.list()[2].id));
-  await page.evaluate(async () => { for (const f of CoverApp.fonts.list().slice(1)) await CoverApp.fonts.remove(f.id); });
-  await page.evaluate((id) => CoverApp.fonts.remove(id), fid);
+  assert.equal(await page.locator('#bdlg .bed-panel optgroup[label="Eigene Schriften"] option').count(), 3, 'Eigene Schriften stehen in der Auswahl');
+  await page.click('#bdlg .bed-panel button:has-text("Diese eigene Schrift löschen")');
+  await page.waitForFunction(() => CoverApp.fonts.list().length === 2);
+  assert.equal((await items())[0].font, 'sans', 'Texte mit der gelöschten Schrift fallen auf Normal zurück');
+  await page.locator('#bdlg .bed-panel button:has-text("Diese eigene Schrift löschen")').waitFor({ state: 'detached' });
+  await page.evaluate(async () => { for (const f of CoverApp.fonts.list()) await CoverApp.fonts.remove(f.id); });
   assert.equal(await page.evaluate((id) => !window.BackDesign.FONTS[id], fid), true);
   assert.match(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).fontFamily), /Lato/, 'Ohne die Schrift: Rückfall auf Normal');
   await sel('Inhalt').selectOption('title');

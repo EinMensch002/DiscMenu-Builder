@@ -713,7 +713,10 @@
     },
     async remove(id) {
       const i = userFonts.findIndex((f) => f.id === id); if (i < 0) return;
-      userFonts.splice(i, 1); fontUnregister(id); await fontStore((st) => st.delete(id)); render();
+      userFonts.splice(i, 1); fontUnregister(id);
+      for (const it of (state.back && state.back.items) || []) if (it.font === id) it.font = 'sans';     // Texte mit dieser Schrift fallen auf Normal zurück
+      changed();
+      await fontStore((st) => st.delete(id));
     },
   };
   fonts.init();
