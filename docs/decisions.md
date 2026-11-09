@@ -15,7 +15,7 @@
 | Speichern | Projekte automatisch im Browser, ZIP-Export als Datei. Import legt ein neues Projekt an |
 | Zugangsdaten | API-Schlüssel und Proxy im Browser, per Datei sicherbar, optional mit Passwort verschlüsselt. Nie in ZIP oder Repo |
 | Format-Beschreibung | Gemeinsames JSON Schema in `schema/menu.schema.json`, wird in den Tests gegen Beispiel und Export geprüft |
-| Disc-Prüfung | Im Konfigurator über Ordnerzugriff (Chrome, Edge), nur lesend, ohne Beachtung der Groß-/Kleinschreibung |
+| Disc-Prüfung | Im Konfigurator über Ordnerzugriff (Chrome, Edge), nur lesend, ohne Beachtung der Groß-/Kleinschreibung. Auch der Builder prüft mit `-disc <Ordner>`, ob Installer und Extras im Disc-Ordner vorhanden sind |
 | Technik Player/Builder | Go mit Ebitengine, 64 Bit, eine EXE, bauen ohne C-Compiler (siehe [platforms-and-tech.md](platforms-and-tech.md)) |
 | Anbieter | `provider` ist `gog` (Standard), `epic` oder `steam`. Jeder hat Abzeichen und Farbe im Menü, nur Text ohne Logos. GOG: Inno-Parameter. Epic: normal, still nur mit eigenen `args`. Steam: nur Anzeige, bis die Wiederherstellung geprüft ist |
 | Silent-Standard | Aus. Bei Aktivierung schlägt das Menü `C:\GOG Games\<Name>` vor |
@@ -43,7 +43,6 @@
 | 32 Bit | Der Player ist nur 64 Bit. Wird 32-Bit-Windows gebraucht? (Windows 10/11 gibt es fast nur noch in 64 Bit) |
 | Fortschritt | Wie genau wird der Fortschritt bei Silent angezeigt? (Zielordnergröße ist nur eine Schätzung) |
 | Installer ohne Inno | Wie viele GOG-Installer sind keine Inno-Installer und laufen nur im Modus Normal? |
-| Disc-Prüfung im Builder | Soll auch der Builder die Disc-Dateien prüfen, wenn der Disc-Ordner angegeben wird? (Im Konfigurator gibt es die Prüfung bereits) |
 | Eigene Tabs | Genaues Format von `customTabs` (Version 2 des Formats?) |
 | Mehrsprachigkeit | Soll das Menü mehrere Sprachen unterstützen? |
 | Steam | Lässt sich die Wiederherstellung eines Backups auslösen? Zuerst prüfen |

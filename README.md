@@ -68,7 +68,7 @@ DiscMenu-Builder/
 ├─ tests/                   Automatische Tests
 ├─ tools/mkdemo/            Erzeugt die Beispiel-Assets
 ├─ tools/cors-proxy/        Optionaler Proxy (Cloudflare Worker) für SteamGridDB
-├─ .github/workflows/       Tests der Web-Tools und Veröffentlichung von Konfigurator und Cover-Tool auf GitHub Pages (Windows-Build und Wine-Test vorerst abgeschaltet)
+├─ .github/workflows/       Tests der Web-Tools, Veröffentlichung auf GitHub Pages (`pages.yml`) und Vorschau-Seiten für Pull Requests (`preview.yml`) (Windows-Build und Wine-Test vorerst abgeschaltet)
 ├─ examples/
 │  ├─ menu.example.json     Beispiel-Rezept mit drei Spielen (GOG, Epic, Steam)
 │  └─ assets/               Beispiel-Cover, -Hintergrund und -Klick-Sound (erzeugt mit tools/mkdemo)
@@ -99,6 +99,11 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] JSON-Ansicht zum direkten Bearbeiten, Vorschau im Look des Players mit Installations-Simulation
 - [x] Automatische Tests im Repo (Kernlogik, Schema, Worker, Oberfläche) mit CI
 - [x] Prüfung der Disc-Dateien über Ordnerzugriff (Chrome, Edge)
+
+### Entwicklung und Veröffentlichung
+
+- [x] **Vorschau-Seite für jeden Pull Request** (`/pr/<Nummer>/`, auch auf dem Tablet testbar), wird beim Schließen oder Mergen gelöscht ([Beschreibung](docs/disc-sleeve.md#vorschau-für-pull-requests))
+- [x] Veröffentlichung auf GitHub Pages bricht laufende Läufe nicht mehr ab (keine roten Deployments mehr)
 
 ### DiscSleeve (Web-App, live unter /disc-sleeve/)
 
@@ -158,7 +163,9 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
   - [x] **Eigene Schriften in der Projektdatei (ZIP):** Schriften, die Texte benutzen, werden mitgespeichert und beim Öffnen auf einem anderen Rechner automatisch hinzugefügt
   - [x] **Mehrfachauswahl im Editor:** Elemente mit Strg oder Umschalt wählen (Strg+A alle), gemeinsam verschieben und drehen (jedes um die eigene Mitte), duplizieren, löschen
   - [x] **Durchgehendes Bild:** Die Vorschau zeigt es jetzt auch (der Platzhalter "Rückseite oben" verdeckte es); Standard bleiben zwei getrennte Bilder
-  - [x] **Standardschriften:** 18 Spiele-Schriften mit freier Lizenz (OFL/Apache) mitgeliefert (Pixel-Retro, Sci-Fi, Fantasy, Horror, Comic u. a.), im Dropdown jeweils in der eigenen Schrift; eigene Schriften lassen sich im Editor und in den Einstellungen wieder löschen (beim Ein-Datei-Build als Base64 einbetten)
+  - [x] **Standardschriften:** 18 Spiele-Schriften mit freier Lizenz (OFL/Apache) mitgeliefert (Pixel-Retro, Sci-Fi, Fantasy, Horror, Comic u. a.), im Dropdown jeweils in der eigenen Schrift; eigene Schriften lassen sich im Editor und in den Einstellungen wieder löschen (für den noch offenen Ein-Datei-Build: Schriften als Base64 einbetten)
+  - [x] **Spielfunktionen mit vielen Symbolen:** Passt ein Wort nicht mehr in seinen Platz (z. B. "Achievements"), wird die Schrift aller Beschriftungen automatisch kleiner, nichts überlappt mehr (Issue #23)
+  - [ ] Auswahlrechteck im Editor (mit der Maus aufziehen für die Mehrfachauswahl)
   - [ ] Ausrichtungshilfen (Raster)
 - [ ] **Beide Web-Tools zusammenführen:** Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
 - [ ] **Ein-Datei-Build** (Vorarbeit erledigt: alle Grafiken sind SVG, nur die Schrift Lato ist noch eine Binärdatei): Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
