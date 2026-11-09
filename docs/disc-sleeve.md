@@ -277,7 +277,7 @@ Die Rückseite besteht aus **zwei Teilen**:
 
 ### Ideen für die nächsten Schritte
 
-Erledigt: eigene Schriften in der Projektdatei (ZIP), Umriss und Rand der Formen, eigene Vorlagen, eigene Schriften, Sichern und Einlesen mit Auswahl, mitgelieferte Spiele-Schriften (siehe oben). Beim Ein-Datei-Build werden die Schriftdateien als Base64 eingebettet (wie Lato).
+Erledigt: eigene Schriften in der Projektdatei (ZIP), Umriss und Rand der Formen, eigene Vorlagen, eigene Schriften, Sichern und Einlesen mit Auswahl, mitgelieferte Spiele-Schriften (siehe oben). Den Ein-Datei-Build gibt es noch nicht (offen, siehe README). Wenn er kommt, sollen die Schriftdateien dabei als Base64 eingebettet werden (wie Lato).
 
 1. Ein **Auswahlrechteck** (mit der Maus aufziehen) für die Mehrfachauswahl im Editor.
 
@@ -398,7 +398,7 @@ Aufgeräumt wurde der Code der früheren Einzeldatei (v3.10.3). Behoben sind unt
 
 `npm test` prüft die Logik: Maße und eigene Maße (`tests/cover.test.js`), die Auswertung der Steam-Daten, den ZIP-Leser, die Anfragen über den Proxy mit Fehlerfällen und die gemeinsamen Einstellungen (`tests/cover-online.test.js`) sowie die Einstellungs- und Projektdateien samt Austausch mit dem Konfigurator (`tests/cover-files.test.js`).
 
-`npm run test:ui` lädt das Tool in einem echten Chromium. `tests/ui/cover.check.js` prüft Eingaben, Bildverkleinerung, Disc-Logos, Hüllenwechsel, eigene Maße, Speichern der Einstellungen, **feste Plätze** (nichts verschiebt sich), beide Stile und den **Druck** (genau eine A4-Seite quer, Cover mittig in Originalgröße, Schnittmarken im Blatt). `tests/ui/cover-online.check.js` prüft die obere Leiste, Anbieter-Stile, die Übernahme aus Rezept und Steam (auch per Steam-Adresse und mit Fehlern des Proxys), die Bildsuche bei SteamGridDB, den Einstellungsdialog mit Sicherung in Datei (mit und ohne Passwort, auch mit einer Datei aus dem Konfigurator) sowie Export und Import des Projekts, alles mit nachgebauten Diensten. Nicht automatisch geprüft sind ein echter Ausdruck und die echten Dienste.
+`npm run test:ui` lädt das Tool in einem echten Chromium. `tests/ui/cover.check.js` prüft Eingaben, Bildverkleinerung, Disc-Logos, Hüllenwechsel, eigene Maße, Speichern der Einstellungen, **feste Plätze** (nichts verschiebt sich), beide Stile und den **Druck** (genau eine A4-Seite quer, Cover mittig in Originalgröße, Schnittmarken im Blatt). `tests/ui/cover-online.check.js` prüft die obere Leiste, Anbieter-Stile, die Übernahme aus Rezept und Steam (auch per Steam-Adresse und mit Fehlern des Proxys), die Bildsuche bei SteamGridDB, den Einstellungsdialog mit Sicherung in Datei (mit und ohne Passwort, auch mit einer Datei aus dem Konfigurator) sowie Export und Import des Projekts, alles mit nachgebauten Diensten. Weitere Browser-Tests: `cover-back.check.js` (Rückseiten-Editor: Elemente, Formen, Vorlagen, Schriften, Mehrfachauswahl, Sichern und Einlesen), `cover-font-project.check.js` (eigene Schriften in der Projektdatei), `cover-spine.check.js` (Rücken), `cover-gog.check.js` (Daten von GOG), `cover-i18n.check.js` (Deutsch und Englisch), `cover-save.check.js` (Speichern mit Dateiauswahl; scheitert auf manchen Windows-Rechnern am Dialog "Speichern unter") und die Prüfung der Spielfunktionen auf Überlappung (Issue #23) in `cover.check.js`. Dazu die Logik-Tests `tests/i18n.test.js` (jeder englische Eintrag wird im Code benutzt) und `tests/cover-site.test.js` (Versionsnummer an allen Dateien, Pages-Workflow). Nicht automatisch geprüft sind ein echter Ausdruck und die echten Dienste.
 
 ## Hinweise
 
