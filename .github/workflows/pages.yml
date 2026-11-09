@@ -14,9 +14,11 @@ permissions:
   pages: write
   id-token: write
 
+# Nicht abbrechen: Ein laufendes Veröffentlichen wird sonst von einem neuen Lauf (z. B. Push auf main und Vorschau-Aufräumen gleichzeitig)
+# mitten im Hochladen abgebrochen, und GitHub zeigt es als fehlgeschlagene Bereitstellung (Deployment) an. Wartende Läufe werden zusammengefasst.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
