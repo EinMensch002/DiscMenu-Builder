@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiscSleeve – Cover-Tool für Disc-Hüllen</title>
+<link rel="stylesheet" href="style.css?v=pr24-665a8a6">
+</head>
+<body>
+<header class="top no-print">
+  <h1>💿 DiscSleeve</h1>
+  <span class="sub">Hüllen für selbst gebrannte GOG-Discs, zum Ausdrucken</span><span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version pr24-665a8a6</span>
+  <nav>
+    <span class="saveinfo" id="autoInfo" aria-live="polite"></span>
+    <span class="saveinfo" id="saveInfo" aria-live="polite"></span>
+    <details class="menu"><summary>Projekt</summary>
+      <div class="pop">
+        <button type="button" id="bBrowserSave" title="Sichert Einstellungen und Bilder im Speicher dieses Browsers. Das geschieht auch automatisch, der Stand bleibt nach dem Neuladen erhalten.">Im Browser speichern</button>
+        <button type="button" id="bSave" title="Überschreibt die geöffnete oder zuletzt gespeicherte Datei (Strg+S)">Speichern <kbd>Strg+S</kbd></button>
+        <button type="button" id="bProjExport">Speichern unter …</button>
+        <button type="button" id="bProjImport">Öffnen …</button>
+      </div>
+    </details>
+    <details class="menu"><summary>Daten übernehmen</summary>
+      <div class="pop">
+        <button type="button" id="bRecipe">Aus Rezept (ZIP oder menu.json) …</button>
+        <button type="button" id="bSteam">Anforderungen von Steam …</button>
+        <button type="button" id="bGog">Daten von GOG …</button>
+      </div>
+    </details>
+    <button type="button" id="bSettings">Einstellungen</button>
+    <button type="button" id="bReset">Zurücksetzen</button>
+    <details class="menu" id="langMenu" data-notr><summary></summary><div class="pop"></div></details>
+    <button type="button" id="bPrint" class="pri">Drucken</button>
+  </nav>
+  <input type="file" id="recipeFile" accept=".zip,.json,application/zip,application/json" hidden>
+  <input type="file" id="projectFile" accept=".zip,application/zip" hidden>
+</header>
+
+<main class="app">
+  <form class="panel no-print" id="form" autocomplete="off" onsubmit="return false">
+    <nav class="jump" id="jump" aria-label="Bereiche"></nav>
+
+    <details class="sec" open>
+      <summary>Hülle und Stil</summary>
+      <label class="f"><span class="lab">Anbieter (Farben und Schriftzug auf der Hülle)</span>
+        <select data-k="provider" data-seg><option value="gog">GOG</option><option value="epic">Epic Games</option><option value="steam">Steam</option></select></label>
+      <div class="grp"><span class="lab">Hülle</span>
+        <div class="tiles">
+          <label class="tile"><input type="radio" name="caseType" data-k="caseType" value="normal"><span>Normal (14 mm)</span></label>
+          <label class="tile"><input type="radio" name="caseType" data-k="caseType" value="slim"><span>Slim (7 mm)</span></label>
+          <label class="tile"><input type="radio" name="caseType" data-k="caseType" value="custom"><span>Eigene Maße</span></label>
+        </div>
+        <div class="custom" id="customBox" hidden>
+          <p class="hint">Maße des ausgebreiteten Einlegers in Millimetern. Miss am besten deinen Einleger nach, die Werte der Hersteller weichen ab. Das Cover plus Schnittmarken muss auf A4 quer passen (bis 285 mm Breite, 198 mm Höhe).</p>
+          <div class="four">
+            <label class="f"><span class="lab">Rückseite (Breite)</span><input type="number" inputmode="decimal" step="0.25" data-k="custom.back"></label>
+            <label class="f"><span class="lab">Rücken</span><input type="number" inputmode="decimal" step="0.25" data-k="custom.spine"></label>
+            <label class="f"><span class="lab">Vorderseite (Breite)</span><input type="number" inputmode="decimal" step="0.25" data-k="custom.front"></label>
+            <label class="f"><span class="lab">Höhe</span><input type="number" inputmode="decimal" step="0.25" data-k="custom.h"></label>
+          </div>
+          <div class="drow"><span class="dmsg">Vorlagen (Richtwerte):</span>
+            <button type="button" data-preset="bluray">Blu-ray</button><button type="button" data-preset="blurayslim">Blu-ray Slim</button></div>
+        </div>
+      </div>
+      <div class="grp"><span class="lab">Disc-Medium</span>
+        <div class="tiles">
+          <label class="tile"><input type="radio" name="disc" data-k="disc" value="cd"><span>CD</span></label>
+          <label class="tile"><input type="radio" name="disc" data-k="disc" value="dvd"><span>DVD</span></label>
+          <label class="tile"><input type="radio" name="disc" data-k="disc" value="bluray"><span>Blu-ray</span></label>
+        </div>
+      </div>
+      <label class="f"><span class="lab">Sprache der Beschriftung</span>
+        <select data-k="lang" data-seg><option value="de">Deutsch</option><option value="en">English</option></select></label>
+      <div class="f" id="styleRow"><span class="lab">Stil</span>
+        <select data-k="theme" class="seg-src" tabindex="-1"></select>
+        <div class="stylepick"><input type="range" id="styleSlider" min="0" max="5" step="1" aria-label="Stil"><div class="ticks" id="styleTicks"></div></div></div>
+      <label class="f" id="gogSpineRow"><span class="lab">Rücken (GOG)</span>
+        <select data-k="gogSpine" data-seg><option value="match">Passend zur Leiste</option><option value="dark">Dunkel (anthrazit)</option><option value="light">Hell</option></select></label>
+      <label class="chk" id="gogTextRow"><input type="checkbox" data-k="gogText"> "GOG.COM" neben dem Logo zeigen</label>
+    </details>
+
+    <details class="sec" open>
+      <summary>Titel und Texte</summary>
+      <label class="f"><span class="lab">Spieletitel (Rücken)</span><input type="text" data-k="title" placeholder="z. B. The Witcher: Enhanced Edition"></label>
+      <label class="f"><span class="lab">Copyright-Text (unten auf der Rückseite, mittig)</span><input type="text" data-k="copyright"></label>
+    </details>
+
+    <details class="sec" open>
+      <summary>Bilder</summary>
+      <p class="hint">Bilder werden beim Laden auf Druckgröße (etwa 300 dpi) verkleinert. Die Vorschau zeigt, wie scharf sie gedruckt werden.</p>
+      <div class="drop" data-img="front"><input type="file" accept="image/*" aria-label="Frontcover"><div class="thumb"></div>
+        <div class="dt"><b>Frontcover</b><span class="spec"></span><span class="info"></span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <label class="f"><span class="lab">Frontbild einpassen</span>
+        <select data-k="frontFit" data-seg><option value="stretch">Strecken (das ganze Bild füllt die Fläche)</option><option value="crop">Zuschneiden (Zoom und Ausschnitt)</option></select></label>
+      <div id="frontCropBox" hidden>
+        <label class="f"><span class="lab">Zoom (%)</span><div class="slide"><input type="range" data-k="frontZoom" min="100" max="300" step="5"><input type="text" data-k="frontZoom" size="4"></div></label>
+        <label class="f"><span class="lab">Ausschnitt waagerecht (0 = links, 100 = rechts)</span><div class="slide"><input type="range" data-k="frontX" min="0" max="100" step="1"><input type="text" data-k="frontX" size="4"></div></label>
+        <label class="f"><span class="lab">Ausschnitt senkrecht (0 = oben, 100 = unten)</span><div class="slide"><input type="range" data-k="frontY" min="0" max="100" step="1"><input type="text" data-k="frontY" size="4"></div></label>
+      </div>
+      <div class="drop" data-img="backTop"><input type="file" accept="image/*" aria-label="Rückseite oben"><div class="thumb"></div>
+        <div class="dt"><b>Rückseite oben</b><span class="spec"></span><span class="info"></span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <div class="drop" data-img="backBottom"><input type="file" accept="image/*" aria-label="Rückseite unten"><div class="thumb"></div>
+        <div class="dt"><b>Rückseite unten <i>(optional)</i></b><span class="spec"></span><span class="info">Ohne Bild setzt sich das obere Bild hinter den Angaben fort.</span></div><button type="button" class="sg" title="Bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+    </details>
+
+    <details class="sec" id="secBack">
+      <summary>Rückseite</summary>
+      <p class="hint">Unten steht immer derselbe Teil (Spielfunktionen, Systemanforderungen, Logos). Darüber liegt die <b>Gestaltungsfläche</b>: Dort kannst Du im Editor Bilder und Texte frei anordnen. Als Grund dient das Bild "Rückseite oben" aus dem Bereich "Bilder". Ein Klick auf die Fläche in der Vorschau öffnet den Editor ebenfalls.</p>
+      <div class="drow"><button type="button" class="pri" id="bDesign">Rückseite gestalten …</button></div>
+      <label class="chk"><input type="checkbox" data-k="back.span"> Ein durchgehendes Bild über die ganze Rückseite (statt zwei Bildern oben und unten)</label>
+      <div class="two">
+        <label class="f"><span class="lab">Höhe Spielfunktionen (mm)</span><input type="number" step="0.25" data-k="back.featH"></label>
+        <label class="f"><span class="lab">Höhe Anforderungen und Logos (mm)</span><input type="number" step="0.25" data-k="back.reqH"></label>
+      </div>
+      <p class="hint" id="backInfo"></p>
+      <label class="f"><span class="lab">Beschreibung des Spiels</span><textarea data-k="back.description" rows="5" placeholder="Kurze Beschreibung (kommt auch beim Import von Steam oder GOG). Im Editor zeigt ein Textelement mit Verknüpfung &quot;Beschreibung&quot; sie an."></textarea></label>
+    </details>
+    <details class="sec" open>
+      <summary>Publisher-Logo und Altersfreigabe</summary>
+      <div class="drop" data-img="publisher"><input type="file" accept="image/*" aria-label="Publisher-Logo"><div class="thumb"></div>
+        <div class="dt"><b>Publisher-Logo <i>(optional)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, etwa 2:1</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Publisher-Logo suchen (Wikidata)">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <label class="f"><span class="lab">Unterlage hinter dem Publisher-Logo auf der Vorderseite</span>
+        <select data-k="frontPubPlate" data-seg><option value="none">Keine</option><option value="white">Weiß</option><option value="black">Schwarz</option></select></label>
+      <p class="hint">Eine Unterlage hilft bei durchsichtigen Logos auf unruhigem Bild: weiß für dunkle, schwarz für helle Logos.</p>
+      <label class="f"><span class="lab">USK-Altersfreigabe</span>
+        <select data-k="usk"><option value="none">Keine anzeigen</option><option value="0">ab 0 Jahren</option><option value="6">ab 6 Jahren</option><option value="12">ab 12 Jahren</option><option value="16">ab 16 Jahren</option><option value="18">ab 18 Jahren</option></select></label>
+      <label class="chk"><input type="checkbox" data-k="uskBack"> USK auch auf der Rückseite zeigen</label>
+      <label class="f"><span class="lab">Hintergrund der USK auf der Vorderseite (Deckkraft, 0 % = nur die Raute)</span>
+        <div class="slide"><input type="range" data-k="uskOpacity" min="0" max="100" step="5"><input type="text" data-k="uskOpacity" size="4"></div></label>
+    </details>
+
+    <details class="sec" open>
+      <summary>Rücken</summary>
+      <label class="f"><span class="lab">Titel auf dem Rücken</span>
+        <select data-k="spineTitle" data-seg><option value="top">Oben (unter dem Logo)</option><option value="center">Mittig</option></select></label>
+      <label class="f"><span class="lab">Farbe von "PC" am Fuß des Rückens</span>
+        <select data-k="pcColor" data-seg><option value="auto">Automatisch (passend zum Rücken)</option><option value="white">Weiß</option><option value="black">Schwarz</option></select></label>
+      <label class="f"><span class="lab">Hintergrund des Rückens</span>
+        <select data-k="spineArt" data-seg><option value="color">Farbe des Anbieters</option><option value="own">Eigenes Rückenbild (siehe unten)</option><option value="image">Bild der Vorderseite über den Rücken fortsetzen</option></select></label>
+      <div class="drop" data-img="spineBg"><input type="file" accept="image/*" aria-label="Rückenbild"><div class="thumb"></div>
+        <div class="dt"><b>Rückenbild <i>(optional, nur bei "Eigenes Rückenbild")</i></b><span class="spec"></span><span class="info">Ein Ausschnitt aus einem breiten Bild (z. B. Hintergrund von SteamGridDB) genügt, unten lässt sich der Ausschnitt wählen.</span></div><button type="button" class="sg" title="Rückenbild bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <div class="two">
+        <label class="f"><span class="lab">Ausschnitt (links ↔ rechts, %)</span>
+          <div class="slide"><input type="range" data-k="spineBgX" min="0" max="100" step="1"><input type="text" data-k="spineBgX" size="4"></div></label>
+        <label class="f"><span class="lab">Abdunkeln (%)</span>
+          <div class="slide"><input type="range" data-k="spineBgDim" min="0" max="80" step="5"><input type="text" data-k="spineBgDim" size="4"></div></label>
+      </div>
+      <label class="f"><span class="lab">Anbieter-Logo oben auf dem Rücken</span>
+        <select data-k="spineLogo" data-seg><option value="fixed">Feste Größe (7 mm)</option><option value="fill">Rückenbreite ausfüllen</option></select></label>
+      <div class="drop" data-img="spineLogo"><input type="file" accept="image/*" aria-label="Rückenlogo"><div class="thumb"></div>
+        <div class="dt"><b>Logo für den Rücken <i>(optional, statt des Titels)</i></b><span class="spec">Empfohlen: PNG mit transparentem Hintergrund, breiter als hoch (wird gedreht)</span><span class="info"></span></div><button type="button" class="bgx" title="Einfarbigen (z. B. weißen) Hintergrund transparent machen">◧</button><button type="button" class="sg" title="Spiel-Logo bei SteamGridDB suchen">🔎</button><button type="button" class="x" title="Entfernen">✕</button></div>
+      <label class="chk"><input type="checkbox" data-k="spineUseLogo"> Statt des Titels das Rückenlogo zeigen (wenn eins geladen ist)</label>
+      <div class="two">
+        <label class="f"><span class="lab">Rückenlogo: Ausrichtung</span>
+          <select data-k="spineLogoRot" data-seg><option value="auto">Automatisch (gedreht, wenn breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
+        <label class="f"><span class="lab">Abstand zur Seite (mm, auch negativ)</span><input type="number" step="0.25" data-k="spineLogoSide" inputmode="decimal"></label>
+      </div>
+      <div class="two">
+        <label class="f"><span class="lab">Rückenlogo: Abstand zum Kopf oben (mm, auch negativ)</span><input type="number" step="0.25" data-k="spineLogoTop" inputmode="decimal"></label>
+        <label class="f"><span class="lab">Abstand zum Fuß unten (mm, auch negativ)</span><input type="number" step="0.25" data-k="spineLogoBottom" inputmode="decimal"></label>
+      </div>
+      <label class="chk"><input type="checkbox" data-k="spinePub"> Publisher-Logo am Fuß des Rückens anzeigen (über "PC", das immer ganz unten steht)</label>
+      <label class="f"><span class="lab">Unterlage hinter dem Publisher-Logo auf dem Rücken</span>
+        <select data-k="spinePubPlate" data-seg><option value="white">Weiß</option><option value="black">Schwarz</option><option value="none">Keine</option></select></label>
+      <div class="two">
+        <label class="f"><span class="lab">Publisher-Logo: Ausrichtung</span>
+          <select data-k="spinePubRot" data-seg><option value="auto">Automatisch (gedreht, wenn zu breit)</option><option value="no">Aufrecht</option><option value="yes">Gedreht (90°)</option></select></label>
+        <label class="f"><span class="lab">Abstand zur Seite (mm, auch negativ)</span><input type="number" step="0.25" data-k="spinePubSide" inputmode="decimal"></label>
+      </div>
+      <label class="f"><span class="lab">Publisher-Logo: Breite in mm (leer = automatisch)</span><input type="number" step="0.25" min="0" data-k="spinePubWidth" inputmode="decimal" placeholder="automatisch"></label>
+      <label class="chk"><input type="checkbox" data-k="spinePC"> "PC" am Fuß des Rückens</label>
+    </details>
+
+    <details class="sec" open>
+      <summary>Spielfunktionen</summary>
+      <div class="tiles three">
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="single_player"><span>Single-Player</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="co_op"><span>Co-op</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="multi_player"><span>Multi-Player</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="online"><span>Online</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="lan"><span>LAN</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="cross_platform"><span>Cross-Plattform</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="controller_support"><span>Controller</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="achievements"><span>Erfolge</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="cloud_saves"><span>Cloud Saves</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="mods"><span>Mods</span></label>
+        <label class="tile"><input type="checkbox" data-k="features" data-list value="vr"><span>VR</span></label>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Systemanforderungen</summary>
+      <div class="grp"><span class="lab">Läuft auf</span>
+        <div class="tiles three">
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="XP"><span>Win XP</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="Vista"><span>Win Vista</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="7"><span>Win 7</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="8"><span>Win 8</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="10"><span>Win 10</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.win" data-list value="11"><span>Win 11</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.mac"><span>macOS</span></label>
+          <label class="tile"><input type="checkbox" data-k="os.linux"><span>Linux</span></label>
+        </div>
+        <label class="chk"><input type="checkbox" data-k="os.x64"> „64-Bit“ bei Windows ergänzen</label>
+      </div>
+
+      <div class="reqtabs" role="tablist"><button type="button" class="on" data-reqtab="min" role="tab">Mindestanforderungen</button><button type="button" data-reqtab="rec" role="tab">Empfohlen</button></div>
+      <div class="reqpane" data-pane="min">
+      <div class="grp hw" data-hw="cpu" data-path="cpu"><span class="lab">Prozessoren <i>(jeder Eintrag steht auf dem Cover in einer eigenen Zeile)</i></span><div class="hwitems"></div>
+        <div class="hwadd"><button type="button" data-hwadd="intel">+ Intel</button><button type="button" data-hwadd="amd">+ AMD</button><button type="button" data-hwadd="text">+ Eigener Text</button></div></div>
+      <div class="grp hw" data-hw="gpu" data-path="gpu"><span class="lab">Grafikkarten <i>(jeder Eintrag in einer eigenen Zeile, ein Haken schaltet ihn ein oder aus)</i></span><div class="hwitems"></div>
+        <div class="hwadd"><button type="button" data-hwadd="geforce">+ GeForce</button><button type="button" data-hwadd="radeon">+ Radeon</button><button type="button" data-hwadd="text">+ Eigener Text (z. B. Arc A380)</button></div></div>
+
+      <div class="two">
+        <div class="f"><span class="lab">Arbeitsspeicher (GB)</span>
+          <div class="slide"><input type="range" data-k="ram" min="0.25" max="64" step="0.25"><input type="text" data-k="ram" size="5"></div></div>
+        <div class="f"><span class="lab">Speicherplatz (GB)</span>
+          <div class="slide"><input type="range" data-k="space" min="0.25" max="200" step="0.25"><input type="text" data-k="space" size="5"></div></div>
+      </div>
+      <div class="two">
+        <label class="f"><span class="lab">DirectX (leer = ausblenden)</span><input type="text" data-k="dx" placeholder="Version 11"></label>
+        <label class="f"><span class="lab">Sonstiges (leer = ausblenden)</span><input type="text" data-k="other" placeholder="z. B. 16-Bit-Soundkarte"></label>
+      </div>
+      </div>
+      <div class="reqpane" data-pane="rec" hidden>
+        <label class="chk"><input type="checkbox" data-k="rec.on"> Empfohlene Anforderungen zusätzlich auf der Hülle zeigen</label>
+        <div class="recfields" data-enable="rec.on">
+      <div class="grp hw" data-hw="cpu" data-path="rec.cpu"><span class="lab">Prozessoren <i>(jeder Eintrag steht auf dem Cover in einer eigenen Zeile)</i></span><div class="hwitems"></div>
+        <div class="hwadd"><button type="button" data-hwadd="intel">+ Intel</button><button type="button" data-hwadd="amd">+ AMD</button><button type="button" data-hwadd="text">+ Eigener Text</button></div></div>
+      <div class="grp hw" data-hw="gpu" data-path="rec.gpu"><span class="lab">Grafikkarten <i>(jeder Eintrag in einer eigenen Zeile, ein Haken schaltet ihn ein oder aus)</i></span><div class="hwitems"></div>
+        <div class="hwadd"><button type="button" data-hwadd="geforce">+ GeForce</button><button type="button" data-hwadd="radeon">+ Radeon</button><button type="button" data-hwadd="text">+ Eigener Text (z. B. Arc A380)</button></div></div>
+
+      <div class="two">
+        <div class="f"><span class="lab">Arbeitsspeicher (GB)</span>
+          <div class="slide"><input type="range" data-k="rec.ram" min="0.25" max="64" step="0.25"><input type="text" data-k="rec.ram" size="5"></div></div>
+        <div class="f"><span class="lab">Speicherplatz (GB)</span>
+          <div class="slide"><input type="range" data-k="rec.space" min="0.25" max="200" step="0.25"><input type="text" data-k="rec.space" size="5"></div></div>
+      </div>
+      <div class="two">
+        <label class="f"><span class="lab">DirectX (leer = ausblenden)</span><input type="text" data-k="rec.dx" placeholder="Version 11"></label>
+        <label class="f"><span class="lab">Sonstiges (leer = ausblenden)</span><input type="text" data-k="rec.other" placeholder="z. B. 16-Bit-Soundkarte"></label>
+      </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Drucken</summary>
+      <label class="chk"><input type="checkbox" data-k="cropMarks"> Schnittmarken an den Ecken</label>
+      <label class="chk"><input type="checkbox" data-k="foldLines"> Falzmarken außerhalb des Covers (gestrichelt, an den Rückenkanten)</label>
+      <p class="hint">Drucken: A4 quer, Skalierung 100 %, Ränder „Keine“, Hintergrundgrafiken aktivieren.</p>
+    </details>
+  </form>
+
+  <section class="preview" id="preview">
+    <div class="notes no-print" id="notes"></div>
+    <div class="scalebox" id="scalebox">
+      <div class="sheet" id="sheet">
+        <div class="wrap" id="wrap">
+          <span class="mark tl-v"></span><span class="mark tl-h"></span><span class="mark tr-v"></span><span class="mark tr-h"></span>
+          <span class="mark bl-v"></span><span class="mark bl-h"></span><span class="mark br-v"></span><span class="mark br-h"></span>
+          <span class="fold f1t"></span><span class="fold f1b"></span><span class="fold f2t"></span><span class="fold f2b"></span>
+          <div class="cover theme-bar" id="cover">
+
+            <section class="back" id="back">
+              <div class="back-top" id="backTop" title="Klicken, um die Rückseite zu gestalten"><span class="ph">Rückseite oben</span><div class="bitems" id="backItems"></div></div>
+              <div class="banner" id="backFeats">
+                <div class="banner-title"><b id="featTitle"></b><small id="featNote"></small></div>
+                <div class="feats" id="feats"></div>
+              </div>
+              <div class="back-bottom" id="backBottom">
+                <div class="panel-back">
+                  <div class="speccol"><h4 id="reqTitle"></h4><ul class="specs" id="specs"></ul></div>
+                  <p class="copy" id="copy"></p>
+                  <div class="rightcol">
+                    <div class="logos"><img id="backPub" alt=""><img id="discLogo" alt=""></div>
+                    <img id="backUsk" class="usk-back" alt="">
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="spine" id="spine">
+              <div class="spine-head"><img class="spine-logo brand-logo" id="spineLogo" src="assets/images/gog_logo.svg" alt="GOG"><span class="wm" id="spineWm"></span></div>
+              <div class="spine-box" id="spineBox"><i class="mmprobe" id="mmProbe"></i><span class="spine-title" id="spineTitle"></span><img class="spine-art" id="spineLogoImg" alt="" hidden></div>
+              <div class="spine-foot" id="spineFoot"><span class="spine-pubbox" id="spinePubBox" hidden><img class="spine-pub" id="spinePubImg" alt="" hidden></span><span class="pc">PC</span></div>
+            </section>
+
+            <section class="front" id="front">
+              <span class="ph">Frontcover</span>
+              <div class="gog-bar"><img class="brand-logo" src="assets/images/gog_logo.svg" alt="GOG"><span class="wm" id="barWm"></span><b id="frontTag"></b></div>
+              <div class="usk"><img id="frontUskBg" alt=""><img id="frontUsk" alt=""></div>
+              <img class="front-pub" id="frontPub" alt="">
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg"><div class="dh"><h2 id="dlgTitle"></h2><button type="button" id="dlgX">Schließen</button></div><div id="dlgBody"></div></dialog>
+
+<script src="i18n.js?v=pr24-665a8a6"></script>
+<script src="lang-en.js?v=pr24-665a8a6"></script>
+<script src="core.js?v=pr24-665a8a6"></script>
+<script src="zip.js?v=pr24-665a8a6"></script>
+<script src="online.js?v=pr24-665a8a6"></script>
+<script src="files.js?v=pr24-665a8a6"></script>
+<script src="back-design.js?v=pr24-665a8a6"></script>
+<script src="app.js?v=pr24-665a8a6"></script>
+<script src="back-editor.js?v=pr24-665a8a6"></script>
+<script src="extras.js?v=pr24-665a8a6"></script>
+</body>
+</html>
