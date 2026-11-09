@@ -333,6 +333,8 @@ test('Formen: Prüfung, Standardpunkte, Bild in der Form, Vorlage "Zersplittert"
   assert.deepEqual(p.pts, [[0, 50], [100, 0], [50.6, 100]]); assert.equal(p.sides, 12); assert.equal(p.inner, 10); assert.equal(p.zoom, 500); assert.equal(p.img, 'd3');
   assert.equal(C.normalizeItem({ type: 'shape', pts: Array.from({ length: 40 }, () => [1, 1]) }).pts.length, 4, 'zu viele Punkte: Standard');
   assert.equal(C.normalizeItem({ type: 'image', zoom: 50 }).zoom, 100);
+  assert.equal(t.strokeW, 0, 'Standard: kein Rand');
+  assert.equal(C.normalizeItem({ type: 'shape', strokeW: 99 }).strokeW, 10); assert.equal(C.normalizeItem({ type: 'shape', strokeW: 1.3 }).strokeW, 1.25); assert.equal(C.normalizeItem({ type: 'shape', strokeW: -2 }).strokeW, 0);
   const al = C.backTemplate('alyx', 130, 122);
   assert.equal(al.filter((i) => i.type === 'shape' && i.useImg).length, 4);
   for (const f of al.filter((i) => i.type === 'shape' && i.useImg)) { assert.ok(f.pts.length >= 4); assert.ok(f.pts.every((q) => q[0] >= 0 && q[0] <= 100 && q[1] >= 0 && q[1] <= 100)); }
@@ -341,4 +343,22 @@ test('Formen: Prüfung, Standardpunkte, Bild in der Form, Vorlage "Zersplittert"
   assert.equal(BD.shapePoints({ shape: 'star', sides: 5, inner: 40 }).length, 10);
   assert.equal(BD.shapePoints({ shape: 'ellipse' }), null);
   assert.match(BD.clipOf({ shape: 'triangle', pts: C.defaultPts('triangle') }), /^polygon\(50% 0%,100% 100%,0% 100%\)$/);
+});
+
+test('Spiele-Schriften: Schlüssel, Dateien, @font-face und Lizenzliste passen zusammen', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const BD = require('../disc-sleeve/back-design.js'), dir = path.join(__dirname, '..', 'disc-sleeve');
+  const css = fs.readFileSync(path.join(dir, 'style.css'), 'utf8'), lic = fs.readFileSync(path.join(dir, 'assets', 'fonts', 'games', 'LIZENZEN.txt'), 'utf8').split(String.fromCharCode(13,10)).join(String.fromCharCode(10));
+  const game = Object.entries(BD.FONTS).filter(([, f]) => f.group === 'game');
+  assert.ok(game.length >= 10 && game.length <= 20, 'etwa 10 bis 20 Spiele-Schriften');
+  assert.deepEqual(Object.keys(BD.FONTS).sort(), [...C.BACK_FONTS].sort(), 'core.js und back-design.js kennen dieselben Schriften');
+  for (const [id, f] of game) {
+    const file = path.join(dir, 'assets', 'fonts', 'games', f.file + '.woff2');
+    assert.ok(fs.existsSync(file) && fs.statSync(file).size > 1000, id + ': Schriftdatei fehlt');
+    assert.ok(css.includes('font-family: "' + f.label + '"') && css.includes('assets/fonts/games/' + f.file + '.woff2'), id + ': @font-face fehlt');
+    assert.ok(lic.includes(f.label + '\n  Datei: ' + f.file + '.woff2'), id + ': Lizenzeintrag fehlt');
+    assert.ok(f.css.startsWith('"' + f.label + '"'), id + ': Schriftfamilie');
+    assert.equal(C.normalizeItem({ type: 'text', font: id }).font, id);
+  }
+  assert.equal(new Set(game.map(([id]) => id)).size, game.length);
 });

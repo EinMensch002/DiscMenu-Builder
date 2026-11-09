@@ -47,8 +47,8 @@ Der Schlüssel liegt nur im lokalen Speicher des Browsers und wird nie in die ZI
 
 Damit Schlüssel und Proxy-Adresse nicht jedes Mal neu eingetragen werden müssen (z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät), gibt es im Dialog **SteamGridDB** den Abschnitt "Einstellungen sichern":
 
-- **In Datei sichern** schreibt `discmenu-einstellungen.json`. Bietet der Browser eine Dateiauswahl an, kann man Ziel und Name wählen, sonst wird die Datei heruntergeladen.
-- **Aus Datei einlesen** füllt die Felder aus der Datei und speichert sie sofort im Browser.
+- **In Datei sichern** öffnet beim Cover-Tool ein Auswahlfenster (Zugangsdaten, eigene Vorlagen, eigene Schriften) und schreibt dann `discmenu-einstellungen.json`. Bietet der Browser eine Dateiauswahl an, kann man Ziel und Name wählen, sonst wird die Datei heruntergeladen.
+- **Aus Datei einlesen** zeigt im Cover-Tool vorher eine Vorschau, bei schon gesetzten Werten wird gefragt. Im Konfigurator werden die Felder sofort gefüllt und gespeichert.
 - **Passwort (optional):** Ist ein Passwort eingetragen, wird die Datei verschlüsselt (AES-256 mit einem aus dem Passwort abgeleiteten Schlüssel, PBKDF2). Zum Einlesen wird dasselbe Passwort gebraucht, ein vergessenes Passwort lässt sich nicht wiederherstellen. Ohne Passwort steht der Schlüssel im Klartext in der Datei.
 
 Die Datei enthält deinen API-Schlüssel. Sie gehört nicht in ein Repo und nicht in eine Rezept-ZIP. Im Repo ist `discmenu-einstellungen*.json` deshalb in der `.gitignore` eingetragen.

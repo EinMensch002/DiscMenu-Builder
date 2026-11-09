@@ -545,6 +545,8 @@ const CORE = (() => {
         plain = JSON.parse(new TextDecoder().decode(await subtleOrNull().decrypt({name:'AES-GCM', iv:unb64(j.iv)}, key, unb64(j.data))));
       } catch (e) { throw new Error('Falsches Passwort oder beschädigte Datei.'); }
     }
+    // Eine Datei ohne Zugangsdaten (z. B. nur eigene Vorlagen aus dem Cover-Tool) darf Schlüssel und Proxy nicht leeren
+    if (!('sgdbKey' in plain) && !('proxy' in plain)) throw new Error('Die Datei enthält keine Zugangsdaten.');
     return {key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '')};
   }
   return {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, discRefs, checkDisc, packSettings, unpackSettings, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};

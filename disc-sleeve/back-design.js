@@ -3,7 +3,7 @@
 (function (root) {
   'use strict';
 
-  /* Schriftarten: Systemschriften (je nach Rechner etwas anders aussehend). Lato liegt als Datei bei, die anderen kommen vom Betriebssystem. */
+  /* Schriftarten: Systemschriften (je nach Rechner etwas anders aussehend, Lato liegt bei) und Spiele-Schriften (group game, als Dateien mitgeliefert). Eigene Schriften kommen zur Laufzeit dazu (custom). */
   const FONTS = {
     sans: { label: 'Normal (Lato)', css: 'Lato, "Segoe UI", Arial, sans-serif' },
     serif: { label: 'Serif (Georgia)', css: 'Georgia, "Times New Roman", Times, serif' },
@@ -11,6 +11,25 @@
     display: { label: 'Plakat (Impact)', css: 'Impact, Haettenschweiler, "Arial Black", "Franklin Gothic Heavy", sans-serif' },
     mono: { label: 'Schreibmaschine', css: '"Courier New", Courier, monospace' },
     hand: { label: 'Handschrift', css: '"Segoe Script", "Brush Script MT", "Bradley Hand", cursive' },
+    /* Spiele-Schriften: liegen im Ordner assets/fonts/games (siehe LIZENZEN.txt) und sehen überall gleich aus */
+    'g-pressstart': { label: 'Press Start 2P', css: '"Press Start 2P", monospace', group: 'game', file: 'press-start-2p' },
+    'g-silkscreen': { label: 'Silkscreen', css: '"Silkscreen", monospace', group: 'game', file: 'silkscreen' },
+    'g-vt323': { label: 'VT323', css: '"VT323", monospace', group: 'game', file: 'vt323' },
+    'g-orbitron': { label: 'Orbitron', css: '"Orbitron", sans-serif', group: 'game', file: 'orbitron' },
+    'g-audiowide': { label: 'Audiowide', css: '"Audiowide", sans-serif', group: 'game', file: 'audiowide' },
+    'g-rajdhani': { label: 'Rajdhani', css: '"Rajdhani", sans-serif', group: 'game', file: 'rajdhani' },
+    'g-russoone': { label: 'Russo One', css: '"Russo One", sans-serif', group: 'game', file: 'russo-one' },
+    'g-blackops': { label: 'Black Ops One', css: '"Black Ops One", sans-serif', group: 'game', file: 'black-ops-one' },
+    'g-bebas': { label: 'Bebas Neue', css: '"Bebas Neue", Impact, sans-serif', group: 'game', file: 'bebas-neue' },
+    'g-bungee': { label: 'Bungee', css: '"Bungee", sans-serif', group: 'game', file: 'bungee' },
+    'g-bangers': { label: 'Bangers', css: '"Bangers", cursive', group: 'game', file: 'bangers' },
+    'g-specialelite': { label: 'Special Elite', css: '"Special Elite", monospace', group: 'game', file: 'special-elite' },
+    'g-marker': { label: 'Permanent Marker', css: '"Permanent Marker", cursive', group: 'game', file: 'permanent-marker' },
+    'g-cinzel': { label: 'Cinzel', css: '"Cinzel", serif', group: 'game', file: 'cinzel' },
+    'g-medieval': { label: 'MedievalSharp', css: '"MedievalSharp", serif', group: 'game', file: 'medievalsharp' },
+    'g-pirata': { label: 'Pirata One', css: '"Pirata One", serif', group: 'game', file: 'pirata-one' },
+    'g-creepster': { label: 'Creepster', css: '"Creepster", cursive', group: 'game', file: 'creepster' },
+    'g-uncial': { label: 'Uncial Antiqua', css: '"Uncial Antiqua", serif', group: 'game', file: 'uncial-antiqua' },
   };
   const EDGES = { none: 'Ohne', round: 'Abgerundet', border: 'Rahmen', feather: 'Weicher Rand (ausgeblendet)', torn: 'Ausgerissen (Papier)' };
 
@@ -62,6 +81,18 @@
     return it.pts;
   }
   const clipOf = (it) => { const p = shapePoints(it); return p ? 'polygon(' + p.map((q) => q[0] + '% ' + q[1] + '%').join(',') + ')' : 'ellipse(50% 50% at 50% 50%)'; };
+  /* Linie um die Form als SVG in Millimetern (gleichmäßig dick, auch bei breiten oder schmalen Formen) */
+  const round2 = (v) => Math.round(v * 100) / 100;
+  function outlineSvg(it, cls) {
+    const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), p = shapePoints(it);
+    svg.setAttribute('class', cls); svg.setAttribute('viewBox', '0 0 ' + it.w + ' ' + it.h); svg.setAttribute('preserveAspectRatio', 'none');
+    let g;
+    if (p) { g = document.createElementNS(NS, 'polygon'); g.setAttribute('points', p.map((q) => round2(q[0] * it.w / 100) + ',' + round2(q[1] * it.h / 100)).join(' ')); } else {
+      g = document.createElementNS(NS, 'ellipse'); g.setAttribute('cx', String(it.w / 2)); g.setAttribute('cy', String(it.h / 2)); g.setAttribute('rx', String(it.w / 2)); g.setAttribute('ry', String(it.h / 2));
+    }
+    g.setAttribute('fill', 'none'); g.setAttribute('stroke-linejoin', 'round'); svg.append(g);
+    return { svg, g };
+  }
   /* Bild im Rahmen: füllen mit Zoom und Ausschnitt (Anteile), sonst einpassen */
   function paintImage(layer, it, img) {
     const st = layer.style;
@@ -81,6 +112,7 @@
     node.className = 'bi bi-' + it.type; node.dataset.id = it.id;
     const s = node.style;
     s.left = mm(it.x); s.top = mm(it.y); s.width = mm(it.w); s.height = mm(it.h);
+    if (env.editor && env.selIds && env.selIds.size > 1 && env.selIds.has(it.id) && it.type !== 'shape') node.classList.add('bi-sel');   // Mehrfachauswahl: Rahmen (Formen haben ihren Umriss)
     if (it.opacity < 100) s.opacity = String(it.opacity / 100);
     if (it.rot) s.transform = 'rotate(' + it.rot + 'deg)';
     if (it.type === 'shape') {
@@ -93,6 +125,8 @@
         } else if (env.editor) { inner.style.backgroundColor = '#cfd4df'; } else node.hidden = true;
       } else inner.style.backgroundColor = it.color;
       node.append(inner);
+      if (it.strokeW > 0) { const o = outlineSvg(it, 'bi-rand'); o.g.setAttribute('stroke', it.borderColor); o.g.setAttribute('stroke-width', String(it.strokeW * 2)); o.svg.style.clipPath = clipOf(it); node.append(o.svg); }
+      if (env.editor) node.append(outlineSvg(it, (env.selIds ? env.selIds.has(it.id) : env.selId === it.id) ? 'bi-out bi-out-sel' : 'bi-out').svg);   // Umriss nur im Editor
       return node;
     }
     if (it.type === 'image') {
@@ -124,6 +158,10 @@
   function renderInto(container, items, env) {
     container.replaceChildren(...items.map((it) => buildNode(it, env)));
     fitTexts(container);
+    /* Mitgelieferte Schriften laden erst bei der ersten Benutzung: danach noch einmal an den Platz anpassen */
+    if (typeof document === 'undefined' || !document.fonts || !document.fonts.load) return;
+    const need = [...new Set(items.filter((it) => it.type === 'text' && FONTS[it.font] && FONTS[it.font].file).map((it) => FONTS[it.font].label))].filter((n) => !document.fonts.check('16px "' + n + '"'));
+    if (need.length) Promise.all(need.map((n) => document.fonts.load('16px "' + n + '"'))).then(() => fitTexts(container)).catch(() => { /* egal, Ersatzschrift bleibt */ });
   }
   /* Text so groß wie eingestellt, aber so klein wie nötig, damit nichts abgeschnitten wird (nicht unter 4 pt) */
   function fitTexts(container) {

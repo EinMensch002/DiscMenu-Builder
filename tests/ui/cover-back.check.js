@@ -13,7 +13,8 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   const page = await browser.newPage({ viewport: { width: 1500, height: 950 } });
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
-  page.on('dialog', (d) => d.accept());
+  const dialogs = [];
+  page.on('dialog', (d) => { dialogs.push(d.message()); d.accept(d.type() === 'prompt' ? d.defaultValue() : undefined); });
   await page.addInitScript(() => { try { localStorage.setItem('sgdb-proxy', 'https://proxy.test/?url={url}'); } catch (e) { /* egal */ } });
 
   await page.route('https://proxy.test/**', async (route) => {
@@ -58,6 +59,49 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   let it = (await items())[0];
   assert.equal(it.font, 'serif'); assert.equal(it.caps, true); assert.equal(it.size, 20);
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).textTransform), 'uppercase');
+  // Schriftauswahl: gruppiert, jeder Eintrag in seiner eigenen Schrift; Spiele-Schriften werden geladen und benutzt
+  assert.deepEqual(await page.locator('#bdlg .bed-panel label.f', { hasText: 'Schrift' }).first().locator('optgroup').evaluateAll((g) => g.map((x) => x.label)), ['Systemschriften', 'Spiele-Schriften']);
+  const gameOpts = page.locator('#bdlg .bed-panel optgroup[label="Spiele-Schriften"] option');
+  assert.ok(await gameOpts.count() >= 10, 'Mindestens zehn Spiele-Schriften');
+  assert.match(await gameOpts.first().evaluate((o) => o.style.fontFamily), /Press Start 2P/, 'Eintrag zeigt sich in der eigenen Schrift');
+  await sel('Schrift').selectOption('g-pressstart');
+  assert.equal((await items())[0].font, 'g-pressstart');
+  await page.waitForFunction(() => document.fonts.check('16px "Press Start 2P"'));
+  assert.match(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).fontFamily), /Press Start 2P/);
+  await sel('Schrift').selectOption('serif');
+  // Eigene Schrift: Datei hinzufügen, benutzen, speichern, ungültige Datei ablehnen, löschen (Rückfall auf Normal)
+  const latoPath = path.resolve(__dirname, '..', '..', 'disc-sleeve', 'assets', 'fonts', 'Lato-Bold.ttf');
+  const fch = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
+  await (await fch).setFiles(latoPath);
+  await page.waitForFunction(() => /^uf-/.test(CoverApp.state.back.items[0].font));
+  const fid = (await items())[0].font;
+  assert.equal(await page.evaluate((id) => !!window.BackDesign.FONTS[id] && document.fonts.check('12px "' + id + '"'), fid), true, 'Schrift ist angemeldet und geladen');
+  await page.waitForFunction((id) => getComputedStyle(document.querySelector('#backItems .bi-p')).fontFamily.includes(id), fid);
+  assert.equal(await page.evaluate(() => CoverApp.fonts.list().map((f) => f.name).join()), 'Lato Bold', 'Name aus dem Dateinamen');
+  assert.equal(await page.evaluate(() => new Promise((res) => { const r = indexedDB.open('discsleeve-fonts', 1); r.onsuccess = () => { const q = r.result.transaction('fonts').objectStore('fonts').count(); q.onsuccess = () => res(q.result); }; })), 1, 'Schrift steht im Browser-Speicher');
+  const fch2 = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
+  await (await fch2).setFiles({ name: 'kaputt.ttf', mimeType: 'font/ttf', buffer: Buffer.alloc(500, 1) });
+  await page.waitForFunction(() => true); await page.waitForTimeout(300);
+  assert.ok(dialogs.some((m) => /konnte nicht gelesen werden/.test(m)), 'Kaputte Schriftdatei wird abgelehnt');
+  const fch3 = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
+  await (await fch3).setFiles({ name: 'x.exe', mimeType: 'application/octet-stream', buffer: Buffer.alloc(500, 1) });
+  await page.waitForTimeout(300);
+  assert.ok(dialogs.some((m) => /keine Schriftdatei/.test(m)));
+  assert.equal(await page.evaluate(() => CoverApp.fonts.list().length), 1, 'Nur die gültige Schrift wurde gespeichert');
+  // Mehrere Schriftdateien auf einmal: die zuletzt hinzugefügte gilt für den Text
+  const fchM = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
+  await (await fchM).setFiles([path.resolve(path.dirname(latoPath), 'Lato-Regular.ttf'), path.resolve(path.dirname(latoPath), 'Lato-Light.ttf')]);
+  await page.waitForFunction(() => CoverApp.fonts.list().length === 3);
+  assert.deepEqual(await page.evaluate(() => CoverApp.fonts.list().map((f) => f.name)), ['Lato Bold', 'Lato Regular', 'Lato Light']);
+  assert.equal((await items())[0].font, await page.evaluate(() => CoverApp.fonts.list()[2].id));
+  assert.equal(await page.locator('#bdlg .bed-panel optgroup[label="Eigene Schriften"] option').count(), 3, 'Eigene Schriften stehen in der Auswahl');
+  await page.click('#bdlg .bed-panel button:has-text("Diese eigene Schrift löschen")');
+  await page.waitForFunction(() => CoverApp.fonts.list().length === 2);
+  assert.equal((await items())[0].font, 'sans', 'Texte mit der gelöschten Schrift fallen auf Normal zurück');
+  await page.locator('#bdlg .bed-panel button:has-text("Diese eigene Schrift löschen")').waitFor({ state: 'detached' });
+  await page.evaluate(async () => { for (const f of CoverApp.fonts.list()) await CoverApp.fonts.remove(f.id); });
+  assert.equal(await page.evaluate((id) => !window.BackDesign.FONTS[id], fid), true);
+  assert.match(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).fontFamily), /Lato/, 'Ohne die Schrift: Rückfall auf Normal');
   await sel('Inhalt').selectOption('title');
   await page.evaluate(() => CoverApp.patch({ title: 'Mein Spiel' }));
   await page.waitForFunction(() => /Mein Spiel/.test(document.querySelector('#backItems').textContent));
@@ -132,6 +176,82 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.ok((await items()).length >= 5);
   assert.ok((await items()).some((i) => i.type === 'text' && i.bind === 'description'));
 
+  // Eigene Vorlagen: Layout speichern (ohne Bilder), anwenden, ersetzen, als Datei sichern, importieren, löschen
+  const nSteam = (await items()).length;
+  await page.click('#bedTplSave');
+  await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 1);
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('discsleeve-templates')));
+  assert.equal(stored.length, 1); assert.equal(stored[0].name, 'Eigene Vorlage'); assert.equal(stored[0].items.length, nSteam);
+  assert.ok(stored[0].items.every((i) => i.type === 'text' || i.img === ''), 'In der Vorlage stehen keine Bilder');
+  await page.click('#bdlg .tpl-card[data-tpl=alyx]'); assert.notEqual((await items()).length, nSteam);
+  await page.click('#bdlg .tpl-card[data-tpl^="u-"]'); assert.equal((await items()).length, nSteam, 'Eigene Vorlage anwenden');
+  await page.click('#bedTplSave');                                   // gleicher Name: Rückfrage wird mit OK beantwortet = ersetzen
+  assert.ok(dialogs.some((m) => /schon eine Vorlage mit diesem Namen/.test(m)));
+  assert.equal(await page.locator('#bdlg .tpl-card[data-tpl^="u-"]').count(), 1, 'Ersetzt statt doppelt');
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bdlg .tpl-acts button:has-text("Als Datei")')]);
+  const exported = JSON.parse(require('node:fs').readFileSync(await dl.path(), 'utf8'));
+  assert.equal(exported.type, 'discmenu-settings'); assert.equal(exported.templates.length, 1); assert.ok(!('sgdbKey' in exported), 'Vorlagendatei ohne Zugangsdaten');
+  const imp = { type: 'discmenu-settings', version: 1, templates: [{ name: 'Importiert', ref: { w: 130, h: 122 }, items: [{ type: 'text', text: 'Hallo', x: 10, y: 10, w: 50, h: 10 }, { type: 'image', img: 'd9', x: 10, y: 30, w: 50, h: 30 }] }, { name: 'eigene vorlage', ref: { w: 130, h: 122 }, items: [] }, { name: '' }] };
+  await page.setInputFiles('#bedTplFile', { name: 'v.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imp)) });
+  await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 2);
+  assert.ok(dialogs.some((m) => /gibt es schon/.test(m)) && dialogs.some((m) => /fehlerhaft/.test(m)), 'Namensgleiche Vorlage und fehlerhafter Eintrag melden sich');
+  const stored2 = await page.evaluate(() => JSON.parse(localStorage.getItem('discsleeve-templates')));
+  assert.deepEqual(stored2.map((t) => t.name), ['eigene vorlage', 'Importiert'], 'OK = ersetzt; der Rest bleibt');
+  assert.equal(stored2[1].items.find((i) => i.type === 'image').img, '', 'Bild aus fremder Datei wird zum Platzhalter');
+  dialogs.length = 0;
+  await page.setInputFiles('#bedTplFile', { name: 'k.json', mimeType: 'application/json', buffer: Buffer.from('{"type":"discmenu-settings","version":1,"sgdbKey":"X"}') });
+  await page.waitForFunction(() => true); await page.waitForTimeout(150);
+  assert.ok(dialogs.some((m) => /keine Vorlagen/.test(m)), 'Datei ohne Vorlagen'); assert.equal(await page.locator('#bdlg .tpl-card[data-tpl^="u-"]').count(), 2);
+  assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), null, 'Zugangsdaten aus der Vorlagen-Importfunktion werden nie übernommen');
+  await page.locator('#bdlg [data-del]').first().click();
+  await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 1);
+  const mk = (name) => ({ name: name + '.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ type: 'discmenu-settings', version: 1, templates: [{ name, ref: { w: 130, h: 122 }, items: [{ type: 'text', text: name, x: 5, y: 5, w: 40, h: 10 }] }] })) });
+  await page.setInputFiles('#bedTplFile', [mk('Mehrfach A'), mk('Mehrfach B')]);          // mehrere Dateien auf einmal
+  await page.waitForFunction(() => document.querySelectorAll('#bdlg .tpl-card[data-tpl^="u-"]').length === 3);
+  await page.click('#bdlg .tpl-card[data-tpl=steam]');
+
+  // Mehrfachauswahl: Strg/Umschalt-Klick, gemeinsam verschieben und drehen (jedes um die eigene Mitte), Auswahl bleibt
+  const gctr = async (i) => { const b = await page.locator('#bdlg .bed-stage .bi').nth(i).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
+  const clickWith = async (key, i) => { const c = await gctr(i); if (key) await page.keyboard.down(key); await page.mouse.click(c.x, c.y); if (key) await page.keyboard.up(key); };
+  const imgIgdx = (await items()).map((it, i) => (it.type === 'image' ? i : -1)).filter((i) => i >= 0);
+  assert.equal(imgIgdx.length, 3);
+  await clickWith(null, imgIgdx[0]);
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-sel').isVisible(), true, 'Einzelauswahl hat Griffe');
+  await clickWith('Control', imgIgdx[1]); await clickWith('Shift', imgIgdx[2]);
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-sel, #bdlg .bed-stage .bi-out-sel').count(), 3, 'Alle drei sind gewählt');
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-grp').isVisible(), true);
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-sel').isVisible(), false, 'Keine Einzelgriffe bei Mehrfachauswahl');
+  assert.match(await page.locator('#bdlg .bed-panel h3').textContent(), /3\s*Elemente gewählt/);
+  const gm0 = await items(), gpos0 = imgIgdx.map((i) => [gm0[i].x, gm0[i].y]);
+  const gc0 = await gctr(imgIgdx[1]);
+  await page.mouse.move(gc0.x, gc0.y); await page.mouse.down(); await page.mouse.move(gc0.x + 30, gc0.y + 20, { steps: 5 }); await page.mouse.up();
+  const gm1 = await items(), gpos1 = imgIgdx.map((i) => [gm1[i].x, gm1[i].y]);
+  const gdx = gpos1[0][0] - gpos0[0][0], gdy = gpos1[0][1] - gpos0[0][1];
+  assert.ok(gdx !== 0 || gdy !== 0, 'Auswahl wurde verschoben');
+  gpos1.forEach((p, n) => { assert.ok(Math.abs(p[0] - gpos0[n][0] - gdx) < 0.02 && Math.abs(p[1] - gpos0[n][1] - gdy) < 0.02, 'Alle um dasselbe Stück verschoben'); });
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-sel, #bdlg .bed-stage .bi-out-sel').count(), 3, 'Auswahl bleibt nach dem Verschieben');
+  await page.locator('#bedGroupRot').fill('20'); await page.locator('#bedGroupRot').press('Tab');
+  const gm2 = await items();
+  assert.deepEqual(imgIgdx.map((i) => gm2[i].rot), [20, 20, 20]); assert.deepEqual(imgIgdx.map((i) => [gm2[i].x, gm2[i].y]), gpos1, 'Drehen um die eigene Mitte: Positionen bleiben');
+  const ghb = await page.locator('#bdlg .bed-grp .hd-grot').boundingBox();
+  await page.mouse.move(ghb.x + ghb.width / 2, ghb.y + ghb.height / 2); await page.mouse.down(); await page.mouse.move(ghb.x + ghb.width / 2 + 120, ghb.y + ghb.height / 2 + 60, { steps: 6 }); await page.mouse.up();
+  const gm3 = await items(), grots = imgIgdx.map((i) => gm3[i].rot);
+  assert.ok(grots[0] !== 20 && grots.every((r) => r === grots[0]), 'Drehgriff dreht alle gleich');
+  assert.deepEqual(imgIgdx.map((i) => [gm3[i].x, gm3[i].y]), gpos1, 'Positionen unverändert');
+  await page.evaluate(() => document.activeElement && document.activeElement.blur());
+  await clickWith('Control', imgIgdx[2]);
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-sel, #bdlg .bed-stage .bi-out-sel').count(), 2, 'Strg-Klick nimmt ein Element aus der Auswahl');
+  await page.keyboard.press('Control+a');
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-sel, #bdlg .bed-stage .bi-out-sel').count(), (await items()).length, 'Strg+A wählt alles');
+  const gAll = (await items()).length;
+  await page.keyboard.press('Delete');
+  assert.equal((await items()).length, 0, 'Entf löscht alle gewählten');
+  await page.keyboard.press('Control+z');
+  assert.equal((await items()).length, gAll, 'Rückgängig bringt sie zurück');
+  await clickWith(null, imgIgdx[0]);
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-sel').isVisible(), true); assert.equal(await page.locator('#bdlg .bed-stage .bed-grp').isVisible(), false);
+  await page.click('#bdlg .tpl-card[data-tpl=steam]');
+
   // Drehen: Feld und Griff; gedrehte Elemente lassen sich weiter greifen
   const tx = (await items()).findIndex((i) => i.type === 'text' && i.bind === 'description');
   const bx = await page.locator('#bdlg .bed-stage .bi-text').nth(1).boundingBox();
@@ -156,6 +276,12 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.equal(await page.evaluate(() => document.querySelector('#bdlg .bed-scaled').classList.contains('span')), true);
   await page.waitForFunction(() => document.querySelector('#back').classList.contains('span'));
   assert.match(await page.locator('#bdlg').textContent(), /Durchgehendes Bild/);
+  assert.notEqual(await page.evaluate(() => getComputedStyle(document.querySelector('#backTop .ph')).display), 'none', 'Ohne Bild bleibt der Platzhalter sichtbar');
+  await page.evaluate(async (b64) => { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); await CoverApp.setImage('backTop', new File([u], 'a.png', { type: 'image/png' })); }, PNG.toString('base64'));
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('#backTop .ph')).display === 'none');   // Vorschau zeigt das durchgehende Bild statt des Platzhalters
+  assert.match(await page.evaluate(() => document.querySelector('#back').style.backgroundImage), /url/);
+  await page.evaluate(() => CoverApp.clearImage('backTop'));
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('#backTop .ph')).display !== 'none');
   await page.uncheck('#bedSpan');
 
   // Formen: Dreieck, Punkte ziehen (rasten ein), Punkte per Feld, Punkt löschen/hinzufügen, Stern, freie Fläche
@@ -186,6 +312,14 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.click('#bdlg .bed-panel button:has-text("Als freie Fläche bearbeiten")');
   assert.equal((await items()).at(-1).shape, 'poly'); assert.equal((await items()).at(-1).pts.length, 14);
   assert.equal(await page.locator('#bdlg .bed-sel .pt').count(), 14);
+  // Umriss nur im Editor: gewählte Form orange, andere fein hell; echter Rand (Randbreite) erscheint auch auf dem Cover
+  assert.equal(await page.locator('#bdlg .bed-stage .bi-out-sel').count(), 1, 'Gewählte Form hat den auffälligen Umriss');
+  assert.ok(await page.locator('#bdlg .bed-stage .bi-out:not(.bi-out-sel)').count() >= 1, 'Andere Formen haben einen feinen Umriss');
+  assert.equal(await page.locator('#backItems .bi-out').count(), 0, 'Auf dem Cover kein Editor-Umriss');
+  assert.equal(await page.locator('#backItems .bi-rand').count(), 0, 'Ohne Randbreite kein echter Rand');
+  await page.locator('#bdlg .bed-panel label.f', { hasText: 'Rand (mm)' }).locator('input').fill('1.5');
+  await page.waitForFunction(() => CoverApp.state.back.items.at(-1).strokeW === 1.5);
+  await page.waitForFunction(() => document.querySelectorAll('#backItems .bi-rand').length === 1 && document.querySelectorAll('#backItems .bi-out').length === 0);
   // Bild in der Form: grau außerhalb (nur im Editor), verschieben und zoomen
   await page.locator('#bdlg .bed-panel label.chk', { hasText: 'Bild statt Farbe' }).locator('input').check();
   const [ch2] = await Promise.all([page.waitForEvent('filechooser'), page.click('#bdlg .bed-panel button:has-text("Datei wählen")')]);

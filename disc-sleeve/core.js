@@ -44,7 +44,9 @@
      Elemente (Bilder und Texte) mit Position und Größe in mm, in der Reihenfolge von unten nach oben. Bearbeitet wird sie im Editor (Pop-up). */
   const BACK = { banner: 15, bottom: 46 };                                           // Standardhöhen unten (mm)
   const BACK_LIMITS = { featH: [10, 30], reqH: [30, 110] };
-  const BACK_FONTS = ['sans', 'serif', 'condensed', 'display', 'mono', 'hand'];
+  const BACK_FONTS = ['sans', 'serif', 'condensed', 'display', 'mono', 'hand', 'g-pressstart', 'g-silkscreen', 'g-vt323', 'g-orbitron', 'g-audiowide', 'g-rajdhani', 'g-russoone', 'g-blackops', 'g-bebas', 'g-bungee', 'g-bangers', 'g-specialelite', 'g-marker', 'g-cinzel', 'g-medieval', 'g-pirata', 'g-creepster', 'g-uncial'];   // Namen und Dateien der Spiele-Schriften: BackDesign.FONTS
+  /* Eigene Schriften heißen uf-<id>. Ob es die Schrift auf diesem Rechner gibt, entscheidet erst das Zeichnen (sonst Rückfall auf Normal). */
+  const isCustomFont = (v) => typeof v === 'string' && /^uf-[a-z0-9]{1,12}$/.test(v);
   const BACK_EDGES = ['none', 'round', 'border', 'feather', 'torn'];
   const MAX_ITEMS = 60;
   const clampN = (v, lo, hi, d) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
@@ -78,12 +80,12 @@
         it.sides = Math.round(clampN(raw.sides, 3, 12, 5)); it.inner = Math.round(clampN(raw.inner, 10, 90, 40));
         const ok = Array.isArray(raw.pts) && raw.pts.length >= 3 && raw.pts.length <= MAX_PTS && raw.pts.every((q) => Array.isArray(q) && q.length === 2);
         it.pts = ok ? raw.pts.map((q) => [Math.round(clampN(q[0], 0, 100, 0) * 10) / 10, Math.round(clampN(q[1], 0, 100, 0) * 10) / 10]) : defaultPts(it.shape);
-        it.edge = 'none';
+        it.edge = 'none'; it.strokeW = Math.round(clampN(raw.strokeW, 0, 10, 0) * 4) / 4;
       }
     } else {
       it.text = typeof raw.text === 'string' ? raw.text.slice(0, 4000) : '';
       it.bind = oneOf(raw.bind, ['', 'title', 'description'], '');
-      it.font = oneOf(raw.font, BACK_FONTS, 'sans');
+      it.font = isCustomFont(raw.font) ? raw.font : oneOf(raw.font, BACK_FONTS, 'sans');
       it.size = clampN(raw.size, 3, 120, 8); it.color = hexOk(raw.color, '#222222');
       it.weight = oneOf(String(raw.weight), ['300', '400', '700', '900'], '400'); it.italic = !!raw.italic; it.caps = !!raw.caps;
       it.spacing = clampN(raw.spacing, -5, 60, 0); it.line = clampN(raw.line, 0.8, 3, 1.3);
@@ -176,6 +178,32 @@
       return out;
     }
     return [];
+  }
+  /* ---------- Eigene Vorlagen ----------
+     Eine Vorlage speichert nur das Layout: Elemente in mm für eine Bezugsfläche (ref), Bilder bleiben leer (Platzhalter).
+     Beim Anwenden wird auf die Größe der Gestaltungsfläche umgerechnet (Schriftgröße mit der Breite). */
+  const MAX_TEMPLATES = 40, MAX_FONTS = 12, MAX_NAME = 60;
+  const cleanName = (v) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, MAX_NAME);
+  function templateFromItems(items, area, name) {
+    const ref = { w: round1(clampN(area && area.w, 20, 400, 130)), h: round1(clampN(area && area.h, 20, 400, 122)) };
+    const out = (Array.isArray(items) ? items : []).slice(0, MAX_ITEMS).map((raw) => normalizeItem(raw)).filter(Boolean).map((it) => {
+      it.id = ''; if (it.type !== 'text') it.img = ''; return it;
+    });
+    return { name: cleanName(name), ref, items: out };
+  }
+  /* Prüft eine Vorlage aus Datei oder Speicher. Ungültiges ergibt null, einzelne kaputte Elemente werden weggelassen. */
+  function normalizeTemplate(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const name = cleanName(raw.name); if (!name) return null;
+    const r = raw.ref && typeof raw.ref === 'object' ? raw.ref : {};
+    const t = templateFromItems(Array.isArray(raw.items) ? raw.items : [], { w: r.w, h: r.h }, name);
+    t.id = typeof raw.id === 'string' && /^u-[a-z0-9]{1,12}$/i.test(raw.id) ? raw.id : '';
+    return t;
+  }
+  /* Elemente einer eigenen Vorlage für eine Gestaltungsfläche der Größe w × h (mm) */
+  function instantiateTemplate(t, w, h) {
+    const sx = w / t.ref.w, sy = h / t.ref.h;
+    return t.items.map((it) => newItem(it.type, { ...it, id: '', x: round1(it.x * sx), y: round1(it.y * sy), w: round1(it.w * sx), h: round1(it.h * sy), ...(it.type === 'text' ? { size: round1(it.size * sx) } : {}) }));
   }
   function imageSpecs(caseOrDims, top, state) {
     if (top === undefined) top = BAR_HEIGHT;
@@ -547,7 +575,7 @@
     return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
   }
 
-  const api = { SHAPE_KINDS, MAX_PTS, defaultPts, BACK_LIMITS, BACK_FONTS, BACK_EDGES, BACK_TEMPLATES, MAX_ITEMS, isImageKey, normalizeItem, normalizeBack, defaultBack, designHeight, newItem, backTemplate, BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
+  const api = { SHAPE_KINDS, MAX_PTS, defaultPts, BACK_LIMITS, BACK_FONTS, BACK_EDGES, BACK_TEMPLATES, MAX_ITEMS, MAX_TEMPLATES, MAX_FONTS, MAX_NAME, isCustomFont, templateFromItems, normalizeTemplate, instantiateTemplate, isImageKey, normalizeItem, normalizeBack, defaultBack, designHeight, newItem, backTemplate, BAR_HEIGHT, GOG_BAR_HEIGHT, barHeight, frontTop, fitLogo, styleOptions, HW, HW_MAX, newHwItem, hwText, normalizeHw, parseCpuItems, parseGpuItems, brandText, PAPER, CASES, BACK, CUSTOM_LIMITS, MAX_W, PRESETS, caseDims, THEMES, PROVIDERS, recipeGames, statePatchFromGame, LABELS, FEATURE_ORDER, WIN_VERSIONS, USK_VALUES, DISCS, imageSpecs, formatStorage, osString, cpuList, gpuList, buildSpecs, buildSpecTable, defaultState, mergeState, fitSize };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

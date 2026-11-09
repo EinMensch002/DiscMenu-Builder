@@ -256,44 +256,113 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.click('#dlg button:has-text("Als Publisher-Logo übernehmen")');
   await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));
 
-  // ---- Einstellungen sichern und einlesen: Datei, mit und ohne Passwort, kompatibel mit dem Konfigurator ----
+  // ---- Einstellungen sichern und einlesen: Auswahl beim Sichern, Vorschau beim Einlesen, Datei mit und ohne Passwort, kompatibel mit dem Konfigurator ----
   await page.evaluate(() => { localStorage.setItem('sgdb-key', 'KEY2'); localStorage.setItem('sgdb-proxy', 'https://proxy.test/?url={url}'); });
   await page.click('#bSettings');
   const pwField = '#dlg input[placeholder="Passwort (optional)"]', keyField = '#dlg input[placeholder="API-Schlüssel"]';
   assert.equal(await page.inputValue(keyField), 'KEY2');
   assert.equal(await page.locator(keyField).getAttribute('type'), 'password', 'Der Schlüssel wird nicht im Klartext angezeigt');
-  let file = await download(() => page.click('#dlg button:has-text("In Datei sichern")'));
+  await page.click('#dlg button:has-text("In Datei sichern")');
+  assert.equal(await page.locator('#dlg .bgrp').count(), 3, 'Auswahlfenster: Zugangsdaten, Vorlagen, Schriften');
+  assert.equal(await page.locator('#dlg .bgrp input[type=checkbox]:disabled').count(), 2, 'Ohne eigene Vorlagen und Schriften sind diese Bereiche ausgegraut');
+  let file = await download(() => page.click('#dlg button.pri:has-text("Sichern")'));
   assert.equal(file.name, 'discmenu-einstellungen.json');
   assert.match(file.buffer.toString(), /"sgdbKey": "KEY2"/);
+  assert.ok(!/templates|fonts/.test(file.buffer.toString()), 'Leere Bereiche stehen nicht in der Datei');
   await page.fill(pwField, 'geheim');
-  file = await download(() => page.click('#dlg button:has-text("In Datei sichern")'));
+  file = await download(() => page.click('#dlg button.pri:has-text("Sichern")'));
   assert.ok(!file.buffer.toString().includes('KEY2') && /"encrypted": true/.test(file.buffer.toString()), 'Mit Passwort ist die Datei verschlüsselt');
+  await page.click('#dlg button:has-text("Zurück zu den Einstellungen")');
   await page.click('#dlg button:has-text("Löschen")');
   assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), null);
   const load = (buffer) => page.setInputFiles('#dlg input[type=file]', { name: 'einstellungen.json', mimeType: 'application/json', buffer });
+  /* Vorschau bestätigen (replace: vorhandene Zugangsdaten überschreiben) und zu den Einstellungen zurück */
+  const confirmImport = async (replace) => {
+    await page.waitForFunction(() => /Wähle, was übernommen wird/.test(document.querySelector('#dlg').textContent));
+    if (replace) await page.selectOption('#dlg select', 'replace');
+    await page.click('#dlg button.pri:has-text("Übernehmen")');
+    await page.waitForFunction(() => /Einlesen abgeschlossen/.test(document.querySelector('#dlgTitle').textContent));
+  };
+  const backToSettings = () => page.click('#dlg button:has-text("Zurück zu den Einstellungen")');
   await page.fill(pwField, ''); await load(file.buffer);
   await page.waitForFunction(() => /verschlüsselt. Bitte das Passwort/.test(document.querySelector('#dlg').textContent));
   await page.fill(pwField, 'falsch'); await load(file.buffer);
   await page.waitForFunction(() => /Falsches Passwort/.test(document.querySelector('#dlg').textContent));
   await page.fill(pwField, 'geheim'); await load(file.buffer);
-  await page.waitForFunction(() => /eingelesen und gespeichert/.test(document.querySelector('#dlg').textContent));
+  await confirmImport(false); await backToSettings();
   assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), 'KEY2');
   assert.equal(await page.inputValue(keyField), 'KEY2');
-  // Datei, die der Konfigurator gesichert hat (anderer Code, gleiches Format)
+  // Datei, die der Konfigurator gesichert hat (anderer Code, gleiches Format); der vorhandene Schlüssel wird nur nach Zustimmung überschrieben
   const K = loadCore();
   await page.fill(pwField, '');
   await load(Buffer.from(await K.packSettings({ key: 'FROMCONF', proxy: 'https://c.example/?url={url}' }, '')));
-  await page.waitForFunction(() => localStorage.getItem('sgdb-key') === 'FROMCONF');
-  await load(Buffer.from(await K.packSettings({ key: 'ENC', proxy: 'https://c.example/?url={url}' }, 'pw1')));
+  await confirmImport(false);
+  assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), 'KEY2', 'Ohne Zustimmung bleibt der vorhandene Schlüssel');
+  await backToSettings();
+  await load(Buffer.from(await K.packSettings({ key: 'FROMCONF', proxy: 'https://c.example/?url={url}' }, '')));
+  await page.waitForFunction(() => /hat schon einen anderen Wert/.test(document.querySelector('#dlg').textContent));
+  await confirmImport(true);
+  assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), 'FROMCONF');
+  await backToSettings();
   await page.fill(pwField, 'pw1'); await load(Buffer.from(await K.packSettings({ key: 'ENC', proxy: 'https://c.example/?url={url}' }, 'pw1')));
-  await page.waitForFunction(() => localStorage.getItem('sgdb-key') === 'ENC');
+  await confirmImport(true); assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), 'ENC'); await backToSettings();
   // Proxy ohne Platzhalter wird abgelehnt, keine Einstellungsdatei ebenso
   await page.fill('#dlg input[placeholder*="proxy"]', 'https://ohne-platzhalter.example/');
   await page.click('#dlg button:has-text("Speichern")');
   assert.match(await page.locator('#dlg .dmsg.err').first().textContent(), /Platzhalter \{url\}/);
   await page.fill(pwField, ''); await load(Buffer.from('{"type":"etwas-anderes"}'));
   await page.waitForFunction(() => /keine Einstellungsdatei/.test(document.querySelector('#dlg').textContent));
+  await load(Buffer.from('{"type":"discmenu-settings","version":1,"templates":[]}'));
+  await page.waitForFunction(() => /nichts, was sich einlesen lässt/.test(document.querySelector('#dlg').textContent));
   await page.fill('#dlg input[placeholder*="proxy"]', 'https://proxy.test/?url={url}'); await page.click('#dlg button:has-text("Speichern")');
+
+  // Teildateien: eine Datei nur mit Vorlagen und Schrift lässt die Zugangsdaten in Ruhe; Namensgleichheit fragt, nichts geht verloren
+  const lato = fs.readFileSync(path.resolve(__dirname, '..', '..', 'disc-sleeve', 'assets', 'fonts', 'Lato-Bold.ttf')).toString('base64');
+  const partFile = await page.evaluate(async (data) => {
+    const C = window.CoverCore, t = C.templateFromItems([C.newItem('text', { text: 'Hi', x: 5, y: 5, w: 40, h: 10 })], { w: 130, h: 122 }, 'Meine Vorlage');
+    return CoverFiles.packBundle({ templates: [t], fonts: [{ name: 'Meine Schrift', ext: 'ttf', data }] }, '');
+  }, lato);
+  assert.ok(!/sgdbKey|proxy/.test(partFile), 'Teildatei ohne Zugangsdaten');
+  await load(Buffer.from(partFile));
+  await page.waitForFunction(() => /Wähle, was übernommen wird/.test(document.querySelector('#dlg').textContent));
+  assert.equal(await page.locator('#dlg .bgrp').count(), 2, 'In der Vorschau nur die Bereiche aus der Datei');
+  await confirmImport(false);
+  assert.match(await page.locator('#dlg').textContent(), /Vorlagen übernommen: 1/); assert.match(await page.locator('#dlg').textContent(), /Schriften übernommen: 1/);
+  assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), 'ENC', 'Zugangsdaten bleiben unberührt');
+  assert.equal(await page.evaluate(() => CoverApp.templates.list().length + '/' + CoverApp.fonts.list().length), '1/1');
+  await backToSettings();
+  await load(Buffer.from(partFile));                                                  // gleicher Name: Standard "beide behalten"
+  await page.waitForFunction(() => /gibt es schon/.test(document.querySelector('#dlg').textContent));
+  await confirmImport(false); await backToSettings();
+  assert.deepEqual(await page.evaluate(() => CoverApp.templates.list().map((t) => t.name)), ['Meine Vorlage', 'Meine Vorlage (2)']);
+  await load(Buffer.from(partFile));
+  await page.waitForFunction(() => /gibt es schon/.test(document.querySelector('#dlg').textContent));
+  await page.locator('#dlg .brow select').first().selectOption('replace');
+  await page.locator('#dlg .brow select').nth(1).selectOption('replace');
+  await confirmImport(false); await backToSettings();
+  assert.equal(await page.evaluate(() => CoverApp.templates.list().length + '/' + CoverApp.fonts.list().length), '2/2', 'Ersetzen legt nichts doppelt an');
+  // Sichern mit Auswahl: ohne Zugangsdaten, nur eine der beiden Vorlagen, mit Schrift
+  await page.click('#dlg button:has-text("In Datei sichern")');
+  assert.equal(await page.locator('#dlg .bgrp input[type=checkbox]:disabled').count(), 0);
+  await page.locator('#dlg .bgrp').nth(0).locator('input[type=checkbox]').first().uncheck();
+  await page.locator('#dlg .bgrp').nth(1).locator('label.brow input').nth(1).uncheck();
+  file = await download(() => page.click('#dlg button.pri:has-text("Sichern")'));
+  const out = JSON.parse(file.buffer.toString());
+  assert.equal(file.name, 'discsleeve-vorlagen-schriften.json'); assert.ok(!('sgdbKey' in out) && !('proxy' in out), 'Zugangsdaten abgewählt');
+  assert.deepEqual(out.templates.map((t) => t.name), ['Meine Vorlage']); assert.equal(out.fonts.length, 2);
+  await page.locator('#dlg .bgrp').nth(0).locator('input[type=checkbox]').first().uncheck();
+  await page.locator('#dlg .bgrp').nth(1).locator('input[type=checkbox]').first().uncheck();
+  await page.locator('#dlg .bgrp').nth(2).locator('input[type=checkbox]').first().uncheck();
+  await page.click('#dlg button.pri:has-text("Sichern")');
+  await page.waitForFunction(() => /mindestens einen Eintrag/.test(document.querySelector('#dlg').textContent));
+  await page.click('#dlg button:has-text("Zurück zu den Einstellungen")');
+  // Eigene Schriften in den Einstellungen: Liste und Löschen
+  assert.equal(await page.locator('#dlg .frow').count(), 2);
+  await page.locator('#dlg .frow button').first().click();
+  await page.waitForFunction(() => document.querySelectorAll('#dlg .frow').length === 1 && CoverApp.fonts.list().length === 1);
+  await page.evaluate(async () => { for (const t of CoverApp.templates.list()) CoverApp.templates.remove(t.id); for (const f of CoverApp.fonts.list()) await CoverApp.fonts.remove(f.id); });
+  await page.click('#dlgX');
+  await page.click('#bSettings');
 
   // Verbindungstest: beide Dienste einzeln
   await page.click('#dlg button:has-text("Verbindung testen")');

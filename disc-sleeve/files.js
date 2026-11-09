@@ -17,9 +17,9 @@
   }
 
   /* values: { key, proxy }. Ohne Passwort entsteht lesbarer Text, mit Passwort eine verschlüsselte Datei. */
-  async function packSettings(values, password) {
-    const plain = { type: 'discmenu-settings', version: 1, sgdbKey: values.key || '', proxy: values.proxy || '' };
-    if (values.brandfetch) plain.brandfetchId = values.brandfetch;      // optional, der Konfigurator ignoriert das Feld
+  const credsPart = (values) => { const p = { sgdbKey: values.key || '', proxy: values.proxy || '' }; if (values.brandfetch) p.brandfetchId = values.brandfetch; return p; };   // Brandfetch optional, der Konfigurator ignoriert das Feld
+  async function packSettings(values, password) { return packPlain({ type: 'discmenu-settings', version: 1, ...credsPart(values) }, password); }
+  async function packPlain(plain, password) {
     if (!password) return JSON.stringify(plain, null, 2) + '\n';
     if (!subtle()) throw new Error('Dieser Browser kann hier nicht verschlüsseln. Die Datei lässt sich nur ohne Passwort sichern.');
     const salt = globalThis.crypto.getRandomValues(new Uint8Array(16)), iv = globalThis.crypto.getRandomValues(new Uint8Array(12)), iterations = 250000;
@@ -30,6 +30,12 @@
 
   /* Gibt { key, proxy } zurück. Ist die Datei verschlüsselt und kein Passwort da, ist der Fehlertext "PASSWORD_NEEDED". */
   async function unpackSettings(text, password) {
+    const plain = await readPlain(text, password);
+    const out = { key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '') };
+    if (plain.brandfetchId) out.brandfetch = String(plain.brandfetchId);
+    return out;
+  }
+  async function readPlain(text, password) {
     let j;
     try { j = JSON.parse(text); } catch (e) { throw new Error('Die Datei ist keine gültige Einstellungsdatei.'); }
     if (!j || j.type !== 'discmenu-settings') throw new Error('Das ist keine Einstellungsdatei von DiscMenu.');
@@ -44,8 +50,92 @@
         plain = JSON.parse(new TextDecoder().decode(await subtle().decrypt({ name: 'AES-GCM', iv: unb64(j.iv) }, key, unb64(j.data))));
       } catch (e) { throw new Error('Falsches Passwort oder beschädigte Datei.'); }
     }
-    const out = { key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '') };
-    if (plain.brandfetchId) out.brandfetch = String(plain.brandfetchId);
+    return plain;
+  }
+
+  /* ---------- Sicherungsdatei mit Bereichen ----------
+     Dieselbe Datei (type discmenu-settings) kann Zugangsdaten, eigene Vorlagen und eigene Schriften enthalten, jeder Bereich ist optional.
+     Beim Einlesen werden nur Bereiche verändert, die in der Datei stehen. */
+  const FONT_MIME = { woff2: 'font/woff2', woff: 'font/woff', ttf: 'font/ttf', otf: 'font/otf' };
+  const MAX_FONT_BYTES = 1500000;
+  const b64Bytes = (s) => Math.floor(s.length * 3 / 4) - (s.endsWith('==') ? 2 : s.endsWith('=') ? 1 : 0);
+  const core = () => (typeof module !== 'undefined' && module.exports ? require('./core.js') : root.CoverCore);
+  /* Schrift aus Datei oder Speicher prüfen: { name, ext, data (Base64) }. Ungültiges ergibt null. */
+  function normalizeFont(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const name = String(raw.name == null ? '' : raw.name).replace(/\s+/g, ' ').trim().slice(0, core().MAX_NAME);
+    const ext = FONT_MIME[raw.ext] ? raw.ext : '';
+    const data = typeof raw.data === 'string' ? raw.data : '';
+    if (!name || !ext || !/^[A-Za-z0-9+/]+={0,2}$/.test(data) || data.length % 4 || b64Bytes(data) > MAX_FONT_BYTES || b64Bytes(data) < 100) return null;
+    return { name, ext, data };
+  }
+  const hasCreds = (c) => !!(c && (c.key || c.proxy || c.brandfetch));
+  /* parts: { creds?: { key, proxy, brandfetch }, templates?: [Vorlage], fonts?: [Schrift] }. Leere Bereiche werden nicht geschrieben. */
+  async function packBundle(parts, password) {
+    const plain = { type: 'discmenu-settings', version: 1 };
+    if (hasCreds(parts.creds)) Object.assign(plain, credsPart(parts.creds));
+    if (parts.templates && parts.templates.length) plain.templates = parts.templates.map((t) => ({ name: t.name, ref: t.ref, items: t.items }));
+    if (parts.fonts && parts.fonts.length) plain.fonts = parts.fonts.map((x) => ({ name: x.name, ext: x.ext, data: x.data }));
+    return packPlain(plain, password);
+  }
+  /* Ergebnis: nur die Bereiche, die in der Datei stehen (und gültig sind). Fehlerhaftes wird weggelassen, ihre Zahl steht in skipped. */
+  async function unpackBundle(text, password) {
+    const plain = await readPlain(text, password), C = core(), out = { skipped: 0 };
+    const c = { key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || ''), brandfetch: String(plain.brandfetchId || '') };
+    if (hasCreds(c)) out.creds = c;
+    if (Array.isArray(plain.templates)) {
+      const list = plain.templates.slice(0, C.MAX_TEMPLATES).map((t) => C.normalizeTemplate(t)).filter(Boolean);
+      out.skipped += plain.templates.length - list.length; out.templates = list;
+    }
+    if (Array.isArray(plain.fonts)) {
+      const list = plain.fonts.slice(0, C.MAX_FONTS).map((x) => normalizeFont(x)).filter(Boolean);
+      out.skipped += plain.fonts.length - list.length; out.fonts = list;
+    }
+    return out;
+  }
+  const sameName = (a, b) => a.toLowerCase() === b.toLowerCase();
+  /* Was würde das Einlesen tun? current: { creds: {key, proxy, brandfetch}, templates: [...], fonts: [...] } (nur Eigenes).
+     Ergebnis zeigt je Eintrag, ob er neu ist oder mit Vorhandenem zusammenstößt. Verändert nichts. */
+  function planImport(bundle, current) {
+    const cur = current || {}, plan = {};
+    if (bundle.creds) {
+      const have = cur.creds || {};
+      plan.creds = ['key', 'proxy', 'brandfetch'].filter((f) => bundle.creds[f]).map((f) => ({ field: f, value: bundle.creds[f], conflict: !!have[f] && have[f] !== bundle.creds[f] }));
+    }
+    for (const sec of ['templates', 'fonts']) {
+      if (!bundle[sec]) continue;
+      plan[sec] = bundle[sec].map((x) => ({ item: x, name: x.name, conflict: (cur[sec] || []).some((y) => sameName(y.name, x.name)) }));
+    }
+    return plan;
+  }
+  /* Eindeutiger Name: "Name", "Name (2)", "Name (3)" ... */
+  function freeName(name, taken) {
+    if (!taken.some((n) => sameName(n, name))) return name;
+    for (let i = 2; i < 1000; i++) { const n = name.slice(0, 54) + ' (' + i + ')'; if (!taken.some((t) => sameName(t, n))) return n; }
+    return name;
+  }
+  /* Ergebnis des Einlesens berechnen (ohne etwas zu speichern). choices:
+       sections: { creds, templates, fonts } = false schließt einen Bereich aus (Standard: an)
+       creds: 'replace' | 'skip' für Felder, die schon einen anderen Wert haben (Standard: skip)
+       templates / fonts: Liste je Eintrag in der Reihenfolge des Plans: 'replace' | 'both' | 'skip' (Standard bei Namensgleichheit: both)
+     Ergebnis: { creds: {feld: wert}, templates: { add: [...], replace: [{ name, item }] }, fonts: ... } */
+  function applyImport(plan, current, choices) {
+    const ch = choices || {}, on = (s) => !ch.sections || ch.sections[s] !== false, cur = current || {}, out = {};
+    if (plan.creds && on('creds')) {
+      out.creds = {};
+      for (const e of plan.creds) if (!e.conflict || ch.creds === 'replace') out.creds[e.field] = e.value;     // Leeres in der Datei löscht nie etwas, Vorhandenes bleibt ohne Zustimmung
+    }
+    for (const sec of ['templates', 'fonts']) {
+      if (!plan[sec] || !on(sec)) continue;
+      const res = { add: [], replace: [] }, taken = (cur[sec] || []).map((y) => y.name);
+      plan[sec].forEach((e, i) => {
+        const c = (ch[sec] && ch[sec][i]) || (e.conflict ? 'both' : 'add');
+        if (c === 'skip') return;
+        if (e.conflict && c === 'replace') { res.replace.push({ name: e.name, item: e.item }); return; }
+        const item = { ...e.item, name: e.conflict ? freeName(e.name, taken) : e.name }; taken.push(item.name); res.add.push(item);
+      });
+      out[sec] = res;
+    }
     return out;
   }
 
@@ -130,7 +220,7 @@
     return { state: j.state, images, missing };
   }
 
-  const api = { packSettings, unpackSettings, buildZip, crc32, packProject, unpackProject, IMAGE_KEYS, isImageKey, TYPE_BY_EXT, PROJECT_TYPE };
+  const api = { packSettings, unpackSettings, packBundle, unpackBundle, planImport, applyImport, freeName, toBase64: b64, fromBase64: unb64, normalizeFont, FONT_MIME, MAX_FONT_BYTES, buildZip, crc32, packProject, unpackProject, IMAGE_KEYS, isImageKey, TYPE_BY_EXT, PROJECT_TYPE };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverFiles = api;
 })(typeof window !== 'undefined' ? window : globalThis);
