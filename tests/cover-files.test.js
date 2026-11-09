@@ -200,3 +200,18 @@ test('Sicherungsdatei: Verschlüsselung, kaputte Schriften und Vorlagen werden v
   assert.equal(b.templates.length, 1); assert.deepEqual(b.fonts.map((f) => f.name), ['ok']); assert.equal(b.skipped, 4);
   assert.equal(await F.packBundle({ creds: {}, templates: [], fonts: [] }, '').then((x) => Object.keys(JSON.parse(x)).join()), 'type,version', 'ganz leer: nur Kopf');
 });
+
+test('Projektdatei: benutzte eigene Schriften reisen mit, unbenutzte und kaputte nicht', async () => {
+  const font = { id: 'uf-abc1', name: 'Meine Schrift', ext: 'ttf', data: Buffer.alloc(300, 7).toString('base64') };
+  const state = { ...C.defaultState(), back: { ...C.defaultBack(), items: [C.newItem('text', { text: 'Hi', font: 'uf-abc1' }), C.newItem('text', { text: 'Ho', font: 'sans' })] } };
+  assert.deepEqual(F.usedFontIds(state), ['uf-abc1']);
+  const zip = F.packProject(state, {}, [font, { ...font, id: 'uf-zzz9', name: 'Zweite' }, { id: 'ungueltig', name: 'X', ext: 'ttf', data: font.data }, { ...font, id: 'uf-bad1', ext: 'exe' }]);
+  const out = F.unpackProject(await Z.read(zip));
+  assert.deepEqual(out.fonts.map((f) => f.id).sort(), ['uf-abc1', 'uf-zzz9']);
+  assert.equal(out.fonts.find((f) => f.id === 'uf-abc1').data, font.data);
+  assert.equal(out.fonts.find((f) => f.id === 'uf-abc1').name, 'Meine Schrift');
+  assert.deepEqual(F.unpackProject(await Z.read(F.packProject(state, {}))).fonts, []);      // alte Projekte ohne Schriften
+  F.remapFonts(state, { 'uf-abc1': 'uf-neu2' });
+  assert.equal(state.back.items[0].font, 'uf-neu2');
+  assert.equal(state.back.items[1].font, 'sans');
+});

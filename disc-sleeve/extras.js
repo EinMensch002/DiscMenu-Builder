@@ -280,7 +280,8 @@
   async function packProject() {
     const snap = App.snapshot(), images = {};
     for (const [k, v] of Object.entries(snap.images)) images[k] = { data: new Uint8Array(await v.blob.arrayBuffer()), type: v.type, name: v.name };
-    return { blob: new Blob([F.packProject(snap.state, images)], { type: 'application/zip' }), name: (slug(snap.state.title) || 'cover') + '-cover.zip', count: Object.keys(images).length };
+    const used = F.usedFontIds(snap.state), fonts = App.fonts.list().filter((f) => used.includes(f.id));     // nur eigene Schriften, die Texte wirklich benutzen
+    return { blob: new Blob([F.packProject(snap.state, images, fonts)], { type: 'application/zip' }), name: (slug(snap.state.title) || 'cover') + '-cover.zip', count: Object.keys(images).length };
   }
   async function saveProject(asNew) {
     const { blob, name } = await packProject();
@@ -307,12 +308,21 @@
   }
   async function importProject(file, hd) {
     try {
-      const { state, images, missing } = F.unpackProject(await Z.read(new Uint8Array(await file.arrayBuffer())));
+      const { state, images, missing, fonts } = F.unpackProject(await Z.read(new Uint8Array(await file.arrayBuffer())));
       if (dirtyNow() && !confirm('Das aktuelle Projekt hat ungespeicherte Änderungen und wird durch "' + file.name + '" ersetzt. Weiter?')) return;
       if (!dirtyNow() && !confirm('Das aktuelle Projekt wird durch "' + file.name + '" ersetzt. Weiter?')) return;
+      const added = [], failed = [], map = {};
+      for (const f of fonts) {                     // eigene Schriften des Projekts: gleiche Datei schon da = benutzen, sonst hinzufügen
+        const have = App.fonts.list(), same = have.find((x) => x.data === f.data);
+        if (same) { if (same.id !== f.id) map[f.id] = same.id; continue; }
+        try { const r = await App.fonts.add({ name: F.freeName(f.name, have.map((x) => x.name)), ext: f.ext, data: f.data }); map[f.id] = r.id; added.push(r.name); } catch (e) { failed.push(f.name); }
+      }
+      F.remapFonts(state, map);
       await App.restore(state, images);
       projHandle = hd || null; projName = file.name; savedAt = App.changes; savedMsg = 'geöffnet: '; showInfo();
       openDlg('Projekt geöffnet', h('p', { class: 'dmsg' }, 'Einstellungen und ' + Object.keys(images).length + ' Bild(er) wurden geladen.' + (missing.length ? ' Nicht gefunden: ' + missing.join(', ') + '.' : '') + (hd ? ' "Speichern" überschreibt jetzt diese Datei.' : '')),
+        added.length ? h('p', { class: 'dmsg' }, added.length + ' eigene Schrift(en) wurden hinzugefügt: ' + added.join(', ')) : '',
+        failed.length ? h('p', { class: 'dmsg err' }, failed.length + ' Schrift(en) konnten nicht hinzugefügt werden (zu viele eigene Schriften?): ' + failed.join(', ') + '. Texte damit erscheinen in "Normal".') : '',
         h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')));
     } catch (e) {
       openDlg('Projekt öffnen', h('p', { class: 'dmsg err' }, 'Das Projekt konnte nicht geladen werden: ' + (e.message || e)), h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')))
