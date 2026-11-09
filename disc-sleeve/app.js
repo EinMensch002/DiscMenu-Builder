@@ -324,6 +324,28 @@
   const setBg = (node, img) => { node.style.backgroundImage = img ? 'url("' + img.url + '")' : 'none'; node.classList.toggle('has-img', !!img); };
   function setImg(node, src) { if (src) { node.src = src; node.hidden = false; } else { node.removeAttribute('src'); node.hidden = true; } }
 
+  /* Beschriftungen der Spielfunktionen: Sind viele Funktionen gewählt, wird jeder Platz schmaler als das längste Wort (z. B. "Controller", "Achievements").
+     Dann wird die Schrift in allen Beschriftungen gleich weit verkleinert, bis nichts mehr in den Nachbarn ragt (Issue #23). Maße sind Layoutmaße, die Vorschau-Skalierung ändert sie nicht. */
+  const FEAT_MIN = 0.55;                                    // nicht kleiner als 55 % der Grundgröße
+  function fitFeatLabels(feats) {
+    const spans = [...feats.querySelectorAll('.feat span')];
+    spans.forEach((s) => { s.style.fontSize = ''; });
+    let ratio = 1;
+    for (const s of spans) {
+      const room = s.parentElement.clientWidth, need = s.offsetWidth;        // der Text bekommt höchstens die Breite des längsten Wortes
+      if (room > 0 && need > room) ratio = Math.min(ratio, room / need);
+    }
+    if (ratio < 1) {
+      const px = parseFloat(getComputedStyle(spans[0]).fontSize) || 6;
+      spans.forEach((s) => { s.style.fontSize = (px * Math.max(FEAT_MIN, ratio * 0.96)) + 'px'; });
+    }
+  }
+  if (window.ResizeObserver) {                                // Breite ändert sich z. B. durch Logo, Sprache oder Fenstergröße
+    let lastW = 0;
+    new ResizeObserver(() => { const fe = $('#feats'), w = fe.clientWidth; if (w !== lastW) { lastW = w; fitFeatLabels(fe); } }).observe($('#feats'));
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitFeatLabels($('#feats')));
+
   function render() {
     const c = C.caseDims(state), L = C.LABELS[state.lang];
     const cover = $('#cover'), wrap = $('#wrap');
@@ -373,6 +395,7 @@
       const item = el('div', 'feat'), img = el('img'); img.src = 'assets/images/features/line/' + k + '.svg'; img.alt = '';
       item.append(img, el('span', '', L.feat[k])); return item;
     }));
+    fitFeatLabels(feats);
     $('#reqTitle').textContent = L.reqTitle;
     $('#copy').textContent = state.copyright.trim();
     renderSpecs();

@@ -290,6 +290,25 @@ async function giveImage(page, key, w, h, type = 'image/jpeg') {
   assert.ok(box && Math.abs(box[1] - 841.9) < 1 && Math.abs(box[2] - 595.3) < 1, 'A4 quer erwartet, war ' + (box && box.slice(1, 3)));
   await page.emulateMedia({ media: 'screen' });
 
+  // Spielfunktionen: Alle elf gewählt, auch auf Englisch (langes Wort "Controller Support" neben "Achievements"): Beschriftungen überlappen nicht (Issue #23)
+  const featOverlaps = () => page.evaluate(() => {
+    const boxes = [...document.querySelectorAll('#feats .feat span')].map((s) => { const r = document.createRange(); r.selectNodeContents(s); const b = r.getBoundingClientRect(); return { t: s.textContent, l: b.left, r: b.right }; });
+    const bad = []; for (let i = 0; i < boxes.length - 1; i++) if (boxes[i].r > boxes[i + 1].l + 0.3) bad.push(boxes[i].t + ' / ' + boxes[i + 1].t);
+    return { n: boxes.length, bad, sized: !!document.querySelector('#feats .feat span').style.fontSize };
+  });
+  const allFeats = ['single_player', 'co_op', 'multi_player', 'online', 'lan', 'cross_platform', 'controller_support', 'achievements', 'cloud_saves', 'mods', 'vr'];
+  for (const lang of ['de', 'en']) {
+    await page.evaluate(({ lang, allFeats }) => CoverApp.patch({ lang, features: allFeats }), { lang, allFeats });
+    await page.waitForFunction(() => document.querySelectorAll('#feats .feat').length === 11);
+    await page.waitForTimeout(150);
+    const f = await featOverlaps();
+    assert.deepEqual(f.bad, [], 'Beschriftungen überlappen (' + lang + '): ' + f.bad.join('; '));
+    if (lang === 'en') assert.equal(f.sized, true, 'Englisch mit 11 Funktionen: Schrift wurde verkleinert');
+  }
+  await page.evaluate(() => CoverApp.patch({ lang: 'en', features: ['single_player', 'co_op', 'online'] }));
+  await page.waitForFunction(() => document.querySelectorAll('#feats .feat').length === 3);
+  assert.equal((await featOverlaps()).sized, false, 'Wenige Funktionen: Schrift bleibt in der Grundgröße');
+
   assert.deepEqual(errors, []);
   await browser.close();
   console.log('Cover-Tool-Test bestanden');
