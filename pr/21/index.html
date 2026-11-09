@@ -1,0 +1,1462 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiscMenu-Konfigurator</title>
+<style>
+:root{--bg:#0e1015;--panel:#181c24;--panel2:#212633;--line:#2c3240;--txt:#e9ecf3;--mut:#98a2b6;--acc:#5b8cff;--acc2:#8f6bff;--err:#ff6b6b;--warn:#f0b429;--ok:#3ddc97;--shadow:0 8px 28px rgba(0,0,0,.32)}
+@media (prefers-color-scheme:light){:root{--bg:#f0f3f9;--panel:#fff;--panel2:#f2f5fb;--line:#d9dfec;--txt:#171b26;--mut:#5b6579;--acc:#2f6fed;--acc2:#6a4df0;--err:#d93a3a;--warn:#a86f00;--ok:#14935f;--shadow:0 8px 24px rgba(30,40,70,.10)}}
+*{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+body{margin:0;color:var(--txt);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(1100px 480px at 12% -8%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 70%),radial-gradient(900px 420px at 100% 0,color-mix(in srgb,var(--acc2) 12%,transparent),transparent 70%),var(--bg);background-attachment:fixed}
+a{color:var(--acc);text-underline-offset:2px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px 18px;background:color-mix(in srgb,var(--panel) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header h1{font-size:18px;margin:0;letter-spacing:.2px}
+header .btns{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-weight:500;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;transition:border-color .15s,transform .1s,background .15s,box-shadow .15s}
+button:hover{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 8%,var(--panel2))}
+button:active{transform:scale(.98)}
+button.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#fff;box-shadow:0 4px 14px color-mix(in srgb,var(--acc) 35%,transparent)}
+button.pri:hover{filter:brightness(1.08)}
+button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+button.sm{padding:4px 10px;font-size:13px;border-radius:8px}
+button.danger:hover{border-color:var(--err);color:var(--err);background:color-mix(in srgb,var(--err) 10%,var(--panel2))}
+main{display:grid;grid-template-columns:240px minmax(0,1fr) 310px;gap:18px;padding:18px;max-width:1500px;margin:0 auto}
+@media (max-width:1100px){main{grid-template-columns:210px minmax(0,1fr)}#side{grid-column:1/-1}}
+@media (max-width:700px){main{grid-template-columns:1fr;padding:12px}#nav{flex-direction:row;overflow-x:auto;padding-bottom:4px}.nv{white-space:nowrap;width:auto}}
+#nav{display:flex;flex-direction:column;gap:8px;align-self:start;position:sticky;top:78px}
+@media (max-width:700px){#nav{position:static}}
+.nv{text-align:left;width:100%;background:var(--panel);border-radius:12px}
+.nv.on{border-color:var(--acc);background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 22%,var(--panel)),var(--panel));box-shadow:inset 3px 0 0 var(--acc)}
+.nv.add{border-style:dashed;color:var(--mut);background:transparent}
+.nv.add:hover{color:var(--txt)}
+#editor,#side .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+#side{display:flex;flex-direction:column;gap:16px;align-self:start;position:sticky;top:78px}
+@media (max-width:1100px){#side{position:static}}
+h2{margin:0 0 4px;font-size:21px;letter-spacing:.2px}
+h3{margin:24px 0 6px;font-size:15px;display:flex;align-items:center;gap:8px}
+h3::before{content:"";width:4px;height:16px;border-radius:2px;background:linear-gradient(var(--acc),var(--acc2))}
+.hint,small{color:var(--mut);font-size:13px}
+.f{display:flex;flex-direction:column;gap:5px;margin:12px 0}
+.lab{font-size:13px;color:var(--mut);font-weight:500}
+input[type=text],input[type=number],input[type=password],input:not([type]),select,textarea{font:inherit;color:var(--txt);background:color-mix(in srgb,var(--bg) 60%,var(--panel));border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%;transition:border-color .15s,box-shadow .15s}
+input:hover,textarea:hover,select:hover{border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.drop{display:flex;align-items:center;gap:12px;min-height:72px;padding:10px;border:2px dashed var(--line);border-radius:12px;cursor:pointer;background:color-mix(in srgb,var(--bg) 55%,var(--panel));transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 8%,var(--panel))}
+.drop img{max-height:64px;max-width:100px;border-radius:8px;object-fit:contain;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.drop audio{height:32px;max-width:220px}
+.meta{color:var(--mut);font-size:12px}
+.card{border:1px solid var(--line);border-radius:12px;margin:10px 0;background:var(--panel2);transition:border-color .15s}
+.card[open]{border-color:color-mix(in srgb,var(--acc) 50%,var(--line))}
+.card summary{cursor:pointer;padding:11px 14px;display:flex;gap:8px;align-items:center;font-weight:500;border-radius:12px}
+.card summary:hover{background:color-mix(in srgb,var(--acc) 7%,transparent)}
+.card .body{padding:0 14px 14px}
+.chip{font-size:12px;border:1px solid color-mix(in srgb,var(--acc) 45%,var(--line));background:color-mix(in srgb,var(--acc) 12%,transparent);border-radius:99px;padding:0 9px;color:var(--acc)}
+.issue{margin:5px 0;font-size:13px;padding-left:10px;border-left:3px solid transparent}
+.issue.error{color:var(--err);border-left-color:var(--err)}.issue.warn{color:var(--warn);border-left-color:var(--warn)}.ok{color:var(--ok)}
+pre{margin:8px 0 0;max-height:360px;overflow:auto;font:12px/1.45 ui-monospace,Consolas,monospace;background:color-mix(in srgb,var(--bg) 60%,var(--panel));border:1px solid var(--line);border-radius:10px;padding:10px;white-space:pre-wrap;word-break:break-word}
+details.box>summary{cursor:pointer;font-weight:600}
+#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,10px);background:var(--panel2);border:1px solid var(--acc);border-radius:12px;padding:11px 16px;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;white-space:pre-line;box-shadow:var(--shadow)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+dialog{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:18px;padding:20px;width:min(800px,94vw);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+dialog::backdrop{background:rgba(5,7,12,.6);backdrop-filter:blur(3px)}
+.dh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.dh h2{margin:0;font-size:19px}
+.list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.list button{text-align:left}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:10px;margin:12px 0}
+.gal button{padding:5px;display:flex;flex-direction:column;gap:5px;align-items:center;border-radius:12px;overflow:hidden}
+.gal img{width:100%;height:156px;object-fit:contain;background:color-mix(in srgb,var(--bg) 60%,var(--panel));border-radius:8px;transition:transform .15s}
+.gal button:hover img{transform:scale(1.04)}
+.gal button.sel{border-color:var(--ok);outline:2px solid var(--ok);background:color-mix(in srgb,var(--ok) 10%,var(--panel2))}
+.gal small{font-size:11px}
+.sgbtn{align-self:flex-start}
+
+.simbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:8px 0 10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.simbar label{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mut)}
+.simbar select{padding:4px 8px}
+.stagewrap{position:relative;width:100%;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0e1016}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:#0e1016;color:#ecf0f5;font:16px/1.4 system-ui,"Segoe UI",Roboto,sans-serif;user-select:none}
+.stage *{box-sizing:border-box}
+.stage .bgimg{position:absolute;inset:0;background:center/cover no-repeat}
+.stage .shade{position:absolute;inset:0;background:rgba(8,10,16,.28)}
+.stage .abs{position:absolute}
+.stage .sbtn{border:0;border-radius:10px;background:#282d3a;color:#ecf0f5;font:17px system-ui,"Segoe UI",sans-serif;height:40px;padding:0 16px;cursor:pointer;display:flex;align-items:center;justify-content:center;white-space:nowrap;transition:background .1s}
+.stage .sbtn:hover{background:#363d50}
+.stage .sbtn.main{font-weight:700;color:var(--ink,#fff)}
+.stage .sbtn.main:hover{filter:brightness(1.1)}
+.stage .sbtn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+.stage .badge{display:inline-flex;align-items:center;border-radius:99px;padding:1px 11px;font-weight:700;vertical-align:middle}
+.stage .cover{background:#282d3a;display:flex;align-items:center;justify-content:center;text-align:center;color:#a0a8b8;font-weight:700;overflow:hidden}
+.stage .cover img{width:100%;height:100%;object-fit:contain}
+.stage .tile{width:200px;cursor:pointer;padding:8px;margin:-8px;border-radius:14px;position:relative;transition:background .1s}
+.stage .tile:hover{background:rgba(27,31,41,.92)}
+.stage .tile .bar{position:absolute;left:0;right:0;bottom:0;height:4px;border-radius:0 0 14px 14px;opacity:0}
+.stage .tile:hover .bar{opacity:1}
+.stage .panel{background:rgba(27,31,41,.92);border-radius:14px}
+.stage .sbtn.tab{height:40px;font-size:18px;font-weight:700;padding:0 20px}
+.stage .row{background:#282d3a;border-radius:12px;padding:14px 16px;margin:0 14px 10px 0;display:flex;gap:12px;align-items:center;min-height:76px}
+.stage .row .tx{flex:1;min-width:0}
+.stage .row .tx b{font-size:18px;display:block}
+.stage .row .tx span{color:#a0a8b8;font-size:15px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.stage .grp{font-size:14px;font-weight:700;text-transform:uppercase;margin:8px 0 8px}
+.stage .chk{display:flex;gap:12px;align-items:center;height:32px;font-size:17px;cursor:pointer}
+.stage .chk i{width:24px;height:24px;border-radius:6px;background:#282d3a;display:block;position:relative}
+.stage .chk i.on::after{content:"";position:absolute;inset:4px;border-radius:4px;background:var(--acc-c)}
+.stage input.fld{height:42px;border-radius:8px;border:0;border-bottom:3px solid transparent;background:#12151d;color:#ecf0f5;font:17px system-ui,"Segoe UI",sans-serif;padding:0 12px;flex:1;min-width:0;user-select:text}
+.stage input.fld:focus{outline:none;border-bottom-color:var(--acc-c)}
+.stage .scroll{overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
+.stage .ovl{position:absolute;inset:0;background:rgba(6,8,14,.75);display:flex;align-items:center;justify-content:center}
+.stage .box{width:760px;max-width:92%;background:#282d3a;border-radius:16px;padding:24px 28px 28px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.stage .box .top{position:absolute;left:0;right:0;top:0;height:5px}
+.stage .box h4{margin:4px 0 14px;font-size:24px}
+.stage .box pre{white-space:pre-wrap;font:16px/1.45 system-ui,"Segoe UI",sans-serif;margin:0 0 18px;max-height:300px;overflow:auto;border:0;background:none;padding:0;color:#ecf0f5}
+.stage .prog{height:14px;border-radius:7px;background:#363d50;overflow:hidden;position:relative}
+.stage .prog i{display:block;height:100%;border-radius:7px;min-width:14px}
+.stage .prog i.ind{position:absolute;width:33%;animation:slide 1.6s linear infinite}
+@keyframes slide{from{left:-33%}to{left:100%}}
+.stage .win{position:absolute;left:50%;top:50%;width:560px;transform:translate(-50%,-48%);background:#f0f0f0;color:#111;border-radius:6px;box-shadow:0 12px 50px rgba(0,0,0,.7);font:14px/1.45 "Segoe UI",system-ui,sans-serif;overflow:hidden;z-index:3}
+.stage .win .tb{background:#fff;padding:8px 12px;display:flex;justify-content:space-between;border-bottom:1px solid #ddd;font-size:13px}
+.stage .win .bd{padding:22px 24px;min-height:200px}
+.stage .win .bd h5{margin:0 0 10px;font-size:18px;font-weight:600}
+.stage .win .ft{padding:12px 16px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #ddd;background:#e8e8e8}
+.stage .win button{font:14px "Segoe UI",system-ui,sans-serif;border:1px solid #adadad;background:#e1e1e1;border-radius:3px;padding:5px 18px;cursor:pointer;color:#111}
+.stage .win button:hover{background:#e5f1fb;border-color:#0078d4}
+.stage .win .wp{height:20px;background:#e6e6e6;border:1px solid #bcbcbc;margin-top:14px}
+.stage .win .wp i{display:block;height:100%;background:#06b025}
+
+.stage .cw{position:absolute;left:250px;top:18px;width:780px;height:684px;background:#f0f0f0;color:#111;border:1px solid #6b6b6b;border-radius:8px;box-shadow:0 18px 60px rgba(0,0,0,.65);font:15px/1.35 "Segoe UI",system-ui,Roboto,sans-serif;overflow:hidden;display:flex;flex-direction:column}
+.stage .cw .ttl{height:36px;background:#fff;display:flex;align-items:center;gap:10px;padding:0 0 0 14px;border-bottom:1px solid #d0d0d0;flex:none}
+.stage .cw .ttl b{font-weight:400;font-size:14px}
+.stage .cw .ttl .wb{margin-left:auto;display:flex}
+.stage .cw .ttl .wb span{width:46px;height:36px;display:flex;align-items:center;justify-content:center;color:#444;font-size:16px}
+.stage .cw .ttl .wb span.x{cursor:pointer}.stage .cw .ttl .wb span.x:hover{background:#c42b1c;color:#fff}
+.stage .cw .bar{height:3px;flex:none}
+.stage .cw .cols{flex:1;display:flex;gap:16px;padding:16px 16px 10px;min-height:0}
+.stage .cw .lc{width:360px;flex:none;display:flex;flex-direction:column;min-height:0}
+.stage .cw .cbox{height:372px;flex:none;background:#1a1a1a;border:1px solid #8a8a8a;box-shadow:inset 0 0 0 1px #fff;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#bbb;text-align:center;font-size:22px;font-weight:600;padding:12px}
+.stage .cw .cbox img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.stage .cw .lname{font-size:17px;font-weight:600;margin:10px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none}
+.stage .cw .ldesc{flex:1;min-height:0;overflow-y:auto;font-size:13.5px;color:#222;white-space:pre-wrap;padding-right:6px;scrollbar-width:thin}
+.stage .cw .ldesc.mut{color:#777}
+.stage .cw .rc{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
+.stage .cw .rtop{flex:1;min-height:0;overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+.stage .cw .rc>div:last-child{margin-right:4px}
+.stage .cw .rule{height:2px;border-top:1px solid #a0a0a0;border-bottom:1px solid #fff;margin:8px 0}
+.stage .cw .cbtn{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;margin:6px 0;padding:6px 44px 6px 58px;background:linear-gradient(#fcfcfc,#e4e4e4 52%,#d8d8d8);border:1px solid #9a9a9a;border-radius:3px;box-shadow:inset 0 1px 0 #fff;font:15px/1.2 "Segoe UI",system-ui,sans-serif;color:#111;cursor:pointer;text-align:center}
+.stage .cw .cbtn:hover{background:linear-gradient(#f6fbff,#dcecfa 52%,#cfe4f7);border-color:#3c7fb1}
+.stage .cw .cbtn:active{background:#c4dff5}
+.stage .cw .cbtn.main{font-weight:700;font-size:17px;min-height:58px}
+.stage .cw .cbtn[disabled]{opacity:.5;cursor:not-allowed;background:#e8e8e8}
+.stage .cw .cbtn .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:34px;height:34px;display:block}
+.stage .cw .cbtn .ic svg{width:34px;height:34px;display:block}
+.stage .cw .cbtn .tg{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#555}
+.stage .cw .cbtn .lb{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.stage .cw .ghd{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#444;margin:12px 2px 0}
+.stage .cw .note{font-size:12.5px;color:#555;margin:2px 4px 6px}
+.stage .cw .opts{flex:none;border-top:1px solid #a0a0a0;box-shadow:0 -1px 0 #fff;padding:10px 16px 12px;background:#ececec}
+.stage .cw .opts label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.stage .cw .opts input[type=checkbox]{width:16px;height:16px;margin:0;cursor:pointer}
+.stage .cw .opts .tr{display:flex;gap:8px;align-items:center;margin-top:8px}
+.stage .cw .opts .tr span{font-size:13.5px;width:76px}
+.stage .cw .opts input.fld2{flex:1;min-width:0;height:28px;border:1px solid #7a7a7a;background:#fff;font:14px "Segoe UI",system-ui,sans-serif;padding:0 8px;user-select:text;color:#111}
+.stage .cw .opts button{height:28px;padding:0 14px;border:1px solid #9a9a9a;border-radius:3px;background:linear-gradient(#fcfcfc,#e0e0e0);font:14px "Segoe UI",system-ui,sans-serif;cursor:pointer;color:#111}
+.stage .cw .opts button:hover{border-color:#3c7fb1;background:#dcecfa}
+.simlog{margin:10px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);font:12.5px/1.5 ui-monospace,Consolas,monospace;max-height:150px;overflow:auto;color:var(--mut)}
+.simlog div b{color:var(--txt);font-weight:600}
+dialog.wide{width:min(1360px,98vw)}
+textarea.code{width:100%;min-height:50vh;font:12.5px/1.5 ui-monospace,Consolas,monospace;white-space:pre;tab-size:2;resize:vertical}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:8px 14px 28px;line-height:1.8}
+  /* Verbindungstest: grünes Häkchen, gelbes Warnzeichen (läuft, aber mit Hinweis), rotes Kreuz */
+  .tline .tmark { font-weight: 700; }
+  .tline.good .tmark { color: #067647; }
+  .tline.warn, .tline.warn .tmark { color: #b54708; }
+  .tline.bad, .tline.bad .tmark { color: #b42318; }
+</style>
+</head>
+<body>
+<header>
+  <div><h1 style="display:inline">💿 DiscMenu-Konfigurator</h1> <span id="savedAt" class="hint"></span></div>
+  <div class="btns">
+    <button id="bProj" type="button">Projekte</button>
+    <button id="bSave" type="button">Speichern</button>
+    <button id="bPrev" type="button">Vorschau</button>
+    <button id="bJson" type="button">JSON</button>
+    <button id="bSg" type="button">SteamGridDB</button>
+    <button id="bImp" type="button">Importieren</button>
+    <button id="bExp" type="button" class="pri">Als ZIP exportieren</button>
+  </div>
+</header>
+<main>
+  <nav id="nav" aria-label="Spiele"></nav>
+  <section id="editor"></section>
+  <aside id="side"></aside>
+</main>
+<footer>Läuft komplett in deinem Browser. Es wird nichts hochgeladen. Der Entwurf wird lokal im Browser zwischengespeichert.<br>
+<a href="https://github.com/EinMensch002/DiscMenu-Builder/blob/main/docs/configurator.md" target="_blank" rel="noopener noreferrer">Anleitung</a> ·
+<a href="https://github.com/EinMensch002/DiscMenu-Builder/blob/main/docs/steamgriddb.md" target="_blank" rel="noopener noreferrer">SteamGridDB, Beschreibungen und Proxy</a> ·
+<a href="disc-sleeve/">DiscSleeve: Hüllen für Disc-Spiele</a> ·
+<a href="https://github.com/EinMensch002/DiscMenu-Builder" target="_blank" rel="noopener noreferrer">Quellcode</a> ·
+<a href="https://www.steamgriddb.com/" target="_blank" rel="noopener noreferrer">SteamGridDB</a></footer>
+<input id="impFile" type="file" accept=".zip,.json" hidden>
+<dialog id="dlg"><div class="dh"><h2 id="dlgTitle"></h2><button type="button" class="sm" id="dlgX">Schließen</button></div><div id="dlgBody"></div></dialog>
+<div id="toast" role="status"></div>
+<script>
+/* === KERN (ohne DOM, wird auch in Tests verwendet) === */
+const CORE = (() => {
+  const UML = {'ä':'ae','ö':'oe','ü':'ue','Ä':'ae','Ö':'oe','Ü':'ue','ß':'ss'};
+  const SECTIONS = ['dlcs','patches','extras'];
+  // Aussehen und Verhalten je Anbieter. Muss zu src/Player/providers.go passen (ein Test vergleicht die Befehlszeilen).
+  const PROVIDERS = {
+    gog:{name:'GOG', color:'#9e4ebe', accent:'#9e4ebe', badge:'#763494', onBadge:'#ffffff', note:'', canInstall:true, usesTarget:true, silent:'always'},
+    epic:{name:'Epic Games', color:'#8d93a5', accent:'#d6dae4', badge:'#34363e', onBadge:'#ffffff', note:'Epic hat keine einheitlichen Offline-Installer. Der Player startet sie normal, still nur mit eigenen Parametern.', canInstall:true, usesTarget:false, silent:'args'},
+    steam:{name:'Steam', color:'#66c0f4', accent:'#66c0f4', badge:'#223e5c', onBadge:'#96d6ff', note:'Steam-Backups kann der Player noch nicht wiederherstellen. Der Eintrag wird nur angezeigt, Extras lassen sich öffnen.', canInstall:false, usesTarget:false, silent:'never'}
+  };
+  const quote = v => /^"/.test(v) ? v : '"' + v + '"';
+  /* Ist für diesen Eintrag eine stille Installation möglich? entryArgs ist eine Liste. */
+  function silentAvailable(provId, entryArgs){
+    const p = PROVIDERS[provId] || PROVIDERS.gog;
+    return p.silent === 'always' || (p.silent === 'args' && entryArgs.length > 0);
+  }
+  /* Parameter des Installers, wie sie der Player übergibt (leer im normalen Modus). */
+  function installCommand(provId, o){
+    if (!o.silent) return '';
+    const p = PROVIDERS[provId] || PROVIDERS.gog, a = [];
+    if (p.silent === 'always'){
+      a.push('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-');
+      if (o.target) a.push('/DIR=' + quote(o.target));
+      if (o.logPath) a.push('/LOG=' + quote(o.logPath));
+    }
+    return a.concat(o.entryArgs || []).join(' ');
+  }
+  function defaultTarget(name){ return 'C:\\GOG Games\\' + String(name || '').replace(/[\\/:*?"<>|]/g, '').trim(); }
+  function formatMB(mb){ return mb >= 1024 ? (mb/1024).toFixed(1) + ' GB' : Math.round(mb) + ' MB'; }
+  /* Ergebnistext nach einer Installation (gleiche Texte wie der Player). */
+  function describeResult(r){
+    if (r.err) return {ok:false, text:'Der Installer konnte nicht gestartet werden:\n' + r.err};
+    if (r.code === 0) return {ok:true, text:'Die Installation wurde ohne Fehler beendet.' + (r.found ? '\nInstalliert nach: ' + r.found : '')};
+    let t = 'Der Installer wurde mit dem Code ' + r.code + ' beendet.';
+    if (r.code === 5 || r.code === 740) t += '\nWahrscheinlich fehlten Administratorrechte.';
+    if (r.logTail) t += '\n\nProtokoll (Ende):\n' + r.logTail;
+    return {ok:false, text:t};
+  }
+
+  function slug(s){
+    return String(s == null ? '' : s).replace(/[äöüÄÖÜß]/g, c => UML[c]).normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);
+  }
+  function parseArgs(str){ return String(str || '').match(/(?:[^\s"]+|"[^"]*")+/g) || []; }
+  function fromArgs(list){ return Array.isArray(list) ? list.join(' ') : ''; }
+  function isUrl(p){ return /^https?:\/\//i.test(p); }
+  function relPathIssue(p){
+    if (/^[a-zA-Z]:/.test(p) || /^[\\/]/.test(p)) return 'muss relativ zur Disc sein (kein Laufwerk, kein führender Schrägstrich)';
+    if (p.split(/[\\/]/).includes('..')) return 'darf kein ".." enthalten';
+    return null;
+  }
+
+  function newItem(){ return {name:'',description:'',cover:null,group:'',kind:'installer',path:'',args:'',_open:true}; }
+  function newGame(){ return {name:'',provider:'gog',cover:null,description:'',installer:'',args:'',estimatedSizeMB:'',dlcs:[],patches:[],extras:[]}; }
+  function newState(){ return {title:'',output:'',background:null,sounds:{click:null,hover:null},games:[newGame()]}; }
+
+  /* --- CRC32 und ZIP (Speichern ohne Kompression, Lesen mit Deflate) --- */
+  let T = null;
+  function crc32(u8){
+    if (!T){ T = new Uint32Array(256); for (let n=0;n<256;n++){ let c=n; for (let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; T[n]=c>>>0; } }
+    let c = 0xFFFFFFFF; for (let i=0;i<u8.length;i++) c = T[(c^u8[i])&255]^(c>>>8);
+    return (c^0xFFFFFFFF)>>>0;
+  }
+  function buildZip(files){
+    const enc = new TextEncoder(), now = new Date();
+    const time = (now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1);
+    const date = ((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+    const es = files.map(f => ({nb: enc.encode(f.name), data: f.data, crc: crc32(f.data)}));
+    let size = 22; for (const e of es) size += 30 + e.nb.length + e.data.length + 46 + e.nb.length;
+    const out = new Uint8Array(size), dv = new DataView(out.buffer); let p = 0; const offs = [];
+    for (const e of es){
+      offs.push(p);
+      dv.setUint32(p,0x04034b50,true); dv.setUint16(p+4,20,true); dv.setUint16(p+6,0x0800,true); dv.setUint16(p+8,0,true);
+      dv.setUint16(p+10,time,true); dv.setUint16(p+12,date,true); dv.setUint32(p+14,e.crc,true);
+      dv.setUint32(p+18,e.data.length,true); dv.setUint32(p+22,e.data.length,true);
+      dv.setUint16(p+26,e.nb.length,true); dv.setUint16(p+28,0,true); p += 30;
+      out.set(e.nb,p); p += e.nb.length; out.set(e.data,p); p += e.data.length;
+    }
+    const cd = p;
+    es.forEach((e,i) => {
+      dv.setUint32(p,0x02014b50,true); dv.setUint16(p+4,20,true); dv.setUint16(p+6,20,true); dv.setUint16(p+8,0x0800,true); dv.setUint16(p+10,0,true);
+      dv.setUint16(p+12,time,true); dv.setUint16(p+14,date,true); dv.setUint32(p+16,e.crc,true);
+      dv.setUint32(p+20,e.data.length,true); dv.setUint32(p+24,e.data.length,true);
+      dv.setUint16(p+28,e.nb.length,true); dv.setUint16(p+30,0,true); dv.setUint16(p+32,0,true); dv.setUint16(p+34,0,true);
+      dv.setUint16(p+36,0,true); dv.setUint32(p+38,0,true); dv.setUint32(p+42,offs[i],true); p += 46;
+      out.set(e.nb,p); p += e.nb.length;
+    });
+    dv.setUint32(p,0x06054b50,true); dv.setUint16(p+4,0,true); dv.setUint16(p+6,0,true);
+    dv.setUint16(p+8,es.length,true); dv.setUint16(p+10,es.length,true);
+    dv.setUint32(p+12,p-cd,true); dv.setUint32(p+16,cd,true); dv.setUint16(p+20,0,true);
+    return out;
+  }
+  async function readZip(buf){
+    const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    let e = -1;
+    for (let i=buf.length-22; i>=Math.max(0,buf.length-22-65535); i--){ if (dv.getUint32(i,true)===0x06054b50){ e=i; break; } }
+    if (e < 0) throw new Error('Das ist keine gültige ZIP-Datei.');
+    const n = dv.getUint16(e+10,true); let p = dv.getUint32(e+16,true);
+    const dec = new TextDecoder(), out = [];
+    for (let i=0;i<n;i++){
+      if (dv.getUint32(p,true) !== 0x02014b50) throw new Error('Die ZIP-Datei ist beschädigt.');
+      const method = dv.getUint16(p+10,true), csize = dv.getUint32(p+20,true);
+      const nl = dv.getUint16(p+28,true), xl = dv.getUint16(p+30,true), cl = dv.getUint16(p+32,true), lo = dv.getUint32(p+42,true);
+      const name = dec.decode(buf.subarray(p+46,p+46+nl)).replace(/\\/g,'/');
+      p += 46 + nl + xl + cl;
+      if (name.endsWith('/')) continue;
+      const start = lo + 30 + dv.getUint16(lo+26,true) + dv.getUint16(lo+28,true);
+      const raw = buf.subarray(start, start+csize);
+      let data;
+      if (method === 0) data = raw.slice();
+      else if (method === 8) data = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+      else throw new Error('Nicht unterstützte ZIP-Kompression bei ' + name);
+      out.push({name, data});
+    }
+    return out;
+  }
+
+  /* --- Prüfung nach der Spezifikation --- */
+  function validate(s){
+    const out = [], E = m => out.push({level:'error',msg:m}), W = m => out.push({level:'warn',msg:m});
+    if (!s.title.trim()) E('Disc-Einstellungen: Titel fehlt.');
+    if (s.output.trim()){
+      if (/[\\/:*?"<>|]/.test(s.output)) E('Disc-Einstellungen: Der EXE-Name enthält ungültige Zeichen.');
+      else if (!/\.exe$/i.test(s.output.trim())) W('Disc-Einstellungen: Der EXE-Name sollte auf .exe enden.');
+    }
+    if (!s.games.length) E('Es wird mindestens ein Spiel benötigt.');
+    const label = {dlcs:'DLC',patches:'Patch',extras:'Extra'};
+    s.games.forEach((g,i) => {
+      const gn = 'Spiel ' + i + ' (' + (g.name.trim() || 'ohne Namen') + ')';
+      if (!g.name.trim()) E(gn + ': Name fehlt.');
+      if (!g.installer.trim()) E(gn + ': Installer-Pfad fehlt.');
+      else { const x = relPathIssue(g.installer.trim()); if (x) E(gn + ': Installer-Pfad ' + x + '.'); }
+      if (g.provider === 'steam') W(gn + ': ' + PROVIDERS.steam.note);
+      if (String(g.estimatedSizeMB).trim() !== '' && !(Number(g.estimatedSizeMB) > 0)) E(gn + ': Die Größe muss eine Zahl über 0 sein.');
+      SECTIONS.forEach(k => g[k].forEach((it,j) => {
+        const n = gn + ', ' + label[k] + ' ' + (j+1) + ' (' + (it.name.trim() || 'ohne Namen') + ')';
+        if (!it.name.trim()) E(n + ': Name fehlt.');
+        const p = it.path.trim();
+        if (!p) E(n + ': ' + (it.kind === 'installer' ? 'Installer-Pfad' : 'Pfad oder Link') + ' fehlt.');
+        else if (it.kind === 'installer'){ const x = relPathIssue(p); if (x) E(n + ': Installer-Pfad ' + x + '.'); }
+        else if (!isUrl(p)){ const x = relPathIssue(p); if (x) E(n + ': Pfad ' + x + '.'); }
+      }));
+    });
+    return out;
+  }
+
+  /* --- Zustand -> menu.json + Asset-Dateien --- */
+  function buildMenu(s, assets){
+    const used = new Set(), map = new Map(), files = [];
+    const take = (id, dir, base) => {
+      if (!id || !assets.has(id)) return undefined;
+      if (map.has(id)) return map.get(id);
+      const a = assets.get(id), b = slug(base) || 'datei', d = 'assets/' + (dir ? dir + '/' : '');
+      let p = d + b + '.' + a.ext, n = 2;
+      while (used.has(p)) p = d + b + '-' + (n++) + '.' + a.ext;
+      used.add(p); map.set(id,p); files.push({name:p, data:a.data}); return p;
+    };
+    const norm = p => p.trim().replace(/\\/g,'/');
+    const itemOut = (it,g) => {
+      const o = {name: it.name.trim()};
+      if (it.description.trim()) o.description = it.description.trim();
+      const c = take(it.cover,'covers', g.name + ' ' + it.name); if (c) o.cover = c;
+      if (it.group.trim()) o.group = it.group.trim();
+      if (it.kind === 'installer'){ o.installer = norm(it.path); const a = parseArgs(it.args); if (a.length) o.args = a; }
+      else o.open = isUrl(it.path.trim()) ? it.path.trim() : norm(it.path);
+      return o;
+    };
+    const m = {schemaVersion:1, title:s.title.trim()};
+    if (s.output.trim()) m.output = s.output.trim();
+    const bg = take(s.background,'','background'); if (bg) m.background = bg;
+    const snd = {}; for (const k of ['click','hover']){ const p = take(s.sounds[k],'sounds',k); if (p) snd[k] = p; }
+    if (Object.keys(snd).length) m.sounds = snd;
+    m.games = s.games.map((g,i) => {
+      const o = {index:i, name:g.name.trim()};
+      const c = take(g.cover,'covers',g.name); if (c) o.cover = c;
+      if (g.description.trim()) o.description = g.description.trim();
+      o.installer = norm(g.installer);
+      if (g.provider && g.provider !== 'gog' && PROVIDERS[g.provider]) o.provider = g.provider;
+      const a = parseArgs(g.args); if (a.length) o.args = a;
+      if (String(g.estimatedSizeMB).trim() !== '') o.estimatedSizeMB = Number(g.estimatedSizeMB);
+      SECTIONS.forEach(k => { if (g[k].length) o[k] = g[k].map(it => itemOut(it,g)); });
+      return o;
+    });
+    return {menu:m, files, map};
+  }
+
+  /* --- menu.json -> Zustand (Import) --- */
+  function parseMenu(m, getAsset){
+    if (!m || typeof m !== 'object' || Array.isArray(m)) throw new Error('Die menu.json ist kein gültiges Objekt.');
+    const notes = [], s = newState(); s.games = [];
+    if (m.schemaVersion !== 1) notes.push('schemaVersion ' + m.schemaVersion + ' ist unbekannt, es wird Version 1 angenommen.');
+    s.title = String(m.title || ''); s.output = String(m.output || '');
+    const asset = p => { if (!p) return null; const id = getAsset(String(p)); if (!id) notes.push('Datei nicht gefunden: ' + p); return id || null; };
+    s.background = asset(m.background);
+    s.sounds.click = asset(m.sounds && m.sounds.click); s.sounds.hover = asset(m.sounds && m.sounds.hover);
+    const item = it => {
+      const o = newItem(); o._open = false;
+      o.name = String(it.name || ''); o.description = String(it.description || ''); o.group = String(it.group || '');
+      o.cover = asset(it.cover);
+      if (it.installer != null){ o.kind = 'installer'; o.path = String(it.installer); o.args = fromArgs(it.args); }
+      else { o.kind = 'open'; o.path = String(it.open || ''); }
+      return o;
+    };
+    const games = (Array.isArray(m.games) ? m.games.slice() : []).sort((a,b) => (a.index || 0) - (b.index || 0));
+    for (const g of games){
+      const ng = newGame();
+      ng.name = String(g.name || ''); ng.cover = asset(g.cover); ng.description = String(g.description || '');
+      ng.installer = String(g.installer || ''); ng.args = fromArgs(g.args);
+      ng.estimatedSizeMB = g.estimatedSizeMB == null ? '' : String(g.estimatedSizeMB);
+      SECTIONS.forEach(k => { ng[k] = (Array.isArray(g[k]) ? g[k] : []).map(item); });
+      if (g.customTabs) notes.push('"' + ng.name + '": customTabs gehören nicht zu Version 1 und werden nicht übernommen.');
+      if (g.provider){ if (PROVIDERS[g.provider]) ng.provider = g.provider; else notes.push('"' + ng.name + '": provider "' + g.provider + '" ist unbekannt, es wird gog angenommen.'); }
+      s.games.push(ng);
+    }
+    if (!s.games.length) s.games.push(newGame());
+    return {state:s, notes};
+  }
+
+  function usedIds(s){
+    const ids = new Set(); const add = id => { if (id) ids.add(id); };
+    add(s.background); add(s.sounds.click); add(s.sounds.hover);
+    s.games.forEach(g => { add(g.cover); SECTIONS.forEach(k => g[k].forEach(it => add(it.cover))); });
+    return ids;
+  }
+  function sane(s){
+    return s && typeof s === 'object' && typeof s.title === 'string' && Array.isArray(s.games) && s.sounds &&
+      s.games.every(g => g && SECTIONS.every(k => Array.isArray(g[k])) && (!g.provider || PROVIDERS[g.provider]));
+  }
+  /* --- Disc-Dateien prüfen (exists(pfad) liefert 'file', 'dir' oder null) --- */
+  function discRefs(s){
+    const refs = [], label = {dlcs:'DLC',patches:'Patch',extras:'Extra'}, norm = p => p.trim().replace(/\\/g,'/');
+    s.games.forEach((g,i) => {
+      const gn = 'Spiel ' + i + ' (' + (g.name.trim() || 'ohne Namen') + ')';
+      if (g.installer.trim()) refs.push({where: gn + ', Installer', path: norm(g.installer), mustBeFile: true});
+      SECTIONS.forEach(k => g[k].forEach((it,j) => {
+        const p = it.path.trim(); if (!p || isUrl(p)) return;
+        refs.push({where: gn + ', ' + label[k] + ' ' + (j+1) + ' (' + (it.name.trim() || 'ohne Namen') + ')', path: norm(p), mustBeFile: it.kind === 'installer'});
+      }));
+    });
+    return refs;
+  }
+  async function checkDisc(s, exists){
+    const refs = discRefs(s), out = []; let okCount = 0;
+    for (const r of refs){
+      if (relPathIssue(r.path)){ out.push({level:'error', msg: r.where + ': Pfad ungültig (' + r.path + ').'}); continue; }
+      let kind = null; try { kind = await exists(r.path); } catch (e) { kind = null; }
+      if (!kind) out.push({level:'error', msg: r.where + ': nicht gefunden (' + r.path + ').'});
+      else if (r.mustBeFile && kind !== 'file') out.push({level:'error', msg: r.where + ': ist ein Ordner, es wird eine Datei erwartet (' + r.path + ').'});
+      else if (r.mustBeFile && !/\.(exe|msi|bat|cmd)$/i.test(r.path)) { out.push({level:'warn', msg: r.where + ': Endung ungewöhnlich für einen Installer (' + r.path + ').'}); okCount++; }
+      else okCount++;
+    }
+    return {issues: out, checked: refs.length, ok: okCount};
+  }
+
+  /* --- Hilfen für die SteamGridDB-Anbindung --- */
+  function htmlToText(s){
+    const map = {amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' '};
+    return String(s || '').replace(/<br\s*\/?>/gi,'\n').replace(/<\/p>/gi,'\n').replace(/<[^>]+>/g,'')
+      .replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m,e) => {
+        if (e[0] === '#'){ try { const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2),16) : parseInt(e.slice(1),10); return String.fromCodePoint(n); } catch (x) { return m; } }
+        return map[e.toLowerCase()] !== undefined ? map[e.toLowerCase()] : m;
+      }).replace(/\n{3,}/g,'\n\n').trim();
+  }
+  function normName(s){ return String(s || '').toLowerCase().replace(/[^a-z0-9äöüß]+/g,''); }
+  function rankByName(query, items, nameOf, max){
+    const n = normName(query); if (!n) return [];
+    const score = nm => { const m = normName(nm); if (!m) return 0; if (m === n) return 4; if (m.startsWith(n)) return 3; if (n.startsWith(m)) return 2; if (m.includes(n)) return 1; return 0; };
+    return (items || []).map((it,i) => ({it, s: score(nameOf(it)), i})).filter(x => x.s > 0)
+      .sort((a,b) => (b.s - a.s) || (a.i - b.i)).slice(0, max || 3).map(x => x.it);
+  }
+  function mdToText(t){
+    return htmlToText(String(t || '').replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/^#{1,6}\s*/gm,'').replace(/(\*\*|__)/g,''));
+  }
+  function epicText(j){
+    const pages = j && Array.isArray(j.pages) ? j.pages : [];
+    for (const p of pages){
+      const a = p && p.data && p.data.about; if (!a) continue;
+      const t = a.shortDescription || a.description;
+      if (t && String(t).trim()) return {title: String(a.title || p._title || j._title || ''), text: mdToText(t)};
+    }
+    return null;
+  }
+  function sortGrids(list){
+    return (list || []).slice().sort((a,b) => ((b.language === 'de') - (a.language === 'de')) || ((b.score || 0) - (a.score || 0)));
+  }
+  function looksGerman(t){
+    const text = String(t || ''), w = text.toLowerCase().match(/[a-zäöüß]+/g) || [];
+    if (w.length < 8) return /[äöüß]/i.test(text);
+    const de = new Set(['der','die','das','und','ist','mit','ein','eine','den','dem','von','zu','nicht','auf','für','sich','auch','werden','wird','als','bei','nach','aus']);
+    const en = new Set(['the','and','is','with','of','to','a','an','for','you','your','are','that','this','on','as','by','from','it','their','be']);
+    let d = 0, e = 0; for (const x of w){ if (de.has(x)) d++; if (en.has(x)) e++; }
+    return d > e;
+  }
+  function chunkText(text, max){
+    max = max || 450;
+    return String(text || '').split(/\n+/).map(p => p.trim()).filter(Boolean).map(p => {
+      const out = []; let cur = '';
+      const flush = () => { if (cur.trim()) out.push(cur.trim()); cur = ''; };
+      for (let s of (p.match(/[^.!?]+[.!?]*\s*/g) || [p])){
+        while (s.length > max){ flush(); let cut = s.lastIndexOf(' ', max); if (cut < 1) cut = max; out.push(s.slice(0, cut).trim()); s = s.slice(cut); }
+        if ((cur + s).length > max) flush();
+        cur += s;
+      }
+      flush(); return out;
+    });
+  }
+  function trimIntro(t, max){
+    let out = ''; for (const p of String(t).split(/\n+/).filter(Boolean)){ if ((out + p).length > max && out) break; out += (out ? '\n' : '') + p; }
+    if (out.length > max){ const cut = out.lastIndexOf('. ', max); out = cut > 200 ? out.slice(0, cut + 1) : out.slice(0, max).trim() + '…'; }
+    return out;
+  }
+  /* --- Einstellungen sichern (optional mit Passwort verschlüsselt) --- */
+  const b64 = u8 => { let t = ''; for (let i = 0; i < u8.length; i += 0x8000) t += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(t); };
+  const unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+  const subtleOrNull = () => (globalThis.crypto && globalThis.crypto.subtle) || null;
+  async function deriveKey(password, salt, iterations){
+    const base = await subtleOrNull().importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+    return subtleOrNull().deriveKey({name:'PBKDF2', salt, iterations, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+  }
+  async function packSettings(values, password){
+    const plain = {type:'discmenu-settings', version:1, sgdbKey: values.key || '', proxy: values.proxy || ''};
+    if (!password) return JSON.stringify(plain, null, 2) + '\n';
+    if (!subtleOrNull()) throw new Error('Dieser Browser kann hier nicht verschlüsseln. Die Datei lässt sich nur ohne Passwort sichern.');
+    const salt = globalThis.crypto.getRandomValues(new Uint8Array(16)), iv = globalThis.crypto.getRandomValues(new Uint8Array(12)), iterations = 250000;
+    const key = await deriveKey(password, salt, iterations);
+    const data = new Uint8Array(await subtleOrNull().encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(JSON.stringify(plain))));
+    return JSON.stringify({type:'discmenu-settings', version:1, encrypted:true, kdf:'PBKDF2-SHA256', iterations, salt:b64(salt), iv:b64(iv), data:b64(data)}, null, 2) + '\n';
+  }
+  async function unpackSettings(text, password){
+    let j; try { j = JSON.parse(text); } catch (e) { throw new Error('Die Datei ist keine gültige Einstellungsdatei.'); }
+    if (!j || j.type !== 'discmenu-settings') throw new Error('Das ist keine Einstellungsdatei dieses Konfigurators.');
+    let plain = j;
+    if (j.encrypted){
+      if (!password) throw new Error('PASSWORD_NEEDED');
+      if (!subtleOrNull()) throw new Error('Dieser Browser kann hier nicht entschlüsseln.');
+      const it = Number(j.iterations); if (!(it >= 100000 && it <= 2000000)) throw new Error('Die Einstellungsdatei ist beschädigt.');
+      try {
+        const key = await deriveKey(password, unb64(j.salt), it);
+        plain = JSON.parse(new TextDecoder().decode(await subtleOrNull().decrypt({name:'AES-GCM', iv:unb64(j.iv)}, key, unb64(j.data))));
+      } catch (e) { throw new Error('Falsches Passwort oder beschädigte Datei.'); }
+    }
+    // Eine Datei ohne Zugangsdaten (z. B. nur eigene Vorlagen aus dem Cover-Tool) darf Schlüssel und Proxy nicht leeren
+    if (!('sgdbKey' in plain) && !('proxy' in plain)) throw new Error('Die Datei enthält keine Zugangsdaten.');
+    return {key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '')};
+  }
+  return {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, discRefs, checkDisc, packSettings, unpackSettings, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
+})();
+if (typeof module !== 'undefined') module.exports = CORE;
+
+/* === UI === */
+(() => {
+  if (typeof document === 'undefined') return;
+  const {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, parseArgs, isUrl, checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText, packSettings, unpackSettings} = CORE;
+  const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Musik','Artwork','Dokumente','Videos'], dlcs:[]};
+  const MIME = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif',wav:'audio/wav',ogg:'audio/ogg',mp3:'audio/mpeg'};
+  const assets = new Map(); let state = newState(); let sel = 0; let counter = 1; let touched = false;
+  const $ = s => document.querySelector(s);
+
+  function h(tag, props, ...kids){
+    const e = document.createElement(tag); let val;
+    for (const [k,v] of Object.entries(props || {})){
+      if (k === 'class') e.className = v;
+      else if (k === 'value') val = v;
+      else if (k === 'checked') e.checked = !!v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()){ if (kid == null || kid === false) continue; e.append(kid.nodeType ? kid : document.createTextNode(String(kid))); }
+    if (val !== undefined) e.value = val;
+    return e;
+  }
+  const fmt = n => n < 1024 ? n + ' B' : n < 1048576 ? (n/1024).toFixed(0) + ' KB' : (n/1048576).toFixed(1) + ' MB';
+  let toastT; function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 5000); }
+
+  function addAsset(data, ext){ const id = 'a' + (counter++); assets.set(id, {data, ext}); return id; }
+  function assetUrl(id){ const a = assets.get(id); if (!a) return ''; if (!a.url) a.url = URL.createObjectURL(new Blob([a.data], {type: MIME[a.ext] || ''})); return a.url; }
+
+  async function processImage(file, kind){
+    let bmp;
+    try { bmp = await createImageBitmap(file); } catch (e) { throw new Error('Das Bild konnte nicht gelesen werden. Bitte PNG, JPEG oder WebP verwenden.'); }
+    const max = kind === 'background' ? 1920 : 800, sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * sc)), hh = Math.max(1, Math.round(bmp.height * sc));
+    const c = document.createElement('canvas'); c.width = w; c.height = hh;
+    const ctx = c.getContext('2d');
+    if (kind === 'background'){ ctx.fillStyle = '#000'; ctx.fillRect(0,0,w,hh); }
+    ctx.drawImage(bmp, 0, 0, w, hh);
+    const mime = kind === 'background' ? 'image/jpeg' : 'image/png';
+    const blob = await new Promise(r => c.toBlob(r, mime, 0.88));
+    if (!blob) throw new Error('Das Bild konnte nicht umgewandelt werden.');
+    return {data: new Uint8Array(await blob.arrayBuffer()), ext: kind === 'background' ? 'jpg' : 'png'};
+  }
+
+  /* --- SteamGridDB-Anbindung --- */
+  const SG_BASE = 'https://www.steamgriddb.com/api/v2';
+  const store = {
+    get(k){ try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
+    set(k,v){ try { if (v) localStorage.setItem(k,v); else localStorage.removeItem(k); } catch (e) { /* ignorieren */ } }
+  };
+  const cfg = { get key(){ return store.get('sgdb-key'); }, get proxy(){ return store.get('sgdb-proxy'); } };
+  const CORS_HINT = 'Die Anfrage wurde vom Browser blockiert oder es gibt keine Verbindung. Meist liegt das an CORS: Der Dienst erlaubt Anfragen aus dem Browser eventuell nicht. Trage in den SteamGridDB-Einstellungen einen eigenen Proxy ein (siehe docs/steamgriddb.md).';
+
+  async function net(url, init){
+    const proxy = cfg.proxy;
+    const target = proxy ? proxy.split('{url}').join(encodeURIComponent(url)) : url;
+    try { return await fetch(target, init); }
+    catch (e) { throw new Error(proxy ? 'Der Proxy ist nicht erreichbar oder blockiert die Anfrage. Bitte die Proxy-Adresse prüfen.' : CORS_HINT); }
+  }
+  async function sgGet(path, params){
+    if (!cfg.key) throw new Error('Bitte zuerst den SteamGridDB-API-Schlüssel in den Einstellungen eintragen (Knopf "SteamGridDB" oben).');
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    const r = await net(SG_BASE + path + qs, {headers: {Authorization: 'Bearer ' + cfg.key}});
+    let j = null; try { j = await r.json(); } catch (e) { /* kein JSON */ }
+    if (r.status === 401 || r.status === 403) throw new Error('Der API-Schlüssel wurde abgelehnt. Bitte in den SteamGridDB-Einstellungen prüfen.');
+    if (!r.ok || !j || j.success === false) throw new Error((j && j.errors && j.errors[0]) || ('SteamGridDB hat mit Fehler ' + r.status + ' geantwortet.'));
+    return j.data;
+  }
+  async function fetchImage(url){
+    let r;
+    try { r = await fetch(url); }
+    catch (e) {
+      if (!cfg.proxy) throw new Error('Das Bild konnte nicht geladen werden (vermutlich CORS). Lade es bei SteamGridDB herunter und ziehe es in das Bildfeld, oder richte einen Proxy ein.');
+      r = await net(url);
+    }
+    if (!r.ok) throw new Error('Das Bild konnte nicht geladen werden (Fehler ' + r.status + ').');
+    return await r.blob();
+  }
+  /* --- Links zu Anleitung und Diensten --- */
+  const REPO = 'https://github.com/EinMensch002/DiscMenu-Builder';
+  const LINKS = {sgdb: 'https://www.steamgriddb.com/', sgdbKey: 'https://www.steamgriddb.com/profile/preferences/api',
+    cf: 'https://dash.cloudflare.com/', worker: REPO + '/blob/main/tools/cors-proxy/worker.js'};
+  const ext = (text, url) => h('a', {href: url, target: '_blank', rel: 'noopener noreferrer'}, text + ' ↗');
+  const docLink = (text, file, anchor) => ext(text, REPO + '/blob/main/docs/' + file + (anchor ? '#' + anchor : ''));
+  function showMsg(el, text){ el.textContent = text; if (/CORS|Proxy/i.test(text)) el.append(' ', docLink('Anleitung zum Proxy', 'steamgriddb.md', 'proxy-cors')); }
+
+  /* --- Dialog --- */
+  const dlg = $('#dlg');
+  function openDlg(title, ...nodes){
+    $('#dlgTitle').textContent = title; $('#dlgBody').replaceChildren(...nodes.flat().filter(Boolean));
+    if (!dlg.open){ if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open',''); }
+  }
+  function closeDlg(){ if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open'); }
+
+  /* Version des Proxy-Workers (tools/cors-proxy/worker.js): gleiche Prüfung wie im DiscSleeve. Wird der Worker geändert, steigen VERSION dort und hier
+     WORKER_VERSION (ein Test prüft die Gleichheit). */
+  const WORKER_VERSION = 2;
+  const REQUIRED_HOSTS = ['www.steamgriddb.com', 'store.steampowered.com', 'catalog.gog.com', 'api.gog.com', 'store-content.ak.epicgames.com'];
+  async function checkWorker(){
+    let info = null;
+    try {
+      const u = new URL(cfg.proxy.split('{url}').join('x')); u.search = '?info=1&t=' + Date.now();                  // nie aus dem Zwischenspeicher
+      const r = await fetch(u.href, { cache: 'no-store' });
+      try { info = await r.json(); } catch (e) { info = null; }
+    } catch (e) { throw new Error('Der Proxy ist nicht erreichbar oder blockiert die Anfrage. Bitte die Proxy-Adresse prüfen.'); }
+    if (!info || typeof info.version !== 'number') throw new Error('Alte Version des Proxy-Workers (ohne Versionsangabe), aktuell ist Version ' + WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen (Anleitung bei "Proxy einrichten").');
+    const missing = REQUIRED_HOSTS.filter(h => !(info.hosts || []).some(src => { try { return new RegExp(src).test(h); } catch (e) { return false; } }));
+    if (info.version < WORKER_VERSION || missing.length) throw new Error('Proxy-Worker Version ' + info.version + ', aktuell ist ' + WORKER_VERSION + (missing.length ? '. Er erlaubt nicht: ' + missing.join(', ') : '') + '. Bitte den aktuellen Worker-Code einspielen.');
+    return info.version > WORKER_VERSION ? {warn: true, text: 'Version ' + info.version + ' (neuer als dieses Tool)'} : {text: 'Version ' + info.version + ' (aktuell)'};
+  }
+
+  /* Verbindungstest: jeder Dienst, den der Konfigurator nutzt, einzeln (SteamGridDB, Steam, GOG, Epic Games, Übersetzung), damit man sieht, woran es liegt */
+  async function testServices(){
+    const out = [];
+    const run = async (name, fn) => { try { const v = await fn(); out.push(v && typeof v === 'object' ? {name, ok: true, warn: !!v.warn, text: v.text} : {name, ok: true, text: v}); } catch (e) { out.push({name, ok: false, text: e.message || String(e)}); } };
+    const get = async (url, what) => {
+      const r = await net(url);
+      if (r.status === 403 && /Host/i.test(await r.clone().text().catch(() => ''))) throw new Error('Der Proxy erlaubt ' + what + ' nicht. Der Worker-Code ist wahrscheinlich veraltet, bitte den aktuellen aus docs/steamgriddb.md einspielen.');
+      return r;
+    };
+    if (!cfg.proxy) out.push({name: 'Proxy', ok: false, text: 'Kein Proxy eingetragen. Ohne Proxy blockiert der Browser die Anfragen meist (CORS).'});
+    if (cfg.proxy) await run('Proxy-Worker', checkWorker);
+    if (cfg.key) await run('SteamGridDB', async () => { const r = await sgGet('/search/autocomplete/' + encodeURIComponent('Half-Life')); return r.length + ' Treffer für den Test'; });
+    else out.push({name: 'SteamGridDB', ok: false, text: 'Kein API-Schlüssel eingetragen.'});
+    await run('Steam-Shop', async () => { const r = await get('https://store.steampowered.com/api/storesearch/?l=german&cc=DE&term=Half-Life', 'Steam'); if (!r.ok) throw new Error('Steam hat mit Fehler ' + r.status + ' geantwortet.'); const j = await r.json(); return (j.items || []).length + ' Treffer für den Test'; });
+    await run('GOG-Katalog', async () => { const r = await get('https://catalog.gog.com/v1/catalog?limit=3&query=like%3AWitcher&productType=in%3Agame%2Cpack&countryCode=DE&locale=de-DE', 'GOG'); if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.'); const j = await r.json(); return (j.products || []).length + ' Treffer für den Test'; });
+    await run('GOG-Spieldaten', async () => { const r = await get('https://api.gog.com/products/1207658924?expand=description&locale=de-DE', 'GOG'); if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.'); await r.json(); return 'erreichbar'; });
+    await run('Epic Games Store', async () => { const r = await get('https://store-content.ak.epicgames.com/api/de/content/products/rocket-league', 'Epic Games'); if (r.status >= 500 || r.status === 403) throw new Error('Epic Games hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
+    await run('Übersetzung (MyMemory)', async () => { let r; try { r = await fetch('https://api.mymemory.translated.net/get?langpair=en%7Cde&q=Hello'); } catch (e) { throw new Error('Der Übersetzungsdienst ist nicht erreichbar. Bitte die Internetverbindung prüfen.'); } if (!r.ok) throw new Error('Der Übersetzungsdienst hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
+    return out;
+  }
+
+  function openSettings(){
+    const key = h('input', {type:'password', autocomplete:'off', placeholder:'API-Schlüssel', value: cfg.key});
+    const pw = h('input', {type:'password', autocomplete:'new-password', placeholder:'Passwort (optional)'});
+    const proxy = h('input', {type:'text', placeholder:'https://mein-proxy.example.workers.dev/?url={url}', value: cfg.proxy});
+    const msg = h('p', {class:'hint'});
+    const tests = h('div', {class:'hint', id:'sgTests'});
+    const msg2 = h('p', {class:'hint', id:'sgMsg2'});
+    const fin = h('input', {type:'file', accept:'.json,application/json', hidden:true, onchange: async () => {
+      const f = fin.files[0]; fin.value = ''; if (!f) return;
+      try {
+        const v = await unpackSettings(await f.text(), pw.value);
+        if (v.proxy && !v.proxy.includes('{url}')) throw new Error('Die Proxy-Adresse in der Datei enthält keinen Platzhalter {url}.');
+        key.value = v.key; proxy.value = v.proxy; store.set('sgdb-key', v.key); store.set('sgdb-proxy', v.proxy);
+        msg2.textContent = 'Einstellungen eingelesen und gespeichert.';
+      } catch (e) { msg2.textContent = e.message === 'PASSWORD_NEEDED' ? 'Die Datei ist verschlüsselt. Bitte das Passwort eintragen und die Datei erneut einlesen.' : e.message; }
+    }});
+    const saveCfg = () => {
+      const p = proxy.value.trim();
+      if (p && !p.includes('{url}')){ msg.textContent = 'Die Proxy-Adresse muss den Platzhalter {url} enthalten.'; return false; }
+      store.set('sgdb-key', key.value.trim()); store.set('sgdb-proxy', p); return true;
+    };
+    openDlg('SteamGridDB-Einstellungen',
+      h('p', {class:'hint'}, 'Den API-Schlüssel gibt es kostenlos im SteamGridDB-Profil. Er wird nur in diesem Browser gespeichert und nie in die ZIP geschrieben.'),
+      h('p', {class:'hint'}, ext('Schlüssel bei SteamGridDB erzeugen', LINKS.sgdbKey), ' · ', ext('SteamGridDB', LINKS.sgdb), ' · ', docLink('Anleitung', 'steamgriddb.md', 'einrichten-steamgriddb')),
+      wrap('API-Schlüssel', key),
+      wrap('Proxy-Adresse (optional)', proxy, 'Nur nötig, wenn der Browser Anfragen direkt blockiert (CORS). {url} wird durch die Zieladresse ersetzt.'),
+      h('p', {class:'hint'}, 'Proxy einrichten: ', docLink('Anleitung', 'steamgriddb.md', 'proxy-einrichten-cloudflare-worker'), ' · ', ext('Cloudflare öffnen', LINKS.cf), ' · ', ext('Worker-Code', LINKS.worker), ' · ', docLink('Proxy absichern', 'steamgriddb.md', 'proxy-auf-die-eigene-seite-beschränken-empfohlen')),
+      msg, tests,
+      h('div', {class:'row'},
+        h('button', {type:'button', class:'pri', onclick: () => { if (saveCfg()){ closeDlg(); toast('SteamGridDB-Einstellungen gespeichert.'); } }}, 'Speichern'),
+        h('button', {type:'button', onclick: async () => {
+          if (!saveCfg()) return; msg.textContent = 'Teste die Verbindung ...'; tests.replaceChildren();
+          const res = await testServices();
+          const bad = res.filter(r => !r.ok);
+          msg.textContent = bad.length ? bad.length + ' von ' + res.length + ' Verbindungen funktionieren nicht: ' + bad.map(r => r.name).join(', ') + '. Details unten.' : 'Alle Verbindungen in Ordnung.';
+          tests.replaceChildren(...res.map(r => h('div', {class: 'tline ' + (!r.ok ? 'bad' : r.warn ? 'warn' : 'good')}, h('b', {class: 'tmark'}, !r.ok ? '✗' : r.warn ? '⚠' : '✓'), ' ' + r.name + ': ' + r.text)));
+        }}, 'Verbindung testen'),
+        h('button', {type:'button', class:'danger', onclick: () => { store.set('sgdb-key',''); store.set('sgdb-proxy',''); key.value = ''; proxy.value = ''; msg.textContent = 'Gespeicherte Werte gelöscht.'; }}, 'Löschen')),
+      h('h3', {}, 'Einstellungen sichern'),
+      h('p', {class:'hint'}, 'Speichert Schlüssel und Proxy-Adresse in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Die Datei enthält deinen Schlüssel: nicht weitergeben und nicht in ein Repo legen. Mit einem Passwort wird sie verschlüsselt.', ' ', docLink('Mehr dazu', 'steamgriddb.md', 'einstellungen-in-einer-datei-sichern')),
+      wrap('Passwort (optional)', pw, 'Wird beim Sichern zum Verschlüsseln und beim Einlesen zum Entschlüsseln benutzt. Ein vergessenes Passwort lässt sich nicht wiederherstellen.'),
+      h('div', {class:'row'},
+        h('button', {type:'button', onclick: async () => {
+          const vals = {key: key.value.trim(), proxy: proxy.value.trim()};
+          if (!vals.key && !vals.proxy){ msg2.textContent = 'Es gibt noch nichts zu sichern.'; return; }
+          try {
+            const text = await packSettings(vals, pw.value), name = 'discmenu-einstellungen.json'; let where = name;
+            const plainDl = () => download(new Blob([text], {type:'application/json'}), name);
+            if (typeof window.showSaveFilePicker === 'function'){
+              try {
+                const hd = await window.showSaveFilePicker({suggestedName: name, types:[{description:'Einstellungen (JSON)', accept:{'application/json':['.json']}}]});
+                const w = await hd.createWritable(); await w.write(text); await w.close(); where = hd.name;
+              } catch (e) { if (e && e.name === 'AbortError') return; plainDl(); }
+            } else plainDl();
+            msg2.textContent = (pw.value ? 'Verschlüsselte Datei "' : 'Datei "') + where + '" gespeichert.' + (pw.value ? '' : ' Sie ist nicht verschlüsselt, also gut aufbewahren.');
+          } catch (e) { msg2.textContent = e.message; }
+        }}, 'In Datei sichern'),
+        h('button', {type:'button', onclick: () => fin.click()}, 'Aus Datei einlesen')),
+      msg2,
+      fin);
+  }
+
+  /* --- Suche und Bildauswahl ---
+     o: {type:'grids'|'heroes', term, title, finishLabel, withDescription, allowNoImage, onDone({game,image,description})} */
+  function sgdbPicker(o){
+    const stepSearch = () => {
+      const input = h('input', {type:'text', placeholder:'Spieltitel, z. B. Stronghold', value: o.term || ''});
+      const msg = h('p', {class:'hint'}, cfg.key ? '' : 'Für die Suche wird ein API-Schlüssel benötigt. Trage ihn über den Knopf "SteamGridDB" oben ein.');
+      const list = h('div', {class:'list'});
+      const go = async () => {
+        const t = input.value.trim(); if (!t) return;
+        msg.textContent = 'Suche läuft ...'; list.replaceChildren();
+        try {
+          const res = await sgGet('/search/autocomplete/' + encodeURIComponent(t));
+          msg.textContent = res.length ? 'Spiel auswählen:' : 'Keine Treffer. Anderen Titel versuchen.';
+          list.replaceChildren(...res.slice(0,20).map(g => {
+            const y = typeof g.release_date === 'number' ? new Date(g.release_date * 1000).getFullYear() : 0;
+            return h('button', {type:'button', onclick: () => stepGallery(g)}, g.name + (g.verified ? ' ✓' : '') + (y > 1970 ? ' · ' + y : ''));
+          }));
+        } catch (e) { showMsg(msg, e.message); }
+      };
+      input.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); go(); } });
+      openDlg(o.title || 'Bei SteamGridDB suchen', h('div', {class:'row'}, input, h('button', {type:'button', class:'pri', onclick: go}, 'Suchen')), msg, list,
+        h('p', {class:'hint'}, ext('SteamGridDB', LINKS.sgdb), ' · ', docLink('Anleitung', 'steamgriddb.md', 'was-möglich-ist')));
+      if (o.term && cfg.key) go();
+    };
+
+    const stepGallery = async game => {
+      let chosen = null;
+      const msg = h('p', {class:'hint'}, 'Bilder werden geladen ...');
+      const gal = h('div', {class:'gal'});
+      const fmtSel = o.type === 'heroes' ? null : h('select', {onchange: () => load()},
+        h('option', {value:'600x900,342x482,660x930'}, 'Hochformat (Cover)'), h('option', {value:'920x430,460x215'}, 'Querformat'), h('option', {value:''}, 'Alle Formate'));
+      const desc = o.withDescription ? descBlock({name: () => game.name, game, withCheck: true}) : null;
+      const okBtn = h('button', {type:'button', class:'pri'}, o.finishLabel || 'Übernehmen');
+      const finish = async useImage => {
+        okBtn.disabled = true; msg.textContent = 'Bild wird übernommen ...';
+        try {
+          let image = null;
+          if (useImage && chosen) image = await processImage(await fetchImage(chosen.url), o.type === 'heroes' ? 'background' : 'cover');
+          await o.onDone({game, image, description: desc ? desc.value() : ''});
+          closeDlg();
+        } catch (e) { showMsg(msg, e.message); okBtn.disabled = false; }
+      };
+      okBtn.addEventListener('click', () => { if (!chosen && !o.allowNoImage){ msg.textContent = 'Bitte zuerst ein Bild auswählen.'; return; } finish(true); });
+      const load = async () => {
+        gal.replaceChildren(); chosen = null; msg.textContent = 'Bilder werden geladen ...';
+        try {
+          const params = {types:'static', nsfw:'false'}; if (fmtSel && fmtSel.value) params.dimensions = fmtSel.value;
+          const list = sortGrids(await sgGet((o.type === 'heroes' ? '/heroes/game/' : '/grids/game/') + game.id, params)).slice(0,60);
+          msg.textContent = list.length ? 'Bild auswählen (' + list.length + ' angezeigt):' : 'Keine Bilder in diesem Format gefunden.';
+          gal.replaceChildren(...list.map(it => {
+            const b = h('button', {type:'button', onclick: () => { gal.querySelectorAll('button').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); chosen = it; }},
+              h('img', {src: it.thumb || it.url, alt:'', loading:'lazy', referrerpolicy:'no-referrer'}),
+              h('small', {}, (it.width && it.height ? it.width + '×' + it.height : '') + (it.language ? ' · ' + it.language : '') + (it.style ? ' · ' + it.style : '')));
+            return b;
+          }));
+        } catch (e) { showMsg(msg, e.message); }
+      };
+      openDlg(game.name,
+        h('div', {class:'row'}, h('button', {type:'button', class:'sm', onclick: stepSearch}, '← Andere Suche'), fmtSel),
+        msg, gal,
+        desc ? desc.node : null,
+        h('div', {class:'row'}, okBtn, o.allowNoImage ? h('button', {type:'button', onclick: () => finish(false)}, 'Ohne Bild übernehmen') : null));
+      load();
+      if (desc) desc.load();
+    };
+    stepSearch();
+  }
+
+  function addGameViaSgdb(){
+    sgdbPicker({type:'grids', term:'', title:'Spiel über SteamGridDB hinzufügen', finishLabel:'Spiel anlegen', withDescription:true, allowNoImage:true,
+      onDone: ({game, image, description}) => {
+        const g = newGame(); g.name = game.name;
+        if (image) g.cover = addAsset(image.data, image.ext);
+        if (description) g.description = description;
+        const only = state.games.length === 1 ? state.games[0] : null;
+        const empty = only && !only.name && !only.cover && !only.description && !only.installer && !only.args && !only.estimatedSizeMB && !only.dlcs.length && !only.patches.length && !only.extras.length;
+        if (empty) state.games[0] = g; else state.games.push(g);
+        sel = state.games.indexOf(g); renderAll(); save();
+      }});
+  }
+
+  /* --- Beschreibungen: Quellen, Übersetzung, Dialog --- */
+  /* Quellen für Beschreibungen: Steam-Shop, GOG und Epic Games Store (alle drei brauchen meist den Proxy) */
+  async function steamDescriptions(name, game){
+    const ids = [];
+    if (game && game.id) try {
+      const gd = await sgGet('/games/id/' + game.id, {platformdata: 'steam'});
+      const st = gd && gd.external_platform_data && gd.external_platform_data.steam;
+      if (Array.isArray(st) && st[0] && st[0].id) ids.push(String(st[0].id));
+    } catch (e) { /* weiter mit der Steam-Suche */ }
+    const r = await net('https://store.steampowered.com/api/storesearch/?l=german&cc=DE&term=' + encodeURIComponent(name));
+    const j = await r.json();
+    for (const it of rankByName(name, j.items, i => i.name, 3)){ const id = String(it.id); if (!ids.includes(id)) ids.push(id); }
+    const out = await Promise.all(ids.slice(0,3).map(async id => {
+      const r2 = await net('https://store.steampowered.com/api/appdetails?l=german&appids=' + id);
+      const j2 = await r2.json(); const d = j2 && j2[id] && j2[id].data;
+      const text = d ? htmlToText(d.short_description || '') : '';
+      return text ? {label: 'Steam-Shop: ' + (d.name || id), lang: looksGerman(text) ? 'de' : 'en', text, url: 'https://store.steampowered.com/app/' + id} : null;
+    }));
+    return out.filter(Boolean);
+  }
+  async function gogDescriptions(name){
+    const q = new URLSearchParams({limit:'10', query:'like:' + name, order:'desc:score', productType:'in:game,pack,dlc', page:'1', countryCode:'DE', locale:'de-DE', currencyCode:'EUR'});
+    const r = await net('https://catalog.gog.com/v1/catalog?' + q.toString());
+    if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.');
+    const j = await r.json();
+    const list = (Array.isArray(j.products) ? j.products : []).map(p => ({id: String(p.id || p.productId || ''), title: String(p.title || p.name || ''), slug: p.slug || ''})).filter(p => p.id && p.title);
+    const out = await Promise.all(rankByName(name, list, p => p.title, 3).map(async p => {
+      const r2 = await net('https://api.gog.com/products/' + encodeURIComponent(p.id) + '?expand=description&locale=de-DE');
+      if (!r2.ok) return null;
+      const d = (await r2.json()).description; if (!d) return null;
+      const text = CORE.trimIntro(htmlToText(d.full || d.lead || ''), 700);
+      return text ? {label: 'GOG: ' + p.title, lang: looksGerman(text) ? 'de' : 'en', text, url: p.slug ? 'https://www.gog.com/game/' + p.slug : ''} : null;
+    }));
+    return out.filter(Boolean);
+  }
+  async function epicDescriptions(name){
+    const base = slug(name), out = [];
+    for (const sg of [...new Set([base, base.replace(/^the-/, '')])].filter(Boolean)){
+      const r = await net('https://store-content.ak.epicgames.com/api/de/content/products/' + encodeURIComponent(sg));
+      if (!r.ok) continue;
+      const t = epicText(await r.json()); if (!t) continue;
+      const text = CORE.trimIntro(t.text, 700);
+      out.push({label: 'Epic Games Store: ' + (t.title || sg), lang: looksGerman(text) ? 'de' : 'en', text, url: 'https://store.epicgames.com/de/p/' + sg});
+    }
+    return out;
+  }
+  async function findDescriptions(name, game){
+    const sources = [['Steam', () => steamDescriptions(name, game)], ['GOG', () => gogDescriptions(name)], ['Epic', () => epicDescriptions(name)]];
+    const res = await Promise.allSettled(sources.map(([, fn]) => fn()));
+    const items = [], failed = new Map();
+    res.forEach((r, i) => {
+      if (r.status === 'fulfilled') items.push(...r.value);
+      else { const m = String((r.reason && r.reason.message) || r.reason); failed.set(m, (failed.get(m) || []).concat(sources[i][0])); }
+    });
+    const errors = [...failed].map(([m, names]) => names.join(', ') + ': ' + m);   // gleiche Meldung nur einmal zeigen
+    items.sort((a,b) => (b.lang === 'de') - (a.lang === 'de'));
+    return {items, errors};
+  }
+  async function translateToGerman(text){
+    const out = [];
+    for (const para of chunkText(text, 450)){
+      const parts = [];
+      for (const chunk of para){
+        let r; try { r = await fetch('https://api.mymemory.translated.net/get?langpair=en%7Cde&q=' + encodeURIComponent(chunk)); } catch (e) { throw new Error('Der Übersetzungsdienst ist nicht erreichbar oder blockiert die Anfrage.'); }
+        const j = await r.json().catch(() => null);
+        if (!r.ok || !j || Number(j.responseStatus) !== 200 || !j.responseData) throw new Error((j && j.responseDetails) || 'Der Übersetzungsdienst hat nicht geantwortet.');
+        parts.push(htmlToText(j.responseData.translatedText || ''));
+      }
+      out.push(parts.join(' '));
+    }
+    return out.join('\n');
+  }
+  function descBlock(o){
+    let items = [];
+    const info = h('small', {}, '');
+    const sel = h('select', {onchange: () => { const it = items[sel.selectedIndex]; if (it){ ta.value = it.text; note(it); refresh(); } }}); sel.hidden = true;
+    const ta = h('textarea', {rows:5, placeholder:'Beschreibung', oninput: () => refresh()});
+    const tr = h('button', {type:'button', class:'sm', onclick: async () => {
+      tr.disabled = true; info.textContent = 'Übersetze ...';
+      try { ta.value = await translateToGerman(ta.value); info.textContent = 'Maschinell übersetzt (MyMemory). Bitte kurz prüfen.'; }
+      catch (e) { info.textContent = /MYMEMORY WARNING/i.test(e.message) ? 'Das kostenlose Tageslimit des Übersetzungsdienstes ist aufgebraucht. Bitte später erneut versuchen.' : e.message; }
+      tr.disabled = false; refresh();
+    }}, 'Ins Deutsche übersetzen'); tr.hidden = true;
+    const chk = o.withCheck ? h('input', {type:'checkbox', checked:true}) : null;
+    function refresh(){ tr.hidden = !ta.value.trim() || looksGerman(ta.value); }
+    function note(it){ info.textContent = 'Quelle: ' + it.label + (it.lang === 'de' ? ' (Deutsch)' : ' (Englisch, lässt sich übersetzen)') + (it.url ? ' · ' + it.url : ''); }
+    const node = h('div', {class:'f'}, chk ? h('label', {class:'row'}, chk, 'Beschreibung übernehmen') : null, sel, ta, h('div', {class:'row'}, tr), info, h('small', {}, docLink('Hilfe zur Beschreibungssuche', 'steamgriddb.md', 'beschreibungen')));
+    return {node, value: () => (chk && !chk.checked) ? '' : ta.value.trim(),
+      async load(){
+        info.textContent = 'Beschreibung wird gesucht ...'; sel.hidden = true; items = [];
+        const r = await findDescriptions(o.name(), o.game);
+        items = r.items; sel.replaceChildren(...items.map(i => h('option', {}, i.label + (i.lang === 'de' ? '' : ' (Englisch)')))); sel.hidden = items.length < 2;
+        if (items.length){ sel.selectedIndex = 0; ta.value = items[0].text; note(items[0]); }
+        else { if (chk) chk.checked = false; showMsg(info, 'Keine Beschreibung gefunden.' + (r.errors.length ? ' ' + r.errors.join(' ') : '')); }
+        refresh();
+      }};
+  }
+  function openDescDialog(o){
+    const input = h('input', {type:'text', placeholder:'Titel', value: o.term || ''});
+    const blk = descBlock({name: () => input.value.trim()});
+    const go = () => { if (input.value.trim()) blk.load(); };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); go(); } });
+    openDlg('Beschreibung suchen', h('div', {class:'row'}, input, h('button', {type:'button', class:'pri', onclick: go}, 'Suchen')), blk.node,
+      h('div', {class:'row'}, h('button', {type:'button', class:'pri', onclick: () => { const t = blk.value(); if (!t){ toast('Es gibt noch keine Beschreibung zum Übernehmen.'); return; } o.onDone(t); closeDlg(); }}, 'Übernehmen')));
+    go();
+  }
+  const descBtn = (obj, termFn) => h('button', {type:'button', class:'sm sgbtn', onclick: () => openDescDialog({term: termFn(), onDone: t => { obj.description = t; renderEditor(); touch(); }})}, '🔎 Beschreibung suchen');
+
+  /* --- Projekte (IndexedDB im Browser, optional) --- */
+  const DB = {
+    open(){ return new Promise((res,rej) => { const r = indexedDB.open('discmenu-konfigurator',1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+    async get(k){ const db = await this.open(); return new Promise((res,rej) => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+    async setMany(pairs){ const db = await this.open(); return new Promise((res,rej) => { const t = db.transaction('kv','readwrite'); const st = t.objectStore('kv'); pairs.forEach(([k,v]) => st.put(v,k)); t.oncomplete = () => res(); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }); },
+    async del(keys){ const db = await this.open(); return new Promise((res,rej) => { const t = db.transaction('kv','readwrite'); const st = t.objectStore('kv'); [].concat(keys).forEach(k => st.delete(k)); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
+    async metas(){ const db = await this.open(); return new Promise((res,rej) => { const q = db.transaction('kv').objectStore('kv').getAll(IDBKeyRange.bound('meta:','meta:\uffff')); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); }); }
+  };
+  let projId = null, fileHandle = null;
+  const projTitle = () => state.title.trim() || 'Unbenanntes Projekt';
+  const newProjId = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  function setSaved(ok){ const el = $('#savedAt'); if (el) el.textContent = ok ? 'Gespeichert ' + new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) : 'Speichern im Browser nicht möglich'; }
+  function isEmptyProject(){
+    const g = state.games[0];
+    return !assets.size && !state.title.trim() && !state.output.trim() && state.games.length === 1 && !g.name && !g.installer && !g.description && !g.dlcs.length && !g.patches.length && !g.extras.length;
+  }
+  async function save(){
+    touched = true; if (!projId) projId = newProjId();
+    const id = projId, ids = usedIds(state);
+    try {
+      await DB.setMany([
+        ['proj:' + id, {state, counter, assets: [...assets].filter(([k]) => ids.has(k)).map(([k,a]) => [k, {data:a.data, ext:a.ext}])}],
+        ['meta:' + id, {id, title: projTitle(), games: state.games.length, updated: Date.now()}],
+        ['current', id]]);
+      setSaved(true); return true;
+    } catch (e) { setSaved(false); return false; }
+  }
+  async function saveHandle(){
+    if (!projId) return;
+    try { if (fileHandle) await DB.setMany([['fh:' + projId, fileHandle]]); else await DB.del('fh:' + projId); } catch (e) { /* Dateiverknüpfung ist optional */ }
+  }
+  async function loadProject(id, guard){
+    const rec = await DB.get('proj:' + id);
+    if (guard && touched) return;
+    if (!rec || !sane(rec.state)) throw new Error('Das Projekt konnte nicht geladen werden.');
+    assets.clear(); for (const [k,a] of rec.assets) assets.set(k,a);
+    state = rec.state; counter = rec.counter || 1; projId = id; sel = 0;
+    try { fileHandle = (await DB.get('fh:' + id)) || null; } catch (e) { fileHandle = null; }
+    try { await DB.setMany([['current', id]]); } catch (e) { /* ignorieren */ }
+    renderAll(); setSaved(true);
+  }
+  async function switchToNew(st, as, handle){
+    const empty = isEmptyProject();
+    if (!empty){ await save(); projId = null; }
+    assets.clear(); for (const [k,a] of as) assets.set(k,a);
+    state = st; fileHandle = handle || null; sel = 0;
+    renderAll(); await save(); await saveHandle();
+  }
+  async function restore(){
+    try {
+      const id = await DB.get('current');
+      if (id){ await loadProject(id, true); return; }
+      const d = await DB.get('draft');            // Übernahme aus der früheren Version (ein einzelner Entwurf)
+      if (d && sane(d.state) && !touched){
+        state = d.state; counter = d.counter || 1; for (const [k,a] of d.assets) assets.set(k,a);
+        projId = null; await save(); await DB.del('draft'); toast('Der frühere Entwurf wurde als Projekt übernommen.');
+      }
+    } catch (e) { /* ignorieren */ }
+  }
+  async function openProjects(){
+    let metas = []; try { metas = await DB.metas(); } catch (e) { /* ignorieren */ }
+    metas.sort((a,b) => b.updated - a.updated);
+    const list = h('div', {class:'list'}, metas.length ? metas.map(m => h('div', {class:'row'},
+      h('span', {style:'flex:1'}, (m.id === projId ? '● ' : '') + m.title + ' · ' + m.games + ' Spiel(e) · ' + new Date(m.updated).toLocaleString('de-DE')),
+      m.id === projId ? null : h('button', {type:'button', class:'sm', onclick: async () => { try { if (!isEmptyProject()) await save(); await loadProject(m.id); closeDlg(); } catch (e) { toast(e.message); } }}, 'Öffnen'),
+      h('button', {type:'button', class:'sm danger', onclick: async () => {
+        if (!confirm('Projekt "' + m.title + '" wirklich löschen?')) return;
+        try { await DB.del(['proj:' + m.id, 'meta:' + m.id, 'fh:' + m.id]); } catch (e) { /* ignorieren */ }
+        if (m.id === projId){ projId = null; fileHandle = null; assets.clear(); state = newState(); sel = 0; renderAll(); }
+        openProjects();
+      }}, 'Löschen'))) : h('p', {class:'hint'}, 'Noch keine gespeicherten Projekte.'));
+    openDlg('Projekte', h('p', {class:'hint'}, 'Projekte liegen nur in diesem Browser und werden automatisch gespeichert. Eine Datei entsteht erst mit "Als ZIP exportieren".'), list,
+      h('div', {class:'row'}, h('button', {type:'button', class:'pri', onclick: async () => { await switchToNew(newState(), new Map(), null); closeDlg(); }}, 'Neues Projekt')));
+  }
+
+  /* --- Eingabefelder --- */
+  let tT; function touch(){ clearTimeout(tT); tT = setTimeout(() => { renderNav(); renderSide(); save(); }, 250); }
+  function wrap(label, input, hint){ return h('label', {class:'f'}, h('span',{class:'lab'},label), input, hint ? h('small',{},hint) : null); }
+  function txt(obj, key, o = {}){
+    const el = h(o.multiline ? 'textarea' : 'input', {type: o.multiline ? null : (o.type || 'text'), placeholder: o.ph || '', rows: o.multiline ? 3 : null, list: o.list || null,
+      oninput: () => { obj[key] = el.value; if (o.on) o.on(el.value); touch(); }});
+    el.value = obj[key]; return el;
+  }
+  function fileField(label, obj, key, o){
+    const box = h('div', {class:'drop'});
+    const draw = () => {
+      box.replaceChildren(); const id = obj[key];
+      if (id && assets.has(id)){
+        const a = assets.get(id);
+        box.append(o.kind === 'sound' ? h('audio', {controls:true, src:assetUrl(id)}) : h('img', {src:assetUrl(id), alt:''}),
+          h('span',{class:'meta'}, a.ext.toUpperCase() + ', ' + fmt(a.data.length)),
+          h('button', {type:'button', class:'sm', onclick: () => { obj[key] = null; draw(); touch(); }}, 'Entfernen'));
+      } else box.append(h('span',{class:'hint'}, o.kind === 'sound' ? 'Sound hierher ziehen oder tippen (WAV, OGG, MP3)' : 'Bild hierher ziehen oder tippen'));
+    };
+    const take = async f => {
+      try {
+        if (o.kind === 'sound'){
+          const ext = (f.name.split('.').pop() || '').toLowerCase();
+          if (!['wav','ogg','mp3'].includes(ext)) throw new Error('Nur WAV, OGG oder MP3 werden unterstützt.');
+          obj[key] = addAsset(new Uint8Array(await f.arrayBuffer()), ext);
+          if (f.size > 2097152) toast('Hinweis: Die Datei ist größer als 2 MB und macht die Menü-EXE größer.');
+        } else { const r = await processImage(f, o.kind); obj[key] = addAsset(r.data, r.ext); }
+        draw(); touch();
+      } catch (e) { toast(e.message || 'Die Datei konnte nicht gelesen werden.'); }
+    };
+    const inp = h('input', {type:'file', accept: o.kind === 'sound' ? 'audio/*,.wav,.ogg,.mp3' : 'image/*', hidden:true, onchange: async () => { if (inp.files[0]) await take(inp.files[0]); inp.value = ''; }});
+    box.addEventListener('click', e => { if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'AUDIO') inp.click(); });
+    box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('over'); });
+    box.addEventListener('dragleave', () => box.classList.remove('over'));
+    box.addEventListener('drop', async e => { e.preventDefault(); box.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) await take(f); });
+    draw();
+    const sg = o.kind === 'sound' ? null : h('button', {type:'button', class:'sm sgbtn', onclick: () => sgdbPicker({
+      type: o.kind === 'background' ? 'heroes' : 'grids', term: o.term ? o.term() : '',
+      title: o.kind === 'background' ? 'Hintergrund bei SteamGridDB suchen' : 'Cover bei SteamGridDB suchen', finishLabel: 'Bild übernehmen',
+      onDone: ({image}) => { if (image){ obj[key] = addAsset(image.data, image.ext); draw(); touch(); } }
+    })}, '🔎 Bei SteamGridDB suchen');
+    return h('div', {class:'f'}, h('span',{class:'lab'},label), box, sg, inp, o.hint ? h('small',{},o.hint) : null);
+  }
+
+  function move(arr, i, d){ const j = i + d; if (j < 0 || j >= arr.length) return false; [arr[i], arr[j]] = [arr[j], arr[i]]; return true; }
+
+  function itemCard(g, key, idx){
+    const it = g[key][idx];
+    const nameSpan = h('span', {}, it.name || '(ohne Namen)');
+    const chip = h('span', {class:'chip'}, it.group); chip.hidden = !it.group;
+    const d = h('details', {class:'card', ontoggle: () => { it._open = d.open; }}, h('summary', {}, nameSpan, chip));
+    if (it._open) d.open = true;
+    const kind = h('select', {value: it.kind, onchange: () => { it.kind = kind.value; renderEditor(); touch(); }},
+      h('option', {value:'installer'}, 'Installer starten'), h('option', {value:'open'}, 'Datei, Ordner oder Link öffnen'));
+    kind.value = it.kind;
+    const body = h('div', {class:'body'},
+      wrap('Name', txt(it,'name',{ph:'z. B. Deutscher Sprachpatch', on: v => { nameSpan.textContent = v || '(ohne Namen)'; }})),
+      wrap('Gruppe (Unterkategorie, optional)', txt(it,'group',{list:'dl-'+key, on: v => { chip.textContent = v; chip.hidden = !v; }})),
+      wrap('Beschreibung (optional)', txt(it,'description',{multiline:true})),
+      descBtn(it, () => it.name || g.name),
+      fileField('Bild (optional)', it, 'cover', {kind:'cover', term: () => g.name}),
+      wrap('Aktion', kind),
+      wrap(it.kind === 'installer' ? 'Installer-Pfad auf der Disc' : 'Pfad auf der Disc oder Link (https://...)', txt(it,'path',{ph: it.kind === 'installer' ? 'Spiel1/Patches/patch.exe' : 'Spiel1/Extras/Soundtrack'})),
+      it.kind === 'installer' ? wrap('Zusätzliche Parameter (optional)', txt(it,'args',{ph:'/NORESTART'}), 'Mit Leerzeichen getrennt. Parameter mit Leerzeichen in Anführungszeichen setzen.') : null,
+      h('div', {class:'row'},
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(g[key],idx,-1)){ renderEditor(); touch(); } }},'↑ Nach oben'),
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(g[key],idx,1)){ renderEditor(); touch(); } }},'↓ Nach unten'),
+        h('button',{type:'button',class:'sm danger',onclick:() => { g[key].splice(idx,1); renderEditor(); touch(); }},'Entfernen')));
+    d.append(body); return d;
+  }
+  function section(g, key, title, hint){
+    return h('div', {}, h('h3', {}, title + ' (' + g[key].length + ')'), h('p',{class:'hint'},hint),
+      h('datalist', {id:'dl-'+key}, GROUPS[key].map(x => h('option',{value:x}))),
+      g[key].map((_,i) => itemCard(g,key,i)),
+      h('button',{type:'button',onclick:() => { g[key].push(newItem()); renderEditor(); touch(); }},'+ Eintrag hinzufügen'));
+  }
+
+  function discForm(){
+    return h('div', {}, h('h2',{},'Disc-Einstellungen'), h('p',{class:'hint'},'Gilt für das ganze Menü.'),
+      wrap('Titel des Menüs', txt(state,'title',{ph:'z. B. Stronghold Collection'})),
+      wrap('Dateiname der Menü-EXE (optional)', txt(state,'output',{ph:'Setup-Menu.exe'})),
+      fileField('Hintergrundbild (optional)', state, 'background', {kind:'background', term: () => (state.games[0] ? state.games[0].name : ''), hint:'Wird auf höchstens 1920 Pixel verkleinert und als JPEG gespeichert.'}),
+      fileField('Klick-Sound (optional)', state.sounds, 'click', {kind:'sound'}),
+      fileField('Hover-Sound (optional)', state.sounds, 'hover', {kind:'sound'}));
+  }
+  function providerSelect(g){
+    const sel = h('select', {onchange: () => { g.provider = sel.value; renderEditor(); renderNav(); touch(); }},
+      Object.entries(PROVIDERS).map(([id, p]) => h('option', {value:id}, p.name)));
+    sel.value = g.provider || 'gog'; return sel;
+  }
+  function gameForm(g, i){
+    return h('div', {},
+      h('div',{class:'row'}, h('h2',{style:'flex:1'}, 'Spiel ' + i),
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(state.games,i,-1)){ sel = i-1; renderAll(); save(); } }},'↑'),
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(state.games,i,1)){ sel = i+1; renderAll(); save(); } }},'↓'),
+        h('button',{type:'button',class:'sm danger',onclick:() => { if (confirm('Dieses Spiel mit allen Einträgen löschen?')){ state.games.splice(i,1); sel = state.games.length ? Math.min(i, state.games.length-1) : 'disc'; renderAll(); save(); } }},'Löschen')),
+      h('p',{class:'hint'},'Der Index ergibt sich aus der Reihenfolge der Spiele (0, 1, 2 ...).'),
+      wrap('Name', txt(g,'name',{ph:'z. B. Stronghold HD'})),
+      wrap('Quelle des Spiels', providerSelect(g), PROVIDERS[g.provider || 'gog'].note || 'Bestimmt Abzeichen, Farbe und Installationsweg im Menü.'),
+      fileField('Cover (optional)', g, 'cover', {kind:'cover', term: () => g.name, hint:'Wird auf höchstens 800 Pixel verkleinert und als PNG gespeichert.'}),
+      wrap('Beschreibung (optional)', txt(g,'description',{multiline:true})),
+      descBtn(g, () => g.name),
+      wrap('Installer-Pfad auf der Disc', txt(g,'installer',{ph:'Stronghold/setup_stronghold.exe'}), 'Relativ zur Disc-Wurzel, mit Schrägstrich.'),
+      wrap('Zusätzliche Parameter für die stille Installation (optional)', txt(g,'args',{ph:'/NORESTART'})),
+      wrap('Geschätzte installierte Größe in MB (optional)', txt(g,'estimatedSizeMB',{type:'number',ph:'1500'}), 'Für die Fortschrittsanzeige bei stiller Installation.'),
+      section(g,'dlcs','DLCs / Erweiterungen','Zusätzliche Installer zum Spiel.'),
+      section(g,'patches','Patches','Z. B. Sprach-, Grafik- oder Sound-Patches. Mit "Gruppe" lassen sie sich unterteilen.'),
+      section(g,'extras','Extras','Soundtrack, Artbooks, Handbücher und mehr. Mit "Gruppe" lassen sie sich unterteilen.'));
+  }
+
+  function providerChip(g){ const p = PROVIDERS[g.provider || 'gog']; return h('span', {class:'chip', style:'margin-left:6px;color:' + p.color + ';border-color:' + p.color}, p.name); }
+  function renderNav(){
+    $('#nav').replaceChildren(
+      h('button',{type:'button',class:'nv' + (sel==='disc' ? ' on' : ''),onclick:() => { sel = 'disc'; renderAll(); }}, '⚙ Disc-Einstellungen'),
+      ...state.games.map((g,i) => h('button',{type:'button',class:'nv' + (sel===i ? ' on' : ''),onclick:() => { sel = i; renderAll(); }}, h('b',{},String(i)), ' ', g.name || '(ohne Namen)', providerChip(g))),
+      h('button',{type:'button',class:'nv add',onclick:() => { state.games.push(newGame()); sel = state.games.length-1; renderAll(); save(); }}, '+ Spiel hinzufügen'),
+      h('button',{type:'button',class:'nv add',onclick:addGameViaSgdb}, '🔎 Spiel über SteamGridDB hinzufügen'));
+  }
+  function renderEditor(){
+    const ed = $('#editor'); ed.replaceChildren();
+    if (sel === 'disc' || !state.games[sel]) { sel = 'disc'; ed.append(discForm()); } else ed.append(gameForm(state.games[sel], sel));
+  }
+  function renderSide(){
+    const issues = validate(state), errs = issues.filter(i => i.level === 'error').length;
+    $('#bExp').disabled = errs > 0;
+    const json = JSON.stringify(buildMenu(state, assets).menu, null, 2);
+    $('#side').replaceChildren(
+      h('div',{class:'box'}, h('h3',{style:'margin-top:0'},'Prüfung'),
+        issues.length ? issues.map(i => h('div',{class:'issue ' + i.level}, (i.level === 'error' ? 'Fehler: ' : 'Hinweis: ') + i.msg)) : h('div',{class:'ok'},'Alles in Ordnung. Das Rezept kann exportiert werden.'),
+        typeof window.showDirectoryPicker === 'function' ? h('button',{type:'button',class:'sm',style:'margin-top:10px',onclick:runDiscCheck},'📁 Disc-Ordner prüfen') : h('small',{style:'display:block;margin-top:10px'},'Die Prüfung der Disc-Dateien braucht Chrome oder Edge am Computer.')),
+      h('details',{class:'box'}, h('summary',{},'Vorschau menu.json'), h('pre',{},json)));
+  }
+  function renderAll(){ renderNav(); renderEditor(); renderSide(); }
+
+  /* --- Disc-Ordner prüfen --- */
+  async function resolveIn(root, path){
+    let dir = root; const parts = path.split('/').filter(Boolean);
+    const find = async (d, name) => {              // exakt, sonst ohne Beachtung der Groß-/Kleinschreibung (Discs sind meist unempfindlich)
+      for (const kind of ['getDirectoryHandle','getFileHandle']){ try { return [kind === 'getDirectoryHandle' ? 'dir' : 'file', await d[kind](name)]; } catch (e) { /* weiter */ } }
+      for await (const [n, hd] of d.entries()) if (n.toLowerCase() === name.toLowerCase()) return [hd.kind === 'directory' ? 'dir' : 'file', hd];
+      return null;
+    };
+    for (let i = 0; i < parts.length; i++){
+      const r = await find(dir, parts[i]); if (!r) return null;
+      if (i === parts.length - 1) return r[0];
+      if (r[0] !== 'dir') return null; dir = r[1];
+    }
+    return 'dir';
+  }
+  async function runDiscCheck(){
+    let root; try { root = await window.showDirectoryPicker({mode:'read'}); } catch (e) { if (!(e && e.name === 'AbortError')) toast('Ordner konnte nicht geöffnet werden: ' + (e.message || e)); return; }
+    openDlg('Disc-Ordner wird geprüft ...', h('p', {class:'hint'}, 'Einen Moment.'));
+    const r = await checkDisc(state, p => resolveIn(root, p));
+    const errs = r.issues.filter(i => i.level === 'error').length;
+    openDlg('Disc-Prüfung: ' + root.name,
+      h('p', {class: errs ? 'issue error' : 'ok'}, errs ? errs + ' Problem(e) bei ' + r.checked + ' geprüften Pfaden.' : 'Alle ' + r.checked + ' Pfade gefunden.'),
+      r.issues.map(i => h('div', {class:'issue ' + i.level}, (i.level === 'error' ? 'Fehler: ' : 'Hinweis: ') + i.msg)),
+      h('p', {class:'hint'}, 'Es wird nur gelesen, nichts verändert und nichts hochgeladen. Der Ordner sollte so aufgebaut sein wie die fertige Disc (Wurzel = Ordner, in dem die Menü-EXE liegt).'));
+  }
+
+  /* --- JSON bearbeiten --- */
+  function openJsonEditor(){
+    const {menu, map} = buildMenu(state, assets);
+    const byPath = new Map([...map].map(([id,pth]) => [pth,id]));
+    const ta = h('textarea', {class:'code', spellcheck:'false'}); ta.value = JSON.stringify(menu, null, 2) + '\n';
+    const msg = h('div', {class:'issue'}); 
+    const apply = h('button', {type:'button', class:'pri', onclick: () => {
+      let m; try { m = JSON.parse(ta.value); } catch (e) { msg.className = 'issue error'; msg.textContent = 'Kein gültiges JSON: ' + e.message; return; }
+      try {
+        const r = parseMenu(m, p => byPath.get(String(p).replace(/\\/g,'/')) || null);
+        state = r.state; sel = 0; renderAll(); save(); closeDlg();
+        toast(r.notes.length ? 'Übernommen, mit Hinweisen:\n' + r.notes.slice(0,6).join('\n') : 'Änderungen übernommen. Die Prüfung rechts zeigt, ob alles passt.');
+      } catch (e) { msg.className = 'issue error'; msg.textContent = e.message || String(e); }
+    }}, 'Änderungen übernehmen');
+    openDlg('menu.json bearbeiten',
+      h('p', {class:'hint'}, 'Bilder und Sounds bleiben über ihren Pfad (assets/...) verbunden. Neue Dateien lassen sich nur in der Maske hinzufügen. Felder, die das Format nicht kennt, werden verworfen. Das Schema liegt unter ',
+        h('a', {href:'https://github.com/EinMensch002/DiscMenu-Builder/blob/main/schema/menu.schema.json', target:'_blank', rel:'noopener noreferrer'}, 'schema/menu.schema.json'), '.'),
+      ta, msg, h('div', {class:'row', style:'margin-top:10px'}, apply, h('button', {type:'button', onclick:closeDlg}, 'Abbrechen')));
+  }
+
+  /* --- Vorschau mit Simulation: bildet den Player nach (Layout, Farben, Anbieter-Look, Installationsablauf) --- */
+  const hexRgb = c => [1,3,5].map(i => parseInt(c.slice(i, i+2), 16));
+  const inkFor = c => { const [r,g,b] = hexRgb(c); return 0.299*r + 0.587*g + 0.114*b > 150 ? '#14161e' : '#ffffff'; };
+
+  function openPreview(){
+    const S = {page: state.games.length > 1 ? 'select' : 'game', cur: 0, cat: null, focus: null, silent: false, targets: {}, modal: null,
+      result: 'ok', speed: 1, log: [], timers: new Set()};
+    const stage = h('div', {class:'stage'}), wrap = h('div', {class:'stagewrap'}, stage);
+    const logBox = h('div', {class:'simlog'});
+    const say = (msg, strong) => { S.log.push([new Date().toLocaleTimeString('de-DE'), msg, strong]); if (S.log.length > 60) S.log.shift();
+      logBox.replaceChildren(...S.log.map(([t,m,b]) => h('div', {}, t + '  ', b ? h('b', {}, m) : m))); logBox.scrollTop = logBox.scrollHeight; };
+    const later = (fn, ms) => { const t = setTimeout(() => { S.timers.delete(t); fn(); }, ms / S.speed); S.timers.add(t); return t; };
+    const every = (fn, ms) => { const t = setInterval(fn, ms); S.timers.add(t); return t; };
+    const stop = t => { clearTimeout(t); clearInterval(t); S.timers.delete(t); };
+    const play = k => { const id = state.sounds[k]; if (!id || !assets.has(id)) return; try { const a = new Audio(assetUrl(id)); const r = a.play(); if (r && r.catch) r.catch(() => {}); } catch (e) { /* kein Ton */ } };
+    const btn = (label, fn, cls, style) => { const b = h('button', {type:'button', class:'sbtn ' + (cls || ''), style: style || '', onclick: () => { play('click'); fn(); }}, label); b.addEventListener('mouseenter', () => { if (!b.disabled) play('hover'); }); return b; };
+    const g = () => state.games[S.cur], P = gm => PROVIDERS[gm.provider || 'gog'];
+    const badge = (gm, size) => { const p = P(gm); return h('span', {class:'badge', style:'background:' + p.badge + ';color:' + p.onBadge + ';font-size:' + (size || 14) + 'px;height:' + ((size || 14) + 10) + 'px'}, p.name); };
+    const cover = (id, name, w, hh) => h('div', {class:'cover', style:'width:' + w + 'px;height:' + hh + 'px;border-radius:10px;font-size:' + (w > 150 ? 20 : 11) + 'px;padding:8px'}, id && assets.has(id) ? h('img', {src:assetUrl(id), alt:''}) : (name || '(ohne Namen)'));
+
+    function fit(){ const avail = Math.max(300, $('#dlgBody').clientWidth), sc = Math.max(0.35, Math.min(avail / 1280, (window.innerHeight - 360) / 720));
+      wrap.style.width = Math.round(1280 * sc) + 'px'; wrap.style.margin = '0 auto'; stage.style.transform = 'scale(' + sc + ')'; wrap.style.height = Math.round(720 * sc) + 'px'; }
+    const onResize = () => fit(); window.addEventListener('resize', onResize);
+    dlg.addEventListener('close', () => { window.removeEventListener('resize', onResize); S.timers.forEach(stop); dlg.classList.remove('wide'); }, {once:true});
+
+    /* --- Seiten: klassisches Installer-Fenster (links Bild und Beschreibung, rechts Knöpfe) --- */
+    const ICON = {
+      arrow:'M7 12h9m-4-4l4 4-4 4', plus:'M12 7v10M7 12h10', up:'M12 17V8m-4 4l4-4 4 4', back:'M16 12H8m4-4l-4 4 4 4', x:'M8 8l8 8M16 8l-8 8',
+      doc:'M8 6.5h5.5L17 10v7.5H8zM13.5 6.5V10H17', folder:'M6 9h4l1.5 2H18v6.5H6z', link:'M10 14l4-4m-5.5 1.5L7 13a2.8 2.8 0 004 4l1.5-1.5m3-3L17 11a2.8 2.8 0 00-4-4l-1.5 1.5'
+    };
+    const icon = (name, color) => { const e = h('span', {class:'ic'}); e.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="' + color + '"/><path d="' + ICON[name] + '" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; return e; };
+    const cbtn = (label, ic, color, fn, o = {}) => {
+      const b = h('button', {type:'button', class:'cbtn' + (o.main ? ' main' : ''), title: o.title || label, onclick: () => { play('click'); fn(); }},
+        ic ? icon(ic, color) : null, h('span', {class:'lb'}, label), o.tag ? h('span', {class:'tg'}, o.tag) : null);
+      if (o.disabled) b.disabled = true;
+      b.addEventListener('mouseenter', () => { if (!b.disabled) play('hover'); if (o.focus !== undefined){ S.focus = o.focus; fillLeft(); } });
+      return b;
+    };
+    const rule = () => h('div', {class:'rule'});
+    let leftEl = null;
+    // Linke Seite: zeigt, worauf der Mauszeiger steht. Hat ein Eintrag ein eigenes Bild, wird dieses gezeigt, sonst das Bild des Spiels.
+    function fillLeft(){
+      if (!leftEl) return;
+      const gm = state.games[S.cur] || state.games[0], f = S.focus;
+      if (leftEl.lastFocus === f && leftEl.firstChild) return;
+      leftEl.lastFocus = f;
+      let name, cov, desc, hint = '';
+      if (S.page === 'select'){
+        // Ist nichts ausgewählt, zeigt die Seite das oberste Spiel. Fährt man über ein anderes, wechselt die Anzeige.
+        const sf = f || state.games[0];
+        name = sf.name || '(ohne Namen)'; cov = sf.cover; desc = sf.description.trim(); hint = desc ? '' : 'Keine Beschreibung.';
+      } else if (f){ name = f.name || '(ohne Namen)'; cov = f.cover && assets.has(f.cover) ? f.cover : gm.cover; desc = f.description.trim(); hint = ''; }
+      else { name = gm.name || '(ohne Namen)'; cov = gm.cover; desc = gm.description.trim(); hint = desc ? '' : 'Keine Beschreibung.'; }
+      const box = h('div', {class:'cbox'}, cov && assets.has(cov) ? h('img', {src:assetUrl(cov), alt:''}) : name);
+      leftEl.replaceChildren(box, h('div', {class:'lname'}, name), h('div', {class:'ldesc' + (desc ? '' : ' mut')}, desc || hint));
+    }
+    function optionsBar(gm, p){
+      if (S.page === 'select' || !p.canInstall) return null;
+      const cb = h('input', {type:'checkbox', onchange: () => { play('click'); S.silent = cb.checked; if (S.silent && p.usesTarget && !S.targets[S.cur]) S.targets[S.cur] = defaultTarget(gm.name); say('Stille Installation: ' + (S.silent ? 'an' : 'aus')); draw(); }});
+      cb.checked = S.silent;
+      const box = h('div', {class:'opts'}, h('label', {}, cb, 'Stille Installation (ohne Fenster des Installers)'));
+      if (S.silent && p.usesTarget){
+        const f = h('input', {class:'fld2', type:'text', placeholder:'z. B. C:\\GOG Games\\' + (gm.name || ''), oninput: () => { S.targets[S.cur] = f.value; }}); f.value = S.targets[S.cur] || '';
+        box.append(h('div', {class:'tr'}, h('span', {}, 'Zielordner'), f, h('button', {type:'button', onclick: () => { play('click'); const v = 'D:\\Spiele\\' + (gm.name || 'Spiel').replace(/[\\/:*?"<>|]/g, ''); S.targets[S.cur] = v; say('Ordnerdialog (simuliert): ' + v); draw(); }}, 'Durchsuchen ...')));
+      } else if (S.silent && !p.usesTarget && p.note) box.append(h('div', {class:'note', style:'margin-top:6px'}, p.note));
+      return box;
+    }
+    function windowShell(title, accent, gm, rightTop, rightBottom, opts){
+      leftEl = h('div', {class:'lc'});
+      const win = h('div', {class:'cw', style:'--acc-c:' + accent},
+        h('div', {class:'ttl'}, h('b', {}, title), gm ? badge(gm, 11) : null, h('div', {class:'wb'}, h('span', {}, '–'), h('span', {}, '☐'), h('span', {class:'x', onclick: quit}, '✕'))),
+        h('div', {class:'bar', style:'background:' + accent}),
+        h('div', {class:'cols'}, leftEl, h('div', {class:'rc'}, h('div', {class:'rtop'}, rightTop), rightBottom)),
+        opts);
+      fillLeft(); return win;
+    }
+    const quit = () => { say('"Beenden" gedrückt: Das Menü würde sich schließen.', true); toast('Simulation: Das Menü würde sich jetzt schließen.'); };
+
+    function pageSelect(){
+      const list = state.games.map((gm,i) => cbtn(gm.name || '(ohne Namen)', 'arrow', P(gm).accent, () => { S.cur = i; S.cat = null; S.page = 'game'; S.focus = null; say('Spiel geöffnet: ' + (gm.name || '(ohne Namen)')); draw(); }, {focus: gm, tag: P(gm).name}));
+      return windowShell(state.title.trim() || '(ohne Titel)', '#5b8cff', null, list, h('div', {}, rule(), cbtn('Beenden', 'x', '#d03a2f', quit)));
+    }
+
+    function pageGame(){
+      const gm = g(), p = P(gm), multi = state.games.length > 1;
+      const cats = ['dlcs','patches','extras'].filter(k => gm[k].length);
+      if (S.cat && !cats.includes(S.cat)) S.cat = null;
+      const names = {dlcs:'DLCs / Erweiterungen', patches:'Patches', extras:'Extras'}, cicon = {dlcs:['plus','#2b7bd6'], patches:['up','#3aa56b'], extras:['folder','#d6892b']};
+      const top = [];
+      if (!S.cat){
+        top.push(cbtn(p.canInstall ? 'Installieren' : 'Nicht verfügbar', 'arrow', p.canInstall ? p.accent : '#999', () => beginInstall(gm.name, gm.installer, parseArgs(gm.args), gm, p), {main:true, disabled: !p.canInstall, focus: null}));
+        if (p.note) top.push(h('div', {class:'note'}, p.note));
+        if (cats.length){ top.push(rule()); cats.forEach(k => top.push(cbtn(names[k], cicon[k][0], cicon[k][1], () => { S.cat = k; S.focus = null; draw(); }, {tag: '(' + gm[k].length + ')', focus: null}))); }
+      } else {
+        top.push(cbtn('Zurück', 'back', '#7a7a7a', () => { S.cat = null; S.focus = null; draw(); }, {focus: null}), rule());
+        let last = '\u0000';
+        gm[S.cat].forEach(e => {
+          if (e.group !== last){ last = e.group; if (e.group) top.push(h('div', {class:'ghd'}, e.group)); }
+          const isInst = e.kind === 'installer';
+          const ic = isInst ? ['arrow', p.canInstall ? p.accent : '#999'] : (isUrl(e.path.trim()) ? ['link', '#2b7bd6'] : (/\.[a-z0-9]{2,4}$/i.test(e.path.trim()) ? ['doc', '#d6892b'] : ['folder', '#d6892b']));
+          top.push(cbtn(e.name || '(ohne Namen)', ic[0], ic[1], () => isInst ? beginInstall(e.name, e.path, parseArgs(e.args), gm, p) : (say('Öffnen (simuliert): ' + e.path, true), toast('Simulation: "' + (e.name || '') + '" wird geöffnet.')),
+            {focus: e, disabled: isInst && !p.canInstall, tag: isInst ? '' : 'öffnen'}));
+        });
+      }
+      const bottom = h('div', {}, rule(), multi ? cbtn('Alle Spiele', 'back', '#7a7a7a', () => { S.page = 'select'; S.cat = null; S.focus = null; draw(); }) : null, cbtn('Beenden', 'x', '#d03a2f', quit));
+      return windowShell(gm.name || '(ohne Namen)', p.accent, gm, top, bottom, optionsBar(gm, p));
+    }
+
+    /* --- Installationssimulation --- */
+    function beginInstall(title, rel, entryArgs, gm, p){
+      if (!p.canInstall){ S.modal = {kind:'msg', title:'Nicht unterstützt', body:p.note}; draw(); return; }
+      const provId = gm.provider || 'gog';
+      const silent = S.silent && silentAvailable(provId, entryArgs);
+      const target = (S.targets[S.cur] || '').trim();
+      if (silent && p.usesTarget && !target){ S.modal = {kind:'msg', title:'Zielordner fehlt', body:'Für die stille Installation muss ein Zielordner angegeben werden.'}; draw(); return; }
+      const logPath = silent ? 'C:\\Users\\Du\\AppData\\Local\\Temp\\discmenu-install.log' : '';
+      const cmd = installCommand(provId, {silent, target: p.usesTarget ? target : '', logPath: p.usesTarget ? logPath : '', entryArgs});
+      say('Starte: ' + rel.replace(/\//g, '\\') + (cmd ? ' ' + cmd : '  (normal, ohne Parameter)'), true);
+      const found = provId === 'gog' ? (silent ? target : defaultTarget(gm.name)) : '';
+      const m = S.modal = {kind:'install', title, silent, target: silent ? target : '', unwanted: S.silent && !silent, done:false, progress: silent ? 0 : -1, step: 0, winProg: 0, res: null, found, rel};
+      if (silent) runSilent(m); else { say('Der Installer öffnet sein eigenes Fenster (hier nachgebaut).'); }
+      draw();
+    }
+    const failLog = 'Fehler: Zu wenig Speicherplatz auf dem Ziellaufwerk.\nSetup wurde vorzeitig beendet.';
+    function finish(m, code){
+      if (m.done) return; m.done = true; m.win = false;
+      const r = describeResult({code, found: code === 0 ? m.found : '', logTail: code !== 0 && m.silent && code === 1 ? failLog : ''});
+      m.res = r; m.progress = r.ok ? 1 : m.progress;
+      say('Installer beendet mit Code ' + code + (r.ok ? ' (Erfolg)' : ' (Fehler)'), true); draw();
+    }
+    function runSilent(m){
+      const failAt = S.result === 'ok' ? 2 : S.result === 'err5' ? 0.04 : 0.6, dur = 6000;
+      const t0 = Date.now();
+      const t = every(() => {
+        const sp = Math.min(1, (Date.now() - t0) * S.speed / dur);
+        m.progress = Math.min(sp, failAt);
+        if (sp >= failAt || sp >= 1){ stop(t); finish(m, S.result === 'ok' ? 0 : S.result === 'err5' ? 5 : 1); return; }
+        draw();
+      }, 120);
+    }
+    // Normaler Modus: nachgebautes Installer-Fenster mit Weiter / Installieren / Fertigstellen
+    function winNext(m){
+      if (m.step === 0){ m.step = 1; m.winProg = 0; say('Installer: Installation gestartet'); const t0 = Date.now(), failAt = S.result === 'ok' ? 2 : 0.55;
+        const t = every(() => { const sp = Math.min(1, (Date.now() - t0) * S.speed / 4500); m.winProg = Math.min(sp, failAt);
+          if (sp >= failAt || sp >= 1){ stop(t); if (S.result === 'ok'){ m.step = 2; } else { m.step = 3; } }
+          draw(); }, 120); }
+      else if (m.step === 2) finish(m, 0);
+      else if (m.step === 3) finish(m, S.result === 'err5' ? 5 : 1);
+    }
+    function winCancel(m){ if (m.step === 1) return; say('Installer: Abbruch durch den Benutzer', true); finish(m, 2); }
+    function installerWindow(m){
+      const gm = g(), nm = m.title || gm.name;
+      let bodyEl, foot;
+      if (m.step === 0){ bodyEl = [h('h5', {}, 'Willkommen beim Setup-Assistenten von ' + nm), h('div', {}, 'Dieser Assistent führt Sie durch die Installation. Klicken Sie auf "Weiter", um fortzufahren.')];
+        foot = [h('button', {type:'button', onclick: () => { play('click'); winNext(m); }}, 'Weiter >'), h('button', {type:'button', onclick: () => { play('click'); winCancel(m); }}, 'Abbrechen')]; }
+      else if (m.step === 1){ bodyEl = [h('h5', {}, 'Installiere ...'), h('div', {}, 'Bitte warten Sie, während ' + nm + ' installiert wird.'), h('div', {class:'wp'}, h('i', {style:'width:' + Math.round(m.winProg * 100) + '%'}))]; foot = [h('button', {type:'button', disabled:true}, 'Abbrechen')]; }
+      else if (m.step === 2){ bodyEl = [h('h5', {}, 'Setup abgeschlossen'), h('div', {}, nm + ' wurde auf Ihrem Computer installiert.')]; foot = [h('button', {type:'button', onclick: () => { play('click'); winNext(m); }}, 'Fertigstellen')]; }
+      else { bodyEl = [h('h5', {style:'color:#b00020'}, 'Setup konnte nicht abgeschlossen werden'), h('div', {}, S.result === 'err5' ? 'Zugriff verweigert (Simulation). Starten Sie das Setup als Administrator.' : 'Nicht genügend Speicherplatz (Simulation).')]; foot = [h('button', {type:'button', onclick: () => { play('click'); winNext(m); }}, 'OK')]; }
+      return h('div', {class:'win'}, h('div', {class:'tb'}, h('span', {}, 'Setup - ' + nm), h('span', {}, '–  □  ×')), h('div', {class:'bd'}, bodyEl), h('div', {class:'ft'}, foot));
+    }
+
+    function modal(){
+      const m = S.modal; if (!m) return null;
+      const gm = g(), p = P(gm);
+      let title, body, accent = p.accent, prog = null, ok = h('div', {style:'display:flex;justify-content:flex-end'}, btn('OK', () => { if (m.kind === 'install' && m.res && m.res.ok && m.found && !S.targets[S.cur]) S.targets[S.cur] = m.found; S.modal = null; draw(); }, 'main', 'width:140px;height:44px;background:' + accent + ';--ink:' + inkFor(accent)));
+      if (m.kind === 'msg'){ title = m.title; body = m.body; }
+      else if (!m.done){
+        title = 'Installation läuft';
+        body = m.title + (m.silent ? '\nDer Installer läuft ohne eigenes Fenster.' + (m.target ? '\nZiel: ' + m.target : '') : '\nDer Installer hat ein eigenes Fenster. Dieses Menü wartet, bis er fertig ist.') + (m.unwanted ? '\n(Für diesen Eintrag ist keine stille Installation möglich, der Installer läuft normal.)' : '');
+        prog = h('div', {class:'prog'}, m.progress < 0 ? h('i', {class:'ind', style:'background:' + accent}) : h('i', {style:'width:' + Math.round(m.progress * 100) + '%;background:' + accent}));
+        ok = null;
+      } else { accent = m.res.ok ? '#3ddc97' : '#ff6b6b'; title = m.res.ok ? 'Fertig' : 'Installation nicht erfolgreich'; body = m.title + '\n\n' + m.res.text;
+        prog = h('div', {class:'prog'}, h('i', {style:'width:100%;background:' + accent}));
+        ok = h('div', {style:'display:flex;justify-content:flex-end;margin-top:18px'}, btn('OK', () => { if (m.res.ok && m.found && !S.targets[S.cur]) S.targets[S.cur] = m.found; S.modal = null; draw(); }, 'main', 'width:140px;height:44px;background:' + accent + ';--ink:#14161e')); }
+      return h('div', {class:'ovl'}, h('div', {class:'box'}, h('div', {class:'top', style:'background:' + accent}), h('h4', {}, title), h('pre', {}, body), prog, ok),
+        m.kind === 'install' && !m.silent && !m.done ? installerWindow(m) : null);
+    }
+
+    function draw(){
+      const gm = state.games[S.cur] || state.games[0];
+      if (!state.games[S.cur]) S.cur = 0;
+      stage.style.setProperty('--acc-c', P(gm).accent);
+      const bg = state.background && assets.has(state.background);
+      stage.replaceChildren(...[bg ? h('div', {class:'bgimg', style:'background-image:url("' + assetUrl(state.background) + '")'}) : null, bg ? h('div', {class:'shade'}) : null,
+        S.page === 'select' ? pageSelect() : pageGame(), modal()].filter(Boolean));
+    }
+
+    /* --- Bedienleiste --- */
+    const sel = (opts, cur, fn) => { const e = h('select', {onchange: () => fn(e.value)}, opts.map(([v,l]) => h('option', {value:v}, l))); e.value = cur; return e; };
+    const bar = h('div', {class:'simbar'},
+      h('b', {}, 'Simulation'),
+      h('label', {}, 'Ergebnis der Installation ', sel([['ok','Erfolg'],['err1','Fehler (Code 1, Platte voll)'],['err5','Fehler (Code 5, Rechte fehlen)']], S.result, v => { S.result = v; say('Ergebnis der nächsten Installation: ' + v); })),
+      h('label', {}, 'Tempo ', sel([['1','Normal'],['3','Schnell'],['0.4','Langsam']], '1', v => { S.speed = Number(v); })),
+      h('button', {type:'button', class:'sm', onclick: () => { S.timers.forEach(stop); S.modal = null; S.silent = false; S.targets = {}; S.page = state.games.length > 1 ? 'select' : 'game'; S.cat = null; S.focus = null; S.log = []; say('Zurückgesetzt'); draw(); }}, 'Zurücksetzen'));
+    dlg.classList.add('wide');
+    openDlg('Vorschau und Simulation',
+      h('p', {class:'hint'}, 'Bildet das Menü nach, wie es der Player zeigt: Layout, Farben und Abzeichen je Anbieter. Klicken, Reiter, "Stille Installation" und Installieren funktionieren. Installiert wird nichts, es ist eine Simulation. Die Schrift ist hier die des Systems, im Player ist es Go Regular.'),
+      bar, wrap, h('div', {class:'hint', style:'margin-top:10px'}, 'Ablauf (so würde der Player den Installer starten):'), logBox);
+    fit(); say('Vorschau gestartet. Tipp: Oben das Ergebnis wählen, dann im Menü auf "Installieren" klicken.'); draw();
+  }
+  $('#bPrev').addEventListener('click', openPreview);
+  $('#bJson').addEventListener('click', openJsonEditor);
+
+  /* --- Export / Import --- */
+  function download(blob, name){ const a = h('a',{href:URL.createObjectURL(blob),download:name}); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  const zipName = () => (slug(state.title) || 'rezept') + '.zip';
+  function buildZipBlob(){
+    const {menu, files} = buildMenu(state, assets);
+    const zip = buildZip([{name:'menu.json', data:new TextEncoder().encode(JSON.stringify(menu,null,2) + '\n')}, ...files]);
+    return {blob: new Blob([zip], {type:'application/zip'}), count: files.length};
+  }
+  $('#bExp').addEventListener('click', () => {
+    if (validate(state).some(i => i.level === 'error')){ toast('Bitte zuerst die Fehler beheben.'); return; }
+    const {blob, count} = buildZipBlob(), name = zipName();
+    if (typeof window.showSaveFilePicker !== 'function'){
+      download(blob, name);
+      toast('Exportiert: ' + name + ' (' + count + ' Datei(en) plus menu.json).\nDieser Browser kann vorhandene Dateien nicht überschreiben, jeder Export wird neu heruntergeladen. Dein Projekt bleibt unter "Projekte" gespeichert, exportiere also erst, wenn es fertig ist.');
+      return;
+    }
+    const done = async handle => { const w = await handle.createWritable(); await w.write(blob); await w.close(); fileHandle = handle; await saveHandle(); closeDlg(); toast('Gespeichert in ' + handle.name); };
+    const guard = fn => async () => { try { await fn(); } catch (e) { if (e && e.name === 'AbortError') return; toast('Speichern fehlgeschlagen: ' + (e.message || e)); } };
+    openDlg('ZIP speichern', h('p', {class:'hint'}, 'Wie soll das Rezept gespeichert werden?'),
+      h('div', {class:'list'},
+        fileHandle ? h('button', {type:'button', class:'pri', onclick: guard(async () => {
+          let p = await fileHandle.queryPermission({mode:'readwrite'}); if (p !== 'granted') p = await fileHandle.requestPermission({mode:'readwrite'});
+          if (p !== 'granted') throw new Error('Keine Schreibberechtigung für die Datei.'); await done(fileHandle);
+        })}, 'In "' + fileHandle.name + '" überschreiben') : null,
+        h('button', {type:'button', onclick: guard(async () => { await done(await window.showSaveFilePicker({suggestedName: name, types:[{description:'ZIP-Datei', accept:{'application/zip':['.zip']}}]})); })}, 'Speichern unter ...'),
+        h('button', {type:'button', onclick: () => { download(blob, name); closeDlg(); toast('Heruntergeladen: ' + name); }}, 'Als normalen Download')));
+  });
+  async function importFile(f, handle){
+    try {
+      let menu, files = [];
+      if (/\.json$/i.test(f.name)) menu = JSON.parse(await f.text());
+      else {
+        files = await readZip(new Uint8Array(await f.arrayBuffer()));
+        const mj = files.find(x => x.name === 'menu.json');
+        if (!mj) throw new Error('In der ZIP fehlt die menu.json im Wurzelverzeichnis.');
+        menu = JSON.parse(new TextDecoder().decode(mj.data));
+      }
+      const byPath = new Map(files.map(x => [x.name, x.data])), ids = new Map(), imp = new Map();
+      const getAsset = p => {
+        p = p.replace(/\\/g,'/'); if (ids.has(p)) return ids.get(p);
+        const d = byPath.get(p); if (!d) return null;
+        const id = 'a' + (counter++); imp.set(id, {data:d, ext:(p.split('.').pop() || '').toLowerCase()}); ids.set(p,id); return id;
+      };
+      const r = parseMenu(menu, getAsset);
+      await switchToNew(r.state, imp, /\.zip$/i.test(f.name) ? handle : null);
+      toast(r.notes.length ? 'Als neues Projekt importiert, mit Hinweisen:\n' + r.notes.slice(0,6).join('\n') + (r.notes.length > 6 ? '\n... und ' + (r.notes.length-6) + ' weitere' : '') : 'Als neues Projekt importiert. Die Dateien liegen jetzt im Browser, die Original-ZIP wird nicht mehr gebraucht.');
+    } catch (err) { toast('Import fehlgeschlagen: ' + (err.message || err)); }
+  }
+  $('#bImp').addEventListener('click', async () => {
+    if (typeof window.showOpenFilePicker === 'function'){
+      try { const [hd] = await window.showOpenFilePicker({types:[{description:'Rezept (ZIP oder JSON)', accept:{'application/zip':['.zip'],'application/json':['.json']}}]}); await importFile(await hd.getFile(), hd); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    $('#impFile').click();
+  });
+  $('#impFile').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (f) await importFile(f, null); });
+  $('#bProj').addEventListener('click', openProjects);
+  $('#bSave').addEventListener('click', async () => { const ok = await save(); toast(ok ? 'Projekt "' + projTitle() + '" im Browser gespeichert.' : 'Speichern im Browser ist nicht möglich (Speicher gesperrt oder voll).'); });
+
+  $('#bSg').addEventListener('click', openSettings);
+  $('#dlgX').addEventListener('click', closeDlg);
+  restore().then(renderAll);
+  renderAll();
+})();
+</script>
+</body>
+</html>
