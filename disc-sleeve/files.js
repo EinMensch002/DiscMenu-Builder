@@ -187,9 +187,23 @@
   const EXT_BY_TYPE = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' };
   const TYPE_BY_EXT = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml' };
 
-  /* state: Einstellungen des Cover-Tools. images: { schlüssel: { data: Uint8Array, type, name } }. Ergebnis: ZIP als Uint8Array. */
-  function packProject(state, images) {
-    const files = [], meta = {};
+  const FONT_ID = /^uf-[a-z0-9]{1,12}$/;
+  /* Kennungen eigener Schriften, die Texte im Projekt benutzen */
+  function usedFontIds(state) {
+    const ids = [];
+    for (const it of (state && state.back && Array.isArray(state.back.items)) ? state.back.items : []) if (it && typeof it.font === 'string' && FONT_ID.test(it.font) && !ids.includes(it.font)) ids.push(it.font);
+    return ids;
+  }
+  /* Kennungen ersetzen (alt -> neu), z. B. wenn eine Schrift beim Öffnen unter neuer Kennung gespeichert wurde. Ändert state. */
+  function remapFonts(state, map) {
+    for (const it of (state && state.back && Array.isArray(state.back.items)) ? state.back.items : []) if (it && map[it.font]) it.font = map[it.font];
+    return state;
+  }
+
+  /* state: Einstellungen des Cover-Tools. images: { schlüssel: { data: Uint8Array, type, name } }.
+     fonts (optional): eigene Schriften { id, name, ext, data (Base64) }, die im Projekt benutzt werden. Ergebnis: ZIP als Uint8Array. */
+  function packProject(state, images, fonts) {
+    const files = [], meta = {}, fmeta = {};
     for (const key of Object.keys(images || {}).filter(isImageKey)) {
       const img = images[key];
       if (!img) continue;
@@ -197,7 +211,15 @@
       files.push({ name: path, data: img.data });
       meta[key] = { file: path, name: img.name || '' };
     }
+    for (const f of (fonts || []).slice(0, core().MAX_FONTS)) {
+      const n = normalizeFont(f);
+      if (!n || !FONT_ID.test(String(f.id))) continue;
+      const path = 'fonts/' + f.id + '.' + n.ext;
+      files.push({ name: path, data: unb64(n.data) });
+      fmeta[f.id] = { file: path, name: n.name };
+    }
     const json = { type: PROJECT_TYPE, version: 1, state, images: meta };
+    if (Object.keys(fmeta).length) json.fonts = fmeta;
     return buildZip([{ name: 'cover.json', data: new TextEncoder().encode(JSON.stringify(json, null, 2) + '\n') }, ...files]);
   }
 
@@ -217,10 +239,18 @@
       if (!f) { missing.push(key); continue; }
       images[key] = { data: f.data, type: TYPE_BY_EXT[(m.file.split('.').pop() || '').toLowerCase()] || 'image/png', name: String(m.name || m.file.split('/').pop()) };
     }
-    return { state: j.state, images, missing };
+    const fonts = [];
+    for (const id of Object.keys((j.fonts && typeof j.fonts === 'object') ? j.fonts : {}).slice(0, core().MAX_FONTS)) {
+      const m = j.fonts[id];
+      if (!FONT_ID.test(id) || !m || typeof m.file !== 'string') continue;
+      const f = files.find((x) => x.name === m.file);
+      const n = f && normalizeFont({ name: m.name, ext: (m.file.split('.').pop() || '').toLowerCase(), data: b64(f.data) });
+      if (n) fonts.push({ id, ...n });
+    }
+    return { state: j.state, images, missing, fonts };
   }
 
-  const api = { packSettings, unpackSettings, packBundle, unpackBundle, planImport, applyImport, freeName, toBase64: b64, fromBase64: unb64, normalizeFont, FONT_MIME, MAX_FONT_BYTES, buildZip, crc32, packProject, unpackProject, IMAGE_KEYS, isImageKey, TYPE_BY_EXT, PROJECT_TYPE };
+  const api = { packSettings, unpackSettings, packBundle, unpackBundle, planImport, applyImport, freeName, toBase64: b64, fromBase64: unb64, normalizeFont, FONT_MIME, MAX_FONT_BYTES, buildZip, crc32, usedFontIds, remapFonts, packProject, unpackProject, IMAGE_KEYS, isImageKey, TYPE_BY_EXT, PROJECT_TYPE };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverFiles = api;
 })(typeof window !== 'undefined' ? window : globalThis);
