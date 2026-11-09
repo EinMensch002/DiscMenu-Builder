@@ -135,6 +135,15 @@ Neben jedem Bildfeld (Frontcover, Rückseite oben und unten) gibt es einen Suchk
 
 GitHub Pages liefert Dateien bis zu 10 Minuten zwischengespeichert. Damit nach einer Aktualisierung nicht alte und neue Dateien gemischt werden, hängt der Build an alle Dateien `?v=<Version>`. Oben in der Leiste steht "Version …" (lokal: "lokal"). Sehen Menüs oder Dialoge ungestylt oder alt aus, die Seite mit Strg+F5 neu laden.
 
+### Vorschau für Pull Requests
+
+Jeder Pull Request aus diesem Repository bekommt eine **eigene Testseite**, damit man Änderungen (auch auf dem Tablet) vor dem Mergen ausprobieren kann:
+
+- DiscSleeve: `https://einmensch002.github.io/DiscMenu-Builder/pr/<Nummer>/disc-sleeve/`
+- Konfigurator: `https://einmensch002.github.io/DiscMenu-Builder/pr/<Nummer>/`
+
+Der Link steht als Kommentar im Pull Request. Die Seite erscheint ein bis zwei Minuten nach jedem Push (Stand `main` plus Änderung des Pull Requests) und wird **gelöscht, sobald der Pull Request geschlossen oder gemergt wird**. Technik: `.github/workflows/preview.yml` legt die Dateien im Zweig `gh-pages` unter `pr/<Nummer>/` ab (nur Pull Requests aus diesem Repository), `pages.yml` veröffentlicht sie zusammen mit `main`. Der Zweig `gh-pages` ist nur Zwischenspeicher, Pages selbst bleibt auf "GitHub Actions" eingestellt. Hinweis: Der lokale Speicher des Browsers (Schlüssel, Vorlagen, Schriften) gilt pro Domain, die Vorschau teilt ihn sich also mit der Hauptseite.
+
 ## Projekt speichern und laden
 
 Über **Projekt** in der oberen Leiste:
