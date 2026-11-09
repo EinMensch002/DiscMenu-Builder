@@ -6,6 +6,7 @@ Kurzer Überblick, damit eine neue Sitzung ohne den ganzen Verlauf weiterarbeite
 - Der Nutzer schreibt **Deutsch** und wird mit **"Du"** angesprochen. Antworten, Oberfläche, Doku und Commit-Texte sind deutsch.
 - Der Nutzer arbeitet in kleinen Runden, gibt Rückmeldung mit Screenshots und ist neu bei Claude Code: Befehle kurz und einfach erklären.
 - **Gemergt wird nur auf ausdrückliches "mergen"**. Vorher einen PR anlegen, CI abwarten, Stand berichten und fragen. Kein Force-Push (wird blockiert): bei einem bereits gemergten Branch `origin/main` per Merge zurückholen und normal pushen.
+- Jeder PR bekommt eine Vorschau-Seite (`/pr/<Nummer>/`, `.github/workflows/preview.yml`), die beim Schließen oder Mergen gelöscht wird. Der Link steht im PR-Kommentar.
 - Entwickelt wird auf dem in der Sitzung vorgegebenen Branch, ein neuer PR nur auf Wunsch.
 
 ## Aufbau
