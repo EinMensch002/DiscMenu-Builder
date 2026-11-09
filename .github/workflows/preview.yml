@@ -1,0 +1,67 @@
+name: Vorschau für Pull Requests
+
+# Jeder Pull Request aus diesem Repository bekommt eine Testseite unter
+#   https://<Konto>.github.io/<Repository>/pr/<Nummer>/            (Konfigurator)
+#   https://<Konto>.github.io/<Repository>/pr/<Nummer>/disc-sleeve/ (DiscSleeve)
+# Die Dateien liegen im Zweig gh-pages (Ordner pr/<Nummer>). pages.yml veröffentlicht sie zusammen mit main.
+# Wird der Pull Request geschlossen oder gemergt, wird der Ordner wieder gelöscht.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write        # Zweig gh-pages schreiben
+  actions: write         # pages.yml neu starten
+  pull-requests: write   # Link in den Pull Request schreiben
+
+concurrency:
+  group: previews
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    # Pull Requests aus Forks bekommen keine Schreibrechte und keine Vorschau
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+      ACTION: ${{ github.event.action }}
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event.action != 'closed'
+      - name: Seite zusammenstellen
+        if: github.event.action != 'closed'
+        run: |
+          mkdir site
+          cp -r configurator/. site/
+          cp -r disc-sleeve site/disc-sleeve
+          sed -i "s/__VERSION__/pr${PR}-${GITHUB_SHA::7}/g" site/disc-sleeve/index.html
+      - name: Ordner pr/${{ github.event.pull_request.number }} im Zweig gh-pages anlegen oder löschen
+        run: |
+          set -e
+          git init -q -b gh-pages pages
+          cd pages
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git fetch -q --depth=1 origin gh-pages 2>/dev/null; then git checkout -q -B gh-pages FETCH_HEAD; fi
+          rm -rf "pr/${PR}"
+          if [ "$ACTION" != "closed" ]; then mkdir -p "pr/${PR}" && cp -r ../site/. "pr/${PR}/"; fi
+          touch .nojekyll
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Keine Änderung"
+          else
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "Vorschau für Pull Request ${PR}: ${ACTION}"
+            git push -q origin gh-pages
+          fi
+      - name: Seite neu veröffentlichen
+        run: gh workflow run pages.yml --ref main --repo "$GITHUB_REPOSITORY"
+      - name: Link in den Pull Request schreiben
+        if: github.event.action == 'opened' || github.event.action == 'reopened'
+        run: |
+          OWNER="${GITHUB_REPOSITORY%%/*}"; REPO="${GITHUB_REPOSITORY##*/}"
+          BASE="https://${OWNER,,}.github.io/${REPO}/pr/${PR}"
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "Vorschau (erscheint ein bis zwei Minuten nach jedem Push, wird beim Schließen oder Mergen gelöscht):
+          - DiscSleeve: ${BASE}/disc-sleeve/
+          - Konfigurator: ${BASE}/"

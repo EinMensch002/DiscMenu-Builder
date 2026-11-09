@@ -39,6 +39,13 @@ jobs:
           # alte Adresse /cover/ weiterleiten (bestehende Lesezeichen und Links)
           mkdir site/cover
           printf '%s\n' '<!doctype html><html lang="de"><meta charset="utf-8"><title>DiscSleeve</title><meta http-equiv="refresh" content="0; url=../disc-sleeve/"><link rel="canonical" href="../disc-sleeve/"><p>DiscSleeve ist umgezogen: <a href="../disc-sleeve/">zur neuen Adresse</a>.</p></html>' > site/cover/index.html
+      # Vorschauen offener Pull Requests (liegen im Zweig gh-pages unter pr/<Nummer>/, siehe preview.yml) unter /pr/ mitveröffentlichen
+      - name: Vorschauen einfügen
+        run: |
+          if git fetch --depth=1 origin gh-pages 2>/dev/null; then
+            git worktree add --detach ../previews FETCH_HEAD
+            if [ -d ../previews/pr ]; then mkdir -p site/pr && cp -r ../previews/pr/. site/pr/; fi
+          fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
