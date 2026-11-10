@@ -1,0 +1,40 @@
+# Setzt Labels aus den Angaben der Issue-Formulare (.github/ISSUE_TEMPLATE/*.yml).
+# So können auch Leute ohne Rechte am Repository Bereich und Stand angeben.
+# Es werden nur Labels aus der festen Liste unten hinzugefügt, nie entfernt.
+name: Issue-Labels
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const AREA = {
+              'Konfigurator': 'konfigurator',
+              'DiscSleeve': 'discsleeve',
+              'Builder': 'builder',
+              'Player': 'player',
+              'Proxy': 'proxy',
+              'Tests und Veröffentlichung': 'ci',
+            };
+            const body = (context.payload.issue.body || '').replace(/\r/g, '');
+            // Formular-Antworten stehen als "### Überschrift", Leerzeile, Antwort im Text
+            const parts = body.split(/^### +/m).slice(1);
+            const section = (title) => {
+              const p = parts.find((s) => s.split(/\n/)[0].trim() === title);
+              return p ? p.replace(/^.*\n/, '').trim() : '';
+            };
+            const labels = new Set();
+            for (const v of section('Bereich').split(',').map((s) => s.trim())) if (AREA[v]) labels.add(AREA[v]);
+            if (/^- \[x\] Muss auf einem echten Gerät geprüft werden/mi.test(section('Stand'))) labels.add('manuell testen');
+            if (!labels.size) { core.info('Keine Labels aus dem Formular.'); return; }
+            await github.rest.issues.addLabels({ ...context.repo, issue_number: context.payload.issue.number, labels: [...labels] });
+            core.info('Labels gesetzt: ' + [...labels].join(', '));
