@@ -9,31 +9,39 @@ const yml = fs.readFileSync(path.join(root, '.github', 'workflows', 'issue-label
 const script = yml.split('script: |\n')[1].split('\n').map((l) => l.replace(/^ {12}/, '')).join('\n');
 const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
 
-async function run(body) {
-  const calls = [];
-  const github = { rest: { issues: { addLabels: async (a) => { calls.push(a); } } } };
-  const context = { repo: { owner: 'o', repo: 'r' }, payload: { issue: { number: 7, body } } };
-  const core = { info: () => {} };
-  await new AsyncFunction('github', 'context', 'core', script)(github, context, core);
-  return calls.length ? calls[0].labels.sort() : [];
+async function run(body, labels = []) {
+  const added = [], removed = [];
+  const github = { rest: { issues: {
+    addLabels: async (a) => { added.push(...a.labels); },
+    removeLabel: async (a) => { removed.push(a.name); },
+  } } };
+  const context = { repo: { owner: 'o', repo: 'r' }, payload: { issue: { number: 7, body, labels: labels.map((name) => ({ name })) } } };
+  await new AsyncFunction('github', 'context', 'core', script)(github, context, { info: () => {} });
+  return { added: added.sort(), removed: removed.sort() };
 }
+const form = (art, bereich, device) => '### Art\n\n' + art + '\n\n### Bereich\n\n' + bereich + '\n\n### Beschreibung\n\nText\n\n### Stand\n\n- [' + (device ? 'x' : ' ') + '] Muss auf einem echten Gerät geprüft werden (Drucker, Disc, Windows, Wine)';
 
-test('Issue-Formular: Bereiche und Stand werden zu Labels', async () => {
-  const body = '### Bereich\n\nDiscSleeve, Tests und Veröffentlichung\n\n### Was ist passiert?\n\nKaputt\n\n### Stand\n\n- [x] Muss auf einem echten Gerät geprüft werden (Drucker, Disc, Windows, Wine)';
-  assert.deepEqual(await run(body), ['ci', 'discsleeve', 'manuell testen']);
+test('Issue-Formular: Art, Bereiche und Stand werden zu Labels', async () => {
+  assert.deepEqual(await run(form('Idee oder Wunsch, Frage', 'DiscSleeve, Tests und Veröffentlichung', true)),
+    { added: ['ci', 'discsleeve', 'enhancement', 'idee', 'manuell testen', 'question'], removed: [] });
 });
 
-test('Issue-Formular: ohne Haken kein "manuell testen", fremde Werte werden ignoriert', async () => {
-  assert.deepEqual(await run('### Bereich\n\nPlayer, Hack\n\n### Stand\n\n- [ ] Muss auf einem echten Gerät geprüft werden'), ['player']);
-  assert.deepEqual(await run('Freier Text ohne Formular'), []);
-  assert.deepEqual(await run(''), []);
+test('Issue-Formular: fremde Werte und Texte ohne Formular ändern nichts', async () => {
+  assert.deepEqual(await run(form('Fehler, wontfix', 'Player, Hack', false)), { added: ['bug', 'player'], removed: [] });
+  assert.deepEqual(await run('Freier Text ohne Formular', ['bug', 'discsleeve']), { added: [], removed: [] });
+  assert.deepEqual(await run(''), { added: [], removed: [] });
 });
 
-test('Jede Auswahl in den Formularen hat ein Label im Workflow', () => {
-  for (const f of ['fehler.yml', 'idee.yml']) {
-    const form = fs.readFileSync(path.join(root, '.github', 'ISSUE_TEMPLATE', f), 'utf8').replace(/\r\n/g, '\n');
-    const opts = form.split('options:\n')[1].split(/\n\s+validations:/)[0].split('\n').map((l) => l.replace(/^\s*- /, '').trim()).filter(Boolean);
-    assert.ok(opts.length >= 6, f);
-    for (const o of opts) assert.ok(script.includes("'" + o + "':"), f + ': ' + o + ' fehlt im Workflow');
-  }
+test('Issue-Formular: Bearbeiten passt Labels an, Labels des Besitzers bleiben', async () => {
+  const r = await run(form('Fehler', 'Builder', false), ['bug', 'discsleeve', 'manuell testen', 'wontfix', 'in arbeit']);
+  assert.deepEqual(r, { added: ['builder'], removed: ['discsleeve', 'manuell testen'] });
+});
+
+test('Jede Auswahl im Formular hat ein Label im Workflow, nur freigegebene Labels', () => {
+  const tpl = fs.readFileSync(path.join(root, '.github', 'ISSUE_TEMPLATE', 'issue.yml'), 'utf8').replace(/\r\n/g, '\n');
+  const blocks = tpl.split('options:\n').slice(1, 3).map((b) => b.split(/\n\s+validations:/)[0].split('\n').map((l) => l.replace(/^\s*- /, '').trim()).filter(Boolean));
+  assert.equal(blocks.length, 2);
+  for (const o of blocks.flat()) assert.ok(script.includes("'" + o + "': ["), o + ' fehlt im Workflow');
+  for (const l of ['wontfix', 'duplicate', 'invalid', 'in arbeit', 'blockiert', 'help wanted', 'good first issue']) assert.ok(!script.includes("'" + l + "'"), l + ' darf nicht von Fremden gesetzt werden');
+  assert.ok(!/^labels:/m.test(tpl), 'Das Formular setzt keine festen Labels, das macht der Workflow');
 });

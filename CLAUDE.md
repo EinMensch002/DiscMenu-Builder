@@ -7,7 +7,7 @@ Kurzer Überblick, damit eine neue Sitzung ohne den ganzen Verlauf weiterarbeite
 - Der Nutzer arbeitet in kleinen Runden, gibt Rückmeldung mit Screenshots und ist neu bei Claude Code: Befehle kurz und einfach erklären.
 - **Gemergt wird nur auf ausdrückliches "mergen"**. Vorher einen PR anlegen, CI abwarten, Stand berichten und fragen. Kein Force-Push (wird blockiert): bei einem bereits gemergten Branch `origin/main` per Merge zurückholen und normal pushen.
 - Jeder PR bekommt eine Vorschau-Seite (`/pr/<Nummer>/`, `.github/workflows/preview.yml`), die beim Schließen oder Mergen gelöscht wird. Der Link steht im PR-Kommentar.
-- Issues kommen über Formulare (`.github/ISSUE_TEMPLATE/`), `issue-labels.yml` setzt daraus Labels (Bereich, `manuell testen`). Neue Auswahl im Formular braucht einen Eintrag in `AREA` im Workflow (Test prüft das).
+- Issues kommen über das Formular `.github/ISSUE_TEMPLATE/issue.yml`, `issue-labels.yml` setzt daraus Labels (Art, Bereich, `manuell testen`) und passt sie beim Bearbeiten an. Nur Labels aus `FORM` werden verwaltet, Besitzer-Labels (wontfix, in arbeit …) nie. Neue Auswahl braucht einen Eintrag in `FORM` (Test prüft das).
 - Entwickelt wird auf dem in der Sitzung vorgegebenen Branch, ein neuer PR nur auf Wunsch.
 
 ## Aufbau

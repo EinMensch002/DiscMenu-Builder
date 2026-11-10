@@ -68,7 +68,7 @@ DiscMenu-Builder/
 ├─ tests/                   Automatische Tests
 ├─ tools/mkdemo/            Erzeugt die Beispiel-Assets
 ├─ tools/cors-proxy/        Optionaler Proxy (Cloudflare Worker) für SteamGridDB
-├─ .github/ISSUE_TEMPLATE/  Formulare für Fehler und Ideen (setzen Labels automatisch)
+├─ .github/ISSUE_TEMPLATE/  Formular für Fehler, Ideen und Fragen (Labels werden automatisch gesetzt)
 ├─ .github/workflows/       Tests der Web-Tools, Veröffentlichung auf GitHub Pages (`pages.yml`), Vorschau-Seiten für Pull Requests (`preview.yml`), Labels aus Issue-Formularen (`issue-labels.yml`) (Windows-Build und Wine-Test vorerst abgeschaltet)
 ├─ examples/
 │  ├─ menu.example.json     Beispiel-Rezept mit drei Spielen (GOG, Epic, Steam)
@@ -105,7 +105,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 - [x] **Vorschau-Seite für jeden Pull Request** (`/pr/<Nummer>/`, auch auf dem Tablet testbar), wird beim Schließen oder Mergen gelöscht ([Beschreibung](docs/disc-sleeve.md#vorschau-für-pull-requests))
 - [x] Veröffentlichung auf GitHub Pages bricht laufende Läufe nicht mehr ab (keine roten Deployments mehr)
-- [x] **Issue-Formulare** "Fehler melden" und "Idee oder Wunsch": Bereich und Stand werden automatisch zu Labels, auch für Leute ohne Rechte am Repository (`.github/ISSUE_TEMPLATE/`, `.github/workflows/issue-labels.yml`)
+- [x] **Issue-Formular** "Fehler, Idee oder Frage": Art, Bereich und Stand werden nach dem Absenden automatisch zu Labels, auch für Leute ohne Rechte am Repository; beim Bearbeiten passen sie sich an (`.github/ISSUE_TEMPLATE/issue.yml`, `.github/workflows/issue-labels.yml`)
 
 ### DiscSleeve (Web-App, live unter /disc-sleeve/)
 
@@ -181,7 +181,13 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 ## Fehler melden und Ideen einreichen
 
-Über **Issues → New issue** gibt es zwei Formulare: **Fehler melden** und **Idee oder Wunsch**. Darin wählt man den Bereich (Konfigurator, DiscSleeve, Builder, Player, Proxy, Tests und Veröffentlichung) und kann ankreuzen, dass etwas auf einem echten Gerät geprüft werden muss. Die passenden Labels (`bug` oder `enhancement` + `idee`, der Bereich und `manuell testen`) setzt GitHub automatisch, dafür braucht man keine Rechte am Repository. Labels werden dabei nur hinzugefügt, nie entfernt. Leere Issues ohne Formular sind weiter möglich.
+Jeder mit einem GitHub-Konto kann über **Issues → New issue → Fehler, Idee oder Frage** ein Issue anlegen. Im Formular wählt man:
+
+- **Art:** Fehler (`bug`), Idee oder Wunsch (`enhancement`, `idee`), Frage (`question`), Dokumentation (`documentation`), Barrierefreiheit (`accessibility`)
+- **Bereich:** Konfigurator, DiscSleeve, Builder, Player, Proxy, Tests und Veröffentlichung (Labels `konfigurator`, `discsleeve`, `builder`, `player`, `proxy`, `ci`)
+- **Stand:** Haken "muss auf einem echten Gerät geprüft werden" (`manuell testen`)
+
+Nach dem Absenden setzt eine GitHub Action (`.github/workflows/issue-labels.yml`) die passenden Labels, dafür braucht man **keine Rechte** am Repository. Bearbeitet man das Issue und ändert die Auswahl, werden die Labels angepasst. Die Action verwaltet nur diese freigegebenen Labels: `wontfix`, `duplicate`, `invalid`, `in arbeit`, `blockiert`, `help wanted` und `good first issue` setzt nur der Besitzer, sie bleiben immer erhalten. Leere Issues ohne Formular sind weiter möglich, dort setzt die Action nichts. Neue Auswahl im Formular braucht einen Eintrag in `FORM` im Workflow, `tests/issue-labels.test.js` prüft das.
 
 ## Regeln für die Dokumentation
 

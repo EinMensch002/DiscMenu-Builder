@@ -1,6 +1,8 @@
-# Setzt Labels aus den Angaben der Issue-Formulare (.github/ISSUE_TEMPLATE/*.yml).
-# So können auch Leute ohne Rechte am Repository Bereich und Stand angeben.
-# Es werden nur Labels aus der festen Liste unten hinzugefügt, nie entfernt.
+# Setzt Labels aus den Angaben des Issue-Formulars (.github/ISSUE_TEMPLATE/issue.yml).
+# So bekommen auch Issues von Leuten ohne Rechte am Repository die gewünschten Labels.
+# Verwaltet werden nur die Labels aus FORM (Freigabeliste). Alle anderen (z. B. wontfix, in arbeit)
+# setzt nur der Besitzer, sie werden hier nie hinzugefügt oder entfernt.
+# Beim Bearbeiten des Issues werden abgewählte Labels der Freigabeliste entfernt, neue hinzugefügt.
 name: Issue-Labels
 
 on:
@@ -17,24 +19,46 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            const AREA = {
-              'Konfigurator': 'konfigurator',
-              'DiscSleeve': 'discsleeve',
-              'Builder': 'builder',
-              'Player': 'player',
-              'Proxy': 'proxy',
-              'Tests und Veröffentlichung': 'ci',
+            const FORM = {
+              'Art': {
+                'Fehler': ['bug'],
+                'Idee oder Wunsch': ['enhancement', 'idee'],
+                'Frage': ['question'],
+                'Dokumentation': ['documentation'],
+                'Barrierefreiheit': ['accessibility'],
+              },
+              'Bereich': {
+                'Konfigurator': ['konfigurator'],
+                'DiscSleeve': ['discsleeve'],
+                'Builder': ['builder'],
+                'Player': ['player'],
+                'Proxy': ['proxy'],
+                'Tests und Veröffentlichung': ['ci'],
+              },
             };
-            const body = (context.payload.issue.body || '').replace(/\r/g, '');
+            const DEVICE = 'manuell testen';
+            const MANAGED = new Set([DEVICE, ...Object.values(FORM).flatMap((m) => Object.values(m).flat())]);
+
+            const issue = context.payload.issue;
+            const body = (issue.body || '').replace(/\r/g, '');
             // Formular-Antworten stehen als "### Überschrift", Leerzeile, Antwort im Text
             const parts = body.split(/^### +/m).slice(1);
             const section = (title) => {
               const p = parts.find((s) => s.split(/\n/)[0].trim() === title);
-              return p ? p.replace(/^.*\n/, '').trim() : '';
+              return p === undefined ? null : p.replace(/^.*\n/, '').trim();
             };
-            const labels = new Set();
-            for (const v of section('Bereich').split(',').map((s) => s.trim())) if (AREA[v]) labels.add(AREA[v]);
-            if (/^- \[x\] Muss auf einem echten Gerät geprüft werden/mi.test(section('Stand'))) labels.add('manuell testen');
-            if (!labels.size) { core.info('Keine Labels aus dem Formular.'); return; }
-            await github.rest.issues.addLabels({ ...context.repo, issue_number: context.payload.issue.number, labels: [...labels] });
-            core.info('Labels gesetzt: ' + [...labels].join(', '));
+            if (Object.keys(FORM).every((t) => section(t) === null)) { core.info('Kein Formular, nichts zu tun.'); return; }
+
+            const want = new Set();
+            for (const [title, map] of Object.entries(FORM)) {
+              for (const v of (section(title) || '').split(',').map((s) => s.trim())) for (const l of map[v] || []) want.add(l);
+            }
+            if (/^- \[x\] Muss auf einem echten Gerät geprüft werden/mi.test(section('Stand') || '')) want.add(DEVICE);
+
+            const have = new Set((issue.labels || []).map((l) => (typeof l === 'string' ? l : l.name)));
+            const add = [...want].filter((l) => !have.has(l));
+            const remove = [...have].filter((l) => MANAGED.has(l) && !want.has(l));
+            const nr = { ...context.repo, issue_number: issue.number };
+            if (add.length) await github.rest.issues.addLabels({ ...nr, labels: add });
+            for (const name of remove) await github.rest.issues.removeLabel({ ...nr, name });
+            core.info('Hinzugefügt: ' + (add.join(', ') || '-') + ' | Entfernt: ' + (remove.join(', ') || '-'));
