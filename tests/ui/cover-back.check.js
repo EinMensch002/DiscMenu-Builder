@@ -250,6 +250,22 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.equal((await items()).length, gAll, 'Rückgängig bringt sie zurück');
   await clickWith(null, imgIgdx[0]);
   assert.equal(await page.locator('#bdlg .bed-stage .bed-sel').isVisible(), true); assert.equal(await page.locator('#bdlg .bed-stage .bed-grp').isVisible(), false);
+
+  // Auswahlrechteck: auf leerer Fläche aufziehen wählt alle berührten Elemente, Klick ohne Ziehen wählt ab
+  const nsel = () => page.locator('#bdlg .bed-stage .bi-sel, #bdlg .bed-stage .bi-out-sel').count();
+  const stg = await page.locator('#bdlg .bed-stage').boundingBox();
+  const ft = await page.locator('#bdlg .bed-foot').first().boundingBox(), fx = ft.x + ft.width - 2, fy = ft.y + ft.height / 2;   // Start im festen Teil unter der Fläche: sicher leer
+  const mq = async (x0, y0, x1, y1, key) => { if (key) await page.keyboard.down(key); await page.mouse.move(x0, y0); await page.mouse.down(); await page.mouse.move(x1, y1, { steps: 6 }); await page.mouse.up(); if (key) await page.keyboard.up(key); };
+  await mq(fx, fy, stg.x + 1, stg.y + 1);
+  assert.equal(await nsel(), (await items()).length, 'Rechteck über die ganze Fläche wählt alles');
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-marq').isHidden(), true, 'Rechteck verschwindet nach dem Loslassen');
+  assert.equal(await page.locator('#bdlg .bed-stage .bed-grp').isVisible(), true);
+  const bImg = await page.locator('#bdlg .bed-stage .bi').nth(imgIgdx[0]).boundingBox();
+  await mq(fx, fy, bImg.x + bImg.width / 2, bImg.y + bImg.height / 2);
+  const some = await nsel();
+  assert.ok(some >= 1 && some < (await items()).length, 'Kleines Rechteck wählt nur einen Teil: ' + some);
+  await mq(fx, fy, fx, fy);
+  assert.equal(await nsel(), 0, 'Klick auf leere Fläche ohne Ziehen wählt ab');
   await page.click('#bdlg .tpl-card[data-tpl=steam]');
 
   // Drehen: Feld und Griff; gedrehte Elemente lassen sich weiter greifen

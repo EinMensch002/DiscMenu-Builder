@@ -456,6 +456,7 @@ dialog.bed .dh h2 { margin: 0; font-size: 17px; flex: 1; }
 .tp .tp-text.big { background-image: repeating-linear-gradient(currentColor 0 4px, transparent 4px 7px); opacity: .9; }
 .bed-sel .hd-rot, .bed-grp .hd-grot { left: 50%; top: calc(var(--hd) * -4); border-radius: 50%; cursor: grab; background: #2f7df6; }
 .bed-stage .bi.bi-sel { outline: var(--ol, .5mm) solid #ff9f1c; outline-offset: calc(var(--ol, .5mm) / -2); }
+.bed-marq { position: absolute; border: .3mm dashed #2f7df6; background: rgba(47, 125, 246, .12); pointer-events: none; z-index: 6; }
 .bed-grp { position: absolute; outline: .35mm dashed #2f7df6; pointer-events: none; z-index: 5; }
 .bed-sel .rot-line, .bed-grp .rot-line { position: absolute; left: 50%; top: calc(var(--hd) * -4); width: .3mm; height: calc(var(--hd) * 4); background: #2f7df6; pointer-events: none; }
 .bed-scaled.span { background-size: cover; background-position: center top; }
