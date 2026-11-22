@@ -169,20 +169,32 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
   - [x] **Spielfunktionen mit vielen Symbolen:** Passt ein Wort nicht mehr in seinen Platz (z. B. "Achievements"), wird die Schrift aller Beschriftungen automatisch kleiner, nichts überlappt mehr (Issue #23)
   - [x] **Auswahlrechteck im Editor:** auf leerer Fläche aufziehen wählt alle berührten Elemente (mit Strg/Umschalt zur Auswahl hinzufügen)
   - [ ] Ausrichtungshilfen (Raster)
-- [ ] **Beide Web-Tools zusammenführen** (in Arbeit, drei Schritte):
+- [x] **Beide Web-Tools zusammengeführt:**
   - [x] **Eine Seite:** gemeinsamer Ordner `app/`, eine `index.html`, oben eine Leiste mit dem Wechsel "Disc-Menü | Cover & Hülle" ohne Neuladen; die Knöpfe der Leiste passen sich dem Bereich an
   - [x] **Ein Projekt:** ein Speicher und eine Projektdatei für Menü und Hülle (eine `recipe.json` mit den Bereichen Gemeinsam, Menü und Hülle, dazu `assets/` und `fonts/`; der Builder liest sie direkt), verknüpft und nichts doppelt (Spielname = Titel der Hülle, Anbieter, Beschreibung, Größe, Cover), ein Einstellungsdialog, eine Leiste für beide Bereiche, helles Design im Menü; alte Rezepte und Hüllen-Dateien lassen sich weiter öffnen
   - [x] **Spielordner einlesen:** Ordner wie die Disc wählen, Installer, DLCs, Patches und Extras werden vorgeschlagen und lassen sich vor dem Übernehmen ändern
   - [x] **recipe.json bearbeiten** mit den Reitern Alles, Gemeinsam, Menü und Hülle; Hinweis beim Speichern alter Dateien im neuen Format
-  - [ ] **Englisch** auch für den Bereich "Menü"
+  - [x] **Englisch** auch für den Bereich Disc-Menü (die nachgebaute Player-Ansicht bleibt deutsch wie der Player)
+  - [x] **Doku zusammengeführt:** eine Anleitung [docs/web-app.md](docs/web-app.md), Beispiel `examples/recipe.example.json`
   - Ziel: Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
 - [x] **Ein-Datei-Build:** `npm run build` (Skript `scripts/build-single.js`) macht aus dem Ordner `app/` eine einzige HTML-Datei (rund 1,7 MB, CSS, JavaScript, Bilder und Schriften eingebettet, läuft ohne Internet). Zum Herunterladen auch auf GitHub Pages: [DiscMenu-Builder.html](https://einmensch002.github.io/DiscMenu-Builder/DiscMenu-Builder.html)
+
+### Nächste große Stufe: Installer für eigene Discs (Windows und Linux)
+
+Ziel: eigene Spielkopien auf Blu-ray mit einem Installer, der Dateien selbst kopiert (nicht nur fremde Setups startet). Reihenfolge: erst wenn die Web-App fertig ist.
+
+- [ ] **Entscheidung Technik:** beim Go-Player bleiben und ihn um einen Linux-Build (AppImage) erweitern oder ein neues Werkzeug (in docs/platforms-and-tech.md waren Tauri und Godot verworfen)
+- [ ] **Neue Installationsart "kopieren"** im Rezept: Ordner von der Disc in einen Zielordner, mit Fortschritt je Datei, Prüfung des freien Speichers, Prüfsummen nach dem Kopieren, Ausschlussmuster
+- [ ] **Einstellungen vor der Installation** im Rezept beschreiben (Auswahlfelder, die Werte in INI- oder JSON-Dateien schreiben), damit nichts spielspezifisch programmiert wird
+- [ ] **Starter anlegen:** Startmenü-Eintrag (Windows) bzw. .desktop-Datei (Linux)
+- [ ] **Autostart-Dateien** vom Builder erzeugen (autorun.inf, autorun.sh)
+- [ ] **Deinstallieren und Überprüfen** gegen die Prüfsummen der Disc
 
 ### Später
 
 - [ ] Eigene Tabs (z. B. Mods)
 - [ ] Bessere Übersetzung (z. B. DeepL mit eigenem Schlüssel)
-- [ ] GOG-Katalog als Beschreibungsquelle mit deutschen Texten
+- [x] GOG-Katalog als Beschreibungsquelle mit deutschen Texten (Beschreibungssuche im Disc-Menü fragt GOG mit `locale=de-DE`)
 - [ ] Steam-Provider: Backups wiederherstellen (Machbarkeit zuerst prüfen)
 - [ ] **Soundtrack im Menü abspielen:** Erkennt der Spielordner einen Soundtrack (Gruppe "Musik"), listet das Menü die einzelnen Titel auf und spielt sie direkt ab, statt nur den Ordner zu öffnen (Player: Wiedergabe von MP3/OGG/FLAC, Web-Vorschau: Liste mit Wiedergabe). Idee für den Feinschliff
 
