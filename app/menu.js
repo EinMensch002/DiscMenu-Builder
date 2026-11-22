@@ -3,7 +3,7 @@
 (() => {
   if (typeof document === 'undefined') return;
   const {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, parseArgs, isUrl, checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText, packSettings, unpackSettings} = CORE;
-  const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Musik','Artwork','Dokumente','Videos'], dlcs:[]};
+  const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Anleitungen','Musik','Artwork','Videos','Zusätze','Dokumente'], dlcs:[]};
   const MIME = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif',wav:'audio/wav',ogg:'audio/ogg',mp3:'audio/mpeg'};
   const assets = new Map(); let state = newState(); let sel = 0; let counter = 1; let touched = false;
   const $ = s => document.querySelector(s);
@@ -457,7 +457,8 @@
     if (typeof window.showDirectoryPicker !== 'function'){ toast('Ordner einlesen geht nur in Chrome und Edge am Computer.'); return; }
     let root; try { root = await window.showDirectoryPicker({mode:'read'}); } catch (e) { if (!(e && e.name === 'AbortError')) toast('Ordner konnte nicht geöffnet werden: ' + (e.message || e)); return; }
     openDlg('Spielordner wird gelesen ...', h('p', {class:'hint'}, 'Einen Moment.'));
-    showFolderPlan(root.name, DiscProject.planFromFolder(await listFolder(root)));
+    const g = state.games[typeof sel === 'number' && state.games[sel] ? sel : 0];
+    showFolderPlan(root.name, DiscProject.planFromFolder(await listFolder(root), {game: g ? g.name : ''}));
   }
   function showFolderPlan(folder, plan){
     const gi = typeof sel === 'number' && state.games[sel] ? sel : 0, g = state.games[gi];
@@ -480,6 +481,7 @@
       sel = gi; renderAll(); changed(); closeDlg();
       toast(n ? n + ' Eintrag/Einträge übernommen. Die Prüfung rechts zeigt, ob noch etwas fehlt.' : 'Nichts übernommen.');
     };
+    dlg.classList.add('wide'); dlg.addEventListener('close', () => dlg.classList.remove('wide'), {once:true});        // breiter: Pfad, Art, Name und Gruppe nebeneinander
     openDlg('Spielordner "' + folder + '"',
       h('p', {class:'hint'}, 'Vorschlag für "' + (g.name || 'Spiel ' + gi) + '": Die Pfade gelten ab dem gewählten Ordner, er entspricht der Wurzel der Disc. Art, Name und Gruppe lassen sich ändern. Vorhandene Einträge bleiben, neue kommen dazu, ein Installer ersetzt den bisherigen.'),
       rows.length ? h('div', {class:'fplan'}, h('table', {}, h('tr', {}, h('th', {}, 'Datei oder Ordner'), h('th', {}, 'Art'), h('th', {}, 'Name'), h('th', {}, 'Gruppe')), rows.map(r => r.row)))

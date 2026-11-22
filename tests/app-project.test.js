@@ -114,10 +114,31 @@ test('Spielordner: Vorschläge nach den Ordnernamen, Teile eines Installers ersc
   assert.equal(row('base_game/setup_deus_ex_goty.exe').kind, 'installer');
   assert.equal(plan.filter((x) => x.kind === 'installer').length, 1);
   assert.ok(!plan.some((x) => /\.bin$/.test(x.path)));
-  assert.deepEqual([row('extras/Soundtrack').kind, row('extras/Soundtrack').open, row('extras/manual.pdf').name], ['extras', true, 'manual']);
+  assert.deepEqual([row('extras/Soundtrack').kind, row('extras/Soundtrack').open, row('extras/manual.pdf').name], ['extras', true, 'Manual']);
   assert.ok(!row('extras/Soundtrack/01.mp3'), 'Inhalt eines Extra-Ordners wird als Ordner geöffnet');
   assert.deepEqual([row('Hauptspiel_Overhauls/GMDX/setup_gmdx.exe').kind, row('Hauptspiel_Overhauls/GMDX/setup_gmdx.exe').name, row('Hauptspiel_Overhauls/GMDX/setup_gmdx.exe').group], ['patches', 'GMDX', 'Hauptspiel Overhauls']);
   assert.equal(row('Patches_und_Fixes/Kentie/launcher_setup.exe').group, 'Patches & Fixes');
   assert.deepEqual([row('Story_Erweiterungen/Nihilum/setup_nihilum.exe').kind, row('Story_Erweiterungen/Nihilum/setup_nihilum.exe').name], ['dlcs', 'Nihilum']);
   assert.equal(row('Sonstiges/tool.exe').kind, 'skip', 'Unbekanntes wird nicht übernommen, lässt sich aber zuordnen');
+});
+
+test('Spielordner: lesbare Namen und Gruppen für Extras', () => {
+  const plan = P.planFromFolder([
+    { path: 'extras/deus_ex_soundtrack', dir: true }, { path: 'extras/deus_ex_soundtrack/01.mp3' }, { path: 'extras/deus_ex_wallpapers', dir: true },
+    { path: 'extras/Deus Ex manual.pdf' }, { path: 'extras/deus ex reference card.pdf' }, { path: 'extras/Deus Ex newspaper handout.pdf' },
+    { path: 'extras/Bilder', dir: true }, { path: 'extras/Bilder/a.jpg' }, { path: 'extras/Bilder/b.png' },
+    { path: 'Patches_und_Fixes/DXCU.3.4.1.2024-11-29.039.exe' }, { path: 'Story_Erweiterungen/The_Nameless_Mod_Installer_2025-11-5_1723.exe' },
+    { path: 'Story_Erweiterungen/2027_1.2.1.exe' },
+  ], { game: 'Deus Ex: Game of the Year Edition' });
+  const by = (p) => plan.find((x) => x.path === p);
+  assert.deepEqual([by('extras/deus_ex_soundtrack').name, by('extras/deus_ex_soundtrack').group], ['Soundtrack', 'Musik']);
+  assert.deepEqual([by('extras/deus_ex_wallpapers').name, by('extras/deus_ex_wallpapers').group], ['Wallpapers', 'Artwork']);
+  assert.deepEqual([by('extras/Deus Ex manual.pdf').name, by('extras/Deus Ex manual.pdf').group], ['Manual', 'Anleitungen']);
+  assert.equal(by('extras/deus ex reference card.pdf').group, 'Anleitungen');
+  assert.equal(by('extras/Deus Ex newspaper handout.pdf').group, 'Zusätze');
+  assert.equal(by('extras/Bilder').group, 'Artwork', 'Ordner mit Bildern');
+  assert.deepEqual(plan.filter((x) => x.kind === 'extras').map((x) => x.group), ['Anleitungen', 'Anleitungen', 'Musik', 'Artwork', 'Artwork', 'Zusätze'], 'nach Gruppen geordnet');
+  assert.equal(by('Patches_und_Fixes/DXCU.3.4.1.2024-11-29.039.exe').name, 'DXCU');
+  assert.equal(by('Story_Erweiterungen/The_Nameless_Mod_Installer_2025-11-5_1723.exe').name, 'The Nameless Mod');
+  assert.equal(by('Story_Erweiterungen/2027_1.2.1.exe').name, '2027');
 });

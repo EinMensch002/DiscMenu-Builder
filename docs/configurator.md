@@ -37,7 +37,7 @@ Links die Liste der Spiele, rechts das Formular zum gewählten Eintrag, ganz rec
 
 ## Gemeinsames Projekt (Menü und Hülle)
 
-Menü und [Hülle](disc-sleeve.md) sind **ein Projekt** mit einem Speicher und einer Datei. Die Leiste oben ist in beiden Bereichen gleich: links der Umschalter **Menü | Hülle** und die Knöpfe, die nur zu einem Bereich gehören (**Vorschau** im Menü, **Drucken** bei der Hülle), rechts alles, was für das ganze Projekt gilt:
+Menü und [Hülle](disc-sleeve.md) sind **ein Projekt** mit einem Speicher und einer Datei. Die Leiste oben ist in beiden Bereichen gleich: links der Umschalter **Disc-Menü | Cover & Hülle** und die Knöpfe, die nur zu einem Bereich gehören (**Vorschau** im Menü, **Drucken** bei der Hülle), rechts alles, was für das ganze Projekt gilt:
 
 | Leiste | Inhalt |
 |---|---|
@@ -90,7 +90,7 @@ DISK 1/
 └─ extras/                 Extras (jede Datei und jeder Unterordner wird geöffnet)
 ```
 
-Der Browser fragt, ob die Seite den Ordner lesen darf. Gelesen werden nur die Namen, nichts wird hochgeladen. Die Seite schlägt nach den Ordnernamen vor, was Installer, DLC, Patch oder Extra ist (die Namen müssen nicht genau so heißen: `dlc`, `erweiterung`, `expansion`, `patch`, `fix`, `mod`, `overhaul`, `extra`, `bonus`, `soundtrack`, `handbuch` … werden erkannt). Der Vorschlag erscheint als Tabelle: **Art, Name und Gruppe lassen sich je Zeile ändern**, "nicht übernehmen" lässt eine Zeile weg. Erst "Übernehmen" trägt die Einträge beim gewählten Spiel ein (Pfade ab dem gewählten Ordner = Wurzel der Disc). Vorhandene Einträge bleiben, gleiche Pfade werden nicht doppelt eingetragen. Regeln: `project.js` `planFromFolder`.
+Der Browser fragt, ob die Seite den Ordner lesen darf. Gelesen werden nur die Namen, nichts wird hochgeladen. Die Seite schlägt nach den Ordnernamen vor, was Installer, DLC, Patch oder Extra ist (die Namen müssen nicht genau so heißen: `dlc`, `erweiterung`, `expansion`, `patch`, `fix`, `mod`, `overhaul`, `extra`, `bonus`, `soundtrack`, `handbuch` … werden erkannt). Der Vorschlag erscheint als Tabelle: **Art, Name und Gruppe lassen sich je Zeile ändern**, "nicht übernehmen" lässt eine Zeile weg. Erst "Übernehmen" trägt die Einträge beim gewählten Spiel ein (Pfade ab dem gewählten Ordner = Wurzel der Disc). Vorhandene Einträge bleiben, gleiche Pfade werden nicht doppelt eingetragen. **Namen** werden gesäubert (ohne Endung, Versionsnummern, Datum, "setup"/"installer" und ohne den Spielnamen vorn, z. B. "deus_ex_soundtrack" → "Soundtrack", "DXCU.3.4.1.2024-11-29.039.exe" → "DXCU"). **Extras** bekommen eine Gruppe nach Name und Inhalt: **Anleitungen** (Handbuch, Referenzkarte, Guide), **Musik** (Soundtrack, Audiodateien), **Artwork** (Wallpaper, Artbook, Bilder), **Videos** und **Zusätze** (alles andere, z. B. Zeitung, Erfolgsliste), in dieser Reihenfolge sortiert. Regeln: `project.js` `planFromFolder` und `cleanName`.
 
 Wie die Datei gespeichert wird, hängt vom Browser ab:
 

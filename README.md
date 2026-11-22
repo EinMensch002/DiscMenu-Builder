@@ -168,7 +168,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
   - [x] **Auswahlrechteck im Editor:** auf leerer Fläche aufziehen wählt alle berührten Elemente (mit Strg/Umschalt zur Auswahl hinzufügen)
   - [ ] Ausrichtungshilfen (Raster)
 - [ ] **Beide Web-Tools zusammenführen** (in Arbeit, drei Schritte):
-  - [x] **Eine Seite:** gemeinsamer Ordner `app/`, eine `index.html`, oben eine Leiste mit dem Wechsel "Menü | Hülle" ohne Neuladen; die Knöpfe der Leiste passen sich dem Bereich an
+  - [x] **Eine Seite:** gemeinsamer Ordner `app/`, eine `index.html`, oben eine Leiste mit dem Wechsel "Disc-Menü | Cover & Hülle" ohne Neuladen; die Knöpfe der Leiste passen sich dem Bereich an
   - [x] **Ein Projekt:** ein Speicher und eine Projektdatei für Menü und Hülle (eine `recipe.json` mit den Bereichen Gemeinsam, Menü und Hülle, dazu `assets/` und `fonts/`; der Builder liest sie direkt), verknüpft und nichts doppelt (Spielname = Titel der Hülle, Anbieter, Beschreibung, Größe, Cover), ein Einstellungsdialog, eine Leiste für beide Bereiche, helles Design im Menü; alte Rezepte und Hüllen-Dateien lassen sich weiter öffnen
   - [x] **Spielordner einlesen:** Ordner wie die Disc wählen, Installer, DLCs, Patches und Extras werden vorgeschlagen und lassen sich vor dem Übernehmen ändern
   - [x] **recipe.json bearbeiten** mit den Reitern Alles, Gemeinsam, Menü und Hülle; Hinweis beim Speichern alter Dateien im neuen Format

@@ -176,6 +176,8 @@
     /* Kopfzeile */
     'DiscMenu-Builder – Menü und Hülle für Spiele-Discs': 'DiscMenu-Builder – menu and case for game discs',
     'Menü': 'Menu',
+    'Disc-Menü': 'Disc menu',
+    'Cover & Hülle': 'Cover & case',
     'Spielordner einlesen …': 'Read game folder …',
     'Ordner wählen, der wie die Disc aufgebaut ist: Installer, DLCs, Patches und Extras werden vorgeschlagen': 'Choose a folder laid out like the disc: installers, DLCs, patches and extras are suggested',
     'Neues Dateiformat': 'New file format',
