@@ -324,7 +324,9 @@
   /* ---------- Cover zeichnen ---------- */
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const setBg = (node, img) => { node.style.backgroundImage = img ? 'url("' + img.url + '")' : 'none'; node.classList.toggle('has-img', !!img); };
-  function setImg(node, src) { if (src) { node.src = src; node.hidden = false; } else { node.removeAttribute('src'); node.hidden = true; } }
+  /* Dateien aus assets/: Im Ein-Datei-Build (scripts/build-single.js) stecken sie als data:-Adressen in window.DISC_ASSETS, sonst gilt der Pfad. */
+  const asset = (p) => (window.DISC_ASSETS && window.DISC_ASSETS[p]) || p;
+  function setImg(node, src) { if (src) { node.src = asset(src); node.hidden = false; } else { node.removeAttribute('src'); node.hidden = true; } }
 
   /* Beschriftungen der Spielfunktionen: Sind viele Funktionen gewählt, wird jeder Platz schmaler als das längste Wort (z. B. "Controller", "Achievements").
      Dann wird die Schrift in allen Beschriftungen gleich weit verkleinert, bis nichts mehr in den Nachbarn ragt (Issue #23). Maße sind Layoutmaße, die Vorschau-Skalierung ändert sie nicht. */
@@ -394,7 +396,7 @@
     $('#featNote').textContent = C.PROVIDERS[state.provider].note[state.lang];
     const feats = $('#feats');
     feats.replaceChildren(...C.FEATURE_ORDER.filter((k) => state.features.includes(k)).map((k) => {
-      const item = el('div', 'feat'), img = el('img'); img.src = 'assets/images/features/line/' + k + '.svg'; img.alt = '';
+      const item = el('div', 'feat'), img = el('img'); img.src = asset('assets/images/features/line/' + k + '.svg'); img.alt = '';
       item.append(img, el('span', '', L.feat[k])); return item;
     }));
     fitFeatLabels(feats);
@@ -427,7 +429,7 @@
     cover.classList.toggle('spine-light', lightSpine);
     /* Farbe von "PC" am Fuß des Rückens: automatisch passend zum Rücken (weiß auf dunkel, schwarz auf hell) oder fest */
     cover.style.setProperty('--pc', state.pcColor === 'white' ? '#ffffff' : state.pcColor === 'black' ? '#111111' : lightSpine ? '#1c1c22' : '#ffffff');
-    $$('.brand-logo').forEach((img) => { img.src = 'assets/images/' + ((V && V.logo) || P.logo); img.alt = P.name; });
+    $$('.brand-logo').forEach((img) => { img.src = asset('assets/images/' + ((V && V.logo) || P.logo)); img.alt = P.name; });
     $('#barWm').textContent = P.wordmark.replace('\n', ' ');
     $('#spineWm').textContent = P.wordmark.split('\n')[0];
     $('#frontTag').textContent = P.tag[state.lang];
