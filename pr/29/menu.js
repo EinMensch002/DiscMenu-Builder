@@ -465,7 +465,12 @@
     const rows = plan.map(p => {
       const kind = h('select', {'aria-label':'Art'}, DiscProject.KINDS.map(k => h('option', {value:k}, KIND_LABEL[k]))); kind.value = p.kind;
       const name = h('input', {type:'text', value:p.name, 'aria-label':'Name'}), group = h('input', {type:'text', value:p.group, placeholder:'Gruppe', 'aria-label':'Gruppe'});
-      const sync = () => { const off = kind.value === 'skip' || kind.value === 'installer'; name.disabled = off; group.disabled = off; };
+      /* "nicht übernehmen": nichts zu bearbeiten. Installer des Spiels: der Name ist der Name des Spiels (gilt auch für die Hülle), eine Gruppe gibt es dafür nicht. */
+      const sync = () => {
+        const v = kind.value; name.disabled = v === 'skip'; group.disabled = v === 'skip' || v === 'installer';
+        name.title = v === 'installer' ? 'Name des Spiels (gilt auch für Cover und Hülle)' : '';
+        group.placeholder = v === 'installer' ? 'keine Gruppe' : 'Gruppe';
+      };
       kind.addEventListener('change', sync); sync();
       return {p, kind, name, group, row: h('tr', {}, h('td', {class:'path'}, p.path), h('td', {}, kind), h('td', {}, name), h('td', {}, group))};
     });
@@ -473,7 +478,7 @@
       let n = 0;
       for (const r of rows){
         const k = r.kind.value; if (k === 'skip') continue;
-        if (k === 'installer'){ g.installer = r.p.path; n++; continue; }
+        if (k === 'installer'){ g.installer = r.p.path; const nm = r.name.value.trim(); if (nm && nm !== g.name) g.name = nm; n++; continue; }
         if (g[k].some(it => it.path === r.p.path)) continue;                     // schon eingetragen
         const it = newItem(); Object.assign(it, {name: r.name.value.trim() || r.p.path.split('/').pop(), group: r.group.value.trim(), path: r.p.path, kind: r.p.open || k === 'extras' ? 'open' : 'installer', _open: false});
         g[k].push(it); n++;

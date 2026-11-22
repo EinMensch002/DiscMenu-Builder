@@ -220,7 +220,7 @@
       const inside = list.filter((e) => top(e.path) === t && e.path !== t), kind = kindOfTop(t);
       if (!inside.length) {                                     // Datei direkt in der Wurzel
         const e = list.find((x) => x.path === t);
-        if (e && !e.dir && isExe(t)) out.push({ path: t, kind: seenInstaller.done ? 'skip' : 'installer', name: cleanName(t, game), group: '', open: false });
+        if (e && !e.dir && isExe(t)) out.push({ path: t, kind: seenInstaller.done ? 'skip' : 'installer', name: seenInstaller.done ? cleanName(t, game) : game || cleanName(t, ''), group: '', open: false });
         if (e && !e.dir && isExe(t)) seenInstaller.done = true;
         continue;
       }
@@ -236,7 +236,9 @@
         let k = kind || 'skip';
         if (k === 'installer') { k = seenInstaller.done ? 'patches' : 'installer'; seenInstaller.done = true; }
         const parts = e.path.split('/'), sub = parts.length > 2 ? parts[parts.length - 2] : '';
-        out.push({ path: e.path, kind: k, name: cleanName(sub || parts[parts.length - 1], game), group: k === 'patches' ? groupOf(t) : '', open: false });      // eigener Unterordner = Name, oberster Ordner = Gruppe
+        // Installer des Spiels: der Name ist der des Spiels (ohne Spielnamen fehlt sonst das Wichtigste), sonst eigener Unterordner = Name, oberster Ordner = Gruppe
+        const nm = k === 'installer' ? game || cleanName(parts[parts.length - 1], '') : cleanName(sub || parts[parts.length - 1], game);
+        out.push({ path: e.path, kind: k, name: nm, group: k === 'patches' ? groupOf(t) : '', open: false });      // eigener Unterordner = Name, oberster Ordner = Gruppe
       });
     }
     return out;
