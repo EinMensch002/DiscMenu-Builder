@@ -187,9 +187,13 @@
     let toks = s.split(/[\s._]+/).filter(Boolean).filter((t) => !/^(setup|installer|install)$/i.test(t));
     const isVer = (t) => /^v?\d+([.-]\d+)*[a-z]{0,3}$/i.test(t) || /^\d{4}-\d{1,2}-\d{1,2}$/.test(t);
     while (toks.length > 1 && isVer(toks[toks.length - 1])) toks.pop();
-    const gw = String(game || '').toLowerCase().split(/[^a-z0-9äöüß]+/).filter(Boolean);
-    let i = 0; while (i < gw.length && i < toks.length - 1 && toks[i].toLowerCase() === gw[i]) i++;
-    if (i >= 2 || (i === 1 && gw.length === 1)) toks = toks.slice(i);
+    let cut = 0;                                    // game: Name oder Liste von Namen (Spiel, Ordner), der längste passende Anfang wird weggelassen
+    for (const g of [].concat(game || [])) {
+      const gw = String(g || '').toLowerCase().split(/[^a-z0-9äöüß]+/).filter(Boolean);
+      let i = 0; while (i < gw.length && i < toks.length - 1 && toks[i].toLowerCase() === gw[i]) i++;
+      if ((i >= 2 || (i === 1 && gw.length === 1)) && i > cut) cut = i;
+    }
+    toks = toks.slice(cut);
     const n = toks.join(' ').trim();
     return n ? n[0].toUpperCase() + n.slice(1) : prettify(raw);
   }
@@ -209,23 +213,37 @@
     return 'Zusätze';
   }
   const groupOf = (folder) => prettify(folder).replace(/\b(und|and)\b/gi, '&');      // z. B. Patches_und_Fixes -> Patches & Fixes
-  function planFromFolder(entries, opts) {
-    const game = (opts && opts.game) || '';
-    const list = (entries || []).map((e) => ({ path: String(e.path).replace(/\\/g, '/').replace(/^\/+/, ''), dir: !!e.dir })).filter((e) => e.path);
+  const words = (s) => String(s || '').toLowerCase().split(/[^a-z0-9äöüß]+/).filter(Boolean);
+  const titleCase = (s) => cleanName(s, '').split(' ').map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(' ');
+  const kindOfTop = (t) => { for (const [k, re] of RULES) if (re.test(t)) return k; return null; };
+  const isExe = (p) => /\.exe$/i.test(p);
+  const isSetup = (p) => /^(setup|install)/i.test(p.split('/').pop());
+  /* Wie gut passen zwei Namen zusammen (Anteil gemeinsamer Wörter, 0 bis 1) */
+  function similar(a, b) { const A = words(a), B = words(b); if (!A.length || !B.length) return 0; return A.filter((w) => B.includes(w)).length / Math.max(A.length, B.length); }
+
+  /* Vorschläge für EIN Spiel. list: Einträge relativ zum Ordner des Spiels, game: Name des Spiels (für die Namen und die Wahl des Installers),
+     folder: Name des Spielordners (wird wie der Spielname vorn aus den Namen entfernt). */
+  function planGame(list, game, folder) {
+    const pre = [game, folder].filter(Boolean);
     const top = (p) => p.split('/')[0], depth = (p) => p.split('/').length;
-    const kindOfTop = (t) => { for (const [k, re] of RULES) if (re.test(t)) return k; return null; };
-    const out = [], isExe = (p) => /\.exe$/i.test(p);
-    const seenInstaller = { done: false };
-    for (const t of [...new Set(list.map((e) => top(e.path)))]) {
+    const out = [];
+    let installerTaken = false;
+    // Programme direkt im Ordner: Setups sind Installer (der zum Spielnamen passende, sonst der mit dem kürzesten Namen, meist die
+    // Grundversion), weitere Setups werden DLCs (z. B. eine HD-Version), andere Programme (Zusatzspiele, Werkzeuge) werden als Extra gestartet
+    const rootExes = list.filter((e) => !e.dir && depth(e.path) === 1 && isExe(e.path));
+    const setups = rootExes.filter((e) => isSetup(e.path));
+    if (setups.length) {
+      const score = (e) => similar(cleanName(e.path, ''), game);
+      const best = setups.slice().sort((a, b) => score(b) - score(a) || cleanName(a.path, '').length - cleanName(b.path, '').length || a.path.localeCompare(b.path))[0];
+      for (const e of setups) out.push(e === best ? { path: e.path, kind: 'installer', name: game || cleanName(e.path, ''), group: '', open: false } : { path: e.path, kind: 'dlcs', name: cleanName(e.path, ''), group: '', open: false });
+      installerTaken = true;
+    }
+    for (const e of rootExes.filter((x) => !isSetup(x.path))) out.push({ path: e.path, kind: 'extras', name: cleanName(e.path, pre), group: 'Zusätze', open: true });
+    // Ordner: nach ihrem Namen (base_game, extras, Patches …)
+    for (const t of [...new Set(list.filter((e) => e.dir || depth(e.path) > 1).map((e) => top(e.path)))]) {
       const inside = list.filter((e) => top(e.path) === t && e.path !== t), kind = kindOfTop(t);
-      if (!inside.length) {                                     // Datei direkt in der Wurzel
-        const e = list.find((x) => x.path === t);
-        if (e && !e.dir && isExe(t)) out.push({ path: t, kind: seenInstaller.done ? 'skip' : 'installer', name: seenInstaller.done ? cleanName(t, game) : game || cleanName(t, ''), group: '', open: false });
-        if (e && !e.dir && isExe(t)) seenInstaller.done = true;
-        continue;
-      }
       if (kind === 'extras') {                                   // Extras: jede Datei oder jeder Unterordner direkt darin wird geöffnet
-        const ex = inside.filter((x) => depth(x.path) === 2).map((e) => ({ path: e.path, kind: 'extras', name: cleanName(e.path.split('/')[1], game), group: extraGroup(e.path, list), open: true }));
+        const ex = inside.filter((x) => depth(x.path) === 2).map((e) => ({ path: e.path, kind: 'extras', name: cleanName(e.path.split('/')[1], pre), group: extraGroup(e.path, list), open: true }));
         ex.sort((a, b) => EXTRA_ORDER.indexOf(a.group) - EXTRA_ORDER.indexOf(b.group));          // nach Gruppen geordnet: Anleitungen zuerst, Zusätze zuletzt
         out.push(...ex);
         continue;
@@ -234,18 +252,51 @@
       const exes = inside.filter((x) => !x.dir && isExe(x.path)).sort((a, b) => depth(a.path) - depth(b.path) || a.path.localeCompare(b.path));
       exes.forEach((e) => {
         let k = kind || 'skip';
-        if (k === 'installer') { k = seenInstaller.done ? 'patches' : 'installer'; seenInstaller.done = true; }
+        if (k === 'installer') { k = installerTaken ? 'patches' : 'installer'; installerTaken = true; }
         const parts = e.path.split('/'), sub = parts.length > 2 ? parts[parts.length - 2] : '';
-        // Installer des Spiels: der Name ist der des Spiels (ohne Spielnamen fehlt sonst das Wichtigste), sonst eigener Unterordner = Name, oberster Ordner = Gruppe
-        const nm = k === 'installer' ? game || cleanName(parts[parts.length - 1], '') : cleanName(sub || parts[parts.length - 1], game);
-        out.push({ path: e.path, kind: k, name: nm, group: k === 'patches' ? groupOf(t) : '', open: false });      // eigener Unterordner = Name, oberster Ordner = Gruppe
+        // Installer des Spiels: der Name ist der des Spiels, sonst eigener Unterordner = Name, oberster Ordner = Gruppe
+        const nm = k === 'installer' ? game || cleanName(parts[parts.length - 1], '') : cleanName(sub || parts[parts.length - 1], pre);
+        out.push({ path: e.path, kind: k, name: nm, group: k === 'patches' ? groupOf(t) : '', open: false });
       });
     }
     return out;
   }
+
+  /* Vorschläge für einen gewählten Ordner. opts: { game: Name des gewählten Spiels, games: Namen aller Spiele im Menü }.
+     Zwei Aufbauten werden erkannt:
+     - Ein Spiel: der Ordner enthält Setups und/oder Ordner wie base_game, extras, Patches (Zeilen ohne "game").
+     - Mehrere Spiele: der Ordner enthält je Spiel einen Ordner (z. B. stronghold, stronghold_crusader) mit Programmen darin.
+       Jede Zeile nennt dann ihren Spielordner (game), den Namen des Spiels (gameName) und das passende Spiel im Menü (gameIndex, -1 = neu).
+       Programme direkt in der Wurzel (meist die Menü-EXE) und autorun.inf werden nicht übernommen. */
+  function planFromFolder(entries, opts) {
+    const o = opts || {}, names = Array.isArray(o.games) ? o.games : [];
+    const list = (entries || []).map((e) => ({ path: String(e.path).replace(/\\/g, '/').replace(/^\/+/, ''), dir: !!e.dir })).filter((e) => e.path);
+    const top = (p) => p.split('/')[0], depth = (p) => p.split('/').length;
+    const tops = [...new Set(list.filter((e) => e.dir || depth(e.path) > 1).map((e) => top(e.path)))];
+    const gameDirs = tops.filter((t) => !kindOfTop(t) && list.some((e) => !e.dir && e.path.startsWith(t + '/') && isExe(e.path)));
+    const rootSetup = list.some((e) => !e.dir && depth(e.path) === 1 && isExe(e.path) && isSetup(e.path));
+    const multi = gameDirs.length > 0 && !tops.some((t) => kindOfTop(t)) && !rootSetup;
+    if (!multi) return planGame(list, o.game || '', o.folder || '');
+    /* Ordner einem Spiel im Menü zuordnen: alle Wörter des Ordners kommen im Namen des Spiels vor (stronghold -> "Stronghold HD",
+       aber nicht stronghold_crusader -> "Stronghold HD"). Jedes Spiel nur einmal, das am besten passende Paar zuerst. */
+    const contained = (folder, name) => { const F = words(titleCase(folder)), N = words(name); return F.length && F.every((w) => N.includes(w)) ? F.length / N.length : 0; };
+    const pairs = [];
+    gameDirs.forEach((d) => names.forEach((n, i) => { const s = contained(d, n); if (s > 0) pairs.push([s, d, i]); }));
+    pairs.sort((x, y) => y[0] - x[0]);
+    const match = new Map(), used = new Set();
+    for (const [, d, i] of pairs) if (!match.has(d) && !used.has(i)) { match.set(d, i); used.add(i); }
+    const out = [];
+    for (const d of gameDirs) {
+      const gameIndex = match.has(d) ? match.get(d) : -1, gameName = gameIndex >= 0 ? names[gameIndex] : titleCase(d);
+      const sub = list.filter((e) => e.path.startsWith(d + '/')).map((e) => ({ path: e.path.slice(d.length + 1), dir: e.dir }));
+      for (const r of planGame(sub, gameName, d)) out.push({ ...r, path: d + '/' + r.path, game: d, gameName, gameIndex });
+    }
+    for (const e of list.filter((x) => !x.dir && depth(x.path) === 1 && isExe(x.path))) out.push({ path: e.path, kind: 'skip', name: cleanName(e.path, ''), group: '', open: false, game: '', gameName: '', gameIndex: -1 });
+    return out;
+  }
   const KINDS = ['installer', 'dlcs', 'patches', 'extras', 'skip'];
 
-  const api = { FORMAT, VERSION, pack, build, read, readJson, readRecipe, menuJsonFromRecipe, stripShared, coverPatchFromMenu, menuPatchFromCover, coverDiff, menuDiff, linkedGame, normLink, defaultLink, planFromFolder, cleanName, KINDS };
+  const api = { FORMAT, VERSION, pack, build, read, readJson, readRecipe, menuJsonFromRecipe, stripShared, coverPatchFromMenu, menuPatchFromCover, coverDiff, menuDiff, linkedGame, normLink, defaultLink, planFromFolder, cleanName, similar, KINDS };
   if (node) module.exports = api;
   else root.DiscProject = api;
 })(typeof window !== 'undefined' ? window : globalThis);
