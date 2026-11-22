@@ -202,12 +202,15 @@
 
   /* state: Einstellungen des Cover-Tools. images: { schlüssel: { data: Uint8Array, type, name } }.
      fonts (optional): eigene Schriften { id, name, ext, data (Base64) }, die im Projekt benutzt werden. Ergebnis: ZIP als Uint8Array. */
-  function packProject(state, images, fonts) {
+  /* Dateien der Hülle für eine ZIP: cover.json, Bilder, eigene Schriften. opts (für die gemeinsame Projektdatei):
+     dir = Ordner der Bilder (Standard "images/"), prefix = Vorsatz der Bilddateien, version, extra = weitere Felder der cover.json */
+  function projectEntries(state, images, fonts, opts) {
+    const o = opts || {}, dir = o.dir || 'images/', prefix = o.prefix || '';
     const files = [], meta = {}, fmeta = {};
     for (const key of Object.keys(images || {}).filter(isImageKey)) {
       const img = images[key];
       if (!img) continue;
-      const ext = EXT_BY_TYPE[img.type] || 'png', path = 'images/' + key + '.' + ext;
+      const ext = EXT_BY_TYPE[img.type] || 'png', path = dir + prefix + key + '.' + ext;
       files.push({ name: path, data: img.data });
       meta[key] = { file: path, name: img.name || '' };
     }
@@ -218,10 +221,11 @@
       files.push({ name: path, data: unb64(n.data) });
       fmeta[f.id] = { file: path, name: n.name };
     }
-    const json = { type: PROJECT_TYPE, version: 1, state, images: meta };
+    const json = { type: PROJECT_TYPE, version: o.version || 1, ...(o.extra || {}), state, images: meta };
     if (Object.keys(fmeta).length) json.fonts = fmeta;
-    return buildZip([{ name: 'cover.json', data: new TextEncoder().encode(JSON.stringify(json, null, 2) + '\n') }, ...files]);
+    return [{ name: 'cover.json', data: new TextEncoder().encode(JSON.stringify(json, null, 2) + '\n') }, ...files];
   }
+  function packProject(state, images, fonts, opts) { return buildZip(projectEntries(state, images, fonts, opts)); }
 
   /* files: Ergebnis des ZIP-Lesers ([{name, data}]). Ergebnis: { state, images }. */
   function unpackProject(files) {
@@ -230,7 +234,7 @@
     let j;
     try { j = JSON.parse(new TextDecoder().decode(cj.data)); } catch (e) { throw new Error('Die cover.json ist beschädigt.'); }
     if (!j || j.type !== PROJECT_TYPE) throw new Error('Das ist keine Projektdatei des Cover-Tools.');
-    if (j.version > 1) throw new Error('Die Projektdatei stammt aus einer neueren Version des Cover-Tools.');
+    if (j.version > 2) throw new Error('Die Projektdatei stammt aus einer neueren Version des Cover-Tools.');
     const images = {}, missing = [];
     for (const key of Object.keys((j.images && typeof j.images === 'object') ? j.images : {}).filter(isImageKey)) {
       const m = j.images[key];
@@ -247,10 +251,10 @@
       const n = f && normalizeFont({ name: m.name, ext: (m.file.split('.').pop() || '').toLowerCase(), data: b64(f.data) });
       if (n) fonts.push({ id, ...n });
     }
-    return { state: j.state, images, missing, fonts };
+    return { state: j.state, images, missing, fonts, version: j.version || 1, link: j.link && typeof j.link === 'object' ? j.link : null };
   }
 
-  const api = { packSettings, unpackSettings, packBundle, unpackBundle, planImport, applyImport, freeName, toBase64: b64, fromBase64: unb64, normalizeFont, FONT_MIME, MAX_FONT_BYTES, buildZip, crc32, usedFontIds, remapFonts, packProject, unpackProject, IMAGE_KEYS, isImageKey, TYPE_BY_EXT, PROJECT_TYPE };
+  const api = { packSettings, unpackSettings, packBundle, unpackBundle, planImport, applyImport, freeName, toBase64: b64, fromBase64: unb64, normalizeFont, FONT_MIME, MAX_FONT_BYTES, buildZip, crc32, usedFontIds, remapFonts, projectEntries, packProject, unpackProject, IMAGE_KEYS, isImageKey, TYPE_BY_EXT, PROJECT_TYPE };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.CoverFiles = api;
 })(typeof window !== 'undefined' ? window : globalThis);

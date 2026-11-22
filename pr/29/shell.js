@@ -23,12 +23,8 @@
   for (const b of tabs) b.addEventListener('click', () => show(b.dataset.go));
   window.addEventListener('hashchange', () => { const v = fromHash(); if (v) show(v); });
 
-  // "Einstellungen": im Menü öffnet sich dessen Dialog (gleiche Schlüssel und Proxy, beide Teile teilen sie schon)
-  const bSettings = document.getElementById('bSettings'), bSg = document.getElementById('bSg');
-  if (bSettings && bSg) bSettings.addEventListener('click', (e) => {
-    if (document.body.dataset.view !== 'menu') return;
-    e.stopImmediatePropagation(); bSg.click();
-  }, true);
+  // Knöpfe der Leiste, deren Dialog im Bereich "Menü" liegt: erst dorthin wechseln
+  document.querySelectorAll('[data-switch]').forEach((b) => b.addEventListener('click', () => show(b.dataset.switch), true));
 
   let start = fromHash();
   if (!start) { try { start = localStorage.getItem(STORE); } catch (e) { start = null; } }

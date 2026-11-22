@@ -92,106 +92,6 @@
   }
   function closeDlg(){ if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open'); }
 
-  /* Version des Proxy-Workers (tools/cors-proxy/worker.js): gleiche Prüfung wie im DiscSleeve. Wird der Worker geändert, steigen VERSION dort und hier
-     WORKER_VERSION (ein Test prüft die Gleichheit). */
-  const WORKER_VERSION = 2;
-  const REQUIRED_HOSTS = ['www.steamgriddb.com', 'store.steampowered.com', 'catalog.gog.com', 'api.gog.com', 'store-content.ak.epicgames.com'];
-  async function checkWorker(){
-    let info = null;
-    try {
-      const u = new URL(cfg.proxy.split('{url}').join('x')); u.search = '?info=1&t=' + Date.now();                  // nie aus dem Zwischenspeicher
-      const r = await fetch(u.href, { cache: 'no-store' });
-      try { info = await r.json(); } catch (e) { info = null; }
-    } catch (e) { throw new Error('Der Proxy ist nicht erreichbar oder blockiert die Anfrage. Bitte die Proxy-Adresse prüfen.'); }
-    if (!info || typeof info.version !== 'number') throw new Error('Alte Version des Proxy-Workers (ohne Versionsangabe), aktuell ist Version ' + WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen (Anleitung bei "Proxy einrichten").');
-    const missing = REQUIRED_HOSTS.filter(h => !(info.hosts || []).some(src => { try { return new RegExp(src).test(h); } catch (e) { return false; } }));
-    if (info.version < WORKER_VERSION || missing.length) throw new Error('Proxy-Worker Version ' + info.version + ', aktuell ist ' + WORKER_VERSION + (missing.length ? '. Er erlaubt nicht: ' + missing.join(', ') : '') + '. Bitte den aktuellen Worker-Code einspielen.');
-    return info.version > WORKER_VERSION ? {warn: true, text: 'Version ' + info.version + ' (neuer als dieses Tool)'} : {text: 'Version ' + info.version + ' (aktuell)'};
-  }
-
-  /* Verbindungstest: jeder Dienst, den der Konfigurator nutzt, einzeln (SteamGridDB, Steam, GOG, Epic Games, Übersetzung), damit man sieht, woran es liegt */
-  async function testServices(){
-    const out = [];
-    const run = async (name, fn) => { try { const v = await fn(); out.push(v && typeof v === 'object' ? {name, ok: true, warn: !!v.warn, text: v.text} : {name, ok: true, text: v}); } catch (e) { out.push({name, ok: false, text: e.message || String(e)}); } };
-    const get = async (url, what) => {
-      const r = await net(url);
-      if (r.status === 403 && /Host/i.test(await r.clone().text().catch(() => ''))) throw new Error('Der Proxy erlaubt ' + what + ' nicht. Der Worker-Code ist wahrscheinlich veraltet, bitte den aktuellen aus docs/steamgriddb.md einspielen.');
-      return r;
-    };
-    if (!cfg.proxy) out.push({name: 'Proxy', ok: false, text: 'Kein Proxy eingetragen. Ohne Proxy blockiert der Browser die Anfragen meist (CORS).'});
-    if (cfg.proxy) await run('Proxy-Worker', checkWorker);
-    if (cfg.key) await run('SteamGridDB', async () => { const r = await sgGet('/search/autocomplete/' + encodeURIComponent('Half-Life')); return r.length + ' Treffer für den Test'; });
-    else out.push({name: 'SteamGridDB', ok: false, text: 'Kein API-Schlüssel eingetragen.'});
-    await run('Steam-Shop', async () => { const r = await get('https://store.steampowered.com/api/storesearch/?l=german&cc=DE&term=Half-Life', 'Steam'); if (!r.ok) throw new Error('Steam hat mit Fehler ' + r.status + ' geantwortet.'); const j = await r.json(); return (j.items || []).length + ' Treffer für den Test'; });
-    await run('GOG-Katalog', async () => { const r = await get('https://catalog.gog.com/v1/catalog?limit=3&query=like%3AWitcher&productType=in%3Agame%2Cpack&countryCode=DE&locale=de-DE', 'GOG'); if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.'); const j = await r.json(); return (j.products || []).length + ' Treffer für den Test'; });
-    await run('GOG-Spieldaten', async () => { const r = await get('https://api.gog.com/products/1207658924?expand=description&locale=de-DE', 'GOG'); if (!r.ok) throw new Error('GOG hat mit Fehler ' + r.status + ' geantwortet.'); await r.json(); return 'erreichbar'; });
-    await run('Epic Games Store', async () => { const r = await get('https://store-content.ak.epicgames.com/api/de/content/products/rocket-league', 'Epic Games'); if (r.status >= 500 || r.status === 403) throw new Error('Epic Games hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
-    await run('Übersetzung (MyMemory)', async () => { let r; try { r = await fetch('https://api.mymemory.translated.net/get?langpair=en%7Cde&q=Hello'); } catch (e) { throw new Error('Der Übersetzungsdienst ist nicht erreichbar. Bitte die Internetverbindung prüfen.'); } if (!r.ok) throw new Error('Der Übersetzungsdienst hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
-    return out;
-  }
-
-  function openSettings(){
-    const key = h('input', {type:'password', autocomplete:'off', placeholder:'API-Schlüssel', value: cfg.key});
-    const pw = h('input', {type:'password', autocomplete:'new-password', placeholder:'Passwort (optional)'});
-    const proxy = h('input', {type:'text', placeholder:'https://mein-proxy.example.workers.dev/?url={url}', value: cfg.proxy});
-    const msg = h('p', {class:'hint'});
-    const tests = h('div', {class:'hint', id:'sgTests'});
-    const msg2 = h('p', {class:'hint', id:'sgMsg2'});
-    const fin = h('input', {type:'file', accept:'.json,application/json', hidden:true, onchange: async () => {
-      const f = fin.files[0]; fin.value = ''; if (!f) return;
-      try {
-        const v = await unpackSettings(await f.text(), pw.value);
-        if (v.proxy && !v.proxy.includes('{url}')) throw new Error('Die Proxy-Adresse in der Datei enthält keinen Platzhalter {url}.');
-        key.value = v.key; proxy.value = v.proxy; store.set('sgdb-key', v.key); store.set('sgdb-proxy', v.proxy);
-        msg2.textContent = 'Einstellungen eingelesen und gespeichert.';
-      } catch (e) { msg2.textContent = e.message === 'PASSWORD_NEEDED' ? 'Die Datei ist verschlüsselt. Bitte das Passwort eintragen und die Datei erneut einlesen.' : e.message; }
-    }});
-    const saveCfg = () => {
-      const p = proxy.value.trim();
-      if (p && !p.includes('{url}')){ msg.textContent = 'Die Proxy-Adresse muss den Platzhalter {url} enthalten.'; return false; }
-      store.set('sgdb-key', key.value.trim()); store.set('sgdb-proxy', p); return true;
-    };
-    openDlg('SteamGridDB-Einstellungen',
-      h('p', {class:'hint'}, 'Den API-Schlüssel gibt es kostenlos im SteamGridDB-Profil. Er wird nur in diesem Browser gespeichert und nie in die ZIP geschrieben.'),
-      h('p', {class:'hint'}, ext('Schlüssel bei SteamGridDB erzeugen', LINKS.sgdbKey), ' · ', ext('SteamGridDB', LINKS.sgdb), ' · ', docLink('Anleitung', 'steamgriddb.md', 'einrichten-steamgriddb')),
-      wrap('API-Schlüssel', key),
-      wrap('Proxy-Adresse (optional)', proxy, 'Nur nötig, wenn der Browser Anfragen direkt blockiert (CORS). {url} wird durch die Zieladresse ersetzt.'),
-      h('p', {class:'hint'}, 'Proxy einrichten: ', docLink('Anleitung', 'steamgriddb.md', 'proxy-einrichten-cloudflare-worker'), ' · ', ext('Cloudflare öffnen', LINKS.cf), ' · ', ext('Worker-Code', LINKS.worker), ' · ', docLink('Proxy absichern', 'steamgriddb.md', 'proxy-auf-die-eigene-seite-beschränken-empfohlen')),
-      msg, tests,
-      h('div', {class:'row'},
-        h('button', {type:'button', class:'pri', onclick: () => { if (saveCfg()){ closeDlg(); toast('SteamGridDB-Einstellungen gespeichert.'); } }}, 'Speichern'),
-        h('button', {type:'button', onclick: async () => {
-          if (!saveCfg()) return; msg.textContent = 'Teste die Verbindung ...'; tests.replaceChildren();
-          const res = await testServices();
-          const bad = res.filter(r => !r.ok);
-          msg.textContent = bad.length ? bad.length + ' von ' + res.length + ' Verbindungen funktionieren nicht: ' + bad.map(r => r.name).join(', ') + '. Details unten.' : 'Alle Verbindungen in Ordnung.';
-          tests.replaceChildren(...res.map(r => h('div', {class: 'tline ' + (!r.ok ? 'bad' : r.warn ? 'warn' : 'good')}, h('b', {class: 'tmark'}, !r.ok ? '✗' : r.warn ? '⚠' : '✓'), ' ' + r.name + ': ' + r.text)));
-        }}, 'Verbindung testen'),
-        h('button', {type:'button', class:'danger', onclick: () => { store.set('sgdb-key',''); store.set('sgdb-proxy',''); key.value = ''; proxy.value = ''; msg.textContent = 'Gespeicherte Werte gelöscht.'; }}, 'Löschen')),
-      h('h3', {}, 'Einstellungen sichern'),
-      h('p', {class:'hint'}, 'Speichert Schlüssel und Proxy-Adresse in einer Datei, die sich später wieder einlesen lässt, z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät. Die Datei enthält deinen Schlüssel: nicht weitergeben und nicht in ein Repo legen. Mit einem Passwort wird sie verschlüsselt.', ' ', docLink('Mehr dazu', 'steamgriddb.md', 'einstellungen-in-einer-datei-sichern')),
-      wrap('Passwort (optional)', pw, 'Wird beim Sichern zum Verschlüsseln und beim Einlesen zum Entschlüsseln benutzt. Ein vergessenes Passwort lässt sich nicht wiederherstellen.'),
-      h('div', {class:'row'},
-        h('button', {type:'button', onclick: async () => {
-          const vals = {key: key.value.trim(), proxy: proxy.value.trim()};
-          if (!vals.key && !vals.proxy){ msg2.textContent = 'Es gibt noch nichts zu sichern.'; return; }
-          try {
-            const text = await packSettings(vals, pw.value), name = 'discmenu-einstellungen.json'; let where = name;
-            const plainDl = () => download(new Blob([text], {type:'application/json'}), name);
-            if (typeof window.showSaveFilePicker === 'function'){
-              try {
-                const hd = await window.showSaveFilePicker({suggestedName: name, types:[{description:'Einstellungen (JSON)', accept:{'application/json':['.json']}}]});
-                const w = await hd.createWritable(); await w.write(text); await w.close(); where = hd.name;
-              } catch (e) { if (e && e.name === 'AbortError') return; plainDl(); }
-            } else plainDl();
-            msg2.textContent = (pw.value ? 'Verschlüsselte Datei "' : 'Datei "') + where + '" gespeichert.' + (pw.value ? '' : ' Sie ist nicht verschlüsselt, also gut aufbewahren.');
-          } catch (e) { msg2.textContent = e.message; }
-        }}, 'In Datei sichern'),
-        h('button', {type:'button', onclick: () => fin.click()}, 'Aus Datei einlesen')),
-      msg2,
-      fin);
-  }
-
   /* --- Suche und Bildauswahl ---
      o: {type:'grids'|'heroes', term, title, finishLabel, withDescription, allowNoImage, onDone({game,image,description})} */
   function sgdbPicker(o){
@@ -269,7 +169,7 @@
         const only = state.games.length === 1 ? state.games[0] : null;
         const empty = only && !only.name && !only.cover && !only.description && !only.installer && !only.args && !only.estimatedSizeMB && !only.dlcs.length && !only.patches.length && !only.extras.length;
         if (empty) state.games[0] = g; else state.games.push(g);
-        sel = state.games.indexOf(g); renderAll(); save();
+        sel = state.games.indexOf(g); renderAll(); changed();
       }});
   }
 
@@ -381,83 +281,8 @@
   }
   const descBtn = (obj, termFn) => h('button', {type:'button', class:'sm sgbtn', onclick: () => openDescDialog({term: termFn(), onDone: t => { obj.description = t; renderEditor(); touch(); }})}, '🔎 Beschreibung suchen');
 
-  /* --- Projekte (IndexedDB im Browser, optional) --- */
-  const DB = {
-    open(){ return new Promise((res,rej) => { const r = indexedDB.open('discmenu-konfigurator',1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
-    async get(k){ const db = await this.open(); return new Promise((res,rej) => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
-    async setMany(pairs){ const db = await this.open(); return new Promise((res,rej) => { const t = db.transaction('kv','readwrite'); const st = t.objectStore('kv'); pairs.forEach(([k,v]) => st.put(v,k)); t.oncomplete = () => res(); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }); },
-    async del(keys){ const db = await this.open(); return new Promise((res,rej) => { const t = db.transaction('kv','readwrite'); const st = t.objectStore('kv'); [].concat(keys).forEach(k => st.delete(k)); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
-    async metas(){ const db = await this.open(); return new Promise((res,rej) => { const q = db.transaction('kv').objectStore('kv').getAll(IDBKeyRange.bound('meta:','meta:\uffff')); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); }); }
-  };
-  let projId = null, fileHandle = null;
-  const projTitle = () => state.title.trim() || 'Unbenanntes Projekt';
-  const newProjId = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-  function setSaved(ok){ const el = $('#savedAt'); if (el) el.textContent = ok ? 'Gespeichert ' + new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) : 'Speichern im Browser nicht möglich'; }
-  function isEmptyProject(){
-    const g = state.games[0];
-    return !assets.size && !state.title.trim() && !state.output.trim() && state.games.length === 1 && !g.name && !g.installer && !g.description && !g.dlcs.length && !g.patches.length && !g.extras.length;
-  }
-  async function save(){
-    touched = true; if (!projId) projId = newProjId();
-    const id = projId, ids = usedIds(state);
-    try {
-      await DB.setMany([
-        ['proj:' + id, {state, counter, assets: [...assets].filter(([k]) => ids.has(k)).map(([k,a]) => [k, {data:a.data, ext:a.ext}])}],
-        ['meta:' + id, {id, title: projTitle(), games: state.games.length, updated: Date.now()}],
-        ['current', id]]);
-      setSaved(true); return true;
-    } catch (e) { setSaved(false); return false; }
-  }
-  async function saveHandle(){
-    if (!projId) return;
-    try { if (fileHandle) await DB.setMany([['fh:' + projId, fileHandle]]); else await DB.del('fh:' + projId); } catch (e) { /* Dateiverknüpfung ist optional */ }
-  }
-  async function loadProject(id, guard){
-    const rec = await DB.get('proj:' + id);
-    if (guard && touched) return;
-    if (!rec || !sane(rec.state)) throw new Error('Das Projekt konnte nicht geladen werden.');
-    assets.clear(); for (const [k,a] of rec.assets) assets.set(k,a);
-    state = rec.state; counter = rec.counter || 1; projId = id; sel = 0;
-    try { fileHandle = (await DB.get('fh:' + id)) || null; } catch (e) { fileHandle = null; }
-    try { await DB.setMany([['current', id]]); } catch (e) { /* ignorieren */ }
-    renderAll(); setSaved(true);
-  }
-  async function switchToNew(st, as, handle){
-    const empty = isEmptyProject();
-    if (!empty){ await save(); projId = null; }
-    assets.clear(); for (const [k,a] of as) assets.set(k,a);
-    state = st; fileHandle = handle || null; sel = 0;
-    renderAll(); await save(); await saveHandle();
-  }
-  async function restore(){
-    try {
-      const id = await DB.get('current');
-      if (id){ await loadProject(id, true); return; }
-      const d = await DB.get('draft');            // Übernahme aus der früheren Version (ein einzelner Entwurf)
-      if (d && sane(d.state) && !touched){
-        state = d.state; counter = d.counter || 1; for (const [k,a] of d.assets) assets.set(k,a);
-        projId = null; await save(); await DB.del('draft'); toast('Der frühere Entwurf wurde als Projekt übernommen.');
-      }
-    } catch (e) { /* ignorieren */ }
-  }
-  async function openProjects(){
-    let metas = []; try { metas = await DB.metas(); } catch (e) { /* ignorieren */ }
-    metas.sort((a,b) => b.updated - a.updated);
-    const list = h('div', {class:'list'}, metas.length ? metas.map(m => h('div', {class:'row'},
-      h('span', {style:'flex:1'}, (m.id === projId ? '● ' : '') + m.title + ' · ' + m.games + ' Spiel(e) · ' + new Date(m.updated).toLocaleString('de-DE')),
-      m.id === projId ? null : h('button', {type:'button', class:'sm', onclick: async () => { try { if (!isEmptyProject()) await save(); await loadProject(m.id); closeDlg(); } catch (e) { toast(e.message); } }}, 'Öffnen'),
-      h('button', {type:'button', class:'sm danger', onclick: async () => {
-        if (!confirm('Projekt "' + m.title + '" wirklich löschen?')) return;
-        try { await DB.del(['proj:' + m.id, 'meta:' + m.id, 'fh:' + m.id]); } catch (e) { /* ignorieren */ }
-        if (m.id === projId){ projId = null; fileHandle = null; assets.clear(); state = newState(); sel = 0; renderAll(); }
-        openProjects();
-      }}, 'Löschen'))) : h('p', {class:'hint'}, 'Noch keine gespeicherten Projekte.'));
-    openDlg('Projekte', h('p', {class:'hint'}, 'Projekte liegen nur in diesem Browser und werden automatisch gespeichert. Eine Datei entsteht erst mit "Als ZIP exportieren".'), list,
-      h('div', {class:'row'}, h('button', {type:'button', class:'pri', onclick: async () => { await switchToNew(newState(), new Map(), null); closeDlg(); }}, 'Neues Projekt')));
-  }
-
   /* --- Eingabefelder --- */
-  let tT; function touch(){ clearTimeout(tT); tT = setTimeout(() => { renderNav(); renderSide(); save(); }, 250); }
+  let tT; function touch(){ clearTimeout(tT); tT = setTimeout(() => { renderNav(); renderSide(); changed(); }, 250); }
   function wrap(label, input, hint){ return h('label', {class:'f'}, h('span',{class:'lab'},label), input, hint ? h('small',{},hint) : null); }
   function txt(obj, key, o = {}){
     const el = h(o.multiline ? 'textarea' : 'input', {type: o.multiline ? null : (o.type || 'text'), placeholder: o.ph || '', rows: o.multiline ? 3 : null, list: o.list || null,
@@ -549,9 +374,9 @@
   function gameForm(g, i){
     return h('div', {},
       h('div',{class:'row'}, h('h2',{style:'flex:1'}, 'Spiel ' + i),
-        h('button',{type:'button',class:'sm',onclick:() => { if (move(state.games,i,-1)){ sel = i-1; renderAll(); save(); } }},'↑'),
-        h('button',{type:'button',class:'sm',onclick:() => { if (move(state.games,i,1)){ sel = i+1; renderAll(); save(); } }},'↓'),
-        h('button',{type:'button',class:'sm danger',onclick:() => { if (confirm('Dieses Spiel mit allen Einträgen löschen?')){ state.games.splice(i,1); sel = state.games.length ? Math.min(i, state.games.length-1) : 'disc'; renderAll(); save(); } }},'Löschen')),
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(state.games,i,-1)){ sel = i-1; renderAll(); changed(); } }},'↑'),
+        h('button',{type:'button',class:'sm',onclick:() => { if (move(state.games,i,1)){ sel = i+1; renderAll(); changed(); } }},'↓'),
+        h('button',{type:'button',class:'sm danger',onclick:() => { if (confirm('Dieses Spiel mit allen Einträgen löschen?')){ state.games.splice(i,1); sel = state.games.length ? Math.min(i, state.games.length-1) : 'disc'; renderAll(); changed(); } }},'Löschen')),
       h('p',{class:'hint'},'Der Index ergibt sich aus der Reihenfolge der Spiele (0, 1, 2 ...).'),
       wrap('Name', txt(g,'name',{ph:'z. B. Stronghold HD'})),
       wrap('Quelle des Spiels', providerSelect(g), PROVIDERS[g.provider || 'gog'].note || 'Bestimmt Abzeichen, Farbe und Installationsweg im Menü.'),
@@ -571,7 +396,7 @@
     $('#nav').replaceChildren(
       h('button',{type:'button',class:'nv' + (sel==='disc' ? ' on' : ''),onclick:() => { sel = 'disc'; renderAll(); }}, '⚙ Disc-Einstellungen'),
       ...state.games.map((g,i) => h('button',{type:'button',class:'nv' + (sel===i ? ' on' : ''),onclick:() => { sel = i; renderAll(); }}, h('b',{},String(i)), ' ', g.name || '(ohne Namen)', providerChip(g))),
-      h('button',{type:'button',class:'nv add',onclick:() => { state.games.push(newGame()); sel = state.games.length-1; renderAll(); save(); }}, '+ Spiel hinzufügen'),
+      h('button',{type:'button',class:'nv add',onclick:() => { state.games.push(newGame()); sel = state.games.length-1; renderAll(); changed(); }}, '+ Spiel hinzufügen'),
       h('button',{type:'button',class:'nv add',onclick:addGameViaSgdb}, '🔎 Spiel über SteamGridDB hinzufügen'));
   }
   function renderEditor(){
@@ -580,13 +405,10 @@
   }
   function renderSide(){
     const issues = validate(state), errs = issues.filter(i => i.level === 'error').length;
-    $('#bExp').disabled = errs > 0;
-    const json = JSON.stringify(buildMenu(state, assets).menu, null, 2);
     $('#side').replaceChildren(
       h('div',{class:'box'}, h('h3',{style:'margin-top:0'},'Prüfung'),
-        issues.length ? issues.map(i => h('div',{class:'issue ' + i.level}, (i.level === 'error' ? 'Fehler: ' : 'Hinweis: ') + i.msg)) : h('div',{class:'ok'},'Alles in Ordnung. Das Rezept kann exportiert werden.'),
-        typeof window.showDirectoryPicker === 'function' ? h('button',{type:'button',class:'sm',style:'margin-top:10px',onclick:runDiscCheck},'📁 Disc-Ordner prüfen') : h('small',{style:'display:block;margin-top:10px'},'Die Prüfung der Disc-Dateien braucht Chrome oder Edge am Computer.')),
-      h('details',{class:'box'}, h('summary',{},'Vorschau menu.json'), h('pre',{},json)));
+        issues.length ? issues.map(i => h('div',{class:'issue ' + i.level}, (i.level === 'error' ? 'Fehler: ' : 'Hinweis: ') + i.msg)) : h('div',{class:'ok'},'Alles in Ordnung. Das Menü kann mit dem Builder erzeugt werden.'),
+        typeof window.showDirectoryPicker === 'function' ? h('button',{type:'button',class:'sm',style:'margin-top:10px',onclick:runDiscCheck},'📁 Disc-Ordner prüfen') : h('small',{style:'display:block;margin-top:10px'},'Die Prüfung der Disc-Dateien braucht Chrome oder Edge am Computer.')));
   }
   function renderAll(){ renderNav(); renderEditor(); renderSide(); }
 
@@ -626,7 +448,7 @@
       let m; try { m = JSON.parse(ta.value); } catch (e) { msg.className = 'issue error'; msg.textContent = 'Kein gültiges JSON: ' + e.message; return; }
       try {
         const r = parseMenu(m, p => byPath.get(String(p).replace(/\\/g,'/')) || null);
-        state = r.state; sel = 0; renderAll(); save(); closeDlg();
+        state = r.state; sel = 0; renderAll(); changed(); closeDlg();
         toast(r.notes.length ? 'Übernommen, mit Hinweisen:\n' + r.notes.slice(0,6).join('\n') : 'Änderungen übernommen. Die Prüfung rechts zeigt, ob alles passt.');
       } catch (e) { msg.className = 'issue error'; msg.textContent = e.message || String(e); }
     }}, 'Änderungen übernehmen');
@@ -839,67 +661,37 @@
   $('#bPrev').addEventListener('click', openPreview);
   $('#bJson').addEventListener('click', openJsonEditor);
 
-  /* --- Export / Import --- */
-  function download(blob, name){ const a = h('a',{href:URL.createObjectURL(blob),download:name}); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
-  const zipName = () => (slug(state.title) || 'rezept') + '.zip';
-  function buildZipBlob(){
-    const {menu, files} = buildMenu(state, assets);
-    const zip = buildZip([{name:'menu.json', data:new TextEncoder().encode(JSON.stringify(menu,null,2) + '\n')}, ...files]);
-    return {blob: new Blob([zip], {type:'application/zip'}), count: files.length};
-  }
-  $('#bExp').addEventListener('click', () => {
-    if (validate(state).some(i => i.level === 'error')){ toast('Bitte zuerst die Fehler beheben.'); return; }
-    const {blob, count} = buildZipBlob(), name = zipName();
-    if (typeof window.showSaveFilePicker !== 'function'){
-      download(blob, name);
-      toast('Exportiert: ' + name + ' (' + count + ' Datei(en) plus menu.json).\nDieser Browser kann vorhandene Dateien nicht überschreiben, jeder Export wird neu heruntergeladen. Dein Projekt bleibt unter "Projekte" gespeichert, exportiere also erst, wenn es fertig ist.');
-      return;
-    }
-    const done = async handle => { const w = await handle.createWritable(); await w.write(blob); await w.close(); fileHandle = handle; await saveHandle(); closeDlg(); toast('Gespeichert in ' + handle.name); };
-    const guard = fn => async () => { try { await fn(); } catch (e) { if (e && e.name === 'AbortError') return; toast('Speichern fehlgeschlagen: ' + (e.message || e)); } };
-    openDlg('ZIP speichern', h('p', {class:'hint'}, 'Wie soll das Rezept gespeichert werden?'),
-      h('div', {class:'list'},
-        fileHandle ? h('button', {type:'button', class:'pri', onclick: guard(async () => {
-          let p = await fileHandle.queryPermission({mode:'readwrite'}); if (p !== 'granted') p = await fileHandle.requestPermission({mode:'readwrite'});
-          if (p !== 'granted') throw new Error('Keine Schreibberechtigung für die Datei.'); await done(fileHandle);
-        })}, 'In "' + fileHandle.name + '" überschreiben') : null,
-        h('button', {type:'button', onclick: guard(async () => { await done(await window.showSaveFilePicker({suggestedName: name, types:[{description:'ZIP-Datei', accept:{'application/zip':['.zip']}}]})); })}, 'Speichern unter ...'),
-        h('button', {type:'button', onclick: () => { download(blob, name); closeDlg(); toast('Heruntergeladen: ' + name); }}, 'Als normalen Download')));
-  });
-  async function importFile(f, handle){
-    try {
-      let menu, files = [];
-      if (/\.json$/i.test(f.name)) menu = JSON.parse(await f.text());
-      else {
-        files = await readZip(new Uint8Array(await f.arrayBuffer()));
-        const mj = files.find(x => x.name === 'menu.json');
-        if (!mj) throw new Error('In der ZIP fehlt die menu.json im Wurzelverzeichnis.');
-        menu = JSON.parse(new TextDecoder().decode(mj.data));
-      }
-      const byPath = new Map(files.map(x => [x.name, x.data])), ids = new Map(), imp = new Map();
-      const getAsset = p => {
-        p = p.replace(/\\/g,'/'); if (ids.has(p)) return ids.get(p);
-        const d = byPath.get(p); if (!d) return null;
-        const id = 'a' + (counter++); imp.set(id, {data:d, ext:(p.split('.').pop() || '').toLowerCase()}); ids.set(p,id); return id;
-      };
-      const r = parseMenu(menu, getAsset);
-      await switchToNew(r.state, imp, /\.zip$/i.test(f.name) ? handle : null);
-      toast(r.notes.length ? 'Als neues Projekt importiert, mit Hinweisen:\n' + r.notes.slice(0,6).join('\n') + (r.notes.length > 6 ? '\n... und ' + (r.notes.length-6) + ' weitere' : '') : 'Als neues Projekt importiert. Die Dateien liegen jetzt im Browser, die Original-ZIP wird nicht mehr gebraucht.');
-    } catch (err) { toast('Import fehlgeschlagen: ' + (err.message || err)); }
-  }
-  $('#bImp').addEventListener('click', async () => {
-    if (typeof window.showOpenFilePicker === 'function'){
-      try { const [hd] = await window.showOpenFilePicker({types:[{description:'Rezept (ZIP oder JSON)', accept:{'application/zip':['.zip'],'application/json':['.json']}}]}); await importFile(await hd.getFile(), hd); return; }
-      catch (e) { if (e && e.name === 'AbortError') return; }
-    }
-    $('#impFile').click();
-  });
-  $('#impFile').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (f) await importFile(f, null); });
-  $('#bProj').addEventListener('click', openProjects);
-  $('#mSave').addEventListener('click', async () => { const ok = await save(); toast(ok ? 'Projekt "' + projTitle() + '" im Browser gespeichert.' : 'Speichern im Browser ist nicht möglich (Speicher gesperrt oder voll).'); });
-
-  $('#bSg').addEventListener('click', openSettings);
+  /* --- Schnittstelle zur gemeinsamen Seite ---
+     Speichern, Öffnen und die Projektdatei übernimmt extras.js für Menü und Hülle zusammen. Das Menü meldet Änderungen (onChange)
+     und lässt sich mit einem Projekt füllen (load). Verknüpfte Felder der Hülle setzt extras.js über patchGame und setGameCover. */
+  const listeners = [];
+  function changed(){ listeners.forEach(fn => { try { fn(); } catch (e) { console.error(e); } }); }
+  window.MenuApp = {
+    get state(){ return state; },
+    get assets(){ return assets; },
+    get counter(){ return counter; },
+    onChange(fn){ listeners.push(fn); },
+    /* Projekt einsetzen: {state, assets: Map(id -> {data, ext}), counter} */
+    load(p){
+      assets.clear(); for (const [k,a] of (p && p.assets) || new Map()) assets.set(k, {data: a.data, ext: a.ext});      // ohne alte Bild-Adressen (blob:), die gelten nur bis zum Neuladen
+      state = p && CORE.sane(p.state) ? p.state : newState();
+      counter = Math.max(Number(p && p.counter) || 1, ...[...assets.keys()].map(k => (Number(String(k).slice(1)) || 0) + 1));
+      sel = 0; renderAll();
+    },
+    reset(){ this.load(null); },
+    /* Felder des verknüpften Spiels ändern (z. B. Titel aus der Hülle) */
+    patchGame(i, patch){ const g = state.games[i] || state.games[0]; if (!g) return; Object.assign(g, patch); renderAll(); changed(); },
+    /* Cover des Spiels aus einer Datei (wird wie beim Hochladen auf höchstens 800 Pixel verkleinert), null entfernt es */
+    async setGameCover(i, file){
+      const g = state.games[i] || state.games[0]; if (!g) return;
+      if (file){ const r = await processImage(file, 'cover'); g.cover = addAsset(r.data, r.ext); } else g.cover = null;
+      renderAll(); changed();
+    },
+    /* nur die Dateien, die das Menü benutzt (für die Projektdatei) */
+    usedAssets(){ const ids = CORE.usedIds(state); return new Map([...assets].filter(([k]) => ids.has(k)).map(([k,a]) => [k, {data: a.data, ext: a.ext}])); },
+    validate(){ return validate(state); },
+    render: renderAll, openJson: openJsonEditor, addGameViaSgdb, runDiscCheck,
+  };
   $('#mDlgX').addEventListener('click', closeDlg);
-  restore().then(renderAll);
   renderAll();
 })();

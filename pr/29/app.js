@@ -634,7 +634,7 @@
     buildJump();
     $('#bPrint').addEventListener('click', () => window.print());
     $('#bReset').addEventListener('click', () => {
-      if (!confirm('Alle Einstellungen und Bilder zurücksetzen?')) return;
+      if (!confirm('Neues Projekt anlegen? Menü, Hülle und alle Bilder werden geleert.')) return;
       Object.keys(images).forEach(clearImage);
       state = C.defaultState();
       hooks.reset.forEach((f) => f());

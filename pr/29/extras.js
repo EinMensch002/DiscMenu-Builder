@@ -1,4 +1,4 @@
-/* Dialoge und Menüs der oberen Leiste: Daten übernehmen (Rezept, Steam), Projekt exportieren und importieren,
+/* Dialoge und Menüs der oberen Leiste: Daten übernehmen (Steam, GOG), das gemeinsame Projekt von Menü und Hülle (speichern, öffnen, im Browser sichern),
    Einstellungen (SteamGridDB-Schlüssel, Proxy, Sicherung in Datei) und die Bildsuche bei SteamGridDB. */
 (function () {
   'use strict';
@@ -43,7 +43,6 @@
   }
   const wrapField = (label, input, hint) => h('label', { class: 'f' }, h('span', { class: 'lab' }, label), input, hint ? h('small', { class: 'dmsg' }, hint) : null);
   const MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' };
-  const fileFrom = (data, name) => new File([data], name.split('/').pop(), { type: MIME[(name.split('.').pop() || '').toLowerCase()] || 'image/png' });
   const UML = { ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' };
   const slug = (t) => String(t || '').replace(/[äöüÄÖÜß]/g, (c) => UML[c.toLowerCase()]).normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
 
@@ -225,15 +224,70 @@
     openDlg('Aus Datei einlesen', nodes, msg, h('div', { class: 'drow' }, h('button', { type: 'button', class: 'pri', onclick: apply }, 'Übernehmen'), h('button', { type: 'button', onclick: () => openSettings() }, 'Abbrechen')));
   }
 
-  /* ---------- Automatisch im Browser sichern ----------
-     Einstellungen merkt sich das Tool schon in localStorage. Bilder sind zu groß dafür, sie kommen in die IndexedDB des Browsers. Dadurch bleibt der ganze
-     Stand nach dem Neuladen erhalten, ohne Datei. Gespeichert wird kurz nach jeder Änderung, "Im Browser speichern" tut es sofort. "Zurücksetzen" leert den Speicher. */
-  const IDB_NAME = 'discmenu-cover', IDB_STORE = 'project';
-  const idbOpen = () => new Promise((res, rej) => {
-    try { const r = indexedDB.open(IDB_NAME, 1); r.onupgradeneeded = () => r.result.createObjectStore(IDB_STORE); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error || new Error('IndexedDB gesperrt')); }
+  /* ---------- Gemeinsames Projekt: Menü und Hülle ----------
+     Ein Projekt umfasst das Menü (MenuApp, menu.js) und die Hülle (App). Kurz nach jeder Änderung wird es im Browser gesichert
+     (IndexedDB "discmenu-projekte"), "Speichern" schreibt eine Projektdatei (ZIP, Format in project.js).
+     Verknüpft und nur einmal gespeichert (im Spiel des Menüs): Name = Titel der Hülle, Anbieter, Beschreibung, Größe = Speicherplatz,
+     Cover des Spiels = Frontcover. Was sich in einem Bereich ändert, steht sofort auch im anderen. */
+  const Menu = window.MenuApp, P = window.DiscProject;
+  let link = P.defaultLink(), menuChanges = 0;
+
+  /* --- Verknüpfung --- */
+  const NONE = {};                                    // "noch nicht abgeglichen"
+  let syncing = false, lastFront = NONE, lastMenuCover = NONE;
+  const game = () => P.linkedGame(Menu.state, link);
+  const gameIndex = () => Math.min(link.game, Math.max(0, Menu.state.games.length - 1));
+  const MIME_OF = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' };
+  async function fromMenu() {
+    if (syncing) return; syncing = true;
+    try {
+      const d = P.coverDiff(Menu.state, App.state, link);
+      if (Object.keys(d).length) App.patch(d);
+      const g = game(), id = g ? g.cover || null : null;
+      if (id !== lastMenuCover) {
+        lastMenuCover = id;
+        const a = id && Menu.assets.get(id);
+        if (a) await App.setImage('front', new File([a.data], 'cover.' + a.ext, { type: MIME_OF[a.ext] || 'image/png' }));
+        else if (App.images.front) App.clearImage('front');
+        lastFront = App.images.front;
+      }
+    } catch (e) { console.error(e); } finally { syncing = false; }
+  }
+  async function fromCover() {
+    if (syncing) return; syncing = true;
+    try {
+      const d = P.menuDiff(Menu.state, App.state, link);
+      if (Object.keys(d).length) Menu.patchGame(gameIndex(), d);
+      const f = App.images.front;
+      if (f !== lastFront) {
+        lastFront = f;
+        await Menu.setGameCover(gameIndex(), f ? new File([f.blob], f.name || 'cover.png', { type: f.type }) : null);
+        const g = game(); lastMenuCover = g ? g.cover || null : null;
+      }
+    } catch (e) { console.error(e); } finally { syncing = false; }
+  }
+  /* Projekt einsetzen. r: { kind, menu: {state, assets, counter}, cover: {state, images} | null, link }.
+     Bei einer Projektdatei passt alles schon zusammen. Bei einem Rezept wird die Hülle aus dem Spiel vorbereitet, bei einer älteren Hüllen-Datei das Spiel aus der Hülle. */
+  async function applyProject(r) {
+    syncing = true;
+    try {
+      Menu.load(r.menu);
+      link = P.normLink(r.link);
+      await App.restore(r.cover ? r.cover.state : C.defaultState(), r.cover ? r.cover.images : {});
+    } finally { syncing = false; }
+    if (r.kind === 'project') { const g = game(); lastMenuCover = g ? g.cover || null : null; lastFront = App.images.front; }
+    else { lastMenuCover = NONE; lastFront = NONE; if (r.kind === 'cover') await fromCover(); else await fromMenu(); }
+  }
+
+  /* --- Im Browser sichern --- */
+  const IDB_NAME = 'discmenu-projekte', IDB_STORE = 'project';
+  const idbOpenNamed = (name, store) => new Promise((res, rej) => {
+    try { const r = indexedDB.open(name, 1); r.onupgradeneeded = () => r.result.createObjectStore(store); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error || new Error('IndexedDB gesperrt')); }
     catch (e) { rej(e); }
   });
-  const idbRun = async (mode, fn) => { const db = await idbOpen(); try { return await new Promise((res, rej) => { const tx = db.transaction(IDB_STORE, mode), q = fn(tx.objectStore(IDB_STORE)); tx.oncomplete = () => res(q && q.result); tx.onerror = tx.onabort = () => rej(tx.error || new Error('Speichern fehlgeschlagen')); }); } finally { db.close(); } };
+  const idbRunOn = async (name, store, mode, fn) => { const db = await idbOpenNamed(name, store); try { return await new Promise((res, rej) => { const tx = db.transaction(store, mode), q = fn(tx.objectStore(store)); tx.oncomplete = () => res(q && q.result); tx.onerror = () => rej(tx.error); }); } finally { db.close(); } };
+  const idbRun = (mode, fn) => idbRunOn(IDB_NAME, IDB_STORE, mode, fn);
+  const dbExists = async (name) => { try { return indexedDB.databases ? (await indexedDB.databases()).some((d) => d.name === name) : true; } catch (e) { return true; } };
   const auto = $('#autoInfo');
   let browserReady = false, autoTimer = 0, lastAuto = '';
   const clock = () => new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -241,49 +295,69 @@
     clearTimeout(autoTimer);
     try {
       const snap = App.snapshot();
-      await idbRun('readwrite', (st) => st.put({ images: snap.images, savedAt: Date.now() }, 'current'));
+      await idbRun('readwrite', (st) => st.put({ menu: { state: Menu.state, counter: Menu.counter, assets: [...Menu.usedAssets()] }, cover: { state: snap.state, images: snap.images }, link, savedAt: Date.now() }, 'current'));
       lastAuto = 'Im Browser gesichert (' + clock() + ')';
     } catch (e) { lastAuto = 'Bilder lassen sich in diesem Browser nicht sichern: ' + (e && e.message || e); }
     auto.textContent = lastAuto; auto.classList.toggle('dirty', /nicht sichern/.test(lastAuto));
   }
-  App.onChange(() => { if (!browserReady) return; clearTimeout(autoTimer); autoTimer = setTimeout(saveToBrowser, 800); });
-  App.onReset(() => { clearTimeout(autoTimer); idbRun('readwrite', (st) => st.delete('current')).catch(() => {}); auto.textContent = ''; });
-  (async () => {
-    try {
-      const rec = await idbRun('readonly', (st) => st.get('current'));
-      const keys = rec && rec.images ? Object.keys(rec.images) : [];
-      if (keys.length) {
-        const imgs = {};
-        for (const k of keys) imgs[k] = { data: await rec.images[k].blob.arrayBuffer(), type: rec.images[k].type, name: rec.images[k].name };
-        await App.restore(App.state, imgs);                       // die Einstellungen stehen schon (localStorage), nur die Bilder kommen dazu
-        auto.textContent = keys.length + ' Bild(er) aus dem Browser-Speicher geladen';
-        savedAt = App.changes; showInfo();                   // das Laden aus dem Browser zählt nicht als ungespeicherte Änderung der Datei
-      }
-    } catch (e) { /* kein Speicher vorhanden oder gesperrt: dann eben ohne */ }
-    browserReady = true;
-  })();
+  const scheduleAuto = () => { if (!browserReady) return; clearTimeout(autoTimer); autoTimer = setTimeout(saveToBrowser, 800); };
+  const blobImages = async (imgs) => { const out = {}; for (const [k, v] of Object.entries(imgs || {})) out[k] = { data: await v.blob.arrayBuffer(), type: v.type, name: v.name }; return out; };
+  /* Beim Start: gemeinsames Projekt laden. Gibt es noch keins, die Stände der früheren getrennten Tools übernehmen (die alten Speicher bleiben unverändert). */
+  async function loadFromBrowser() {
+    const rec = await idbRun('readonly', (st) => st.get('current'));
+    if (rec && rec.menu && rec.cover) {
+      await applyProject({ kind: 'project', menu: { state: rec.menu.state, assets: new Map(rec.menu.assets || []), counter: rec.menu.counter }, cover: { state: rec.cover.state, images: await blobImages(rec.cover.images) }, link: rec.link });
+      auto.textContent = 'Projekt aus dem Browser-Speicher geladen';
+      return;
+    }
+    let menu = null, imgs = {};
+    if (await dbExists('discmenu-konfigurator')) {
+      try {
+        const id = await idbRunOn('discmenu-konfigurator', 'kv', 'readonly', (st) => st.get('current'));
+        const p = id && await idbRunOn('discmenu-konfigurator', 'kv', 'readonly', (st) => st.get('proj:' + id));
+        if (p && p.state) menu = { state: p.state, assets: new Map(p.assets || []), counter: p.counter };
+      } catch (e) { /* nichts übernehmen */ }
+    }
+    if (await dbExists('discmenu-cover')) {
+      try { const old = await idbRunOn('discmenu-cover', 'project', 'readonly', (st) => st.get('current')); if (old && old.images) imgs = await blobImages(old.images); } catch (e) { /* nichts übernehmen */ }
+    }
+    const coverState = App.state, hasCover = !!(coverState.title || Object.keys(imgs).length);
+    if (!menu && !hasCover) return;
+    const menuHasGame = !!(menu && menu.state.games.some((g) => g.name));
+    if (!menu) { const st = window.CORE.newState(); Object.assign(st.games[0], P.menuPatchFromCover(coverState)); st.title = st.games[0].name; menu = { state: st, assets: new Map(), counter: 1 }; }
+    await applyProject({ kind: menuHasGame ? 'recipe' : 'cover', menu, cover: { state: coverState, images: imgs }, link: P.defaultLink() });
+    auto.textContent = 'Stand der bisherigen Tools übernommen';
+  }
 
-  /* ---------- Projekt speichern, speichern unter und öffnen ----------
-     In Chrome und Edge merkt sich das Tool die Datei und "Speichern" überschreibt sie (wie im Menü-Ersteller). In anderen Browsern
-     lädt "Speichern" die Datei jeweils neu herunter. */
-  const ZIP_TYPE = { description: 'Cover-Projekt (ZIP)', accept: { 'application/zip': ['.zip'] } };
-  let projHandle = null, projName = '', savedAt = App.changes, savedMsg = '';
+  /* --- Speichern, Speichern unter, Öffnen ---
+     In Chrome und Edge merkt sich die Seite die Datei und "Speichern" überschreibt sie. In anderen Browsern lädt "Speichern" die Datei jeweils neu herunter. */
+  const ZIP_TYPE = { description: 'Projekt (ZIP)', accept: { 'application/zip': ['.zip'] } };
+  const OPEN_TYPES = [{ description: 'Projekt oder Rezept (ZIP oder menu.json)', accept: { 'application/zip': ['.zip'], 'application/json': ['.json'] } }];
+  let projHandle = null, projName = '', savedAt = App.changes, savedMenu = 0, savedMsg = '';
   const info = $('#saveInfo');
-  const dirtyNow = () => App.changes !== savedAt;
+  const dirtyNow = () => App.changes !== savedAt || menuChanges !== savedMenu;
+  const markSaved = () => { savedAt = App.changes; savedMenu = menuChanges; };
   function showInfo() {
     info.classList.toggle('dirty', dirtyNow());
     info.textContent = dirtyNow() ? (projName ? projName + ' · ' : '') + '● ungespeichert' : (projName ? savedMsg + projName : '');
     info.title = projHandle ? 'Strg+S überschreibt diese Datei' : 'Strg+S speichert das Projekt als ZIP';
   }
-  App.onChange(showInfo);
-  App.onReset(() => { projHandle = null; projName = ''; savedAt = App.changes; showInfo(); });
-  window.addEventListener('beforeunload', (e) => { if (dirtyNow() && App.hasImages) { e.preventDefault(); e.returnValue = ''; } });
+  Menu.onChange(() => { menuChanges++; showInfo(); scheduleAuto(); fromMenu(); });
+  App.onChange(() => { showInfo(); scheduleAuto(); fromCover(); });
+  App.onReset(() => {
+    Menu.reset(); link = P.defaultLink(); lastFront = App.images.front; lastMenuCover = null;
+    clearTimeout(autoTimer); idbRun('readwrite', (st) => st.delete('current')).catch(() => {}); auto.textContent = '';
+    projHandle = null; projName = ''; menuChanges = 0; markSaved(); showInfo();
+  });
+  window.addEventListener('beforeunload', (e) => { if (dirtyNow() && (App.hasImages || Menu.assets.size)) { e.preventDefault(); e.returnValue = ''; } });
 
   async function packProject() {
     const snap = App.snapshot(), images = {};
     for (const [k, v] of Object.entries(snap.images)) images[k] = { data: new Uint8Array(await v.blob.arrayBuffer()), type: v.type, name: v.name };
     const used = F.usedFontIds(snap.state), fonts = App.fonts.list().filter((f) => used.includes(f.id));     // nur eigene Schriften, die Texte wirklich benutzen
-    return { blob: new Blob([F.packProject(snap.state, images, fonts)], { type: 'application/zip' }), name: (slug(snap.state.title) || 'cover') + '-cover.zip', count: Object.keys(images).length };
+    const zip = P.pack({ menuState: Menu.state, menuAssets: Menu.usedAssets(), coverState: snap.state, coverImages: images, fonts, link });
+    const g = game();
+    return { blob: new Blob([zip], { type: 'application/zip' }), name: (slug(Menu.state.title || (g && g.name) || snap.state.title) || 'projekt') + '.zip', count: Object.keys(images).length };
   }
   async function saveProject(asNew) {
     const { blob, name } = await packProject();
@@ -297,75 +371,53 @@
       } catch (e) { if (e && e.name === 'AbortError') return; hd = null; /* sonst: normaler Download */ }
     }
     if (!where) { download(blob, name); where = name; projHandle = null; savedMsg = 'heruntergeladen: '; }
-    projName = where; savedAt = App.changes; showInfo();
+    projName = where; markSaved(); showInfo();
   }
   async function openProject() {
     if (typeof window.showOpenFilePicker === 'function') {
       try {
-        const [hd] = await window.showOpenFilePicker({ types: [ZIP_TYPE], multiple: false });
+        const [hd] = await window.showOpenFilePicker({ types: OPEN_TYPES, multiple: false });
         return importProject(await hd.getFile(), hd);
       } catch (e) { if (e && e.name === 'AbortError') return; /* sonst: Dateiauswahl des Browsers */ }
     }
     projectInput.click();
   }
+  const KIND_TEXT = {
+    project: 'Menü, Hülle und alle Bilder wurden geladen.',
+    recipe: 'Das Menü wurde geladen. Die Hülle wurde aus dem Spiel vorbereitet (Titel, Anbieter, Beschreibung, Größe, Cover).',
+    cover: 'Die Hülle wurde geladen. Das Menü wurde aus der Hülle vorbereitet (ein Spiel mit Titel, Anbieter und Cover). Installer-Pfad und Weiteres im Bereich "Menü" ergänzen.',
+  };
   async function importProject(file, hd) {
     try {
-      const { state, images, missing, fonts } = F.unpackProject(await Z.read(new Uint8Array(await file.arrayBuffer())));
+      const json = /\.json$/i.test(file.name);
+      const r = json ? P.readMenuJson(await file.text()) : P.read(await Z.read(new Uint8Array(await file.arrayBuffer())));
       if (dirtyNow() && !confirm('Das aktuelle Projekt hat ungespeicherte Änderungen und wird durch "' + file.name + '" ersetzt. Weiter?')) return;
       if (!dirtyNow() && !confirm('Das aktuelle Projekt wird durch "' + file.name + '" ersetzt. Weiter?')) return;
       const added = [], failed = [], map = {};
-      for (const f of fonts) {                     // eigene Schriften des Projekts: gleiche Datei schon da = benutzen, sonst hinzufügen
+      for (const f of (r.cover && r.cover.fonts) || []) {          // eigene Schriften des Projekts: gleiche Datei schon da = benutzen, sonst hinzufügen
         const have = App.fonts.list(), same = have.find((x) => x.data === f.data);
         if (same) { if (same.id !== f.id) map[f.id] = same.id; continue; }
-        try { const r = await App.fonts.add({ name: F.freeName(f.name, have.map((x) => x.name)), ext: f.ext, data: f.data }); map[f.id] = r.id; added.push(r.name); } catch (e) { failed.push(f.name); }
+        try { const res = await App.fonts.add({ name: F.freeName(f.name, have.map((x) => x.name)), ext: f.ext, data: f.data }); map[f.id] = res.id; added.push(res.name); } catch (e) { failed.push(f.name); }
       }
-      F.remapFonts(state, map);
-      await App.restore(state, images);
-      projHandle = hd || null; projName = file.name; savedAt = App.changes; savedMsg = 'geöffnet: '; showInfo();
-      openDlg('Projekt geöffnet', h('p', { class: 'dmsg' }, 'Einstellungen und ' + Object.keys(images).length + ' Bild(er) wurden geladen.' + (missing.length ? ' Nicht gefunden: ' + missing.join(', ') + '.' : '') + (hd ? ' "Speichern" überschreibt jetzt diese Datei.' : '')),
+      if (r.cover) F.remapFonts(r.cover.state, map);
+      await applyProject(r);
+      projHandle = (r.kind === 'project' && hd) || null; projName = r.kind === 'project' ? file.name : ''; menuChanges++; markSaved(); savedMsg = 'geöffnet: '; showInfo();
+      const missing = (r.cover && r.cover.missing) || [], notes = r.menu.notes || [];
+      openDlg('Projekt geöffnet', h('p', { class: 'dmsg' }, KIND_TEXT[r.kind] + (missing.length ? ' Nicht gefunden: ' + missing.join(', ') + '.' : '') + (projHandle ? ' "Speichern" überschreibt diese Datei.' : r.kind !== 'project' ? ' "Speichern" legt eine neue Projektdatei an.' : '')),
+        notes.length ? h('p', { class: 'dmsg' }, 'Hinweise: ' + notes.slice(0, 6).join(' · ')) : '',
         added.length ? h('p', { class: 'dmsg' }, added.length + ' eigene Schrift(en) wurden hinzugefügt: ' + added.join(', ')) : '',
         failed.length ? h('p', { class: 'dmsg err' }, failed.length + ' Schrift(en) konnten nicht hinzugefügt werden (zu viele eigene Schriften?): ' + failed.join(', ') + '. Texte damit erscheinen in "Normal".') : '',
         h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')));
     } catch (e) {
-      openDlg('Projekt öffnen', h('p', { class: 'dmsg err' }, 'Das Projekt konnte nicht geladen werden: ' + (e.message || e)), h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')))
+      openDlg('Projekt öffnen', h('p', { class: 'dmsg err' }, 'Das Projekt konnte nicht geladen werden: ' + (e.message || e)), h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')));
     }
   }
-  document.addEventListener('keydown', (e) => { if (document.body.dataset.view === 'menu') return;            // Strg+S gilt nur für die Hülle
-    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveProject(false); } });
-
-  /* ---------- Aus einem Rezept übernehmen ---------- */
-  async function onRecipeFile(file) {
-    try {
-      let menu; const assets = new Map();
-      if (/\.json$/i.test(file.name)) menu = JSON.parse(await file.text());
-      else {
-        const files = await Z.read(new Uint8Array(await file.arrayBuffer()));
-        const mj = files.find((f) => f.name === 'menu.json');
-        if (!mj) throw new Error('In der ZIP fehlt die menu.json im Wurzelverzeichnis.');
-        menu = JSON.parse(new TextDecoder().decode(mj.data));
-        for (const f of files) assets.set(f.name, f.data);
-      }
-      const games = C.recipeGames(menu);
-      if (!games.length) throw new Error('Im Rezept sind keine Spiele eingetragen.');
-      chooseGame(games, assets, /\.json$/i.test(file.name));
-    } catch (e) {
-      openDlg('Aus Rezept übernehmen', h('p', { class: 'dmsg err' }, 'Das Rezept konnte nicht gelesen werden: ' + (e.message || e)), h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')));
-    }
-  }
-  function chooseGame(games, assets, jsonOnly) {
-    const useCover = h('input', { type: 'checkbox' }); useCover.checked = true;
-    const msg = h('p', { class: 'dmsg' }, jsonOnly ? 'Bei einer einzelnen menu.json gibt es keine Bilder, nur Titel, Anbieter und Größe werden übernommen.' : '');
-    const list = games.map((g) => h('button', { type: 'button', onclick: async () => {
-      App.patch(C.statePatchFromGame(g));
-      const data = g.cover && assets.get(g.cover);
-      if (useCover.checked && data) { try { await App.setImage('front', fileFrom(data, g.cover)); } catch (e) { say(msg, 'Das Cover konnte nicht übernommen werden: ' + e.message, true); return; } }
-      closeDlg();
-    } }, g.name + ' · ' + C.PROVIDERS[g.provider].name + (g.cover && assets.has(g.cover) ? ' · mit Cover' : '')));
-    openDlg('Aus Rezept übernehmen',
-      h('p', { class: 'dmsg' }, 'Welches Spiel soll übernommen werden? Übernommen werden Titel, Anbieter, die geschätzte Größe als Speicherplatz und das Cover als Frontcover. Alles lässt sich danach noch ändern.'),
-      assets.size ? h('label', { class: 'chk' }, useCover, 'Cover des Spiels als Frontcover übernehmen') : null,
-      h('div', { class: 'dlist' }, list), msg);
-  }
+  document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveProject(false); } });
+  (async () => {
+    try { await loadFromBrowser(); } catch (e) { /* kein Speicher vorhanden oder gesperrt: dann eben ohne */ }
+    menuChanges = 0; markSaved(); showInfo();                        // das Laden aus dem Browser zählt nicht als ungespeicherte Änderung der Datei
+    browserReady = true;
+  })();
 
   /* ---------- Anforderungen von Steam ---------- */
   function openSteam() {
@@ -609,9 +661,7 @@
   }
 
   /* ---------- Knöpfe verbinden ---------- */
-  const recipeInput = $('#recipeFile'), projectInput = $('#projectFile');
-  $('#bRecipe').addEventListener('click', () => recipeInput.click());
-  recipeInput.addEventListener('change', () => { const f = recipeInput.files[0]; recipeInput.value = ''; if (f) onRecipeFile(f); });
+  const projectInput = $('#projectFile');
   $('#bBrowserSave').addEventListener('click', () => saveToBrowser());
   $('#bSave').addEventListener('click', () => saveProject(false));
   $('#bProjExport').addEventListener('click', () => saveProject(true));
@@ -620,6 +670,11 @@
   $('#bSteam').addEventListener('click', openSteam);
   $('#bGog').addEventListener('click', openGog);
   $('#bSettings').addEventListener('click', openSettings);
+  /* Funktionen des Menüs (Dialoge liegen im Bereich "Menü", shell.js schaltet dorthin) */
+  $('#bSgAdd').addEventListener('click', () => Menu.addGameViaSgdb());
+  $('#bJson').addEventListener('click', () => Menu.openJson());
+  $('#bDisc').hidden = typeof window.showDirectoryPicker !== 'function';
+  $('#bDisc').addEventListener('click', () => Menu.runDiscCheck());
   [...document.querySelectorAll('.drop .sg')].filter(ours).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const key = b.closest('.drop').dataset.img; key === 'publisher' ? openPublisherLogo() : openSteamGridDB(key); }));
 
   /* Sprache der Oberfläche: Bei Deutsch lässt sich die Sprache der Beschriftung des Covers wählen, bei jeder anderen Sprache entfällt das Feld
