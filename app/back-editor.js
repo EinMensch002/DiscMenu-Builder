@@ -11,7 +11,7 @@
   const round = (n) => Math.round(n * 100) / 100;
   const snap025 = (n) => Math.round(n * 4) / 4;
 
-  let imgMode = false, shapeMenu, tplBar, dlg, stage, scaled, itemsBox, selBox, grpBox, pane, panel, footA, footB;
+  let imgMode = false, shapeMenu, tplBar, dlg, stage, scaled, itemsBox, selBox, grpBox, marqBox, pane, panel, footA, footB;
   let selId = null, sel = [], k = 1, undoStack = [], redoStack = [], drag = null;
 
   const back = () => App.state.back;
@@ -190,7 +190,12 @@
       return;
     }
     let it = hdl || pt ? byId(selId) : hit(p);
-    if (!it) { setSel([]); refresh(true); return; }
+    if (!it) {                                                                          // leere Fläche: Auswahlrechteck aufziehen (ohne Ziehen: alles abwählen)
+      const add = ev.ctrlKey || ev.metaKey || ev.shiftKey;
+      drag = { marq: true, p0: p, base: add ? [...sel] : [], moved: false };
+      if (!add) setSel([]);
+      imgMode = false; refresh(true); ev.preventDefault(); scaled.setPointerCapture(ev.pointerId); return;
+    }
     if (!hdl && !pt && sel.length > 1 && isSel(it.id)) { startGroup(ev, 'gmove', p, it.id); return; }   // alle gewählten gemeinsam ziehen
     if (selId !== it.id) { setSel([it.id]); imgMode = false; drawStage(); buildPanel(); }
     remember();
@@ -216,8 +221,27 @@
     for (const it of list) update(it, { x: round(drag.o[it.id].x + nx - b.x), y: round(drag.o[it.id].y + ny - b.y) });
     drawStage();
   }
+  /* Auswahlrechteck: Elemente zählen, wenn ihr (gedrehter) Rahmen das Rechteck berührt */
+  function marqHits(a, b) {
+    const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
+    return items().filter((it) => {
+      const cx = it.x + it.w / 2, cy = it.y + it.h / 2;
+      const c = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => { const q = rotPt(sx * it.w / 2, sy * it.h / 2, it.rot || 0); return { x: cx + q.x, y: cy + q.y }; });
+      const bx0 = Math.min(...c.map((q) => q.x)), bx1 = Math.max(...c.map((q) => q.x)), by0 = Math.min(...c.map((q) => q.y)), by1 = Math.max(...c.map((q) => q.y));
+      return bx0 <= x1 && bx1 >= x0 && by0 <= y1 && by1 >= y0;
+    }).map((it) => it.id);
+  }
+  function onMarq(ev) {
+    const p = toMm(ev), dx = p.x - drag.p0.x, dy = p.y - drag.p0.y;
+    if (!drag.moved && Math.hypot(dx, dy) * PX * k < 3) return;
+    drag.moved = true;
+    const s = marqBox.style; marqBox.hidden = false;
+    s.left = Math.min(p.x, drag.p0.x) + 'mm'; s.top = Math.min(p.y, drag.p0.y) + 'mm'; s.width = Math.abs(dx) + 'mm'; s.height = Math.abs(dy) + 'mm';
+    setSel([...new Set([...drag.base, ...marqHits(drag.p0, p)])]); drawStage();
+  }
   function onMove(ev) {
     if (!drag) return;
+    if (drag.marq) { onMarq(ev); return; }
     if (drag.group) { onGroupMove(ev); return; }
     const it = byId(drag.id); if (!it) return;
     const p = toMm(ev), dx = p.x - drag.p0.x, dy = p.y - drag.p0.y, o = drag.o, m = drag.mode;
@@ -277,6 +301,7 @@
     if (!drag) return;
     const d = drag; drag = null;
     try { scaled.releasePointerCapture(ev.pointerId); } catch (e) { /* egal */ }
+    if (d.marq) { marqBox.hidden = true; if (d.moved) refresh(true); return; }
     if (d.moved) { App.touch(); refresh(false); return; }
     undoStack.pop();
     if (d.collapse) { setSel([d.collapse]); imgMode = false; refresh(true); }       // Klick ohne Ziehen auf ein Element der Auswahl: nur dieses behalten
@@ -701,7 +726,8 @@
     { const line = el('span', 'rot-line'), rot = el('span', 'hd hd-rot'); rot.dataset.h = 'rot'; rot.title = 'Drehen (Umschalt: in 15°-Schritten)'; selBox.append(line, rot); }
     grpBox = el('div', 'bed-grp'); grpBox.hidden = true;
     { const line = el('span', 'rot-line'), rot = el('span', 'hd hd-grot'); rot.dataset.h = 'grot'; rot.title = 'Alle drehen (Umschalt: in 15°-Schritten)'; grpBox.append(line, rot); }
-    stage.append(itemsBox, selBox, grpBox);
+    marqBox = el('div', 'bed-marq'); marqBox.hidden = true;
+    stage.append(itemsBox, selBox, grpBox, marqBox);
     footA = el('div', 'bed-foot', 'Spielfunktionen (fester Teil)'); footB = el('div', 'bed-foot', 'Systemanforderungen und Logos (fester Teil)');
     scaled.append(stage, footA, footB); wrap.append(scaled); pane.append(wrap);
     panel = el('div', 'bed-panel');

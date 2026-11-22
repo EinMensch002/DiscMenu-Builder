@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const errors = []; page.on('pageerror', e => errors.push(e.message));
-  await page.goto('file://' + path.resolve(__dirname, '..', '..', 'configurator', 'index.html'));
+  await page.goto('file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html') + '#menue');
 
   // Disc + zwei Spiele per Maske
   await page.click('text=Disc-Einstellungen');
@@ -25,26 +25,29 @@ const { chromium } = require('playwright');
   await page.locator('#editor select').first().selectOption('epic');
   assert.match(await page.locator('#nav').textContent(), /Epic Games/);
 
-  // JSON bearbeiten
-  await page.click('#bJson');
-  const ta = page.locator('textarea.code');
+  // recipe.json bearbeiten (Bereich Menü, im Menü vorausgewählt; Gemeinsam steht unter "game")
+  await page.click('.top summary:has-text("Sonstiges")'); await page.click('#bJson');          // JSON steht unter "Sonstiges" in der Leiste
+  const ta = page.locator('#dlg textarea.code');
+  assert.equal(await page.locator('#dlg .seg button.on').textContent(), 'Menü');
   const json = JSON.parse(await ta.inputValue());
   assert.equal(json.games.length, 2);
   json.title = 'Per JSON geändert';
   json.games[0].patches = [{ name: 'Patch A', group: 'Sprache', installer: 'Eins/patch.exe' }];
   await ta.fill(JSON.stringify(json));
-  await page.click('text=Änderungen übernehmen');
-  await page.waitForSelector('dialog:not([open])', { state: 'attached' });
-  assert.match(await page.locator('#side pre').textContent(), /Per JSON geändert/);
+  await page.click('#dlg button:has-text("Änderungen übernehmen")');
+  await page.waitForFunction(() => !document.querySelector('#dlg').open);
+  assert.equal(await page.evaluate(() => MenuApp.state.title), 'Per JSON geändert');
   await page.locator('.nv').nth(1).click();
   assert.match(await page.locator('#editor').textContent(), /Patch A/);
 
   // Ungültiges JSON bleibt im Dialog
-  await page.click('#bJson');
-  await page.locator('textarea.code').fill('{ kaputt');
-  await page.click('text=Änderungen übernehmen');
-  assert.match(await page.locator('#dlgBody .issue.error').textContent(), /Kein gültiges JSON/);
-  await page.click('text=Abbrechen');
+  await page.click('.top summary:has-text("Sonstiges")'); await page.click('#bJson');          // JSON steht unter "Sonstiges" in der Leiste
+  await page.click('#dlg .seg button:has-text("Gemeinsam")');
+  assert.equal(JSON.parse(await page.locator('#dlg textarea.code').inputValue()).title, 'Spiel Eins', 'gemeinsame Angaben des Spiels');
+  await page.locator('#dlg textarea.code').fill('{ kaputt');
+  await page.click('#dlg button:has-text("Änderungen übernehmen")');
+  assert.match(await page.locator('#dlg .dmsg.err').textContent(), /Kein gültiges JSON/);
+  await page.click('#dlg button:has-text("Abbrechen")');
 
   // Vorschau mit Simulation (klassisches Installer-Fenster: links Bild und Beschreibung, rechts Knöpfe)
   await page.click('#bPrev');
@@ -120,7 +123,7 @@ const { chromium } = require('playwright');
   await page.evaluate(() => {});                       // Seitenleiste neu zeichnen lassen
   await page.waitForTimeout(400);
   await page.locator('#side button:has-text("Disc-Ordner prüfen")').click();
-  const res = await page.locator('#dlgBody').textContent();
+  const res = await page.locator('#mDlgBody').textContent();
   assert.match(res, /Disc-Prüfung|Problem|Pfade/);
   assert.match(res, /Spiel 1 \(Spiel Zwei\), Installer: nicht gefunden/);   // Zwei/setup.exe fehlt
   assert.ok(!/Spiel 0 \(Spiel Eins\), Installer/.test(res));                // Eins/setup.exe gefunden

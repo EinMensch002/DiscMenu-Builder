@@ -9,20 +9,19 @@ Werkzeuge für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung
 >
 > | Werkzeug | Stand | Aufrufen |
 > |---|---|---|
-> | **Menü-Konfigurator** | fertig und nutzbar | https://einmensch002.github.io/DiscMenu-Builder/ |
-> | **DiscSleeve** (Hüllen zum Ausdrucken) | fertig und nutzbar, Ausdruck mit echtem Drucker noch zu prüfen | https://einmensch002.github.io/DiscMenu-Builder/disc-sleeve/ |
+> | **Menü** (Konfigurator) und **Hülle** (DiscSleeve), eine gemeinsame Seite | fertig und nutzbar, Ausdruck mit echtem Drucker noch zu prüfen | https://einmensch002.github.io/DiscMenu-Builder/ (oben zwischen "Menü" und "Hülle" wechseln, direkt zur Hülle: `#huelle`) |
 > | **Builder** und **Player** (die Menü-EXE) | gebaut (Go, eine EXE ohne Installation), noch nicht auf echtem Windows und Wine/Proton geprüft | [Anleitung](docs/player-und-builder.md) |
 >
-> Beide Web-Apps laufen komplett im Browser, nichts wird hochgeladen, und verlinken sich gegenseitig.
+> Die Seite läuft komplett im Browser, nichts wird hochgeladen. Die alten Adressen `/disc-sleeve/` und `/cover/` führen zur Hülle.
 
 ## Die Werkzeuge im Überblick
 
 | Werkzeug | Aufgabe | Dokumentation |
 |---|---|---|
-| **Konfigurator** (`configurator/`) | Das Rezept (`menu.json` mit Bildern und Sounds) per Maske zusammenstellen, mit Vorschau und Installations-Simulation. Exportiert eine ZIP | [docs/configurator.md](docs/configurator.md) |
+| **Menü** (Konfigurator, `app/menu*.js`) | Das Rezept (`menu.json` mit Bildern und Sounds) per Maske zusammenstellen, mit Vorschau und Installations-Simulation. Exportiert eine ZIP | [docs/configurator.md](docs/configurator.md) |
 | **Builder** (`src/Builder`) | Aus dem Rezept und dem Player die fertige Menü-EXE zusammensetzen und das Rezept prüfen | [docs/player-und-builder.md](docs/player-und-builder.md) |
 | **Player** (`src/Player`) | Das Menü selbst, das auf der Disc liegt (Windows 10/11, Linux über Wine/Proton) | [docs/player-und-builder.md](docs/player-und-builder.md) |
-| **DiscSleeve** (`disc-sleeve/`) | Druckfertige Hüllen: Cover, Rücken und Rückseite mit Systemanforderungen, Spielfunktionen und USK, A4 quer mit Schnittmarken | [docs/disc-sleeve.md](docs/disc-sleeve.md) |
+| **Hülle** (DiscSleeve, übrige Dateien in `app/`) | Druckfertige Hüllen: Cover, Rücken und Rückseite mit Systemanforderungen, Spielfunktionen und USK, A4 quer mit Schnittmarken | [docs/disc-sleeve.md](docs/disc-sleeve.md) |
 
 Der übliche Ablauf für eine Disc: Rezept im **Konfigurator** erstellen, mit dem **Builder** die Menü-EXE erzeugen, Disc brennen und mit dem **Cover-Tool** die Hülle drucken.
 
@@ -61,9 +60,8 @@ DiscMenu-Builder/
 ├─ README.md
 ├─ LICENSE
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
-├─ configurator/            Konfigurator: index.html (eine eigenständige Datei)
 ├─ go.mod, scripts/build.sh Go-Projekt und Build-Skript für die Windows-EXEs
-├─ disc-sleeve/              DiscSleeve: druckfertige Hüllen (Web-App, Seite unter /disc-sleeve/, alt: /cover/ leitet weiter)
+├─ app/                     Gemeinsame Web-App: index.html mit den Bereichen Menü (menu.js, menu-core.js, menu.css) und Hülle (DiscSleeve), shell.js schaltet um (Seite in der Wurzel, alt: /disc-sleeve/ und /cover/ leiten weiter)
 ├─ schema/                  JSON Schema der menu.json
 ├─ tests/                   Automatische Tests
 ├─ tools/mkdemo/            Erzeugt die Beispiel-Assets
@@ -107,7 +105,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] Veröffentlichung auf GitHub Pages bricht laufende Läufe nicht mehr ab (keine roten Deployments mehr)
 - [x] **Issue-Formular** "Fehler, Idee oder Frage": Art, Bereich und Stand werden nach dem Absenden automatisch zu Labels, auch für Leute ohne Rechte am Repository; beim Bearbeiten passen sie sich an (`.github/ISSUE_TEMPLATE/issue.yml`, `.github/workflows/issue-labels.yml`)
 
-### DiscSleeve (Web-App, live unter /disc-sleeve/)
+### DiscSleeve (Bereich "Hülle" der gemeinsamen Seite)
 
 - [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, Deutsch oder Englisch
 - [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzmarken (Test im Browser)
@@ -167,9 +165,15 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
   - [x] **Durchgehendes Bild:** Die Vorschau zeigt es jetzt auch (der Platzhalter "Rückseite oben" verdeckte es); Standard bleiben zwei getrennte Bilder
   - [x] **Standardschriften:** 18 Spiele-Schriften mit freier Lizenz (OFL/Apache) mitgeliefert (Pixel-Retro, Sci-Fi, Fantasy, Horror, Comic u. a.), im Dropdown jeweils in der eigenen Schrift; eigene Schriften lassen sich im Editor und in den Einstellungen wieder löschen (für den noch offenen Ein-Datei-Build: Schriften als Base64 einbetten)
   - [x] **Spielfunktionen mit vielen Symbolen:** Passt ein Wort nicht mehr in seinen Platz (z. B. "Achievements"), wird die Schrift aller Beschriftungen automatisch kleiner, nichts überlappt mehr (Issue #23)
-  - [ ] Auswahlrechteck im Editor (mit der Maus aufziehen für die Mehrfachauswahl)
+  - [x] **Auswahlrechteck im Editor:** auf leerer Fläche aufziehen wählt alle berührten Elemente (mit Strg/Umschalt zur Auswahl hinzufügen)
   - [ ] Ausrichtungshilfen (Raster)
-- [ ] **Beide Web-Tools zusammenführen:** Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
+- [ ] **Beide Web-Tools zusammenführen** (in Arbeit, drei Schritte):
+  - [x] **Eine Seite:** gemeinsamer Ordner `app/`, eine `index.html`, oben eine Leiste mit dem Wechsel "Disc-Menü | Cover & Hülle" ohne Neuladen; die Knöpfe der Leiste passen sich dem Bereich an
+  - [x] **Ein Projekt:** ein Speicher und eine Projektdatei für Menü und Hülle (eine `recipe.json` mit den Bereichen Gemeinsam, Menü und Hülle, dazu `assets/` und `fonts/`; der Builder liest sie direkt), verknüpft und nichts doppelt (Spielname = Titel der Hülle, Anbieter, Beschreibung, Größe, Cover), ein Einstellungsdialog, eine Leiste für beide Bereiche, helles Design im Menü; alte Rezepte und Hüllen-Dateien lassen sich weiter öffnen
+  - [x] **Spielordner einlesen:** Ordner wie die Disc wählen, Installer, DLCs, Patches und Extras werden vorgeschlagen und lassen sich vor dem Übernehmen ändern
+  - [x] **recipe.json bearbeiten** mit den Reitern Alles, Gemeinsam, Menü und Hülle; Hinweis beim Speichern alter Dateien im neuen Format
+  - [ ] **Englisch** auch für den Bereich "Menü"
+  - Ziel: Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
 - [ ] **Ein-Datei-Build** (Vorarbeit erledigt: alle Grafiken sind SVG, nur die Schrift Lato ist noch eine Binärdatei): Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
 
 ### Später
@@ -178,6 +182,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [ ] Bessere Übersetzung (z. B. DeepL mit eigenem Schlüssel)
 - [ ] GOG-Katalog als Beschreibungsquelle mit deutschen Texten
 - [ ] Steam-Provider: Backups wiederherstellen (Machbarkeit zuerst prüfen)
+- [ ] **Soundtrack im Menü abspielen:** Erkennt der Spielordner einen Soundtrack (Gruppe "Musik"), listet das Menü die einzelnen Titel auf und spielt sie direkt ab, statt nur den Ordner zu öffnen (Player: Wiedergabe von MP3/OGG/FLAC, Web-Vorschau: Liste mit Wiedergabe). Idee für den Feinschliff
 
 ## Fehler melden und Ideen einreichen
 

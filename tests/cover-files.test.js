@@ -1,10 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadCore } = require('./helpers');
-const F = require('../disc-sleeve/files.js');
-const Z = require('../disc-sleeve/zip.js');
-const C = require('../disc-sleeve/core.js');
-const O = require('../disc-sleeve/online.js');
+const F = require('../app/files.js');
+const Z = require('../app/zip.js');
+const C = require('../app/core.js');
+const O = require('../app/online.js');
 
 test('Einstellungsdatei: ohne und mit Passwort, falsches Passwort, fremde Datei', async () => {
   const vals = { key: 'abc-123', proxy: 'https://p.example/?url={url}' };
@@ -105,8 +105,8 @@ test('Steam: Fehler des Proxys werden in verständliche Meldungen übersetzt', a
   const ok = (url) => { if (/info=1/.test(url)) return info; if (!/proxy\.example/.test(url)) return {}; const t = new URL(url).searchParams.get('url'); return /storesearch/.test(t) ? { items: [{ id: 70, name: 'Half-Life' }] } : /api\.gog\.com\/v2/.test(t) ? gogFix : { success: true, data: [{ id: 1 }] }; };
   O.settings.save('KEY', 'https://proxy.example/?url={url}');
   const good = await run(async (u) => { const b = ok(u); return { ok: true, status: 200, json: async () => b, text: async () => '', blob: async () => ({ size: 1 }) }; }, () => O.testConnection());
-  assert.deepEqual(good.map((r) => [r.name, r.ok]), [['Proxy-Worker', true], ['Steam-Shop', true], ['SteamGridDB', true], ['GOG-Katalog', true], ['GOG-Spieldaten', true], ['GOG-Bilder', true], ['Wikidata (Publisher-Logos)', true], ['Brandfetch', true]]);
-  assert.match(good[0].text, /Version \d+ \(aktuell\)/); assert.ok(!good[0].warn); assert.match(good[4].text, /The Witcher/); assert.match(good[7].text, /optional/);
+  assert.deepEqual(good.map((r) => [r.name, r.ok]), [['Proxy-Worker', true], ['Steam-Shop', true], ['SteamGridDB', true], ['GOG-Katalog', true], ['GOG-Spieldaten', true], ['GOG-Bilder', true], ['Epic Games Store', true], ['Übersetzung (MyMemory)', true], ['Wikidata (Publisher-Logos)', true], ['Brandfetch', true]]);
+  assert.match(good[0].text, /Version \d+ \(aktuell\)/); assert.ok(!good[0].warn); assert.match(good[4].text, /The Witcher/); assert.match(good[9].text, /optional/);
   // Proxy-Worker: veraltet, ohne Versionsangabe, Host fehlt, neuer als das Tool
   const worker = (body, status = 200) => run(async (u) => (/[?&]info=1/.test(u) ? { ok: status === 200, status, json: async () => { if (body === 'kein JSON') throw new Error('x'); return body; }, text: async () => '' } : { ok: true, status: 200, json: async () => ok(u), text: async () => '' }), () => O.checkWorker().then((t) => ({ ok: true, ...t }), (e) => ({ ok: false, text: e.message })));
   assert.deepEqual(await worker({ version: O.WORKER_VERSION - 1, hosts: info.hosts }), { ok: false, text: 'Proxy-Worker Version ' + (O.WORKER_VERSION - 1) + ', aktuell ist ' + O.WORKER_VERSION + '. Bitte den aktuellen Worker-Code einspielen.' });
@@ -121,7 +121,7 @@ test('Steam: Fehler des Proxys werden in verständliche Meldungen übersetzt', a
   O.settings.saveBrandfetch('');
   O.settings.save('', '');
   const none = await run(async () => { throw new TypeError('x'); }, () => O.testConnection());
-  assert.deepEqual(none.map((r) => [r.name, r.ok]), [['Proxy', false], ['Steam-Shop', false], ['SteamGridDB', false], ['GOG-Katalog', false], ['GOG-Spieldaten', false], ['GOG-Bilder', false], ['Wikidata (Publisher-Logos)', false], ['Brandfetch', true]]);
+  assert.deepEqual(none.map((r) => [r.name, r.ok]), [['Proxy', false], ['Steam-Shop', false], ['SteamGridDB', false], ['GOG-Katalog', false], ['GOG-Spieldaten', false], ['GOG-Bilder', false], ['Epic Games Store', false], ['Übersetzung (MyMemory)', false], ['Wikidata (Publisher-Logos)', false], ['Brandfetch', true]]);
   assert.match(none[0].text, /Kein Proxy/); assert.match(none[2].text, /Kein API-Schlüssel/);
 });
 

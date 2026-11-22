@@ -4,7 +4,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html') + '#huelle';
 const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zum|zur|aus|ein|eine|noch|nur|kein|keine|wurde|werden|zuerst|lokal|ungespeichert|gespeichert|geöffnet|Treffer|Fehler|Datei|Rückseite|Frontcover)\b/i;
 
 (async () => {
@@ -45,9 +45,9 @@ const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zu
   assert.equal(await page.locator('html').getAttribute('lang'), 'en');
   assert.equal(await page.locator('#bPrint').textContent(), 'Print');
   assert.equal(await page.locator('#bSettings').textContent(), 'Settings');
-  assert.match(await page.locator('h1').textContent(), /DiscSleeve/);
+  assert.match(await page.locator('h1').textContent(), /DiscMenu-Builder/);
   assert.match(await page.locator('#langMenu summary').textContent(), /English/);
-  assert.equal(await page.title(), 'DiscSleeve – Cover Tool for Disc Cases');
+  assert.equal(await page.title(), 'DiscMenu-Builder – menu and case for game discs');
   assert.equal(await page.getAttribute('[data-k=title]', 'placeholder'), 'e.g. The Witcher: Enhanced Edition');
   assert.equal(await page.locator('[data-k=lang]').isVisible(), false, 'Bei Englisch entfällt das Feld "Sprache der Beschriftung"');
   assert.equal(await page.evaluate(() => CoverApp.state.lang), 'en', 'Das Cover wird englisch beschriftet');
@@ -91,14 +91,14 @@ const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zu
   await page.unroute(/^https?:/);
 
   // confirm-Meldungen werden übersetzt
-  await page.click('#bReset'); await page.waitForTimeout(200);
-  assert.equal(dialogs.pop(), 'Reset all settings and images?');
+  await page.click('.top details.menu:has(#bReset) > summary'); await page.click('#bReset'); await page.waitForTimeout(200);
+  assert.equal(dialogs.pop(), 'Create a new project? Menu, case and all images will be cleared.');
   await page.evaluate(() => CoverApp.patch({ lang: 'en' }));
 
   // Zurück auf Deutsch: alles wie vorher, das Feld ist wieder da
   await page.click('#langMenu summary'); await page.click('#langMenu button[data-lang=de]'); await page.waitForTimeout(200);
   assert.equal(await page.locator('#bPrint').textContent(), 'Drucken');
-  assert.equal(await page.title(), 'DiscSleeve – Cover-Tool für Disc-Hüllen');
+  assert.equal(await page.title(), 'DiscMenu-Builder – Menü und Hülle für Spiele-Discs');
   assert.equal(await page.getAttribute('[data-k=title]', 'placeholder'), 'z. B. The Witcher: Enhanced Edition');
   assert.equal(await page.locator('[data-k=lang]').isVisible(), true);
   assert.match(await page.locator('#notes').textContent(), /Es fehlt noch das Frontcover/);

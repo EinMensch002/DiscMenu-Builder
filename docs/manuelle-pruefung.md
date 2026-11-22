@@ -1,3 +1,19 @@
+# Gemeinsame Seite (Menü und Hülle)
+
+- [ ] **Umschalten:** Oben zwischen "Menü" und "Hülle" wechseln (PC und Tab S10): Die Seite lädt nicht neu, Eingaben im jeweils anderen Bereich bleiben erhalten, die Knöpfe der Leiste passen sich an.
+- [ ] **Alte Adressen:** `/disc-sleeve/` und `/cover/` öffnen direkt die Hülle, Neuladen bleibt im gewählten Bereich.
+- [ ] **Einstellungen und Sprache:** "Einstellungen" öffnet in beiden Bereichen denselben Dialog. Schlüssel löschen, dann im anderen Bereich öffnen: auch dort leer. Die Sprache wechselt die Leiste und die Hülle (das Menü bleibt vorerst deutsch).
+- [ ] **Verknüpfung:** Spielname im Menü ändern, zur Hülle wechseln: Titel geändert. Frontcover bei der Hülle setzen: im Menü als Cover des Spiels. Titel in der Hülle ändern: Spielname im Menü geändert.
+- [ ] **Neues Projekt:** Projekt → Neues Projekt leert Menü und Hülle.
+- [ ] **Projektdatei:** Speichern, Neues Projekt, Öffnen: Menü, Hülle und Bilder sind zurück. In der ZIP liegt nur eine `recipe.json` (keine menu.json, keine cover.json). Der Builder (`Builder.exe projekt.zip`) verarbeitet sie.
+- [ ] **Alte Dateien:** Eine alte Rezept-ZIP, eine alte Hüllen-ZIP und eine Projektdatei der ersten Vorschau öffnen. Strg+S und "Speichern unter" zeigen zuerst den Hinweis "Neues Dateiformat", "Abbrechen" speichert nichts.
+- [ ] **recipe.json bearbeiten:** Sonstiges → recipe.json bearbeiten: Reiter Gemeinsam, Menü, Hülle; den Titel unter "Gemeinsam" ändern, übernehmen: Menü und Hülle zeigen ihn.
+- [ ] **Spielordner einlesen:** Daten übernehmen → Spielordner einlesen, einen echten Spielordner (z. B. DISK 1 mit base_game, extras, Patches …) wählen. Der Vorschlag stimmt im Wesentlichen, eine Zeile umstellen, übernehmen: Einträge stehen im Menü, "Disc-Ordner prüfen" findet alle Pfade.
+- [ ] **Rückenlogo:** Spiel-Logo auf dem Rücken, dann Anbieter und Hülle (Normal, Slim, Blu-ray) wechseln: Das Logo springt nicht und sitzt sofort richtig.
+- [ ] **Übernahme alter Stände:** Auf einem Gerät, das die alten Tools benutzt hat, zeigt die neue Seite beim ersten Start den früheren Stand (Konfigurator-Projekt und Hülle).
+- [ ] **Design:** Menü und Hülle sehen gleich hell aus (Farben, Knöpfe, Felder), auch auf dem Tablet.
+- [ ] **Drucken:** Aus dem Bereich "Hülle" erscheint nur das Blatt, nichts vom Menü.
+
 # Manuelle Prüfung des Konfigurators
 
 Diese Punkte lassen sich nicht automatisch testen, weil sie echte Dienste oder echte Browser brauchen. Abhaken, sobald geprüft, und Auffälligkeiten als Issue anlegen. Voraussetzung für die Dienste: ein eigener Proxy (siehe [steamgriddb.md](steamgriddb.md)) und ein SteamGridDB-Schlüssel.
@@ -133,5 +149,6 @@ Das [Cover-Tool](disc-sleeve.md) ist mit nachgebauten Diensten und im Browser-Dr
 - [ ] **Vorschau für Pull Requests:** Im PR erscheint ein Kommentar mit Links, die Seite lädt nach ein bis zwei Minuten und zeigt die Änderung. Nach dem Schließen oder Mergen ist der Link weg (nach ein bis zwei Minuten 404).
 - [ ] **Spielfunktionen mit allen elf Symbolen (Issue #23):** Alle Spielfunktionen wählen, einmal auf Deutsch, einmal auf Englisch, bei GOG, Epic und Steam: Keine Beschriftung ragt in die Nachbarn, alles bleibt lesbar. Ausdrucken und die Größe der Schrift prüfen (auf Englisch etwa 3,6 pt).
 - [ ] **Durchgehendes Bild in der Vorschau:** Ein Bild bei "Rückseite oben" laden, Haken "Ein durchgehendes Bild" setzen: Das Bild ist in der Vorschau über die ganze Rückseite zu sehen, kein grauer Platzhalter darüber. Haken weg oder Bild entfernen: Platzhalter bzw. getrennte Bilder wie vorher. Ein neues Projekt startet mit zwei getrennten Bildern.
+- [ ] **Auswahlrechteck:** Im Editor auf leerer Fläche (mit Maus und mit dem Finger auf dem Tablet) ein Rechteck aufziehen: Berührte Elemente werden gewählt, die Seite scrollt dabei nicht. Mit Strg/Umschalt bleibt die Auswahl erhalten. Gedrehte Elemente werden erfasst.
 - [ ] **Mehrfachauswahl:** Mehrere Texte und Bilder mit Strg oder Umschalt wählen (auch auf dem Mac mit Cmd), gemeinsam verschieben und mit dem Griff drehen: Jedes Element dreht sich um die eigene Mitte, die Anordnung bleibt, nichts springt. Ausdrucken und prüfen.
 - [ ] **Formen:** Dreieck, Stern und freie Fläche anlegen, Punkte ziehen (Einrasten prüfen), ein Bild in eine Form legen und im Ausschnitt verschieben und zoomen. Vorlage "Zersplittert" mit vier echten Bildern füllen und ausdrucken: Die schrägen Kanten schließen sauber aneinander, die graue Hilfsebene erscheint weder auf dem Cover noch im Druck.

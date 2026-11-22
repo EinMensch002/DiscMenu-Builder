@@ -1,8 +1,7 @@
 name: Vorschau für Pull Requests
 
 # Jeder Pull Request aus diesem Repository bekommt eine Testseite unter
-#   https://<Konto>.github.io/<Repository>/pr/<Nummer>/            (Konfigurator)
-#   https://<Konto>.github.io/<Repository>/pr/<Nummer>/disc-sleeve/ (DiscSleeve)
+#   https://<Konto>.github.io/<Repository>/pr/<Nummer>/   (gemeinsame Seite: Menü und Hülle)
 # Die Dateien liegen im Zweig gh-pages (Ordner pr/<Nummer>). pages.yml veröffentlicht sie zusammen mit main.
 # Wird der Pull Request geschlossen oder gemergt, wird der Ordner wieder gelöscht.
 
@@ -35,9 +34,13 @@ jobs:
         if: github.event.action != 'closed'
         run: |
           mkdir site
-          cp -r configurator/. site/
-          cp -r disc-sleeve site/disc-sleeve
-          sed -i "s/__VERSION__/pr${PR}-${GITHUB_SHA::7}/g" site/disc-sleeve/index.html
+          cp -r app/. site/
+          # alte Adressen /disc-sleeve/ und /cover/ führen zur Hülle auf der gemeinsamen Seite (bestehende Lesezeichen und Links)
+          for old in disc-sleeve cover; do
+            mkdir -p site/$old
+            printf '%s\n' '<!doctype html><html lang="de"><meta charset="utf-8"><title>DiscMenu-Builder</title><meta http-equiv="refresh" content="0; url=../#huelle"><link rel="canonical" href="../#huelle"><p>Die Hülle ist jetzt Teil der gemeinsamen Seite: <a href="../#huelle">weiter</a>.</p></html>' > site/$old/index.html
+          done
+          sed -i "s/__VERSION__/pr${PR}-${GITHUB_SHA::7}/g" site/index.html
       - name: Ordner pr/${{ github.event.pull_request.number }} im Zweig gh-pages anlegen oder löschen
         run: |
           set -e
@@ -63,5 +66,5 @@ jobs:
           OWNER="${GITHUB_REPOSITORY%%/*}"; REPO="${GITHUB_REPOSITORY##*/}"
           BASE="https://${OWNER,,}.github.io/${REPO}/pr/${PR}"
           gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "Vorschau (erscheint ein bis zwei Minuten nach jedem Push, wird beim Schließen oder Mergen gelöscht):
-          - DiscSleeve: ${BASE}/disc-sleeve/
-          - Konfigurator: ${BASE}/"
+          - Menü: ${BASE}/#menue
+          - Hülle: ${BASE}/#huelle"

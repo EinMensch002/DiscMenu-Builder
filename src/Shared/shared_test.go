@@ -204,3 +204,52 @@ func TestKonfiguratorExportLoads(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// Die Projektdatei der Web-App (recipe.json statt menu.json) wird gelesen: gemeinsame Angaben landen beim Spiel.
+func TestWebAppProjectLoads(t *testing.T) {
+	node, err := exec.LookPath("node")
+	if err != nil {
+		t.Skip("node nicht installiert")
+	}
+	out := filepath.Join(t.TempDir(), "projekt.zip")
+	cmd := exec.Command(node, filepath.Join("..", "..", "tests", "project-fixture.js"), out)
+	if b, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("Projektdatei: %v %s", err, b)
+	}
+	r, err := LoadRecipe(out, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := Validate(r.Menu, r.Exists); HasErrors(got) {
+		t.Fatalf("Projektdatei ist laut Go ungültig: %v", got)
+	}
+	g := r.Menu.Games
+	if len(g) != 2 || g[0].Name != "Größen-Spiel" || g[0].Description != "Umlaute: äöüß" || g[0].EstimatedSizeMB != 1500 || g[0].Cover != "assets/cover.jpg" {
+		t.Fatalf("Spiel 0: %+v", g[0])
+	}
+	if !r.Exists("assets/cover.jpg") || g[1].Name != "Epic-Spiel" {
+		t.Fatalf("Cover oder zweites Spiel fehlen: %+v", g[1])
+	}
+	if _, err := BuildPayload(r); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestMenuFromRecipeRules(t *testing.T) {
+	raw, err := MenuFromRecipe([]byte(`{"format":"discmenu-recipe","version":1,"gameIndex":1,"game":{"title":"B","cover":""},"menu":{"schemaVersion":1,"title":"T","games":[{"index":0,"name":"A","installer":"a.exe"},{"index":1,"installer":"b.exe"}]}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	m, err := Parse(raw, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.Games[1].Name != "B" || m.Games[0].Name != "A" || m.Games[1].Cover != "" {
+		t.Fatalf("gemeinsame Angaben falsch übernommen: %+v", m.Games)
+	}
+	for _, bad := range []string{`{"format":"x","menu":{}}`, `{"format":"discmenu-recipe","version":2,"menu":{}}`, `{"format":"discmenu-recipe","version":1}`, `kaputt`} {
+		if _, err := MenuFromRecipe([]byte(bad)); err == nil {
+			t.Fatalf("sollte abgelehnt werden: %s", bad)
+		}
+	}
+}

@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html') + '#huelle';
 const FIX = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'fixtures', 'gog-witcher-v2.json'), 'utf8'));
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };

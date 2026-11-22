@@ -3,7 +3,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html') + '#huelle';
 
 // Erzeugt ein Bild im Browser und übergibt es dem Tool ("draw" ist der Rumpf einer Funktion (ctx, w, h))
 async function image(page, key, w, h, draw, type = 'image/png') {
@@ -174,7 +174,7 @@ async function image(page, key, w, h, draw, type = 'image/png') {
   await page.reload();
   await page.waitForFunction(() => document.querySelector('[data-img=spineBg]').classList.contains('has'));
   assert.equal(await page.locator('[data-img=publisher]').evaluate((e) => e.classList.contains('has')), true);
-  await page.click('#bReset'); await page.waitForTimeout(400); await page.reload(); await page.waitForTimeout(800);
+  await page.click('.top summary:has-text("Projekt")'); await page.click('#bReset'); await page.waitForTimeout(400); await page.reload(); await page.waitForTimeout(800);
   assert.equal(await page.locator('[data-img=spineBg]').evaluate((e) => e.classList.contains('has')), false, 'nach Zurücksetzen kommt nichts zurück');
   assert.equal(await page.locator('#autoInfo').textContent(), '');
 

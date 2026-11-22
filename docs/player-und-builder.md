@@ -1,6 +1,6 @@
 # Builder und Player
 
-Der **Builder** macht aus einem Rezept (ZIP oder Ordner mit `menu.json`) eine **Menü-EXE**. Der **Player** ist der Teil dieser EXE, der auf der Disc läuft. Beide sind in Go geschrieben, siehe [platforms-and-tech.md](platforms-and-tech.md).
+Der **Builder** macht aus einem Rezept (ZIP oder Ordner mit `menu.json`, oder die Projektdatei der Web-App mit `recipe.json`) eine **Menü-EXE**. Der **Player** ist der Teil dieser EXE, der auf der Disc läuft. Beide sind in Go geschrieben, siehe [platforms-and-tech.md](platforms-and-tech.md).
 
 ## Bauen
 

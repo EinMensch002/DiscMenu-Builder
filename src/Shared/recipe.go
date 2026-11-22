@@ -3,6 +3,7 @@ package shared
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -44,9 +45,9 @@ func LoadRecipe(path string, strict bool) (*Recipe, error) {
 		}
 		return LoadRecipeZip(data, strict)
 	}
-	raw, err := fs.ReadFile(fsys, "menu.json")
+	raw, err := readMenuJSON(fsys)
 	if err != nil {
-		return nil, fmt.Errorf("im Ordner fehlt die menu.json: %w", err)
+		return nil, fmt.Errorf("im Ordner: %w", err)
 	}
 	m, err := Parse(raw, strict)
 	if err != nil {
@@ -61,15 +62,85 @@ func LoadRecipeZip(data []byte, strict bool) (*Recipe, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ZIP nicht lesbar: %w", err)
 	}
-	raw, err := fs.ReadFile(zr, "menu.json")
+	raw, err := readMenuJSON(zr)
 	if err != nil {
-		return nil, fmt.Errorf("in der ZIP fehlt die menu.json im Wurzelverzeichnis")
+		return nil, fmt.Errorf("in der ZIP: %w", err)
 	}
 	m, err := Parse(raw, strict)
 	if err != nil {
 		return nil, err
 	}
 	return &Recipe{Menu: m, Raw: raw, Assets: zr}, nil
+}
+
+// readMenuJSON liest die menu.json eines Rezepts. Fehlt sie, wird die recipe.json der Web-App (gemeinsames Projekt von
+// Menü und Hülle) gelesen und in eine menu.json umgewandelt.
+func readMenuJSON(fsys fs.FS) ([]byte, error) {
+	raw, err := fs.ReadFile(fsys, "menu.json")
+	if err == nil {
+		return raw, nil
+	}
+	rec, err2 := fs.ReadFile(fsys, "recipe.json")
+	if err2 != nil {
+		return nil, fmt.Errorf("es fehlt die recipe.json (oder menu.json) im Wurzelverzeichnis")
+	}
+	return MenuFromRecipe(rec)
+}
+
+// sharedGameFields ordnet die gemeinsamen Angaben der recipe.json ("game") den Feldern eines Spiels der menu.json zu.
+var sharedGameFields = map[string]string{"title": "name", "provider": "provider", "description": "description", "sizeMB": "estimatedSizeMB", "cover": "cover"}
+
+// MenuFromRecipe macht aus einer recipe.json den Inhalt einer menu.json: der Bereich "menu", beim Spiel "gameIndex"
+// ergänzt um die gemeinsamen Angaben aus "game" (Titel, Anbieter, Beschreibung, Größe, Cover). Der Bereich "cover"
+// (die Hülle) spielt für das Menü keine Rolle. Gleiche Regel wie menuJsonFromRecipe in app/project.js.
+func MenuFromRecipe(raw []byte) ([]byte, error) {
+	var r struct {
+		Format    string                     `json:"format"`
+		Version   int                        `json:"version"`
+		GameIndex int                        `json:"gameIndex"`
+		Game      map[string]json.RawMessage `json:"game"`
+		Menu      map[string]json.RawMessage `json:"menu"`
+	}
+	if err := json.Unmarshal(raw, &r); err != nil {
+		return nil, fmt.Errorf("recipe.json ist kein gültiges JSON: %w", err)
+	}
+	if r.Format != "discmenu-recipe" {
+		return nil, fmt.Errorf("recipe.json hat ein unbekanntes Format (%q)", r.Format)
+	}
+	if r.Version > 1 {
+		return nil, fmt.Errorf("recipe.json stammt aus einer neueren Version (%d)", r.Version)
+	}
+	if r.Menu == nil {
+		return nil, fmt.Errorf("in der recipe.json fehlt der Bereich \"menu\"")
+	}
+	if g, ok := r.Menu["games"]; ok {
+		var games []map[string]json.RawMessage
+		if err := json.Unmarshal(g, &games); err != nil {
+			return nil, fmt.Errorf("recipe.json: Spiele nicht lesbar: %w", err)
+		}
+		if len(games) > 0 {
+			i := r.GameIndex
+			if i < 0 || i >= len(games) {
+				i = 0
+			}
+			for from, to := range sharedGameFields {
+				if v, ok := r.Game[from]; ok && !emptyJSON(v) {
+					games[i][to] = v
+				}
+			}
+			b, err := json.Marshal(games)
+			if err != nil {
+				return nil, err
+			}
+			r.Menu["games"] = b
+		}
+	}
+	return json.MarshalIndent(r.Menu, "", "  ")
+}
+
+func emptyJSON(v json.RawMessage) bool {
+	s := strings.TrimSpace(string(v))
+	return s == "" || s == "null" || s == `""`
 }
 
 // Referenced nennt alle im Menü verwendeten Assets, sortiert und ohne Doppelte.

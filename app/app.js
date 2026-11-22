@@ -2,8 +2,10 @@
 (function () {
   'use strict';
   const C = window.CoverCore;
-  const $ = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  /* Suchen nur außerhalb des Menü-Bereichs (#viewMenu): Beide Teile liegen auf einer Seite und nutzen teils gleiche Klassen (z. B. .drop). */
+  const ours = (e) => !e.closest('#viewMenu');
+  const $ = (s, r = document) => (r === document ? [...r.querySelectorAll(s)].find(ours) || null : r.querySelector(s));
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)].filter(ours);
   const STORE = 'discmenu-cover:v1';
 
   let state = load();
@@ -626,13 +628,16 @@
     bindControls();
     bindHw();
     ['spineLogoImg', 'spinePubImg'].forEach((id) => $('#' + id).addEventListener('load', refitSpine));
+    /* Der Platz auf dem Rücken ändert sich auch ohne neues Bild (anderer Anbieter oder andere Hülle: Kopf- und Fußteil sind anders hoch,
+       die Bilder darin laden später). Dann das Logo sofort neu einpassen, nicht erst bei der nächsten Eingabe. */
+    if (window.ResizeObserver) { let lastH = -1; new ResizeObserver(() => { const hh = $('#spineBox').clientHeight; if (hh !== lastH) { lastH = hh; fitSpineLogo(); } }).observe($('#spineBox')); }
     bindDrops();
     $('#backTop').addEventListener('click', () => { if (window.BackEditor) BackEditor.open(); });
     syncControls();
     buildJump();
     $('#bPrint').addEventListener('click', () => window.print());
     $('#bReset').addEventListener('click', () => {
-      if (!confirm('Alle Einstellungen und Bilder zurücksetzen?')) return;
+      if (!confirm('Neues Projekt anlegen? Menü, Hülle und alle Bilder werden geleert.')) return;
       Object.keys(images).forEach(clearImage);
       state = C.defaultState();
       hooks.reset.forEach((f) => f());
