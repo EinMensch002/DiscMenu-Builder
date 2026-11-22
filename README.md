@@ -182,6 +182,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [ ] Bessere Übersetzung (z. B. DeepL mit eigenem Schlüssel)
 - [ ] GOG-Katalog als Beschreibungsquelle mit deutschen Texten
 - [ ] Steam-Provider: Backups wiederherstellen (Machbarkeit zuerst prüfen)
+- [ ] **Soundtrack im Menü abspielen:** Erkennt der Spielordner einen Soundtrack (Gruppe "Musik"), listet das Menü die einzelnen Titel auf und spielt sie direkt ab, statt nur den Ordner zu öffnen (Player: Wiedergabe von MP3/OGG/FLAC, Web-Vorschau: Liste mit Wiedergabe). Idee für den Feinschliff
 
 ## Fehler melden und Ideen einreichen
 

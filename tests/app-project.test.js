@@ -142,3 +142,9 @@ test('Spielordner: lesbare Namen und Gruppen für Extras', () => {
   assert.equal(by('Story_Erweiterungen/The_Nameless_Mod_Installer_2025-11-5_1723.exe').name, 'The Nameless Mod');
   assert.equal(by('Story_Erweiterungen/2027_1.2.1.exe').name, '2027');
 });
+
+test('Spielordner: der Installer des Spiels trägt den Namen des Spiels', () => {
+  const exe = 'base_game/setup_deus_ex_goty_1.112fm(revision_1.6.3.0)_(51757).exe';
+  assert.equal(P.planFromFolder([{ path: exe }], { game: 'Deus Ex: Game of the Year Edition' })[0].name, 'Deus Ex: Game of the Year Edition');
+  assert.equal(P.planFromFolder([{ path: exe }])[0].name, 'Deus ex goty', 'ohne Spielnamen: der Dateiname ohne Version');
+});

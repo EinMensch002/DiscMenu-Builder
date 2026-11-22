@@ -100,10 +100,17 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html')
   await go('menu');
   await page.evaluate(() => MenuApp.showFolderPlan('DISK 1', DiscProject.planFromFolder([
     { path: 'base_game/setup_spiel.exe' }, { path: 'base_game/setup_spiel-1.bin' }, { path: 'Story_Erweiterungen/Kapitel2/setup_k2.exe' },
-    { path: 'Patches_und_Fixes/Fix/fix.exe' }, { path: 'extras/handbuch.pdf' }, { path: 'Sonstiges/tool.exe' }])));
+    { path: 'Patches_und_Fixes/Fix/fix.exe' }, { path: 'extras/handbuch.pdf' }, { path: 'Sonstiges/tool.exe' }], { game: MenuApp.state.games[0].name })));
   const rowsCount = await page.locator('#mDlg .fplan tr').count();
   assert.equal(rowsCount, 6, 'Kopfzeile und fünf Vorschläge');
+  const inst = page.locator('#mDlg .fplan tr', { hasText: 'base_game/setup_spiel.exe' });
+  assert.equal(await inst.locator('input').nth(0).inputValue(), 'Neuer Titel', 'Installer des Spiels trägt den Namen des Spiels');
+  assert.equal(await inst.locator('input').nth(0).isEnabled(), true, 'Name beim Installer bearbeitbar');
+  assert.equal(await inst.locator('input').nth(1).isEnabled(), false, 'der Installer hat keine Gruppe');
   await page.locator('#mDlg .fplan tr', { hasText: 'Sonstiges/tool.exe' }).locator('select').selectOption('extras');      // Zuordnung ändern
+  const tool = page.locator('#mDlg .fplan tr', { hasText: 'Sonstiges/tool.exe' });
+  assert.equal(await tool.locator('input').nth(0).isEnabled(), true, 'nach dem Umstellen bearbeitbar');
+  assert.equal(await tool.locator('input').nth(1).isEnabled(), true);
   await page.click('#mDlg button:has-text("Übernehmen")');
   const g0 = await page.evaluate(() => MenuApp.state.games[0]);
   assert.equal(g0.installer, 'base_game/setup_spiel.exe');
