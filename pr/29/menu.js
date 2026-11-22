@@ -408,7 +408,7 @@
     $('#side').replaceChildren(
       h('div',{class:'box'}, h('h3',{style:'margin-top:0'},'Prüfung'),
         issues.length ? issues.map(i => h('div',{class:'issue ' + i.level}, (i.level === 'error' ? 'Fehler: ' : 'Hinweis: ') + i.msg)) : h('div',{class:'ok'},'Alles in Ordnung. Das Menü kann mit dem Builder erzeugt werden.'),
-        typeof window.showDirectoryPicker === 'function' ? h('button',{type:'button',class:'sm',style:'margin-top:10px',onclick:runDiscCheck},'📁 Disc-Ordner prüfen') : h('small',{style:'display:block;margin-top:10px'},'Die Prüfung der Disc-Dateien braucht Chrome oder Edge am Computer.')));
+        typeof window.showDirectoryPicker === 'function' ? h('div',{class:'row',style:'margin-top:10px'}, h('button',{type:'button',class:'sm',onclick:runDiscCheck},'📁 Disc-Ordner prüfen'), h('button',{type:'button',class:'sm',onclick:importFolder},'📂 Spielordner einlesen')) : h('small',{style:'display:block;margin-top:10px'},'Die Prüfung der Disc-Dateien braucht Chrome oder Edge am Computer.')));
   }
   function renderAll(){ renderNav(); renderEditor(); renderSide(); }
 
@@ -438,24 +438,53 @@
       h('p', {class:'hint'}, 'Es wird nur gelesen, nichts verändert und nichts hochgeladen. Der Ordner sollte so aufgebaut sein wie die fertige Disc (Wurzel = Ordner, in dem die Menü-EXE liegt).'));
   }
 
-  /* --- JSON bearbeiten --- */
-  function openJsonEditor(){
-    const {menu, map} = buildMenu(state, assets);
-    const byPath = new Map([...map].map(([id,pth]) => [pth,id]));
-    const ta = h('textarea', {class:'code', spellcheck:'false'}); ta.value = JSON.stringify(menu, null, 2) + '\n';
-    const msg = h('div', {class:'issue'}); 
-    const apply = h('button', {type:'button', class:'pri', onclick: () => {
-      let m; try { m = JSON.parse(ta.value); } catch (e) { msg.className = 'issue error'; msg.textContent = 'Kein gültiges JSON: ' + e.message; return; }
-      try {
-        const r = parseMenu(m, p => byPath.get(String(p).replace(/\\/g,'/')) || null);
-        state = r.state; sel = 0; renderAll(); changed(); closeDlg();
-        toast(r.notes.length ? 'Übernommen, mit Hinweisen:\n' + r.notes.slice(0,6).join('\n') : 'Änderungen übernommen. Die Prüfung rechts zeigt, ob alles passt.');
-      } catch (e) { msg.className = 'issue error'; msg.textContent = e.message || String(e); }
-    }}, 'Änderungen übernehmen');
-    openDlg('menu.json bearbeiten',
-      h('p', {class:'hint'}, 'Bilder und Sounds bleiben über ihren Pfad (assets/...) verbunden. Neue Dateien lassen sich nur in der Maske hinzufügen. Felder, die das Format nicht kennt, werden verworfen. Das Schema liegt unter ',
-        h('a', {href:'https://github.com/EinMensch002/DiscMenu-Builder/blob/main/schema/menu.schema.json', target:'_blank', rel:'noopener noreferrer'}, 'schema/menu.schema.json'), '.'),
-      ta, msg, h('div', {class:'row', style:'margin-top:10px'}, apply, h('button', {type:'button', onclick:closeDlg}, 'Abbrechen')));
+  /* --- Spielordner einlesen ---
+     Man wählt den Ordner, der wie die Disc aufgebaut ist (z. B. base_game, extras, Patches …). Die Seite liest nur die Namen und schlägt vor,
+     was Installer, DLC, Patch oder Extra ist (project.js planFromFolder). Vor dem Übernehmen lässt sich jede Zeile ändern. */
+  async function listFolder(root){
+    const out = [], MAX = 4000;
+    const walk = async (dir, prefix, depth) => {
+      for await (const [n, hd] of dir.entries()){
+        if (out.length >= MAX) return;
+        out.push({path: prefix + n, dir: hd.kind === 'directory'});
+        if (hd.kind === 'directory' && depth < 3) await walk(hd, prefix + n + '/', depth + 1);
+      }
+    };
+    await walk(root, '', 0); return out;
+  }
+  const KIND_LABEL = {installer:'Installer des Spiels', dlcs:'DLC', patches:'Patch', extras:'Extra', skip:'nicht übernehmen'};
+  async function importFolder(){
+    if (typeof window.showDirectoryPicker !== 'function'){ toast('Ordner einlesen geht nur in Chrome und Edge am Computer.'); return; }
+    let root; try { root = await window.showDirectoryPicker({mode:'read'}); } catch (e) { if (!(e && e.name === 'AbortError')) toast('Ordner konnte nicht geöffnet werden: ' + (e.message || e)); return; }
+    openDlg('Spielordner wird gelesen ...', h('p', {class:'hint'}, 'Einen Moment.'));
+    showFolderPlan(root.name, DiscProject.planFromFolder(await listFolder(root)));
+  }
+  function showFolderPlan(folder, plan){
+    const gi = typeof sel === 'number' && state.games[sel] ? sel : 0, g = state.games[gi];
+    const rows = plan.map(p => {
+      const kind = h('select', {'aria-label':'Art'}, DiscProject.KINDS.map(k => h('option', {value:k}, KIND_LABEL[k]))); kind.value = p.kind;
+      const name = h('input', {type:'text', value:p.name, 'aria-label':'Name'}), group = h('input', {type:'text', value:p.group, placeholder:'Gruppe', 'aria-label':'Gruppe'});
+      const sync = () => { const off = kind.value === 'skip' || kind.value === 'installer'; name.disabled = off; group.disabled = off; };
+      kind.addEventListener('change', sync); sync();
+      return {p, kind, name, group, row: h('tr', {}, h('td', {class:'path'}, p.path), h('td', {}, kind), h('td', {}, name), h('td', {}, group))};
+    });
+    const apply = () => {
+      let n = 0;
+      for (const r of rows){
+        const k = r.kind.value; if (k === 'skip') continue;
+        if (k === 'installer'){ g.installer = r.p.path; n++; continue; }
+        if (g[k].some(it => it.path === r.p.path)) continue;                     // schon eingetragen
+        const it = newItem(); Object.assign(it, {name: r.name.value.trim() || r.p.path.split('/').pop(), group: r.group.value.trim(), path: r.p.path, kind: r.p.open || k === 'extras' ? 'open' : 'installer', _open: false});
+        g[k].push(it); n++;
+      }
+      sel = gi; renderAll(); changed(); closeDlg();
+      toast(n ? n + ' Eintrag/Einträge übernommen. Die Prüfung rechts zeigt, ob noch etwas fehlt.' : 'Nichts übernommen.');
+    };
+    openDlg('Spielordner "' + folder + '"',
+      h('p', {class:'hint'}, 'Vorschlag für "' + (g.name || 'Spiel ' + gi) + '": Die Pfade gelten ab dem gewählten Ordner, er entspricht der Wurzel der Disc. Art, Name und Gruppe lassen sich ändern. Vorhandene Einträge bleiben, neue kommen dazu, ein Installer ersetzt den bisherigen.'),
+      rows.length ? h('div', {class:'fplan'}, h('table', {}, h('tr', {}, h('th', {}, 'Datei oder Ordner'), h('th', {}, 'Art'), h('th', {}, 'Name'), h('th', {}, 'Gruppe')), rows.map(r => r.row)))
+        : h('p', {class:'issue warn'}, 'Im Ordner wurden keine Programme (.exe) und keine Extras gefunden.'),
+      h('div', {class:'row', style:'margin-top:10px'}, rows.length ? h('button', {type:'button', class:'pri', onclick: apply}, 'Übernehmen') : null, h('button', {type:'button', onclick:closeDlg}, 'Abbrechen')));
   }
 
   /* --- Vorschau mit Simulation: bildet den Player nach (Layout, Farben, Anbieter-Look, Installationsablauf) --- */
@@ -659,7 +688,6 @@
     fit(); say('Vorschau gestartet. Tipp: Oben das Ergebnis wählen, dann im Menü auf "Installieren" klicken.'); draw();
   }
   $('#bPrev').addEventListener('click', openPreview);
-  $('#bJson').addEventListener('click', openJsonEditor);
 
   /* --- Schnittstelle zur gemeinsamen Seite ---
      Speichern, Öffnen und die Projektdatei übernimmt extras.js für Menü und Hülle zusammen. Das Menü meldet Änderungen (onChange)
@@ -690,7 +718,7 @@
     /* nur die Dateien, die das Menü benutzt (für die Projektdatei) */
     usedAssets(){ const ids = CORE.usedIds(state); return new Map([...assets].filter(([k]) => ids.has(k)).map(([k,a]) => [k, {data: a.data, ext: a.ext}])); },
     validate(){ return validate(state); },
-    render: renderAll, openJson: openJsonEditor, addGameViaSgdb, runDiscCheck,
+    render: renderAll, addGameViaSgdb, runDiscCheck, importFolder, showFolderPlan,
   };
   $('#mDlgX').addEventListener('click', closeDlg);
   renderAll();

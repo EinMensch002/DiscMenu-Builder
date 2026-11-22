@@ -275,7 +275,7 @@
       link = P.normLink(r.link);
       await App.restore(r.cover ? r.cover.state : C.defaultState(), r.cover ? r.cover.images : {});
     } finally { syncing = false; }
-    if (r.kind === 'project') { const g = game(); lastMenuCover = g ? g.cover || null : null; lastFront = App.images.front; }
+    if (r.kind === 'project' || r.kind === 'combined') { const g = game(); lastMenuCover = g ? g.cover || null : null; lastFront = App.images.front; }
     else { lastMenuCover = NONE; lastFront = NONE; if (r.kind === 'cover') await fromCover(); else await fromMenu(); }
   }
 
@@ -347,7 +347,7 @@
   App.onReset(() => {
     Menu.reset(); link = P.defaultLink(); lastFront = App.images.front; lastMenuCover = null;
     clearTimeout(autoTimer); idbRun('readwrite', (st) => st.delete('current')).catch(() => {}); auto.textContent = '';
-    projHandle = null; projName = ''; menuChanges = 0; markSaved(); showInfo();
+    projHandle = null; projName = ''; legacyKind = null; menuChanges = 0; markSaved(); showInfo();
   });
   window.addEventListener('beforeunload', (e) => { if (dirtyNow() && (App.hasImages || Menu.assets.size)) { e.preventDefault(); e.returnValue = ''; } });
 
@@ -359,7 +359,23 @@
     const g = game();
     return { blob: new Blob([zip], { type: 'application/zip' }), name: (slug(Menu.state.title || (g && g.name) || snap.state.title) || 'projekt') + '.zip', count: Object.keys(images).length };
   }
-  async function saveProject(asNew) {
+  /* Stammt das Projekt aus einer Datei im älteren Format, wird vor dem Speichern gefragt (bei Strg+S und bei "Speichern unter"). */
+  let legacyKind = null;
+  const OLD_FORMAT = {
+    combined: 'Menü und Hülle in zwei Beschreibungen (menu.json und cover.json)',
+    menu: 'Rezept nur mit dem Menü (menu.json)',
+    cover: 'Hüllen-Datei der früheren DiscSleeve-Version (cover.json)',
+  };
+  function saveProject(asNew) {
+    if (!legacyKind) return writeProject(asNew);
+    openDlg('Neues Dateiformat',
+      h('p', { class: 'dmsg' }, 'Dieses Projekt stammt aus einer Datei im älteren Format: ' + OLD_FORMAT[legacyKind] + '.'),
+      h('p', { class: 'dmsg' }, 'Gespeichert wird im neuen Format: eine recipe.json mit den gemeinsamen Angaben (Titel, Anbieter, Publisher, Beschreibung, Größe, Cover) und je einem Bereich für Menü und Hülle, dazu die Ordner assets/ und fonts/. Der Builder liest die neue Datei, ältere Versionen dieser Seite können sie nicht mehr öffnen.'),
+      h('div', { class: 'drow' },
+        h('button', { type: 'button', class: 'pri', onclick: () => { closeDlg(); legacyKind = null; writeProject(asNew); } }, 'Im neuen Format speichern'),
+        h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
+  }
+  async function writeProject(asNew) {
     const { blob, name } = await packProject();
     let hd = (!asNew && projHandle) || null, where = null;
     if (typeof window.showSaveFilePicker === 'function') {
@@ -384,13 +400,14 @@
   }
   const KIND_TEXT = {
     project: 'Menü, Hülle und alle Bilder wurden geladen.',
-    recipe: 'Das Menü wurde geladen. Die Hülle wurde aus dem Spiel vorbereitet (Titel, Anbieter, Beschreibung, Größe, Cover).',
+    combined: 'Menü, Hülle und alle Bilder wurden geladen. Die Datei hat noch das ältere Format (menu.json und cover.json) und wird beim Speichern umgestellt.',
+    menu: 'Das Menü wurde geladen. Die Hülle wurde aus dem Spiel vorbereitet (Titel, Anbieter, Beschreibung, Größe, Cover).',
     cover: 'Die Hülle wurde geladen. Das Menü wurde aus der Hülle vorbereitet (ein Spiel mit Titel, Anbieter und Cover). Installer-Pfad und Weiteres im Bereich "Menü" ergänzen.',
   };
   async function importProject(file, hd) {
     try {
       const json = /\.json$/i.test(file.name);
-      const r = json ? P.readMenuJson(await file.text()) : P.read(await Z.read(new Uint8Array(await file.arrayBuffer())));
+      const r = json ? P.readJson(await file.text()) : P.read(await Z.read(new Uint8Array(await file.arrayBuffer())));
       if (dirtyNow() && !confirm('Das aktuelle Projekt hat ungespeicherte Änderungen und wird durch "' + file.name + '" ersetzt. Weiter?')) return;
       if (!dirtyNow() && !confirm('Das aktuelle Projekt wird durch "' + file.name + '" ersetzt. Weiter?')) return;
       const added = [], failed = [], map = {};
@@ -401,9 +418,10 @@
       }
       if (r.cover) F.remapFonts(r.cover.state, map);
       await applyProject(r);
-      projHandle = (r.kind === 'project' && hd) || null; projName = r.kind === 'project' ? file.name : ''; menuChanges++; markSaved(); savedMsg = 'geöffnet: '; showInfo();
+      projHandle = (!json && hd) || null; projName = json ? '' : file.name; legacyKind = OLD_FORMAT[r.kind] ? r.kind : null;      // eine einzelne JSON-Datei wird nie mit einer ZIP überschrieben
+      menuChanges++; markSaved(); savedMsg = 'geöffnet: '; showInfo();
       const missing = (r.cover && r.cover.missing) || [], notes = r.menu.notes || [];
-      openDlg('Projekt geöffnet', h('p', { class: 'dmsg' }, KIND_TEXT[r.kind] + (missing.length ? ' Nicht gefunden: ' + missing.join(', ') + '.' : '') + (projHandle ? ' "Speichern" überschreibt diese Datei.' : r.kind !== 'project' ? ' "Speichern" legt eine neue Projektdatei an.' : '')),
+      openDlg('Projekt geöffnet', h('p', { class: 'dmsg' }, KIND_TEXT[r.kind] + (missing.length ? ' Nicht gefunden: ' + missing.join(', ') + '.' : '') + (projHandle ? (legacyKind ? ' "Speichern" überschreibt diese Datei im neuen Format (vorher wird gefragt).' : ' "Speichern" überschreibt diese Datei.') : ' "Speichern" legt eine neue Projektdatei an.')),
         notes.length ? h('p', { class: 'dmsg' }, 'Hinweise: ' + notes.slice(0, 6).join(' · ')) : '',
         added.length ? h('p', { class: 'dmsg' }, added.length + ' eigene Schrift(en) wurden hinzugefügt: ' + added.join(', ')) : '',
         failed.length ? h('p', { class: 'dmsg err' }, failed.length + ' Schrift(en) konnten nicht hinzugefügt werden (zu viele eigene Schriften?): ' + failed.join(', ') + '. Texte damit erscheinen in "Normal".') : '',
@@ -413,6 +431,43 @@
     }
   }
   document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveProject(false); } });
+
+  /* --- recipe.json bearbeiten ---
+     Zeigt die Beschreibung des Projekts, wie sie gespeichert würde, ganz oder nur einen Bereich: Gemeinsam (game), Menü (menu), Hülle (cover).
+     "Änderungen übernehmen" liest sie wie eine geöffnete Projektdatei zurück, Bilder und Schriften bleiben über ihre Pfade verbunden. */
+  async function currentBuild() {
+    const snap = App.snapshot(), images = {};
+    for (const [k, v] of Object.entries(snap.images)) images[k] = { data: new Uint8Array(await v.blob.arrayBuffer()), type: v.type, name: v.name };
+    const used = F.usedFontIds(snap.state), fonts = App.fonts.list().filter((f) => used.includes(f.id));
+    return P.build({ menuState: Menu.state, menuAssets: Menu.usedAssets(), coverState: snap.state, coverImages: images, fonts, link });
+  }
+  const SECTIONS = [['all', 'Alles'], ['game', 'Gemeinsam'], ['menu', 'Menü'], ['cover', 'Hülle']];
+  async function openRecipeEditor(start) {
+    const b = await currentBuild(), recipe = b.recipe;
+    let part = start || 'all';
+    const ta = h('textarea', { class: 'code', spellcheck: 'false', rows: '22' });
+    const msg = h('p', { class: 'dmsg' });
+    const tabs = h('div', { class: 'drow seg' });
+    const pick = (k) => {
+      part = k; ta.value = JSON.stringify(k === 'all' ? recipe : recipe[k], null, 2) + '\n'; say(msg, '');
+      tabs.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.part === k));
+    };
+    tabs.append(...SECTIONS.map(([k, l]) => h('button', { type: 'button', 'data-part': k, onclick: () => pick(k) }, l)));
+    const apply = async () => {
+      let v; try { v = JSON.parse(ta.value); } catch (err) { say(msg, 'Kein gültiges JSON: ' + err.message, true); return; }
+      const next = part === 'all' ? v : { ...recipe, [part]: v };
+      try {
+        const r = P.readRecipe(next, b.files);
+        await applyProject(r); menuChanges++; showInfo(); scheduleAuto();
+        closeDlg();
+      } catch (err) { say(msg, err.message || String(err), true); }
+    };
+    openDlg('recipe.json bearbeiten',
+      h('p', { class: 'dmsg' }, 'So wird das Projekt gespeichert. "Gemeinsam" gilt für Menü und Hülle (Titel, Anbieter, Publisher, Beschreibung, Größe, Cover), "Menü" und "Hülle" enthalten den Rest. Bilder bleiben über ihre Pfade (assets/…) verbunden, neue Dateien lassen sich nur in der Maske hinzufügen.'),
+      tabs, ta, msg,
+      h('div', { class: 'drow' }, h('button', { type: 'button', class: 'pri', onclick: apply }, 'Änderungen übernehmen'), h('button', { type: 'button', onclick: closeDlg }, 'Abbrechen')));
+    pick(part);
+  }
   (async () => {
     try { await loadFromBrowser(); } catch (e) { /* kein Speicher vorhanden oder gesperrt: dann eben ohne */ }
     menuChanges = 0; markSaved(); showInfo();                        // das Laden aus dem Browser zählt nicht als ungespeicherte Änderung der Datei
@@ -672,7 +727,9 @@
   $('#bSettings').addEventListener('click', openSettings);
   /* Funktionen des Menüs (Dialoge liegen im Bereich "Menü", shell.js schaltet dorthin) */
   $('#bSgAdd').addEventListener('click', () => Menu.addGameViaSgdb());
-  $('#bJson').addEventListener('click', () => Menu.openJson());
+  $('#bJson').addEventListener('click', () => openRecipeEditor(document.body.dataset.view === 'cover' ? 'cover' : 'menu'));
+  $('#bFolder').hidden = typeof window.showDirectoryPicker !== 'function';
+  $('#bFolder').addEventListener('click', () => Menu.importFolder());
   $('#bDisc').hidden = typeof window.showDirectoryPicker !== 'function';
   $('#bDisc').addEventListener('click', () => Menu.runDiscCheck());
   [...document.querySelectorAll('.drop .sg')].filter(ours).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const key = b.closest('.drop').dataset.img; key === 'publisher' ? openPublisherLogo() : openSteamGridDB(key); }));

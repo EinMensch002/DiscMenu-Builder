@@ -180,4 +180,11 @@
 #viewMenu .tline.warn, #viewMenu .tline.warn .tmark { color: #b54708; }
 #viewMenu .tline.bad, #viewMenu .tline.bad .tmark { color: #b42318; }
 #viewMenu { min-height: calc(100vh - 60px); }
+/* Spielordner einlesen: Vorschlag als Tabelle */
+#viewMenu .fplan {max-height:60vh;overflow:auto;border:1px solid var(--line);border-radius:10px}
+#viewMenu .fplan table {width:100%;border-collapse:collapse;font-size:13px}
+#viewMenu .fplan th, #viewMenu .fplan td {padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+#viewMenu .fplan th {position:sticky;top:0;background:var(--panel2);font-weight:600}
+#viewMenu .fplan td.path {font:12px ui-monospace,Consolas,monospace;word-break:break-all;color:var(--mut)}
+#viewMenu .fplan input, #viewMenu .fplan select {padding:5px 8px;font-size:13px}
 @media print { #viewMenu { display: none !important; } }

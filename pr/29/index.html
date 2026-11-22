@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DiscMenu-Builder – Menü und Hülle für Spiele-Discs</title>
-<link rel="stylesheet" href="style.css?v=pr29-433fe3f">
-<link rel="stylesheet" href="menu.css?v=pr29-433fe3f">
+<link rel="stylesheet" href="style.css?v=pr29-5f37a35">
+<link rel="stylesheet" href="menu.css?v=pr29-5f37a35">
 </head>
 <body data-view="menu">
 <script>/* Ansicht sofort setzen (kein Aufblitzen der falschen Seite), Einzelheiten in shell.js */ if (/^#(huelle|cover)$/i.test(location.hash)) document.body.dataset.view = 'cover';</script>
@@ -17,7 +17,7 @@
   <!-- Knöpfe, die nur zu einem Bereich gehören, stehen links neben dem Umschalter -->
   <button type="button" id="bPrev" class="pri" data-view="menu" title="Zeigt das Menü, wie es auf der Disc aussieht, mit simulierter Installation">Vorschau</button>
   <button type="button" id="bPrint" class="pri" data-view="cover">Drucken</button>
-  <span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version pr29-433fe3f</span>
+  <span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version pr29-5f37a35</span>
   <!-- Rechts: gleich in beiden Bereichen, alles gilt für das ganze Projekt (Menü und Hülle) -->
   <nav>
     <span class="saveinfo" id="autoInfo" aria-live="polite"></span>
@@ -34,13 +34,14 @@
     <details class="menu"><summary>Daten übernehmen</summary>
       <div class="pop">
         <button type="button" id="bSgAdd" data-switch="menu">Spiel über SteamGridDB hinzufügen …</button>
+        <button type="button" id="bFolder" data-switch="menu" title="Ordner wählen, der wie die Disc aufgebaut ist: Installer, DLCs, Patches und Extras werden vorgeschlagen">Spielordner einlesen …</button>
         <button type="button" id="bSteam">Anforderungen von Steam …</button>
         <button type="button" id="bGog">Daten von GOG …</button>
       </div>
     </details>
     <details class="menu"><summary>Sonstiges</summary>
       <div class="pop">
-        <button type="button" id="bJson" data-switch="menu" title="menu.json ansehen und direkt bearbeiten">menu.json bearbeiten …</button>
+        <button type="button" id="bJson" title="Die Beschreibung des Projekts ansehen und direkt bearbeiten (Gemeinsam, Menü, Hülle)">recipe.json bearbeiten …</button>
         <button type="button" id="bDisc" data-switch="menu" title="Prüft, ob alle Installer und Extras im Ordner der Disc liegen (Chrome, Edge)">Disc-Ordner prüfen …</button>
       </div>
     </details>
@@ -333,19 +334,19 @@
 
 <dialog id="dlg"><div class="dh"><h2 id="dlgTitle"></h2><button type="button" id="dlgX">Schließen</button></div><div id="dlgBody"></div></dialog>
 
-<script src="i18n.js?v=pr29-433fe3f"></script>
-<script src="lang-en.js?v=pr29-433fe3f"></script>
-<script src="core.js?v=pr29-433fe3f"></script>
-<script src="zip.js?v=pr29-433fe3f"></script>
-<script src="online.js?v=pr29-433fe3f"></script>
-<script src="files.js?v=pr29-433fe3f"></script>
-<script src="back-design.js?v=pr29-433fe3f"></script>
-<script src="app.js?v=pr29-433fe3f"></script>
-<script src="back-editor.js?v=pr29-433fe3f"></script>
-<script src="menu-core.js?v=pr29-433fe3f"></script>
-<script src="menu.js?v=pr29-433fe3f"></script>
-<script src="project.js?v=pr29-433fe3f"></script>
-<script src="extras.js?v=pr29-433fe3f"></script>
-<script src="shell.js?v=pr29-433fe3f"></script>
+<script src="i18n.js?v=pr29-5f37a35"></script>
+<script src="lang-en.js?v=pr29-5f37a35"></script>
+<script src="core.js?v=pr29-5f37a35"></script>
+<script src="zip.js?v=pr29-5f37a35"></script>
+<script src="online.js?v=pr29-5f37a35"></script>
+<script src="files.js?v=pr29-5f37a35"></script>
+<script src="back-design.js?v=pr29-5f37a35"></script>
+<script src="app.js?v=pr29-5f37a35"></script>
+<script src="back-editor.js?v=pr29-5f37a35"></script>
+<script src="menu-core.js?v=pr29-5f37a35"></script>
+<script src="menu.js?v=pr29-5f37a35"></script>
+<script src="project.js?v=pr29-5f37a35"></script>
+<script src="extras.js?v=pr29-5f37a35"></script>
+<script src="shell.js?v=pr29-5f37a35"></script>
 </body>
 </html>
