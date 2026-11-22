@@ -2,15 +2,15 @@
 
 Eine Web-App, in der man das Menü per Maske zusammenstellt, statt die `menu.json` von Hand zu schreiben. Das Ergebnis ist eine ZIP-Datei im Format "Rezept-Paket" (siehe [menu-json-spec.md](menu-json-spec.md)), die der Builder direkt verarbeiten kann.
 
-**Online:** https://einmensch002.github.io/DiscMenu-Builder/
-**Datei:** [configurator/index.html](../configurator/index.html). Es ist eine einzelne, eigenständige Datei. Herunterladen, als `.html` speichern und lokal im Browser öffnen, dann geht es auch ohne Internet.
+**Online:** https://einmensch002.github.io/DiscMenu-Builder/ (Bereich **Menü** der gemeinsamen Seite, oben links umschalten)
+**Dateien:** [app/](../app/): `menu.js` (Oberfläche), `menu-core.js` (Kern ohne Oberfläche, auch in den Tests), `menu.css` (Stile, gelten nur im Bereich Menü). Zum lokalen Benutzen den Ordner `app/` herunterladen und `index.html` im Browser öffnen, dann geht es auch ohne Internet.
 
 ## Prinzip
 
 - **Läuft komplett im Browser.** Kein Backend, nichts wird hochgeladen. Bilder, Sounds und die ZIP werden lokal verarbeitet.
-- **Keine Abhängigkeiten.** Eine HTML-Datei ohne externe Bibliotheken. ZIP schreiben und lesen sind selbst eingebaut.
+- **Keine Abhängigkeiten.** Keine externen Bibliotheken. ZIP schreiben und lesen sind selbst eingebaut.
 - Der Konfigurator erzeugt nur das Rezept. Die Menü-EXE macht der Builder.
-- Die Veröffentlichung auf GitHub Pages läuft automatisch über `.github/workflows/pages.yml`, sobald sich etwas im Ordner `configurator/` oder `disc-sleeve/` ändert. Der Konfigurator liegt in der Wurzel der Seite, das [Cover-Tool](disc-sleeve.md) unter `/disc-sleeve/`. Beide verlinken sich gegenseitig.
+- Die Veröffentlichung auf GitHub Pages läuft automatisch über `.github/workflows/pages.yml`, sobald sich etwas im Ordner `app/` ändert. Menü und [Hülle](disc-sleeve.md) sind eine gemeinsame Seite in der Wurzel. Oben in der Leiste wechselt man zwischen beiden, ohne dass die Seite neu lädt (`shell.js`). Die Adresse merkt sich den Bereich (`#menue`, `#huelle`). Knöpfe, die nur einen Bereich betreffen (Projekte, Vorschau, JSON, Export bzw. Drucken, Zurücksetzen), erscheinen nur dort. **Einstellungen** und die Sprache sind gemeinsam. Noch hat jeder Bereich seinen eigenen Speicher und seine eigene Datei, ein gemeinsames Projekt folgt im nächsten Schritt.
 
 ## Bedienung
 

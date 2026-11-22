@@ -4,7 +4,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html') + '#huelle';
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
 
@@ -70,7 +70,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.match(await page.evaluate(() => getComputedStyle(document.querySelector('#backItems .bi-p')).fontFamily), /Press Start 2P/);
   await sel('Schrift').selectOption('serif');
   // Eigene Schrift: Datei hinzufügen, benutzen, speichern, ungültige Datei ablehnen, löschen (Rückfall auf Normal)
-  const latoPath = path.resolve(__dirname, '..', '..', 'disc-sleeve', 'assets', 'fonts', 'Lato-Bold.ttf');
+  const latoPath = path.resolve(__dirname, '..', '..', 'app', 'assets', 'fonts', 'Lato-Bold.ttf');
   const fch = page.waitForEvent('filechooser'); await page.click('#bdlg .bed-panel button:has-text("Eigene Schrift hinzufügen")');
   await (await fch).setFiles(latoPath);
   await page.waitForFunction(() => /^uf-/.test(CoverApp.state.back.items[0].font));

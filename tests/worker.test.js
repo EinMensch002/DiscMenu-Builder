@@ -52,9 +52,9 @@ test('Info-Abfrage: Version und erlaubte Hosts, abgestimmt mit den Tools', async
   assert.equal(r.headers.get('access-control-allow-origin'), '*');
   const info = await r.json();
   assert.equal(info.name, 'discmenu-proxy');
-  const O = require('../disc-sleeve/online.js');
+  const O = require('../app/online.js');
   assert.equal(info.version, O.WORKER_VERSION, 'VERSION im Worker und WORKER_VERSION im DiscSleeve sind gleich');
-  const conf = fs.readFileSync(path.join(__dirname, '..', 'configurator', 'index.html'), 'utf8');
+  const conf = fs.readFileSync(path.join(__dirname, '..', 'app', 'menu.js'), 'utf8');
   assert.equal(Number(conf.match(/const WORKER_VERSION = (\d+);/)[1]), info.version, 'WORKER_VERSION im Konfigurator ist gleich');
   assert.deepEqual(JSON.parse(conf.match(/const REQUIRED_HOSTS = (\[.*?\]);/)[1].replace(/'/g, '"')), O.REQUIRED_HOSTS, 'beide Tools brauchen dieselben Hosts');
   for (const h of O.REQUIRED_HOSTS) assert.ok(info.hosts.some((src) => new RegExp(src).test(h)), 'Der Worker erlaubt ' + h);

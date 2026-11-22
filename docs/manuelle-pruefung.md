@@ -1,3 +1,10 @@
+# Gemeinsame Seite (Menü und Hülle)
+
+- [ ] **Umschalten:** Oben zwischen "Menü" und "Hülle" wechseln (PC und Tab S10): Die Seite lädt nicht neu, Eingaben im jeweils anderen Bereich bleiben erhalten, die Knöpfe der Leiste passen sich an.
+- [ ] **Alte Adressen:** `/disc-sleeve/` und `/cover/` öffnen direkt die Hülle, Neuladen bleibt im gewählten Bereich.
+- [ ] **Einstellungen und Sprache:** "Einstellungen" öffnet in beiden Bereichen den passenden Dialog, die Sprache wechselt die Leiste und die Hülle (das Menü bleibt vorerst deutsch).
+- [ ] **Drucken:** Aus dem Bereich "Hülle" erscheint nur das Blatt, nichts vom Menü.
+
 # Manuelle Prüfung des Konfigurators
 
 Diese Punkte lassen sich nicht automatisch testen, weil sie echte Dienste oder echte Browser brauchen. Abhaken, sobald geprüft, und Auffälligkeiten als Issue anlegen. Voraussetzung für die Dienste: ein eigener Proxy (siehe [steamgriddb.md](steamgriddb.md)) und ein SteamGridDB-Schlüssel.

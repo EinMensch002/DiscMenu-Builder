@@ -4,10 +4,10 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const I = require('../disc-sleeve/i18n.js');
-const en = require('../disc-sleeve/lang-en.js');
+const I = require('../app/i18n.js');
+const en = require('../app/lang-en.js');
 
-const dir = path.join(__dirname, '..', 'disc-sleeve');
+const dir = path.join(__dirname, '..', 'app');
 const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
 const unesc = (s) => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&nbsp;/g, ' ');
 const sources = ['index.html', 'app.js', 'extras.js', 'online.js', 'files.js', 'core.js', 'back-editor.js', 'back-design.js'].map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
@@ -17,7 +17,8 @@ const norm = (s) => s.replace(/\s+/g, ' ').trim();
 /* sichtbare Texte der Oberfläche (außerhalb des Covers) aus dem HTML */
 function uiTexts() {
   const i = html.indexOf('id="sheet"'), j = html.indexOf('<script', i);
-  const ui = html.slice(0, i) + html.slice(j);
+  // ohne Skripte und ohne den Menü-Teil (#viewMenu, data-notr: wird noch nicht übersetzt)
+  const ui = (html.slice(0, i) + html.slice(j)).replace(/<script>[\s\S]*?<\/script>/g, '').replace(/<section id="viewMenu"[\s\S]*?(?=<section id="viewCover")/, '');
   const out = new Set();
   for (const m of ui.matchAll(/>([^<>]+)</g)) { const t = norm(unesc(m[1])); if (/[A-Za-zÄÖÜäöüß]{2}/.test(t)) out.add(t); }
   for (const m of ui.matchAll(/\b(?:placeholder|title|aria-label)="([^"]+)"/g)) out.add(norm(unesc(m[1])));
@@ -25,7 +26,7 @@ function uiTexts() {
 }
 
 /* Texte, die in beiden Sprachen gleich lauten (Namen, Einheiten, Kürzel) */
-const SAME = /^(💿 DiscSleeve|Version .*|GOG|Epic Games|Steam|Normal \(14 mm\)|Slim \(7 mm\)|Blu-ray|Blu-ray Slim|CD|DVD|Deutsch|English|Zoom \(%\)|\(optional\)|Single-Player|Co-op|Multi-Player|Online|LAN|Controller|Cloud Saves|Mods|VR|Win .*|macOS|Linux|\+ Intel|\+ AMD|\+ GeForce|\+ Radeon|Version 11)$/;
+const SAME = /^(💿 DiscSleeve|💿 DiscMenu-Builder|JSON|SteamGridDB|Version .*|GOG|Epic Games|Steam|Normal \(14 mm\)|Slim \(7 mm\)|Blu-ray|Blu-ray Slim|CD|DVD|Deutsch|English|Zoom \(%\)|\(optional\)|Single-Player|Co-op|Multi-Player|Online|LAN|Controller|Cloud Saves|Mods|VR|Win .*|macOS|Linux|\+ Intel|\+ AMD|\+ GeForce|\+ Radeon|Version 11)$/;
 
 test('Englisch: jeder deutsche Text der Oberfläche im HTML ist übersetzt', () => {
   const missing = uiTexts().filter((t) => !SAME.test(t) && en.dict[t] === undefined);

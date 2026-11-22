@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const C = require('../disc-sleeve/core.js');
+const C = require('../app/core.js');
 
 test('Maße: Rücken und Seiten ergeben die Gesamtbreite', () => {
   for (const [name, c] of Object.entries(C.CASES)) {
@@ -178,7 +178,7 @@ test('Anbieter: Farben, Schriftzüge und Hinweise sind vollständig', () => {
 
 test('Alle Grafiken des Tools sind SVG, vorhanden und nicht übergroß', () => {
   const fs = require('node:fs'), path = require('node:path');
-  const root = path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images');
+  const root = path.join(__dirname, '..', 'app', 'assets', 'images');
   const need = [
     'gog_logo.svg',
     ...C.USK_VALUES.flatMap((v) => [`usk/usk_${v}.svg`, `usk/usk_${v}_bg.svg`]),          // Raute und Hintergrund (Kachel mit Rand) getrennt
@@ -228,7 +228,7 @@ test('Stil-Auswahl: GOG hat sechs Varianten (von hell nach dunkel), die anderen 
 });
 
 test('Projektdatei: Rückenlogo wird mitgespeichert', async () => {
-  const F = require('../disc-sleeve/files.js'), Z = require('../disc-sleeve/zip.js');
+  const F = require('../app/files.js'), Z = require('../app/zip.js');
   assert.ok(F.IMAGE_KEYS.includes('spineLogo'));
   const png = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3]);
   const out = F.unpackProject(await Z.read(F.packProject(C.defaultState(), { spineLogo: { data: png, type: 'image/png', name: 'logo.png' } })));
@@ -259,7 +259,7 @@ test('Logo-Anpassung: Zu breite Logos werden gedreht, das Ergebnis passt immer i
 
 test('Aufgeräumt: keine GOG-Original-Symbole und kein Galaxy-Feld mehr, Unterlagen für Publisher-Logos', () => {
   const fs = require('node:fs'), path = require('node:path');
-  const dir = path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images', 'features');
+  const dir = path.join(__dirname, '..', 'app', 'assets', 'images', 'features');
   assert.deepEqual(fs.readdirSync(dir), ['line']);                                   // nur noch die SVG-Symbole
   const s = C.defaultState();
   assert.equal('galaxy' in s, false); assert.equal('iconStyle' in s, false);
@@ -272,7 +272,7 @@ test('Aufgeräumt: keine GOG-Original-Symbole und kein Galaxy-Feld mehr, Unterla
 test('Im Bilderordner liegen keine Rastergrafiken', () => {
   const fs = require('node:fs'), path = require('node:path');
   const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]);
-  const bad = walk(path.join(__dirname, '..', 'disc-sleeve', 'assets', 'images')).filter((f) => /\.(png|jpe?g|gif|webp|bmp)$/i.test(f));
+  const bad = walk(path.join(__dirname, '..', 'app', 'assets', 'images')).filter((f) => /\.(png|jpe?g|gif|webp|bmp)$/i.test(f));
   assert.deepEqual(bad, []);
 });
 
@@ -339,7 +339,7 @@ test('Formen: Prüfung, Standardpunkte, Bild in der Form, Vorlage "Zersplittert"
   assert.equal(al.filter((i) => i.type === 'shape' && i.useImg).length, 4);
   for (const f of al.filter((i) => i.type === 'shape' && i.useImg)) { assert.ok(f.pts.length >= 4); assert.ok(f.pts.every((q) => q[0] >= 0 && q[0] <= 100 && q[1] >= 0 && q[1] <= 100)); }
   assert.equal(C.backTemplate('among', 130, 122)[0].type, 'shape', 'Dunkler Grund ist jetzt eine Form');
-  const BD = require('../disc-sleeve/back-design.js');
+  const BD = require('../app/back-design.js');
   assert.equal(BD.shapePoints({ shape: 'star', sides: 5, inner: 40 }).length, 10);
   assert.equal(BD.shapePoints({ shape: 'ellipse' }), null);
   assert.match(BD.clipOf({ shape: 'triangle', pts: C.defaultPts('triangle') }), /^polygon\(50% 0%,100% 100%,0% 100%\)$/);
@@ -347,7 +347,7 @@ test('Formen: Prüfung, Standardpunkte, Bild in der Form, Vorlage "Zersplittert"
 
 test('Spiele-Schriften: Schlüssel, Dateien, @font-face und Lizenzliste passen zusammen', () => {
   const fs = require('node:fs'), path = require('node:path');
-  const BD = require('../disc-sleeve/back-design.js'), dir = path.join(__dirname, '..', 'disc-sleeve');
+  const BD = require('../app/back-design.js'), dir = path.join(__dirname, '..', 'app');
   const css = fs.readFileSync(path.join(dir, 'style.css'), 'utf8'), lic = fs.readFileSync(path.join(dir, 'assets', 'fonts', 'games', 'LIZENZEN.txt'), 'utf8').split(String.fromCharCode(13,10)).join(String.fromCharCode(10));
   const game = Object.entries(BD.FONTS).filter(([, f]) => f.group === 'game');
   assert.ok(game.length >= 10 && game.length <= 20, 'etwa 10 bis 20 Spiele-Schriften');

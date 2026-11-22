@@ -13,14 +13,16 @@ Kurzer Überblick, damit eine neue Sitzung ohne den ganzen Verlauf weiterarbeite
 ## Aufbau
 | Ordner | Inhalt |
 |---|---|
-| `configurator/` | Web-Konfigurator für das Disc-Menü (`menu.json`) |
-| `disc-sleeve/` | **DiscSleeve** (früher Cover-Tool): Web-App für druckfertige Disc-Hüllen, reines HTML/CSS/JS ohne Build |
+| `app/` | **Gemeinsame Web-App** (eine `index.html`, reines HTML/CSS/JS ohne Build): Bereich **Menü** (früher Konfigurator: `menu.js`, `menu-core.js`, `menu.css`) und Bereich **Hülle** (DiscSleeve, früher Cover-Tool). `shell.js` schaltet ohne Neuladen um (`body[data-view]`, Adresse `#menue`/`#huelle`) |
 | `src/`, `schema/`, `examples/` | Go-Builder und -Player, JSON-Schema des Menüs |
 | `tools/cors-proxy/` | Cloudflare-Worker (Proxy für SteamGridDB, Steam, GOG, Epic), `VERSION` im Worker und `WORKER_VERSION` in `online.js` müssen übereinstimmen |
 | `tests/` | `*.test.js` (Node), `tests/ui/*.check.js` (Playwright) |
 | `docs/` | Doku, u. a. `disc-sleeve.md` und `manuelle-pruefung.md` |
 
-### DiscSleeve (`disc-sleeve/`)
+### Gemeinsame Seite und Hülle (`app/`)
+- `index.html`: Leiste (`header.top`, Teile mit `data-view="menu"`/`"cover"` erscheinen nur im jeweiligen Bereich), `<section id="viewMenu" data-notr>` (noch nicht übersetzt), `<section id="viewCover">`.
+- CSS: `menu.css` nur unter `#viewMenu`, `style.css` nie dort (`:where(:not(#viewMenu, #viewMenu *))` an jeder Regel, neue Regeln genauso schreiben). Doppelte IDs vermeiden: der Menü-Teil nutzt `mDlg`, `mSave`, `mToast`.
+- Noch getrennte Speicher (Menü: IndexedDB `discmenu-konfigurator`, Hülle: localStorage `discmenu-cover:v1` + IndexedDB `discmenu-cover`); nächster Schritt: ein gemeinsames Projekt (Plan in `README.md`).
 - `core.js`: Zustand und Regeln ohne Oberfläche (Hüllenmaße in **mm**, Anbieter, Vorlagen, `normalizeItem`/`normalizeBack`, `imageSpecs`). Hier liegt die Prüfung aller gespeicherten Werte.
 - `app.js`: Formular, Vorschau (`transform: scale(var(--k))`), Bilder (IndexedDB, Datei-URLs), `CoverApp`-Schnittstelle.
 - `back-design.js`: zeichnet Elemente der Rückseite (Text, Bild, Form) für Cover und Editor.
@@ -28,7 +30,7 @@ Kurzer Überblick, damit eine neue Sitzung ohne den ganzen Verlauf weiterarbeite
 - `extras.js`: Menüs und Dialoge (Daten von Steam/GOG, Projekt als ZIP, Einstellungen, SteamGridDB).
 - `online.js`: Zugriffe auf Steam, GOG, SteamGridDB, Wikidata, Proxy. `files.js`/`zip.js`: Projektdatei (`cover.json` plus `images/`).
 - `i18n.js` + `lang-en.js`: Oberfläche Deutsch/Englisch. **Jeder neue deutsche Text braucht einen englischen Eintrag** (`dict` für ganze Texte, `parts`/`rules` für zusammengesetzte). Der Test prüft das und dass jeder Schlüssel wirklich im Code vorkommt.
-- Reihenfolge der Skripte in `index.html`: `i18n`, `lang-en`, `core`, `zip`, `online`, `files`, `back-design`, `app`, `back-editor`, `extras`.
+- Reihenfolge der Skripte in `index.html`: `i18n`, `lang-en`, `core`, `zip`, `online`, `files`, `back-design`, `app`, `back-editor`, `extras`, `menu-core`, `menu`, `shell`.
 - Gedruckt wird A4 quer, Druckregeln in `style.css` (`@media print`).
 
 ## Tests (vor jedem Push ausführen)
@@ -42,5 +44,5 @@ npm run test:ui   # Browser-Tests mit Playwright (Chromium ist vorinstalliert), 
 
 ## Roadmap (kurz, Details in `README.md`)
 - Beide Web-Tools zusammenführen mit gemeinsamer Projektdatei (`assets/`, `cover.json`, `recipe.json`), eine einzige HTML-Datei als Ausgabe (Code bleibt getrennt, ein Build fügt zusammen), ein Repository bleibt.
-- Rückseite: Umriss, eigene Vorlagen, eigene Schriften, Sichern/Einlesen mit Auswahl und 18 mitgelieferte Spiele-Schriften sind fertig (Format und Regeln: `files.js` `packBundle`/`planImport`/`applyImport`, Schriftliste in `back-design.js` `FONTS`, Dateien und Lizenzen in `disc-sleeve/assets/fonts/games/`). Eigene Schriften reisen in der Projektdatei (ZIP, Ordner `fonts/`, `files.js` `packProject`/`unpackProject`) mit. Offen: Raster im Editor. Den Ein-Datei-Build gibt es noch nicht; dort sollen die Schriftdateien später als Base64 eingebettet werden.
+- Rückseite: Umriss, eigene Vorlagen, eigene Schriften, Sichern/Einlesen mit Auswahl und 18 mitgelieferte Spiele-Schriften sind fertig (Format und Regeln: `files.js` `packBundle`/`planImport`/`applyImport`, Schriftliste in `back-design.js` `FONTS`, Dateien und Lizenzen in `app/assets/fonts/games/`). Eigene Schriften reisen in der Projektdatei (ZIP, Ordner `fonts/`, `files.js` `packProject`/`unpackProject`) mit. Offen: Raster im Editor. Den Ein-Datei-Build gibt es noch nicht; dort sollen die Schriftdateien später als Base64 eingebettet werden.
 - Offene manuelle Prüfungen (echter Druck, Firefox/Safari, echter Proxy) stehen in `docs/manuelle-pruefung.md`.

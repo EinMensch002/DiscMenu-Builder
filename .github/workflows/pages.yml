@@ -4,8 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'configurator/**'
-      - 'disc-sleeve/**'
+      - 'app/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -29,18 +28,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      # Konfigurator liegt im Wurzelverzeichnis der Seite, DiscSleeve (Hüllen) unter /disc-sleeve/, die alte Adresse /cover/ leitet dorthin weiter
+      # Die gemeinsame Seite (Menü und Hülle, Ordner app/) liegt im Wurzelverzeichnis der Seite
       - name: Seite zusammenstellen
         run: |
           mkdir site
-          cp -r configurator/. site/
-          cp -r disc-sleeve site/disc-sleeve
+          cp -r app/. site/
+          # alte Adressen /disc-sleeve/ und /cover/ führen zur Hülle auf der gemeinsamen Seite (bestehende Lesezeichen und Links)
+          for old in disc-sleeve cover; do
+            mkdir -p site/$old
+            printf '%s\n' '<!doctype html><html lang="de"><meta charset="utf-8"><title>DiscMenu-Builder</title><meta http-equiv="refresh" content="0; url=../#huelle"><link rel="canonical" href="../#huelle"><p>Die Hülle ist jetzt Teil der gemeinsamen Seite: <a href="../#huelle">weiter</a>.</p></html>' > site/$old/index.html
+          done
           # Versionsnummer in die Adressen der Dateien schreiben: Browser laden nach jeder Veröffentlichung die neuen Dateien
           # (sonst mischen sie bis zu 10 Minuten lang alte und neue Teile der Seite)
-          sed -i "s/__VERSION__/${GITHUB_SHA::7}/g" site/disc-sleeve/index.html
-          # alte Adresse /cover/ weiterleiten (bestehende Lesezeichen und Links)
-          mkdir site/cover
-          printf '%s\n' '<!doctype html><html lang="de"><meta charset="utf-8"><title>DiscSleeve</title><meta http-equiv="refresh" content="0; url=../disc-sleeve/"><link rel="canonical" href="../disc-sleeve/"><p>DiscSleeve ist umgezogen: <a href="../disc-sleeve/">zur neuen Adresse</a>.</p></html>' > site/cover/index.html
+          sed -i "s/__VERSION__/${GITHUB_SHA::7}/g" site/index.html
       # Vorschauen offener Pull Requests (liegen im Zweig gh-pages unter pr/<Nummer>/, siehe preview.yml) unter /pr/ mitveröffentlichen
       - name: Vorschauen einfügen
         run: |

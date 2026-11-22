@@ -1,10 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadCore } = require('./helpers');
-const F = require('../disc-sleeve/files.js');
-const Z = require('../disc-sleeve/zip.js');
-const C = require('../disc-sleeve/core.js');
-const O = require('../disc-sleeve/online.js');
+const F = require('../app/files.js');
+const Z = require('../app/zip.js');
+const C = require('../app/core.js');
+const O = require('../app/online.js');
 
 test('Einstellungsdatei: ohne und mit Passwort, falsches Passwort, fremde Datei', async () => {
   const vals = { key: 'abc-123', proxy: 'https://p.example/?url={url}' };

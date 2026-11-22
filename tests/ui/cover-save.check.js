@@ -3,7 +3,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html') + '#huelle';
 
 (async () => {
   const browser = await chromium.launch();
@@ -68,7 +68,7 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'inde
   const ids = await page.evaluate(() => [...document.querySelectorAll('.top nav > *')].map((e) => e.id || (e.querySelector && e.querySelector('summary') ? e.querySelector('summary').textContent.trim() : '')));
   assert.deepEqual(ids.filter(Boolean).slice(-6), ['Projekt', 'Daten übernehmen', 'bSettings', 'bReset', 'langMenu', 'bPrint']);
   assert.equal(await page.locator('.top a').count(), 0, 'Der Link zum Konfigurator ist entfernt');
-  assert.match(await page.locator('h1').textContent(), /DiscSleeve/);
+  assert.match(await page.locator('h1').textContent(), /DiscMenu-Builder/);
 
   // Warmweiß und Violett-Hauch: eigene Farben, gleiche Logik
   await page.selectOption('[data-k=theme]', 'warm'); await page.waitForTimeout(150);

@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const errors = []; page.on('pageerror', e => errors.push(e.message));
-  await page.goto('file://' + path.resolve(__dirname, '..', '..', 'configurator', 'index.html'));
+  await page.goto('file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html') + '#menue');
 
   // Disc + zwei Spiele per Maske
   await page.click('text=Disc-Einstellungen');
@@ -43,7 +43,7 @@ const { chromium } = require('playwright');
   await page.click('#bJson');
   await page.locator('textarea.code').fill('{ kaputt');
   await page.click('text=Änderungen übernehmen');
-  assert.match(await page.locator('#dlgBody .issue.error').textContent(), /Kein gültiges JSON/);
+  assert.match(await page.locator('#mDlgBody .issue.error').textContent(), /Kein gültiges JSON/);
   await page.click('text=Abbrechen');
 
   // Vorschau mit Simulation (klassisches Installer-Fenster: links Bild und Beschreibung, rechts Knöpfe)
@@ -120,7 +120,7 @@ const { chromium } = require('playwright');
   await page.evaluate(() => {});                       // Seitenleiste neu zeichnen lassen
   await page.waitForTimeout(400);
   await page.locator('#side button:has-text("Disc-Ordner prüfen")').click();
-  const res = await page.locator('#dlgBody').textContent();
+  const res = await page.locator('#mDlgBody').textContent();
   assert.match(res, /Disc-Prüfung|Problem|Pfade/);
   assert.match(res, /Spiel 1 \(Spiel Zwei\), Installer: nicht gefunden/);   // Zwei/setup.exe fehlt
   assert.ok(!/Spiel 0 \(Spiel Eins\), Installer/.test(res));                // Eins/setup.exe gefunden

@@ -2,8 +2,10 @@
 (function () {
   'use strict';
   const C = window.CoverCore;
-  const $ = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  /* Suchen nur außerhalb des Menü-Bereichs (#viewMenu): Beide Teile liegen auf einer Seite und nutzen teils gleiche Klassen (z. B. .drop). */
+  const ours = (e) => !e.closest('#viewMenu');
+  const $ = (s, r = document) => (r === document ? [...r.querySelectorAll(s)].find(ours) || null : r.querySelector(s));
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)].filter(ours);
   const STORE = 'discmenu-cover:v1';
 
   let state = load();

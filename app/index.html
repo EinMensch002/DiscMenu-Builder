@@ -3,14 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DiscSleeve – Cover-Tool für Disc-Hüllen</title>
+<title>DiscMenu-Builder – Menü und Hülle für Spiele-Discs</title>
 <link rel="stylesheet" href="style.css?v=__VERSION__">
+<link rel="stylesheet" href="menu.css?v=__VERSION__">
 </head>
-<body>
+<body data-view="menu">
+<script>/* Ansicht sofort setzen (kein Aufblitzen der falschen Seite), Einzelheiten in shell.js */ if (/^#(huelle|cover)$/i.test(location.hash)) document.body.dataset.view = 'cover';</script>
 <header class="top no-print">
-  <h1>💿 DiscSleeve</h1>
-  <span class="sub">Hüllen für selbst gebrannte GOG-Discs, zum Ausdrucken</span><span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version __VERSION__</span>
+  <h1>💿 DiscMenu-Builder</h1>
+  <span class="views" role="tablist" aria-label="Bereich">
+    <button type="button" role="tab" data-go="menu" title="Menü der Disc zusammenstellen (Spiele, Installer, Bilder)">Menü</button><button type="button" role="tab" data-go="cover" title="Hülle der Disc gestalten und drucken">Hülle</button>
+  </span><span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version __VERSION__</span>
   <nav>
+    <span class="part" data-view="menu">
+      <span class="saveinfo" id="savedAt" aria-live="polite"></span>
+      <button id="bProj" type="button">Projekte</button>
+      <button id="mSave" type="button">Speichern</button>
+      <button id="bPrev" type="button">Vorschau</button>
+      <button id="bJson" type="button">JSON</button>
+      <button id="bSg" type="button" hidden>SteamGridDB</button>
+      <button id="bImp" type="button">Importieren</button>
+      <button id="bExp" type="button" class="pri">Als ZIP exportieren</button>
+    </span>
+    <span class="part" data-view="cover">
     <span class="saveinfo" id="autoInfo" aria-live="polite"></span>
     <span class="saveinfo" id="saveInfo" aria-live="polite"></span>
     <details class="menu"><summary>Projekt</summary>
@@ -28,15 +43,33 @@
         <button type="button" id="bGog">Daten von GOG …</button>
       </div>
     </details>
+    </span>
     <button type="button" id="bSettings">Einstellungen</button>
-    <button type="button" id="bReset">Zurücksetzen</button>
+    <button type="button" id="bReset" data-view="cover">Zurücksetzen</button>
     <details class="menu" id="langMenu" data-notr><summary></summary><div class="pop"></div></details>
-    <button type="button" id="bPrint" class="pri">Drucken</button>
+    <button type="button" id="bPrint" class="pri" data-view="cover">Drucken</button>
   </nav>
   <input type="file" id="recipeFile" accept=".zip,.json,application/zip,application/json" hidden>
   <input type="file" id="projectFile" accept=".zip,application/zip" hidden>
 </header>
 
+<section id="viewMenu" data-view="menu" data-notr aria-label="Menü">
+<main class="mmain">
+  <nav id="nav" aria-label="Spiele"></nav>
+  <section id="editor"></section>
+  <aside id="side"></aside>
+</main>
+<footer>Läuft komplett in deinem Browser. Es wird nichts hochgeladen. Der Entwurf wird lokal im Browser zwischengespeichert.<br>
+<a href="https://github.com/EinMensch002/DiscMenu-Builder/blob/main/docs/configurator.md" target="_blank" rel="noopener noreferrer">Anleitung</a> ·
+<a href="https://github.com/EinMensch002/DiscMenu-Builder/blob/main/docs/steamgriddb.md" target="_blank" rel="noopener noreferrer">SteamGridDB, Beschreibungen und Proxy</a> ·
+<a href="https://github.com/EinMensch002/DiscMenu-Builder" target="_blank" rel="noopener noreferrer">Quellcode</a> ·
+<a href="https://www.steamgriddb.com/" target="_blank" rel="noopener noreferrer">SteamGridDB</a></footer>
+<input id="impFile" type="file" accept=".zip,.json" hidden>
+<dialog id="mDlg"><div class="dh"><h2 id="mDlgTitle"></h2><button type="button" class="sm" id="mDlgX">Schließen</button></div><div id="mDlgBody"></div></dialog>
+<div id="mToast" role="status"></div>
+</section>
+
+<section id="viewCover" data-view="cover" aria-label="Hülle">
 <main class="app">
   <form class="panel no-print" id="form" autocomplete="off" onsubmit="return false">
     <nav class="jump" id="jump" aria-label="Bereiche"></nav>
@@ -300,6 +333,7 @@
     </div>
   </section>
 </main>
+</section>
 
 <dialog id="dlg"><div class="dh"><h2 id="dlgTitle"></h2><button type="button" id="dlgX">Schließen</button></div><div id="dlgBody"></div></dialog>
 
@@ -313,5 +347,8 @@
 <script src="app.js?v=__VERSION__"></script>
 <script src="back-editor.js?v=__VERSION__"></script>
 <script src="extras.js?v=__VERSION__"></script>
+<script src="menu-core.js?v=__VERSION__"></script>
+<script src="menu.js?v=__VERSION__"></script>
+<script src="shell.js?v=__VERSION__"></script>
 </body>
 </html>

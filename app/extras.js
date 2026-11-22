@@ -3,7 +3,9 @@
 (function () {
   'use strict';
   const C = window.CoverCore, O = window.CoverOnline, Z = window.CoverZip, F = window.CoverFiles, App = window.CoverApp;
-  const $ = (s, r = document) => r.querySelector(s);
+  /* Suchen nur außerhalb des Menü-Bereichs (#viewMenu): Beide Teile liegen auf einer Seite und nutzen teils gleiche Klassen (z. B. .drop). */
+  const ours = (e) => !e.closest('#viewMenu');
+  const $ = (s, r = document) => (r === document ? [...r.querySelectorAll(s)].find(ours) || null : r.querySelector(s));
   const REPO = 'https://github.com/EinMensch002/DiscMenu-Builder';
   const DOCS = REPO + '/blob/main/docs/steamgriddb.md';
   const LINKS = {
@@ -64,7 +66,7 @@
   }
 
   /* ---------- Menüs der oberen Leiste ---------- */
-  const menus = [...document.querySelectorAll('.menu')];
+  const menus = [...document.querySelectorAll('.menu')].filter(ours);
   const closeMenus = () => menus.forEach((m) => { m.open = false; });
   document.addEventListener('click', (e) => { menus.forEach((m) => { if (!m.contains(e.target)) m.open = false; }); });
   menus.forEach((m) => m.addEventListener('click', (e) => { if (e.target.closest('button')) closeMenus(); }));
@@ -328,7 +330,8 @@
       openDlg('Projekt öffnen', h('p', { class: 'dmsg err' }, 'Das Projekt konnte nicht geladen werden: ' + (e.message || e)), h('div', { class: 'drow' }, h('button', { type: 'button', onclick: closeDlg }, 'Schließen')))
     }
   }
-  document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveProject(false); } });
+  document.addEventListener('keydown', (e) => { if (document.body.dataset.view === 'menu') return;            // Strg+S gilt nur für die Hülle
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveProject(false); } });
 
   /* ---------- Aus einem Rezept übernehmen ---------- */
   async function onRecipeFile(file) {
@@ -617,7 +620,7 @@
   $('#bSteam').addEventListener('click', openSteam);
   $('#bGog').addEventListener('click', openGog);
   $('#bSettings').addEventListener('click', openSettings);
-  document.querySelectorAll('.drop .sg').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const key = b.closest('.drop').dataset.img; key === 'publisher' ? openPublisherLogo() : openSteamGridDB(key); }));
+  [...document.querySelectorAll('.drop .sg')].filter(ours).forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const key = b.closest('.drop').dataset.img; key === 'publisher' ? openPublisherLogo() : openSteamGridDB(key); }));
 
   /* Sprache der Oberfläche: Bei Deutsch lässt sich die Sprache der Beschriftung des Covers wählen, bei jeder anderen Sprache entfällt das Feld
      und das Cover wird englisch beschriftet. */

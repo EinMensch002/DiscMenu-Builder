@@ -4,8 +4,8 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
-const latoPath = path.resolve(__dirname, '..', '..', 'disc-sleeve', 'assets', 'fonts', 'Lato-Bold.ttf');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html') + '#huelle';
+const latoPath = path.resolve(__dirname, '..', '..', 'app', 'assets', 'fonts', 'Lato-Bold.ttf');
 
 (async () => {
   const browser = await chromium.launch();

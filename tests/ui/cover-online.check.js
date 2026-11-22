@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const { chromium } = require('playwright');
 const { loadCore } = require('../helpers');
 
-const url = 'file://' + path.resolve(__dirname, '..', '..', 'disc-sleeve', 'index.html');
+const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html') + '#huelle';
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
 
 // ZIP wie aus dem Konfigurator (eine Datei gespeichert, eine komprimiert)
@@ -317,7 +317,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.fill('#dlg input[placeholder*="proxy"]', 'https://proxy.test/?url={url}'); await page.click('#dlg button:has-text("Speichern")');
 
   // Teildateien: eine Datei nur mit Vorlagen und Schrift lässt die Zugangsdaten in Ruhe; Namensgleichheit fragt, nichts geht verloren
-  const lato = fs.readFileSync(path.resolve(__dirname, '..', '..', 'disc-sleeve', 'assets', 'fonts', 'Lato-Bold.ttf')).toString('base64');
+  const lato = fs.readFileSync(path.resolve(__dirname, '..', '..', 'app', 'assets', 'fonts', 'Lato-Bold.ttf')).toString('base64');
   const partFile = await page.evaluate(async (data) => {
     const C = window.CoverCore, t = C.templateFromItems([C.newItem('text', { text: 'Hi', x: 5, y: 5, w: 40, h: 10 })], { w: 130, h: 122 }, 'Meine Vorlage');
     return CoverFiles.packBundle({ templates: [t], fonts: [{ name: 'Meine Schrift', ext: 'ttf', data }] }, '');
@@ -425,7 +425,7 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await openMenu('Projekt');
   const proj = await download(() => page.click('#bProjExport'));
   assert.equal(proj.name, 'groessen-test-cover.zip');
-  const CF = require('../../disc-sleeve/files.js'), CZ = require('../../disc-sleeve/zip.js');
+  const CF = require('../../app/files.js'), CZ = require('../../app/zip.js');
   const inside = CF.unpackProject(await CZ.read(new Uint8Array(proj.buffer)));
   assert.equal(inside.state.title, 'Größen-Test'); assert.equal(inside.state.provider, 'steam');
   assert.ok(inside.images.front && inside.images.publisher, 'Bilder sind in der Projektdatei');      // Frontcover kam aus dem SteamGridDB-Test
