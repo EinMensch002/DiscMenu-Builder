@@ -82,15 +82,15 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
 
   // ---- Obere Leiste: alles, was nicht das Cover einstellt, steht dort und nicht im Formular ----
   assert.equal(await page.locator('header.top #bSettings').isVisible(), true);
-  assert.equal(await page.locator('header.top #bReset').isVisible(), true);
+  assert.equal(await page.locator('header.top #bReset').count(), 1, '"Neues Projekt" steht im Menü Projekt');
   assert.equal(await page.locator('header.top #bPrint').isVisible(), true);
   assert.equal(await page.locator('#form #bSettings, #form #bRecipe, #form #bSteam').count(), 0, 'Das Formular enthält nur Einstellungen des Covers');
   assert.doesNotMatch(await page.locator('#form').innerText(), /Daten übernehmen|Einstellungen für SteamGridDB/);
-  assert.equal(await page.locator('#bRecipe').isVisible(), false, 'Das Menü ist zu');
+  assert.equal(await page.locator('#bSteam').isVisible(), false, 'Das Menü ist zu');
   await openMenu('Daten übernehmen');
-  assert.equal(await page.locator('#bRecipe').isVisible(), true);
+  assert.equal(await page.locator('#bSteam').isVisible(), true);
   await page.click('body', { position: { x: 5, y: 400 } });                 // Klick daneben schließt das Menü
-  assert.equal(await page.locator('#bRecipe').isVisible(), false);
+  assert.equal(await page.locator('#bSteam').isVisible(), false);
   await openMenu('Projekt'); assert.equal(await page.locator('#bProjExport').isVisible(), true);
   await page.keyboard.press('Escape'); assert.equal(await page.locator('#bProjExport').isVisible(), false);
 
@@ -120,27 +120,28 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   assert.equal(await page.locator('#frontTag').textContent(), 'PC · DRM-FREI');
   assert.match(await page.locator('#featNote').textContent(), /GOG Galaxy/);
 
-  // ---- Aus Rezept übernehmen (ZIP) ----
+  // ---- Rezept öffnen (ZIP): das Menü wird geladen, die Hülle aus dem ersten Spiel vorbereitet ----
   const menu = { schemaVersion: 1, title: 'Sammlung', games: [
     { index: 0, name: 'Spiel Eins', provider: 'gog', installer: 'a.exe', cover: 'assets/covers/eins.png', estimatedSizeMB: 1500 },
     { index: 1, name: 'Spiel Zwei', provider: 'epic', installer: 'b.exe', cover: 'assets/covers/zwei.png', estimatedSizeMB: 800 } ] };
   const zip = makeZip([{ name: 'menu.json', data: Buffer.from(JSON.stringify(menu)), deflate: true }, { name: 'assets/covers/eins.png', data: PNG }, { name: 'assets/covers/zwei.png', data: PNG }]);
-  await page.setInputFiles('#recipeFile', { name: 'rezept.zip', mimeType: 'application/zip', buffer: zip });
-  await page.locator('#dlg .dlist button', { hasText: 'Spiel Zwei · Epic Games · mit Cover' }).click();
+  await page.setInputFiles('#projectFile', { name: 'rezept.zip', mimeType: 'application/zip', buffer: zip });
+  await page.waitForFunction(() => /Das Menü wurde geladen/.test(document.querySelector('#dlg').textContent));
   await page.waitForFunction(() => document.querySelector('[data-img=front]').classList.contains('has'));
-  assert.equal(await page.inputValue('[data-k=title]'), 'Spiel Zwei');
-  assert.equal(await page.inputValue('[data-k=provider]'), 'epic');
-  assert.equal(await page.inputValue('input[type=text][data-k=space]'), '0.8');
-  assert.equal(await page.locator('#spineTitle').textContent(), 'Spiel Zwei');
-  assert.equal(await page.locator('#dlg').evaluate((d) => d.open), false, 'Der Dialog schließt sich');
-  // menu.json allein: Titel und Anbieter, kein Cover
-  await page.setInputFiles('#recipeFile', { name: 'menu.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(menu)) });
-  await page.locator('#dlg .dlist button', { hasText: 'Spiel Eins' }).click();
-  await page.waitForFunction(() => document.querySelector('[data-k=provider]').value === 'gog');
   assert.equal(await page.inputValue('[data-k=title]'), 'Spiel Eins');
+  assert.equal(await page.inputValue('[data-k=provider]'), 'gog');
+  assert.equal(await page.inputValue('input[type=text][data-k=space]'), '1.5');
+  assert.equal(await page.locator('#spineTitle').textContent(), 'Spiel Eins');
+  assert.equal(await page.evaluate(() => MenuApp.state.games.length), 2, 'Beide Spiele stehen im Menü');
+  await page.click('#dlg button:has-text("Schließen")');
+  // menu.json allein: Titel und Anbieter, kein Cover
+  await page.setInputFiles('#projectFile', { name: 'menu.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ ...menu, games: [menu.games[1]] })) });
+  await page.waitForFunction(() => document.querySelector('[data-k=provider]').value === 'epic');
+  assert.equal(await page.inputValue('[data-k=title]'), 'Spiel Zwei');
+  await page.click('#dlg button:has-text("Schließen")');
   // kaputte Datei: verständliche Meldung
-  await page.setInputFiles('#recipeFile', { name: 'kaputt.zip', mimeType: 'application/zip', buffer: Buffer.from('keine zip') });
-  assert.match(await page.locator('#dlg .dmsg.err').textContent(), /konnte nicht gelesen werden/);
+  await page.setInputFiles('#projectFile', { name: 'kaputt.zip', mimeType: 'application/zip', buffer: Buffer.from('keine zip') });
+  await page.waitForFunction(() => /konnte nicht geladen werden/.test(document.querySelector('#dlg').textContent));
   await page.click('#dlgX');
 
   // ---- Einstellungen (gemeinsam mit dem Konfigurator) ----
@@ -424,14 +425,14 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForTimeout(150);
   await openMenu('Projekt');
   const proj = await download(() => page.click('#bProjExport'));
-  assert.equal(proj.name, 'groessen-test-cover.zip');
-  const CF = require('../../app/files.js'), CZ = require('../../app/zip.js');
-  const inside = CF.unpackProject(await CZ.read(new Uint8Array(proj.buffer)));
+  assert.equal(proj.name, 'sammlung.zip', 'Name nach dem Titel der Disc');
+  const CP = require('../../app/project.js'), CZ = require('../../app/zip.js');
+  const inside = CP.read(await CZ.read(new Uint8Array(proj.buffer))).cover;
   assert.equal(inside.state.title, 'Größen-Test'); assert.equal(inside.state.provider, 'steam');
   assert.ok(inside.images.front && inside.images.publisher, 'Bilder sind in der Projektdatei');      // Frontcover kam aus dem SteamGridDB-Test
-  assert.match(await page.locator('#saveInfo').textContent(), /heruntergeladen: groessen-test-cover\.zip/);
+  assert.match(await page.locator('#saveInfo').textContent(), /heruntergeladen: sammlung\.zip/);
   // Zurücksetzen löscht alles, der Import bringt es zurück
-  await page.click('#bReset');
+  await page.click('.top summary:has-text("Projekt")'); await page.click('#bReset');
   await page.waitForFunction(() => document.querySelector('[data-k=title]').value === '');
   assert.equal(await page.locator('[data-img=publisher]').getAttribute('class'), 'drop');
   await page.setInputFiles('#projectFile', { name: proj.name, mimeType: 'application/zip', buffer: proj.buffer });
@@ -451,9 +452,6 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   // falsche Dateien: verständliche Meldung, nichts geht kaputt
   await page.setInputFiles('#projectFile', { name: 'x.zip', mimeType: 'application/zip', buffer: Buffer.from('keine zip') });
   await page.waitForFunction(() => /konnte nicht geladen werden/.test(document.querySelector('#dlg').textContent));
-  await page.click('#dlg button:has-text("Schließen")');
-  await page.setInputFiles('#projectFile', { name: 'rezept.zip', mimeType: 'application/zip', buffer: zip });
-  await page.waitForFunction(() => /fehlt die cover\.json/.test(document.querySelector('#dlg').textContent));
   await page.click('#dlg button:has-text("Schließen")');
   assert.equal(await page.inputValue('[data-k=title]'), 'Größen-Test', 'Fehlgeschlagene Importe ändern nichts');
 

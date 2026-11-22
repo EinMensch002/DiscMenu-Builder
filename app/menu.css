@@ -1,18 +1,15 @@
 /* Menü-Teil (früher Konfigurator). Alle Regeln gelten nur innerhalb von #viewMenu, damit sie die Hülle nicht beeinflussen. */
-#viewMenu {--bg:#0e1015;--panel:#181c24;--panel2:#212633;--line:#2c3240;--txt:#e9ecf3;--mut:#98a2b6;--acc:#5b8cff;--acc2:#8f6bff;--err:#ff6b6b;--warn:#f0b429;--ok:#3ddc97;--shadow:0 8px 28px rgba(0,0,0,.32)}
-@media (prefers-color-scheme:light) {
-  #viewMenu {--bg:#f0f3f9;--panel:#fff;--panel2:#f2f5fb;--line:#d9dfec;--txt:#171b26;--mut:#5b6579;--acc:#2f6fed;--acc2:#6a4df0;--err:#d93a3a;--warn:#a86f00;--ok:#14935f;--shadow:0 8px 24px rgba(30,40,70,.10)}
-}
+#viewMenu {--bg:#eef0f4;--panel:#fff;--panel2:#f7f8fb;--line:#d9dde6;--txt:#1d2230;--mut:#667085;--acc:#89268d;--acc2:#89268d;--acc-soft:#f6e9f7;--err:#c62828;--warn:#a86f00;--ok:#14935f;--shadow:none}
 #viewMenu, #viewMenu * {box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-#viewMenu {margin:0;color:var(--txt);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(1100px 480px at 12% -8%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 70%),radial-gradient(900px 420px at 100% 0,color-mix(in srgb,var(--acc2) 12%,transparent),transparent 70%),var(--bg);background-attachment:fixed}
+#viewMenu {margin:0;color:var(--txt);font:14px/1.45 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg)}
 #viewMenu a {color:var(--acc);text-underline-offset:2px}
 #viewMenu header {display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px 18px;background:color-mix(in srgb,var(--panel) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
 #viewMenu header h1 {font-size:18px;margin:0;letter-spacing:.2px}
 #viewMenu header .btns {display:flex;gap:8px;flex-wrap:wrap}
-#viewMenu button {font:inherit;font-weight:500;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;transition:border-color .15s,transform .1s,background .15s,box-shadow .15s}
+#viewMenu button {font:inherit;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer}
 #viewMenu button:hover {border-color:var(--acc);background:color-mix(in srgb,var(--acc) 8%,var(--panel2))}
 #viewMenu button:active {transform:scale(.98)}
-#viewMenu button.pri {background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#fff;box-shadow:0 4px 14px color-mix(in srgb,var(--acc) 35%,transparent)}
+#viewMenu button.pri {background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
 #viewMenu button.pri:hover {filter:brightness(1.08)}
 #viewMenu button:disabled {opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
 #viewMenu button.sm {padding:4px 10px;font-size:13px;border-radius:8px}
@@ -31,18 +28,18 @@
 @media (max-width:700px) {
   #viewMenu #nav {position:static}
 }
-#viewMenu .nv {text-align:left;width:100%;background:var(--panel);border-radius:12px}
-#viewMenu .nv.on {border-color:var(--acc);background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 22%,var(--panel)),var(--panel));box-shadow:inset 3px 0 0 var(--acc)}
+#viewMenu .nv {text-align:left;width:100%;background:var(--panel);border-radius:10px}
+#viewMenu .nv.on {border-color:var(--acc);background:var(--acc-soft);box-shadow:inset 3px 0 0 var(--acc)}
 #viewMenu .nv.add {border-style:dashed;color:var(--mut);background:transparent}
 #viewMenu .nv.add:hover {color:var(--txt)}
-#viewMenu #editor, #viewMenu #side .box {background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+#viewMenu #editor, #viewMenu #side .box {background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
 #viewMenu #side {display:flex;flex-direction:column;gap:16px;align-self:start;position:sticky;top:78px}
 @media (max-width:1100px) {
   #viewMenu #side {position:static}
 }
 #viewMenu h2 {margin:0 0 4px;font-size:21px;letter-spacing:.2px}
 #viewMenu h3 {margin:24px 0 6px;font-size:15px;display:flex;align-items:center;gap:8px}
-#viewMenu h3::before {content:"";width:4px;height:16px;border-radius:2px;background:linear-gradient(var(--acc),var(--acc2))}
+#viewMenu h3::before {content:"";width:4px;height:16px;border-radius:2px;background:var(--acc)}
 #viewMenu .hint, #viewMenu small {color:var(--mut);font-size:13px}
 #viewMenu .f {display:flex;flex-direction:column;gap:5px;margin:12px 0}
 #viewMenu .lab {font-size:13px;color:var(--mut);font-weight:500}
@@ -69,8 +66,8 @@
 #viewMenu details.box>summary {cursor:pointer;font-weight:600}
 #viewMenu #toast {position:fixed;left:50%;bottom:20px;transform:translate(-50%,10px);background:var(--panel2);border:1px solid var(--acc);border-radius:12px;padding:11px 16px;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;white-space:pre-line;box-shadow:var(--shadow)}
 #viewMenu #toast.on {opacity:1;transform:translate(-50%,0)}
-#viewMenu dialog {background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:18px;padding:20px;width:min(800px,94vw);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-#viewMenu dialog::backdrop {background:rgba(5,7,12,.6);backdrop-filter:blur(3px)}
+#viewMenu dialog {background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(800px,94vw);max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+#viewMenu dialog::backdrop {background:rgba(10,12,20,.55)}
 #viewMenu .dh {display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
 #viewMenu .dh h2 {margin:0;font-size:19px}
 #viewMenu .list {display:flex;flex-direction:column;gap:8px;margin-top:10px}

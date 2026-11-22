@@ -4,9 +4,9 @@
 // den Proxy auf bestimmte Seiten. Mehrere Adressen werden mit Komma getrennt.
 // Anleitung: docs/steamgriddb.md
 //
-// VERSION: Die Tools (DiscSleeve und Konfigurator) fragen mit /?info=1 nach der Version und der Liste der erlaubten Hosts und zeigen unter
-// "Verbindung testen", ob dieser Worker aktuell ist. Wer diese Datei ändert, erhöht VERSION hier und WORKER_VERSION in app/online.js und
-// app/menu.js (ein Test prüft, dass alle drei gleich sind und der Worker alle Hosts der Tools erlaubt).
+// VERSION: Die Web-App (Menü und Hülle) fragt mit /?info=1 nach der Version und der Liste der erlaubten Hosts und zeigt unter
+// "Verbindung testen", ob dieser Worker aktuell ist. Wer diese Datei ändert, erhöht VERSION hier und WORKER_VERSION in app/online.js
+// (ein Test prüft, dass beide gleich sind und der Worker alle Hosts erlaubt).
 const VERSION = 2;
 
 const ALLOWED_HOSTS = [

@@ -27,6 +27,7 @@ rezept.zip
 - `menu.json` liegt im Wurzelverzeichnis der ZIP.
 - Alle Assets liegen unter `assets/`. Die Pfade in der `menu.json` (z. B. `assets/covers/beispiel-spiel-1.png`) sind relativ zur `menu.json`.
 - Statt der ZIP funktioniert auch ein Ordner mit demselben Aufbau.
+- Die **Projektdatei** der Web-App ist ein solches Rezept-Paket mit zusätzlichen Dateien (`cover.json`, `assets/huelle-…`, `fonts/`) für die Hülle. Der Builder ignoriert sie. Siehe [Gemeinsames Projekt](configurator.md#gemeinsames-projekt-menü-und-hülle).
 - Der Konfigurator legt Bilder vorläufig als PNG (Cover, bis 800 Pixel) und JPEG (Hintergrund, bis 1920 Pixel) ab, Sounds als WAV, OGG oder MP3 (siehe [decisions.md](decisions.md)).
 
 ## Oberste Ebene

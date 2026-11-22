@@ -26,7 +26,7 @@ const { chromium } = require('playwright');
   assert.match(await page.locator('#nav').textContent(), /Epic Games/);
 
   // JSON bearbeiten
-  await page.click('#bJson');
+  await page.click('.top summary:has-text("Sonstiges")'); await page.click('#bJson');          // JSON steht unter "Sonstiges" in der Leiste
   const ta = page.locator('textarea.code');
   const json = JSON.parse(await ta.inputValue());
   assert.equal(json.games.length, 2);
@@ -35,12 +35,12 @@ const { chromium } = require('playwright');
   await ta.fill(JSON.stringify(json));
   await page.click('text=Änderungen übernehmen');
   await page.waitForSelector('dialog:not([open])', { state: 'attached' });
-  assert.match(await page.locator('#side pre').textContent(), /Per JSON geändert/);
+  assert.equal(await page.evaluate(() => MenuApp.state.title), 'Per JSON geändert');
   await page.locator('.nv').nth(1).click();
   assert.match(await page.locator('#editor').textContent(), /Patch A/);
 
   // Ungültiges JSON bleibt im Dialog
-  await page.click('#bJson');
+  await page.click('.top summary:has-text("Sonstiges")'); await page.click('#bJson');          // JSON steht unter "Sonstiges" in der Leiste
   await page.locator('textarea.code').fill('{ kaputt');
   await page.click('text=Änderungen übernehmen');
   assert.match(await page.locator('#mDlgBody .issue.error').textContent(), /Kein gültiges JSON/);

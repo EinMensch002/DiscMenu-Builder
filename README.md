@@ -169,7 +169,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
   - [ ] Ausrichtungshilfen (Raster)
 - [ ] **Beide Web-Tools zusammenführen** (in Arbeit, drei Schritte):
   - [x] **Eine Seite:** gemeinsamer Ordner `app/`, eine `index.html`, oben eine Leiste mit dem Wechsel "Menü | Hülle" ohne Neuladen; die Knöpfe der Leiste passen sich dem Bereich an
-  - [ ] **Ein Projekt:** ein gemeinsamer Speicher, nichts doppelt (Spielname = Titel der Hülle, Cover, Bilder), gemeinsame Projektdatei, alte Dateien lassen sich weiter öffnen
+  - [x] **Ein Projekt:** ein Speicher und eine Projektdatei für Menü und Hülle (`menu.json`, `cover.json`, `assets/`, `fonts/`), verknüpft und nichts doppelt (Spielname = Titel der Hülle, Anbieter, Beschreibung, Größe, Cover), ein Einstellungsdialog, eine Leiste für beide Bereiche, helles Design im Menü; alte Rezepte und Hüllen-Dateien lassen sich weiter öffnen
   - [ ] **Englisch** auch für den Bereich "Menü"
   - Ziel: Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
 - [ ] **Ein-Datei-Build** (Vorarbeit erledigt: alle Grafiken sind SVG, nur die Schrift Lato ist noch eine Binärdatei): Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien

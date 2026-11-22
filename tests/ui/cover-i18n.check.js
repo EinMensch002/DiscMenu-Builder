@@ -91,8 +91,8 @@ const GER = /[äöüß]|\b(und|der|die|das|nicht|bitte|oder|für|wird|mit|auf|zu
   await page.unroute(/^https?:/);
 
   // confirm-Meldungen werden übersetzt
-  await page.click('#bReset'); await page.waitForTimeout(200);
-  assert.equal(dialogs.pop(), 'Reset all settings and images?');
+  await page.click('.top details.menu:has(#bReset) > summary'); await page.click('#bReset'); await page.waitForTimeout(200);
+  assert.equal(dialogs.pop(), 'Create a new project? Menu, case and all images will be cleared.');
   await page.evaluate(() => CoverApp.patch({ lang: 'en' }));
 
   // Zurück auf Deutsch: alles wie vorher, das Feld ist wieder da

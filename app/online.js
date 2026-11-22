@@ -137,6 +137,9 @@
     await run('GOG-Katalog', async () => { const r = await gogSearch('Witcher'); return r.length + ' Treffer für den Test'; });
     await run('GOG-Spieldaten', async () => { const g = await gogGame('1207658924'); return 'erreichbar, ' + ((g._embedded && g._embedded.product && g._embedded.product.title) || 'Antwort ohne Titel'); });
     await run('GOG-Bilder', async () => { const l = gogImages(await gogGame('1207658924')); if (!l.logo) throw new Error('GOG hat keine Bild-Adresse geliefert.'); await fetchBlob(l.logo); return 'erreichbar'; });
+    /* für den Bereich Menü: Beschreibungen von Epic Games und die Übersetzung ins Deutsche */
+    await run('Epic Games Store', async () => { const r = await net('https://store-content.ak.epicgames.com/api/de/content/products/rocket-league'); if (r.status >= 500 || r.status === 403) throw new Error('Epic Games hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
+    await run('Übersetzung (MyMemory)', async () => { const r = await fetch('https://api.mymemory.translated.net/get?langpair=en%7Cde&q=Hello'); if (!r.ok) throw new Error('MyMemory hat mit Fehler ' + r.status + ' geantwortet.'); return 'erreichbar'; });
     await run('Wikidata (Publisher-Logos)', async () => { await logoSearch('Valve'); return 'erreichbar'; });
     if (settings.brandfetch) await run('Brandfetch', async () => { const r = await brandSearch('Valve'); return 'erreichbar, ' + r.length + ' Treffer für den Test'; });
     else out.push({ name: 'Brandfetch', ok: true, text: 'Keine Client-ID eingetragen (optional).' });

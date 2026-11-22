@@ -182,7 +182,7 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html')
   await page.click('#dlgX');
 
   // Zurücksetzen vergisst die Datei
-  await page.click('#bReset'); await page.waitForTimeout(150);
+  await page.click('.top summary:has-text("Projekt")'); await page.click('#bReset'); await page.waitForTimeout(150);
   assert.equal(await page.locator('#saveInfo').textContent(), '');
 
   assert.deepEqual(errors, []);

@@ -2,7 +2,12 @@
 
 - [ ] **Umschalten:** Oben zwischen "Menü" und "Hülle" wechseln (PC und Tab S10): Die Seite lädt nicht neu, Eingaben im jeweils anderen Bereich bleiben erhalten, die Knöpfe der Leiste passen sich an.
 - [ ] **Alte Adressen:** `/disc-sleeve/` und `/cover/` öffnen direkt die Hülle, Neuladen bleibt im gewählten Bereich.
-- [ ] **Einstellungen und Sprache:** "Einstellungen" öffnet in beiden Bereichen den passenden Dialog, die Sprache wechselt die Leiste und die Hülle (das Menü bleibt vorerst deutsch).
+- [ ] **Einstellungen und Sprache:** "Einstellungen" öffnet in beiden Bereichen denselben Dialog. Schlüssel löschen, dann im anderen Bereich öffnen: auch dort leer. Die Sprache wechselt die Leiste und die Hülle (das Menü bleibt vorerst deutsch).
+- [ ] **Verknüpfung:** Spielname im Menü ändern, zur Hülle wechseln: Titel geändert. Frontcover bei der Hülle setzen: im Menü als Cover des Spiels. Titel in der Hülle ändern: Spielname im Menü geändert.
+- [ ] **Neues Projekt:** Projekt → Neues Projekt leert Menü und Hülle.
+- [ ] **Projektdatei:** Speichern, Neues Projekt, Öffnen: Menü, Hülle und Bilder sind zurück. Eine alte Rezept-ZIP und eine alte Hüllen-ZIP lassen sich öffnen. Der Builder (`Builder.exe projekt.zip`) verarbeitet die neue Projektdatei.
+- [ ] **Übernahme alter Stände:** Auf einem Gerät, das die alten Tools benutzt hat, zeigt die neue Seite beim ersten Start den früheren Stand (Konfigurator-Projekt und Hülle).
+- [ ] **Design:** Menü und Hülle sehen gleich hell aus (Farben, Knöpfe, Felder), auch auf dem Tablet.
 - [ ] **Drucken:** Aus dem Bereich "Hülle" erscheint nur das Blatt, nichts vom Menü.
 
 # Manuelle Prüfung des Konfigurators

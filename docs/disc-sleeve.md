@@ -146,6 +146,8 @@ Der Link steht als Kommentar im Pull Request. Die Seite erscheint ein bis zwei M
 
 ## Projekt speichern und laden
 
+> **Seit der Zusammenführung** gehören Hülle und Menü zu einem Projekt mit einer Projektdatei (ZIP mit `menu.json`, `cover.json`, `assets/`, `fonts/`). Titel, Anbieter, Beschreibung, Größe und Frontcover sind mit dem Spiel im Menü verknüpft. Beschreibung: [Gemeinsames Projekt](configurator.md#gemeinsames-projekt-menü-und-hülle). Der folgende Abschnitt beschreibt die Hüllen-Datei der früheren Version (cover.json Version 1), die sich weiter öffnen lässt.
+
 Über **Projekt** in der oberen Leiste:
 
 - **Im Browser speichern (automatisch):** Einstellungen **und Bilder** werden kurz nach jeder Änderung im Speicher des Browsers gesichert (Einstellungen in `localStorage`, Bilder in der `IndexedDB`). Nach dem **Neuladen der Seite ist der ganze Stand wieder da**, auch die Bilder, ohne Datei. "Im Browser speichern" sichert sofort. Der Speicher gilt pro Browser und pro Adresse (lokale Datei und GitHub Pages sind getrennt). "Zurücksetzen" leert ihn. Wird er vom Browser gesperrt (z. B. privates Fenster), steht ein Hinweis da. Für Sicherungskopien und zum Weitergeben bleibt "Speichern" in eine Datei.
