@@ -81,6 +81,8 @@ DiscMenu-Builder/
 
 ## Roadmap
 
+Auch als **GitHub Project** mit Zeitleiste und Meilensteinen: [DiscMenu-Builder Roadmap](https://github.com/users/EinMensch002/projects/1) (Issues #31 bis #52, die Daten sind Platzhalter).
+
 Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit Tests oder im Browser geprüft ist.
 
 ### Web-App: Bereich Disc-Menü (früher Konfigurator)

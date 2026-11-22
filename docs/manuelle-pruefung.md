@@ -14,7 +14,6 @@ Die Web-App ist mit nachgebauten Diensten und im Browser-Druck getestet. Diese P
 - [ ] **recipe.json bearbeiten:** Sonstiges → recipe.json bearbeiten: Reiter Gemeinsam, Menü, Hülle; den Titel unter "Gemeinsam" ändern, übernehmen: Menü und Hülle zeigen ihn.
 - [ ] **Spielordner einlesen:** Daten übernehmen → Spielordner einlesen, einen echten Spielordner (z. B. DISK 1 mit base_game, extras, Patches …) wählen. Der Vorschlag stimmt im Wesentlichen, eine Zeile umstellen, übernehmen: Einträge stehen im Menü, "Disc-Ordner prüfen" findet alle Pfade.
 - [ ] **Rückenlogo:** Spiel-Logo auf dem Rücken, dann Anbieter und Hülle (Normal, Slim, Blu-ray) wechseln: Das Logo springt nicht und sitzt sofort richtig.
-- [ ] **Übernahme alter Stände:** Auf einem Gerät, das die alten Tools benutzt hat, zeigt die neue Seite beim ersten Start den früheren Stand (Konfigurator-Projekt und Hülle).
 - [ ] **Design:** Menü und Hülle sehen gleich hell aus (Farben, Knöpfe, Felder), auch auf dem Tablet.
 - [ ] **Drucken:** Aus dem Bereich "Hülle" erscheint nur das Blatt, nichts vom Menü.
 

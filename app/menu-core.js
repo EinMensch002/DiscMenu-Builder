@@ -310,41 +310,7 @@ const CORE = (() => {
     if (out.length > max){ const cut = out.lastIndexOf('. ', max); out = cut > 200 ? out.slice(0, cut + 1) : out.slice(0, max).trim() + '…'; }
     return out;
   }
-  /* --- Einstellungen sichern (optional mit Passwort verschlüsselt) --- */
-  const b64 = u8 => { let t = ''; for (let i = 0; i < u8.length; i += 0x8000) t += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(t); };
-  const unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
-  const subtleOrNull = () => (globalThis.crypto && globalThis.crypto.subtle) || null;
-  async function deriveKey(password, salt, iterations){
-    const base = await subtleOrNull().importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
-    return subtleOrNull().deriveKey({name:'PBKDF2', salt, iterations, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
-  }
-  async function packSettings(values, password){
-    const plain = {type:'discmenu-settings', version:1, sgdbKey: values.key || '', proxy: values.proxy || ''};
-    if (!password) return JSON.stringify(plain, null, 2) + '\n';
-    if (!subtleOrNull()) throw new Error('Dieser Browser kann hier nicht verschlüsseln. Die Datei lässt sich nur ohne Passwort sichern.');
-    const salt = globalThis.crypto.getRandomValues(new Uint8Array(16)), iv = globalThis.crypto.getRandomValues(new Uint8Array(12)), iterations = 250000;
-    const key = await deriveKey(password, salt, iterations);
-    const data = new Uint8Array(await subtleOrNull().encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(JSON.stringify(plain))));
-    return JSON.stringify({type:'discmenu-settings', version:1, encrypted:true, kdf:'PBKDF2-SHA256', iterations, salt:b64(salt), iv:b64(iv), data:b64(data)}, null, 2) + '\n';
-  }
-  async function unpackSettings(text, password){
-    let j; try { j = JSON.parse(text); } catch (e) { throw new Error('Die Datei ist keine gültige Einstellungsdatei.'); }
-    if (!j || j.type !== 'discmenu-settings') throw new Error('Das ist keine Einstellungsdatei dieses Konfigurators.');
-    let plain = j;
-    if (j.encrypted){
-      if (!password) throw new Error('PASSWORD_NEEDED');
-      if (!subtleOrNull()) throw new Error('Dieser Browser kann hier nicht entschlüsseln.');
-      const it = Number(j.iterations); if (!(it >= 100000 && it <= 2000000)) throw new Error('Die Einstellungsdatei ist beschädigt.');
-      try {
-        const key = await deriveKey(password, unb64(j.salt), it);
-        plain = JSON.parse(new TextDecoder().decode(await subtleOrNull().decrypt({name:'AES-GCM', iv:unb64(j.iv)}, key, unb64(j.data))));
-      } catch (e) { throw new Error('Falsches Passwort oder beschädigte Datei.'); }
-    }
-    // Eine Datei ohne Zugangsdaten (z. B. nur eigene Vorlagen aus dem Cover-Tool) darf Schlüssel und Proxy nicht leeren
-    if (!('sgdbKey' in plain) && !('proxy' in plain)) throw new Error('Die Datei enthält keine Zugangsdaten.');
-    return {key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '')};
-  }
-  return {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, discRefs, checkDisc, packSettings, unpackSettings, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
+  return {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, discRefs, checkDisc, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
 })();
 if (typeof module !== 'undefined') module.exports = CORE;
 else window.CORE = CORE;                    // auch für project.js und extras.js erreichbar (const allein ist keine Eigenschaft von window)

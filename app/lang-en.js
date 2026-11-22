@@ -347,7 +347,6 @@
     'Das Menü wurde geladen. Die Hülle wurde aus dem Spiel vorbereitet (Titel, Anbieter, Beschreibung, Größe, Cover).': 'The menu was loaded. The case was prepared from the game (title, provider, description, size, cover).',
     'Die Hülle wurde geladen. Das Menü wurde aus der Hülle vorbereitet (ein Spiel mit Titel, Anbieter und Cover). Installer-Pfad und Weiteres im Bereich "Menü" ergänzen.': 'The case was loaded. The menu was prepared from the case (one game with title, provider and cover). Add the installer path and more in the "Menu" area.',
     'Projekt aus dem Browser-Speicher geladen': 'Project loaded from browser storage',
-    'Stand der bisherigen Tools übernommen': 'Imported the state of the previous tools',
     'Übersetzung (MyMemory)': 'Translation (MyMemory)',
     'In der ZIP fehlt die recipe.json. Das ist keine Projektdatei.': 'The ZIP is missing recipe.json. It is not a project file.',
     'Bereich': 'Area',

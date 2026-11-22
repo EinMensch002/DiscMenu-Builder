@@ -44,7 +44,7 @@ Beide Bereiche haben dasselbe helle Design. Oben erscheinen Hinweise, wenn etwas
 
 **Verknüpft, nichts doppelt:** Die Hülle gehört zum ersten Spiel des Menüs. **Name des Spiels = Titel der Hülle**, dazu Anbieter, Beschreibung, geschätzte Größe (= Speicherplatz auf der Hülle) und **Cover des Spiels = Frontcover**. Diese Werte stehen nur einmal im Projekt. Was man in einem Bereich ändert, steht sofort auch im anderen. Das Cover wird für jeden Zweck passend verkleinert (Menü: höchstens 800 Pixel, Hülle: Druckgröße), beide entstehen aus demselben Bild.
 
-**Im Browser:** Das Projekt wird kurz nach jeder Änderung automatisch im Browser gesichert (IndexedDB `discmenu-projekte`) und ist nach dem Neuladen wieder da. Beim ersten Start übernimmt die Seite die Stände der früheren getrennten Tools (Konfigurator-Projekt und DiscSleeve), die alten Speicher bleiben unverändert. Die frühere Liste mehrerer Projekte im Browser gibt es nicht mehr: Jedes Projekt ist eine Datei.
+**Im Browser:** Das Projekt wird kurz nach jeder Änderung automatisch im Browser gesichert (IndexedDB `discmenu-projekte`) und ist nach dem Neuladen wieder da. Die frühere Liste mehrerer Projekte im Browser gibt es nicht mehr: Jedes Projekt ist eine Datei.
 
 **Projektdatei (ZIP):** Eine einzige Beschreibung, die `recipe.json`, erklärt das ganze Projekt. Gemeinsame Angaben stehen darin nur einmal:
 
