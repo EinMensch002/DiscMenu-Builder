@@ -118,6 +118,22 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html')
   assert.deepEqual(g0.patches.map((i) => [i.name, i.group]), [['Fix', 'Patches & Fixes']]);
   assert.deepEqual(g0.extras.map((i) => [i.path, i.kind]).sort(), [['Sonstiges/tool.exe', 'open'], ['extras/handbuch.pdf', 'open']]);
 
+  // Disc mit mehreren Spielen in eigenen Ordnern: je Ordner eine Kopfzeile mit der Wahl des Spiels, neue Spiele werden angelegt
+  const before = await page.evaluate(() => MenuApp.state.games.length);
+  await page.evaluate(() => MenuApp.showFolderPlan('DISK 2', DiscProject.planFromFolder([
+    { path: 'autorun.inf' }, { path: 'stronghold-launcher.exe' },
+    { path: 'stronghold/setup_stronghold_2.0.0.9.exe' }, { path: 'stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe' }, { path: 'stronghold/Bonus/stronghold_manual.pdf' },
+    { path: 'stronghold_crusader/setup_stronghold_crusader_2.0.0.2.exe' }, { path: 'stronghold_crusader/SuperCastleAttack.exe' }], { games: MenuApp.state.games.map((g) => g.name) })));
+  assert.equal(await page.locator('#mDlg .fplan tr.ghead').count(), 3, 'zwei Spielordner und die Wurzel');
+  assert.equal(await page.locator('#mDlg .fplan tr.ghead select').nth(0).inputValue(), 'new');
+  await page.click('#mDlg button:has-text("Übernehmen")');
+  const games = await page.evaluate(() => MenuApp.state.games);
+  assert.equal(games.length, before + 2, 'zwei neue Spiele');
+  const sh = games[before], sc = games[before + 1];
+  assert.deepEqual([sh.name, sh.installer, sh.dlcs[0].path, sh.extras[0].name], ['Stronghold', 'stronghold/setup_stronghold_2.0.0.9.exe', 'stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe', 'Manual']);
+  assert.deepEqual([sc.name, sc.installer, sc.extras[0].path, sc.extras[0].kind], ['Stronghold Crusader', 'stronghold_crusader/setup_stronghold_crusader_2.0.0.2.exe', 'stronghold_crusader/SuperCastleAttack.exe', 'open']);
+  assert.ok(!games.some((g) => /launcher/.test(g.installer)), 'die Menü-EXE in der Wurzel wird nicht übernommen');
+
   // Stile bleiben getrennt, Drucken zeigt nur die Hülle
   const coverDrop = await page.evaluate(() => getComputedStyle(document.querySelector('#viewCover .drop')).minHeight);
   assert.notEqual(coverDrop, '72px', 'Regel ".drop" aus menu.css gilt nicht bei der Hülle');

@@ -148,3 +148,30 @@ test('Spielordner: der Installer des Spiels trägt den Namen des Spiels', () => 
   assert.equal(P.planFromFolder([{ path: exe }], { game: 'Deus Ex: Game of the Year Edition' })[0].name, 'Deus Ex: Game of the Year Edition');
   assert.equal(P.planFromFolder([{ path: exe }])[0].name, 'Deus ex goty', 'ohne Spielnamen: der Dateiname ohne Version');
 });
+
+test('Spielordner: Disc mit mehreren Spielen in eigenen Ordnern', () => {
+  const L = [{ path: 'autorun.inf' }, { path: 'stronghold-launcher.exe' },
+    { path: 'stronghold/setup_stronghold_2.0.0.9.exe' }, { path: 'stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe' }, { path: 'stronghold/SuperCastleAttack.exe' },
+    { path: 'stronghold/Bonus/stronghold_manual.pdf' }, { path: 'stronghold/Bonus/stronghold_hd_soundtrack', dir: true },
+    { path: 'stronghold_crusader/setup_stronghold_crusader_2.0.0.2.exe' }, { path: 'stronghold_crusader/setup_stronghold_crusader_extreme_hd_1.41(a)_(german)_(45299).exe' }];
+  let plan = P.planFromFolder(L);
+  const by = (p) => plan.find((x) => x.path === p);
+  assert.deepEqual([...new Set(plan.map((x) => x.game))], ['stronghold', 'stronghold_crusader', ''], 'je Spielordner, dazu die Wurzel');
+  assert.deepEqual([by('stronghold/setup_stronghold_2.0.0.9.exe').kind, by('stronghold/setup_stronghold_2.0.0.9.exe').name], ['installer', 'Stronghold'], 'ohne Spiel im Menü: das Setup mit dem kürzesten Namen');
+  assert.equal(by('stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe').kind, 'dlcs', 'ein weiteres Setup wird DLC');
+  assert.deepEqual([by('stronghold/SuperCastleAttack.exe').kind, by('stronghold/SuperCastleAttack.exe').open], ['extras', true], 'andere Programme werden gestartet');
+  assert.deepEqual([by('stronghold/Bonus/stronghold_manual.pdf').name, by('stronghold/Bonus/stronghold_manual.pdf').group], ['Manual', 'Anleitungen'], 'Ordnername vorn entfernt');
+  assert.deepEqual([by('stronghold-launcher.exe').kind, by('stronghold-launcher.exe').game], ['skip', ''], 'die Menü-EXE in der Wurzel wird nicht übernommen');
+  assert.ok(!by('autorun.inf'));
+  assert.equal(by('stronghold_crusader/setup_stronghold_crusader_2.0.0.2.exe').gameName, 'Stronghold Crusader');
+  // mit Spielen im Menü: passender Ordner zum passenden Spiel, der passende Installer
+  plan = P.planFromFolder(L, { games: ['Stronghold HD'] });
+  assert.equal(by('stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe').kind, 'installer', 'HD passt zu "Stronghold HD"');
+  assert.equal(by('stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe').gameIndex, 0);
+  assert.equal(by('stronghold_crusader/setup_stronghold_crusader_2.0.0.2.exe').gameIndex, -1, 'Crusader gehört nicht zu "Stronghold HD"');
+  // ein einzelner Spielordner: wie bisher ein Spiel, der Ordnername wird vorn aus den Namen entfernt
+  plan = P.planFromFolder(L.filter((e) => e.path.startsWith('stronghold/')).map((e) => ({ path: e.path.slice(11) })), { game: 'Stronghold HD', folder: 'stronghold' });
+  assert.ok(plan.every((x) => !x.game));
+  assert.equal(by('setup_stronghold_hd_1.41_(german)_(20341).exe').kind, 'installer');
+  assert.equal(by('Bonus/stronghold_manual.pdf').name, 'Manual');
+});

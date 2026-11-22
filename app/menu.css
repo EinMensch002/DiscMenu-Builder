@@ -188,5 +188,7 @@
 #viewMenu .fplan td.path {font:12px ui-monospace,Consolas,monospace;word-break:break-all;color:var(--mut)}
 #viewMenu .fplan input, #viewMenu .fplan select {padding:5px 8px;font-size:13px}
 #viewMenu .fplan select {min-width:150px}
+#viewMenu .fplan tr.ghead td {background:var(--acc-soft);font-size:13.5px}
+#viewMenu .fplan tr.ghead select {width:auto;min-width:260px;max-width:420px;margin-left:8px;display:inline-block}
 #viewMenu .fplan td.path {min-width:260px}
 @media print { #viewMenu { display: none !important; } }

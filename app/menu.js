@@ -458,10 +458,24 @@
     let root; try { root = await window.showDirectoryPicker({mode:'read'}); } catch (e) { if (!(e && e.name === 'AbortError')) toast('Ordner konnte nicht geöffnet werden: ' + (e.message || e)); return; }
     openDlg('Spielordner wird gelesen ...', h('p', {class:'hint'}, 'Einen Moment.'));
     const g = state.games[typeof sel === 'number' && state.games[sel] ? sel : 0];
-    showFolderPlan(root.name, DiscProject.planFromFolder(await listFolder(root), {game: g ? g.name : ''}));
+    showFolderPlan(root.name, DiscProject.planFromFolder(await listFolder(root), {game: g ? g.name : '', folder: root.name, games: state.games.map(x => x.name)}));
   }
+  /* Vorschlag anzeigen. Bei einer Disc mit mehreren Spielen (Zeilen mit "game") steht je Spielordner eine Kopfzeile mit der Wahl:
+     zu welchem Spiel im Menü er gehört, als neues Spiel anlegen oder nicht übernehmen. */
   function showFolderPlan(folder, plan){
-    const gi = typeof sel === 'number' && state.games[sel] ? sel : 0, g = state.games[gi];
+    const gi = typeof sel === 'number' && state.games[sel] ? sel : 0, cur = state.games[gi];
+    const folders = [...new Set(plan.map(p => p.game).filter(Boolean))], multi = folders.length > 0;
+    // Wählt man den Ordner eines einzelnen Spiels, liegt er auf der Disc meist in einem Ordner gleichen Namens: Pfade bekommen ihn vorangestellt
+    const looksLikeDisc = /disk|disc|\bcd\b|dvd|blu.?ray|^[a-z]:?$/i.test(folder);
+    const prefix = h('input', {type:'text', value: !multi && !looksLikeDisc ? folder : '', placeholder:'(Wurzel der Disc)', 'aria-label':'Ordner auf der Disc', style:'max-width:260px'});
+    const target = new Map(folders.map(d => {
+      const p = plan.find(x => x.game === d), s = h('select', {'aria-label':'Spiel für ' + d},
+        state.games.map((x, i) => h('option', {value: String(i)}, 'zu Spiel ' + i + (x.name ? ': ' + x.name : ''))),
+        h('option', {value:'new'}, 'als neues Spiel anlegen' + (p.gameName ? ': ' + p.gameName : '')),
+        h('option', {value:'skip'}, 'nicht übernehmen'));
+      s.value = p.gameIndex >= 0 ? String(p.gameIndex) : 'new';
+      return [d, s];
+    }));
     const rows = plan.map(p => {
       const kind = h('select', {'aria-label':'Art'}, DiscProject.KINDS.map(k => h('option', {value:k}, KIND_LABEL[k]))); kind.value = p.kind;
       const name = h('input', {type:'text', value:p.name, 'aria-label':'Name'}), group = h('input', {type:'text', value:p.group, placeholder:'Gruppe', 'aria-label':'Gruppe'});
@@ -475,21 +489,38 @@
       return {p, kind, name, group, row: h('tr', {}, h('td', {class:'path'}, p.path), h('td', {}, kind), h('td', {}, name), h('td', {}, group))};
     });
     const apply = () => {
+      const pre = prefix.value.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, ''), full = p => (pre ? pre + '/' : '') + p;
+      const games = new Map();                                   // Spielordner -> Spiel im Menü (neue Spiele werden erst bei Bedarf angelegt)
+      const gameFor = r => {
+        if (!r.p.game) return cur;
+        const v = target.get(r.p.game).value; if (v === 'skip') return null;
+        if (!games.has(r.p.game)) games.set(r.p.game, v === 'new' ? (state.games.push(Object.assign(newGame(), {name: r.p.gameName})), state.games[state.games.length - 1]) : state.games[Number(v)]);
+        return games.get(r.p.game);
+      };
       let n = 0;
       for (const r of rows){
         const k = r.kind.value; if (k === 'skip') continue;
-        if (k === 'installer'){ g.installer = r.p.path; const nm = r.name.value.trim(); if (nm && nm !== g.name) g.name = nm; n++; continue; }
-        if (g[k].some(it => it.path === r.p.path)) continue;                     // schon eingetragen
-        const it = newItem(); Object.assign(it, {name: r.name.value.trim() || r.p.path.split('/').pop(), group: r.group.value.trim(), path: r.p.path, kind: r.p.open || k === 'extras' ? 'open' : 'installer', _open: false});
+        const g = gameFor(r); if (!g) continue;
+        if (k === 'installer'){ g.installer = full(r.p.path); const nm = r.name.value.trim(); if (nm && nm !== g.name) g.name = nm; n++; continue; }
+        if (g[k].some(it => it.path === full(r.p.path))) continue;                     // schon eingetragen
+        const it = newItem(); Object.assign(it, {name: r.name.value.trim() || r.p.path.split('/').pop(), group: r.group.value.trim(), path: full(r.p.path), kind: r.p.open || k === 'extras' ? 'open' : 'installer', _open: false});
         g[k].push(it); n++;
       }
-      sel = gi; renderAll(); changed(); closeDlg();
-      toast(n ? n + ' Eintrag/Einträge übernommen. Die Prüfung rechts zeigt, ob noch etwas fehlt.' : 'Nichts übernommen.');
+      sel = multi ? (games.size ? state.games.indexOf([...games.values()][0]) : gi) : gi; renderAll(); changed(); closeDlg();
+      toast(n ? n + ' Eintrag/Einträge übernommen' + (multi ? ' (' + games.size + ' Spiel(e))' : '') + '. Die Prüfung rechts zeigt, ob noch etwas fehlt.' : 'Nichts übernommen.');
     };
+    const head = h('tr', {}, h('th', {}, 'Datei oder Ordner'), h('th', {}, 'Art'), h('th', {}, 'Name'), h('th', {}, 'Gruppe'));
+    const body = multi
+      ? [...folders.map(d => [h('tr', {class:'ghead'}, h('td', {colspan:'4'}, h('b', {}, '📀 ' + d + '/'), ' ', target.get(d))), ...rows.filter(r => r.p.game === d).map(r => r.row)]).flat(),
+         ...(rows.some(r => !r.p.game) ? [h('tr', {class:'ghead'}, h('td', {colspan:'4'}, h('b', {}, 'Wurzel der Disc'), ' (meist die Menü-EXE selbst, wird nicht übernommen)')), ...rows.filter(r => !r.p.game).map(r => r.row)] : [])]
+      : rows.map(r => r.row);
     dlg.classList.add('wide'); dlg.addEventListener('close', () => dlg.classList.remove('wide'), {once:true});        // breiter: Pfad, Art, Name und Gruppe nebeneinander
     openDlg('Spielordner "' + folder + '"',
-      h('p', {class:'hint'}, 'Vorschlag für "' + (g.name || 'Spiel ' + gi) + '": Die Pfade gelten ab dem gewählten Ordner, er entspricht der Wurzel der Disc. Art, Name und Gruppe lassen sich ändern. Vorhandene Einträge bleiben, neue kommen dazu, ein Installer ersetzt den bisherigen.'),
-      rows.length ? h('div', {class:'fplan'}, h('table', {}, h('tr', {}, h('th', {}, 'Datei oder Ordner'), h('th', {}, 'Art'), h('th', {}, 'Name'), h('th', {}, 'Gruppe')), rows.map(r => r.row)))
+      h('p', {class:'hint'}, multi
+        ? 'Auf der Disc wurden ' + folders.length + ' Spiel(e) in eigenen Ordnern gefunden. Wähle je Ordner, zu welchem Spiel er gehört. Art, Name und Gruppe lassen sich ändern. Vorhandene Einträge bleiben, neue kommen dazu, ein Installer ersetzt den bisherigen.'
+        : 'Vorschlag für "' + (cur.name || 'Spiel ' + gi) + '". Art, Name und Gruppe lassen sich ändern. Vorhandene Einträge bleiben, neue kommen dazu, ein Installer ersetzt den bisherigen.'),
+      multi ? null : h('label', {class:'row', style:'align-items:center;gap:8px;margin:6px 0'}, h('span', {}, 'Liegt auf der Disc im Ordner:'), prefix, h('small', {}, 'leer lassen, wenn der gewählte Ordner die Wurzel der Disc ist')),
+      rows.length ? h('div', {class:'fplan'}, h('table', {}, head, body))
         : h('p', {class:'issue warn'}, 'Im Ordner wurden keine Programme (.exe) und keine Extras gefunden.'),
       h('div', {class:'row', style:'margin-top:10px'}, rows.length ? h('button', {type:'button', class:'pri', onclick: apply}, 'Übernehmen') : null, h('button', {type:'button', onclick:closeDlg}, 'Abbrechen')));
   }
