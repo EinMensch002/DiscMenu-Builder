@@ -535,7 +535,7 @@
   function openPreview(){
     const S = {page: state.games.length > 1 ? 'select' : 'game', cur: 0, cat: null, focus: null, silent: false, targets: {}, modal: null,
       result: 'ok', speed: 1, log: [], timers: new Set()};
-    const stage = h('div', {class:'stage'}), wrap = h('div', {class:'stagewrap'}, stage);
+    const stage = h('div', {class:'stage', 'data-notr':''}), wrap = h('div', {class:'stagewrap'}, stage);
     const logBox = h('div', {class:'simlog'});
     const say = (msg, strong) => { S.log.push([new Date().toLocaleTimeString('de-DE'), msg, strong]); if (S.log.length > 60) S.log.shift();
       logBox.replaceChildren(...S.log.map(([t,m,b]) => h('div', {}, t + '  ', b ? h('b', {}, m) : m))); logBox.scrollTop = logBox.scrollHeight; };

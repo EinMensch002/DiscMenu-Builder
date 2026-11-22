@@ -10,7 +10,7 @@
 
 Windows 7 ist nicht mehr Ziel. Das erleichtert die Technikauswahl, weil keine veralteten Systemversionen berücksichtigt werden müssen.
 
-Die Technik wird nach diesen Anforderungen ausgewählt, nicht umgekehrt. Das gilt für den **Player** und den **Builder**. Der **Konfigurator** ist eine Web-App und davon unabhängig (siehe [configurator.md](configurator.md)).
+Die Technik wird nach diesen Anforderungen ausgewählt, nicht umgekehrt. Das gilt für den **Player** und den **Builder**. Die **Web-App** (Disc-Menü und Cover & Hülle) läuft im Browser und ist davon unabhängig (siehe [web-app.md](web-app.md)).
 
 ## Entscheidung: Go mit Ebitengine
 

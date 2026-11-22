@@ -6,22 +6,22 @@
 |---|---|
 | Projektname | DiscMenu-Builder |
 | Rezept | `menu.json` (ohne Umlaut) plus Assets, als ZIP: `menu.json` im Root, Assets unter `assets/` |
-| Rezept erstellen | Konfigurator als Web-App im Browser, ohne Backend, als einzelne HTML-Datei (umgesetzt, siehe [configurator.md](configurator.md)) |
-| Hosting Konfigurator | Repo ist öffentlich, Veröffentlichung auf GitHub Pages. Die HTML-Datei lässt sich auch lokal nutzen |
-| Bedienform Konfigurator | Formular mit Spieleliste statt Blöcken |
+| Rezept erstellen | Web-App im Browser, ohne Backend, Code in mehreren Dateien, ein Build fasst sie zu einer HTML-Datei zusammen (umgesetzt, siehe [web-app.md](web-app.md)) |
+| Hosting Web-App | Repo ist öffentlich, Veröffentlichung auf GitHub Pages. Die HTML-Datei lässt sich auch lokal nutzen |
+| Bedienform Disc-Menü | Formular mit Spieleliste statt Blöcken |
 | Bildformat (vorläufig) | Cover PNG bis 800 Pixel, Hintergrund JPEG bis 1920 Pixel |
 | Bildquelle | SteamGridDB (Suche beim Hinzufügen und pro Bildfeld), siehe [steamgriddb.md](steamgriddb.md). Aus dem Browser nur über einen eigenen Proxy erreichbar |
 | Beschreibungen | Steam-Shop, GOG und Epic Games Store (jeweils auf Deutsch angefragt), englische Texte lassen sich über MyMemory übersetzen. Alle drei brauchen den Proxy |
 | Speichern | Projekte automatisch im Browser, ZIP-Export als Datei. Import legt ein neues Projekt an |
 | Zugangsdaten | API-Schlüssel und Proxy im Browser, per Datei sicherbar, optional mit Passwort verschlüsselt. Nie in ZIP oder Repo |
 | Format-Beschreibung | Gemeinsames JSON Schema in `schema/menu.schema.json`, wird in den Tests gegen Beispiel und Export geprüft |
-| Disc-Prüfung | Im Konfigurator über Ordnerzugriff (Chrome, Edge), nur lesend, ohne Beachtung der Groß-/Kleinschreibung. Auch der Builder prüft mit `-disc <Ordner>`, ob Installer und Extras im Disc-Ordner vorhanden sind |
+| Disc-Prüfung | In der Web-App über Ordnerzugriff (Chrome, Edge), nur lesend, ohne Beachtung der Groß-/Kleinschreibung. Auch der Builder prüft mit `-disc <Ordner>`, ob Installer und Extras im Disc-Ordner vorhanden sind |
 | Technik Player/Builder | Go mit Ebitengine, 64 Bit, eine EXE, bauen ohne C-Compiler (siehe [platforms-and-tech.md](platforms-and-tech.md)) |
 | Anbieter | `provider` ist `gog` (Standard), `epic` oder `steam`. Jeder hat Abzeichen und Farbe im Menü, nur Text ohne Logos. GOG: Inno-Parameter. Epic: normal, still nur mit eigenen `args`. Steam: nur Anzeige, bis die Wiederherstellung geprüft ist |
 | Silent-Standard | Aus. Bei Aktivierung schlägt das Menü `C:\GOG Games\<Name>` vor |
 | Bildformat Player | PNG, JPEG und WebP werden gelesen |
-| Cover-Tool | Liegt im selben Repo und ist seit der Zusammenführung der Bereich "Hülle" der gemeinsamen Seite (`app/`, früher eigene Seite unter `/disc-sleeve/`): gleiches Thema, gleiche Pages-Veröffentlichung, später Übernahme aus der `menu.json` möglich. Altersfreigabe: USK |
-| Cover-Tool: andere Hüllenmaße | Keine festen Blu-ray-Maße, weil die Herstellerangaben abweichen. Stattdessen "Eigene Maße" mit Vorlagen als Richtwerte, die man nachmisst |
+| Hülle (früher Cover-Tool) | Liegt im selben Repo und ist seit der Zusammenführung der Bereich "Hülle" der gemeinsamen Seite (`app/`, früher eigene Seite unter `/disc-sleeve/`): gleiches Thema, gleiche Pages-Veröffentlichung, später Übernahme aus der `menu.json` möglich. Altersfreigabe: USK |
+| Hülle: andere Hüllenmaße | Keine festen Blu-ray-Maße, weil die Herstellerangaben abweichen. Stattdessen "Eigene Maße" mit Vorlagen als Richtwerte, die man nachmisst |
 | Rolle des Menüs | Forwarder: startet Original-Installer und öffnet Extras |
 | Erste Quelle | GOG. Steam später, dafür ist `provider` reserviert |
 | Spiele pro Disc | Eines oder mehrere. Reihenfolge über `index`, beginnend bei 0 |
@@ -46,4 +46,4 @@
 | Eigene Tabs | Genaues Format von `customTabs` (Version 2 des Formats?) |
 | Mehrsprachigkeit | Soll das Menü mehrere Sprachen unterstützen? |
 | Steam | Lässt sich die Wiederherstellung eines Backups auslösen? Zuerst prüfen |
-| Cover-Tool: Steam und SteamGridDB | Umgesetzt und mit nachgebauten Antworten getestet. Offen: Funktionieren die echten Dienste über den Proxy (Antwortformat, Sonderfälle bei den Anforderungen)? Prüfliste in [manuelle-pruefung.md](manuelle-pruefung.md) |
+| Hülle: Steam und SteamGridDB | Umgesetzt und mit nachgebauten Antworten getestet. Offen: Funktionieren die echten Dienste über den Proxy (Antwortformat, Sonderfälle bei den Anforderungen)? Prüfliste in [manuelle-pruefung.md](manuelle-pruefung.md) |

@@ -10,7 +10,7 @@ Das Format ist zusätzlich als JSON Schema beschrieben: [schema/menu.schema.json
 
 ## Rezept-Paket (ZIP)
 
-Der Konfigurator liefert (und der Builder liest) ein Rezept als ZIP mit diesem Aufbau:
+Die Web-App liefert (und der Builder liest) ein Rezept als ZIP mit diesem Aufbau (in der Projektdatei der Web-App steht statt `menu.json` eine `recipe.json`, siehe unten):
 
 ```
 rezept.zip
@@ -28,7 +28,7 @@ rezept.zip
 - Alle Assets liegen unter `assets/`. Die Pfade in der `menu.json` (z. B. `assets/covers/beispiel-spiel-1.png`) sind relativ zur `menu.json`.
 - Statt der ZIP funktioniert auch ein Ordner mit demselben Aufbau.
 - Statt `menu.json` darf die ZIP eine **`recipe.json`** enthalten, die Projektdatei der Web-App (Menü und Hülle in einer Beschreibung). Der Builder macht daraus die `menu.json`: der Bereich `menu`, beim Spiel `gameIndex` ergänzt um die gemeinsamen Angaben aus `game` (`title` → `name`, `provider`, `description`, `sizeMB` → `estimatedSizeMB`, `cover`). Der Bereich `cover` (die Hülle) spielt für das Menü keine Rolle. Aufbau: [Gemeinsames Projekt](configurator.md#gemeinsames-projekt-menü-und-hülle).
-- Der Konfigurator legt Bilder vorläufig als PNG (Cover, bis 800 Pixel) und JPEG (Hintergrund, bis 1920 Pixel) ab, Sounds als WAV, OGG oder MP3 (siehe [decisions.md](decisions.md)).
+- Die Web-App legt Bilder vorläufig als PNG (Cover, bis 800 Pixel) und JPEG (Hintergrund, bis 1920 Pixel) ab, Sounds als WAV, OGG oder MP3 (siehe [decisions.md](decisions.md)).
 
 ## Oberste Ebene
 
@@ -94,4 +94,4 @@ Ob die Installer- und Extra-Dateien auf der Disc vorhanden sind, kann der Builde
 
 ## Beispiel
 
-Siehe [examples/menu.example.json](../examples/menu.example.json).
+Siehe [examples/menu.example.json](../examples/menu.example.json). Dasselbe Menü als Projektdatei der Web-App (mit gemeinsamen Angaben und Hülle): [examples/recipe.example.json](../examples/recipe.example.json), ein Test prüft, dass beide dasselbe Menü beschreiben.
