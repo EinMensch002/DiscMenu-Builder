@@ -486,7 +486,10 @@
         group.placeholder = v === 'installer' ? 'keine Gruppe' : 'Gruppe';
       };
       kind.addEventListener('change', sync); sync();
-      return {p, kind, name, group, row: h('tr', {}, h('td', {class:'path'}, p.path), h('td', {}, kind), h('td', {}, name), h('td', {}, group))};
+      const r = {p, kind, name, group, removed: false};
+      const del = h('button', {type:'button', class:'sm xdel', title:'Aus dem Vorschlag entfernen', 'aria-label':'Entfernen', onclick: () => { r.removed = true; r.row.remove(); }}, '✕');
+      r.row = h('tr', {}, h('td', {class:'path'}, p.path), h('td', {}, kind), h('td', {}, name), h('td', {}, group), h('td', {}, del));
+      return r;
     });
     const apply = () => {
       const pre = prefix.value.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, ''), full = p => (pre ? pre + '/' : '') + p;
@@ -499,7 +502,7 @@
       };
       let n = 0;
       for (const r of rows){
-        const k = r.kind.value; if (k === 'skip') continue;
+        const k = r.kind.value; if (k === 'skip' || r.removed) continue;
         const g = gameFor(r); if (!g) continue;
         if (k === 'installer'){ g.installer = full(r.p.path); const nm = r.name.value.trim(); if (nm && nm !== g.name) g.name = nm; n++; continue; }
         if (g[k].some(it => it.path === full(r.p.path))) continue;                     // schon eingetragen
@@ -509,10 +512,10 @@
       sel = multi ? (games.size ? state.games.indexOf([...games.values()][0]) : gi) : gi; renderAll(); changed(); closeDlg();
       toast(n ? n + ' Eintrag/Einträge übernommen' + (multi ? ' (' + games.size + ' Spiel(e))' : '') + '. Die Prüfung rechts zeigt, ob noch etwas fehlt.' : 'Nichts übernommen.');
     };
-    const head = h('tr', {}, h('th', {}, 'Datei oder Ordner'), h('th', {}, 'Art'), h('th', {}, 'Name'), h('th', {}, 'Gruppe'));
+    const head = h('tr', {}, h('th', {}, 'Datei oder Ordner'), h('th', {}, 'Art'), h('th', {}, 'Name'), h('th', {}, 'Gruppe'), h('th', {}, ''));
     const body = multi
-      ? [...folders.map(d => [h('tr', {class:'ghead'}, h('td', {colspan:'4'}, h('b', {}, '📀 ' + d + '/'), ' ', target.get(d))), ...rows.filter(r => r.p.game === d).map(r => r.row)]).flat(),
-         ...(rows.some(r => !r.p.game) ? [h('tr', {class:'ghead'}, h('td', {colspan:'4'}, h('b', {}, 'Wurzel der Disc'), ' (meist die Menü-EXE selbst, wird nicht übernommen)')), ...rows.filter(r => !r.p.game).map(r => r.row)] : [])]
+      ? [...folders.map(d => [h('tr', {class:'ghead'}, h('td', {colspan:'5'}, h('b', {}, '📀 ' + d + '/'), ' ', target.get(d))), ...rows.filter(r => r.p.game === d).map(r => r.row)]).flat(),
+         ...(rows.some(r => !r.p.game) ? [h('tr', {class:'ghead'}, h('td', {colspan:'5'}, h('b', {}, 'Wurzel der Disc'), ' (meist die Menü-EXE selbst, wird nicht übernommen)')), ...rows.filter(r => !r.p.game).map(r => r.row)] : [])]
       : rows.map(r => r.row);
     dlg.classList.add('wide'); dlg.addEventListener('close', () => dlg.classList.remove('wide'), {once:true});        // breiter: Pfad, Art, Name und Gruppe nebeneinander
     openDlg('Spielordner "' + folder + '"',
