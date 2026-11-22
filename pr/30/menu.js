@@ -2,7 +2,7 @@
 /* === UI === */
 (() => {
   if (typeof document === 'undefined') return;
-  const {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, parseArgs, isUrl, checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText, packSettings, unpackSettings} = CORE;
+  const {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, parseArgs, isUrl, checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText} = CORE;
   const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Anleitungen','Musik','Artwork','Videos','Zusätze','Dokumente'], dlcs:[]};
   const MIME = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif',wav:'audio/wav',ogg:'audio/ogg',mp3:'audio/mpeg'};
   const assets = new Map(); let state = newState(); let sel = 0; let counter = 1; let touched = false;

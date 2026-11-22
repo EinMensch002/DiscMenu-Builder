@@ -707,7 +707,7 @@ body[data-view="menu"] [data-view="cover"], body[data-view="cover"] [data-view="
   <!-- Knöpfe, die nur zu einem Bereich gehören, stehen links neben dem Umschalter -->
   <button type="button" id="bPrev" class="pri" data-view="menu" title="Zeigt das Menü, wie es auf der Disc aussieht, mit simulierter Installation">Vorschau</button>
   <button type="button" id="bPrint" class="pri" data-view="cover">Drucken</button>
-  <span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version pr30-4dca8cb</span>
+  <span class="ver" id="ver" title="Stand dieser Seite: zeigt, welche Version geladen wurde">Version pr30-d85c238</span>
   <!-- Rechts: gleich in beiden Bereichen, alles gilt für das ganze Projekt (Menü und Hülle) -->
   <nav>
     <span class="saveinfo" id="autoInfo" aria-live="polite"></span>
@@ -1519,7 +1519,6 @@ body[data-view="menu"] [data-view="cover"], body[data-view="cover"] [data-view="
     'Das Menü wurde geladen. Die Hülle wurde aus dem Spiel vorbereitet (Titel, Anbieter, Beschreibung, Größe, Cover).': 'The menu was loaded. The case was prepared from the game (title, provider, description, size, cover).',
     'Die Hülle wurde geladen. Das Menü wurde aus der Hülle vorbereitet (ein Spiel mit Titel, Anbieter und Cover). Installer-Pfad und Weiteres im Bereich "Menü" ergänzen.': 'The case was loaded. The menu was prepared from the case (one game with title, provider and cover). Add the installer path and more in the "Menu" area.',
     'Projekt aus dem Browser-Speicher geladen': 'Project loaded from browser storage',
-    'Stand der bisherigen Tools übernommen': 'Imported the state of the previous tools',
     'Übersetzung (MyMemory)': 'Translation (MyMemory)',
     'In der ZIP fehlt die recipe.json. Das ist keine Projektdatei.': 'The ZIP is missing recipe.json. It is not a project file.',
     'Bereich': 'Area',
@@ -3588,17 +3587,10 @@ body[data-view="menu"] [data-view="cover"], body[data-view="cover"] [data-view="
   const ours = (e) => !e.closest('#viewMenu');
   const $ = (s, r = document) => (r === document ? [...r.querySelectorAll(s)].find(ours) || null : r.querySelector(s));
   const $$ = (s, r = document) => [...r.querySelectorAll(s)].filter(ours);
-  const STORE = 'discmenu-cover:v1';
-
-  let state = load();
+  let state = C.defaultState();          // das Projekt (auch die Hülle) speichert extras.js im Browser (IndexedDB discmenu-projekte)
   const images = {};      // key -> { url, w, h, name, svg }
   let dirty = false;
 
-  /* ---------- Speichern (nur Einstellungen, keine Bilder) ---------- */
-  function load() {
-    try { return C.mergeState(JSON.parse(localStorage.getItem(STORE))); } catch (e) { return C.defaultState(); }
-  }
-  function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* Speicher gesperrt: egal */ } }
 
   /* ---------- Zugriff auf verschachtelte Werte ("cpu.intel.pre") ---------- */
   const walk = (path) => path.split('.');
@@ -3783,7 +3775,7 @@ body[data-view="menu"] [data-view="cover"], body[data-view="cover"] [data-view="
     changes++; hooks.change.forEach((f) => f());
     if (dirty) return;
     dirty = true;
-    requestAnimationFrame(() => { dirty = false; render(); save(); });
+    requestAnimationFrame(() => { dirty = false; render(); });
   }
 
   /* ---------- Bilder: auf Druckgröße verkleinern, als Datei-Adresse statt als Base64-Text halten ---------- */
@@ -4226,7 +4218,7 @@ body[data-view="menu"] [data-view="cover"], body[data-view="cover"] [data-view="
       state = C.defaultState();
       hooks.reset.forEach((f) => f());
       syncControls();
-      render(); save();
+      render();
     });
     window.addEventListener('resize', fitPreview);
     const start = () => { render(); };
@@ -5459,41 +5451,7 @@ const CORE = (() => {
     if (out.length > max){ const cut = out.lastIndexOf('. ', max); out = cut > 200 ? out.slice(0, cut + 1) : out.slice(0, max).trim() + '…'; }
     return out;
   }
-  /* --- Einstellungen sichern (optional mit Passwort verschlüsselt) --- */
-  const b64 = u8 => { let t = ''; for (let i = 0; i < u8.length; i += 0x8000) t += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(t); };
-  const unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
-  const subtleOrNull = () => (globalThis.crypto && globalThis.crypto.subtle) || null;
-  async function deriveKey(password, salt, iterations){
-    const base = await subtleOrNull().importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
-    return subtleOrNull().deriveKey({name:'PBKDF2', salt, iterations, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
-  }
-  async function packSettings(values, password){
-    const plain = {type:'discmenu-settings', version:1, sgdbKey: values.key || '', proxy: values.proxy || ''};
-    if (!password) return JSON.stringify(plain, null, 2) + '\n';
-    if (!subtleOrNull()) throw new Error('Dieser Browser kann hier nicht verschlüsseln. Die Datei lässt sich nur ohne Passwort sichern.');
-    const salt = globalThis.crypto.getRandomValues(new Uint8Array(16)), iv = globalThis.crypto.getRandomValues(new Uint8Array(12)), iterations = 250000;
-    const key = await deriveKey(password, salt, iterations);
-    const data = new Uint8Array(await subtleOrNull().encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(JSON.stringify(plain))));
-    return JSON.stringify({type:'discmenu-settings', version:1, encrypted:true, kdf:'PBKDF2-SHA256', iterations, salt:b64(salt), iv:b64(iv), data:b64(data)}, null, 2) + '\n';
-  }
-  async function unpackSettings(text, password){
-    let j; try { j = JSON.parse(text); } catch (e) { throw new Error('Die Datei ist keine gültige Einstellungsdatei.'); }
-    if (!j || j.type !== 'discmenu-settings') throw new Error('Das ist keine Einstellungsdatei dieses Konfigurators.');
-    let plain = j;
-    if (j.encrypted){
-      if (!password) throw new Error('PASSWORD_NEEDED');
-      if (!subtleOrNull()) throw new Error('Dieser Browser kann hier nicht entschlüsseln.');
-      const it = Number(j.iterations); if (!(it >= 100000 && it <= 2000000)) throw new Error('Die Einstellungsdatei ist beschädigt.');
-      try {
-        const key = await deriveKey(password, unb64(j.salt), it);
-        plain = JSON.parse(new TextDecoder().decode(await subtleOrNull().decrypt({name:'AES-GCM', iv:unb64(j.iv)}, key, unb64(j.data))));
-      } catch (e) { throw new Error('Falsches Passwort oder beschädigte Datei.'); }
-    }
-    // Eine Datei ohne Zugangsdaten (z. B. nur eigene Vorlagen aus dem Cover-Tool) darf Schlüssel und Proxy nicht leeren
-    if (!('sgdbKey' in plain) && !('proxy' in plain)) throw new Error('Die Datei enthält keine Zugangsdaten.');
-    return {key: String(plain.sgdbKey || ''), proxy: String(plain.proxy || '')};
-  }
-  return {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, discRefs, checkDisc, packSettings, unpackSettings, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
+  return {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, discRefs, checkDisc, looksGerman, chunkText, trimIntro, rankByName, mdToText, epicText, htmlToText, normName, sortGrids, slug, parseArgs, fromArgs, isUrl, newItem, newGame, newState, crc32, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, SECTIONS};
 })();
 if (typeof module !== 'undefined') module.exports = CORE;
 else window.CORE = CORE;                    // auch für project.js und extras.js erreichbar (const allein ist keine Eigenschaft von window)
@@ -5504,7 +5462,7 @@ else window.CORE = CORE;                    // auch für project.js und extras.j
 /* === UI === */
 (() => {
   if (typeof document === 'undefined') return;
-  const {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, parseArgs, isUrl, checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText, packSettings, unpackSettings} = CORE;
+  const {PROVIDERS, silentAvailable, installCommand, defaultTarget, formatMB, describeResult, parseArgs, isUrl, checkDisc, slug, newItem, newGame, newState, buildZip, readZip, validate, buildMenu, parseMenu, usedIds, sane, htmlToText, rankByName, epicText, sortGrids, looksGerman, chunkText} = CORE;
   const GROUPS = {patches:['Spiel','Grafik','Sound','Sprache'], extras:['Anleitungen','Musik','Artwork','Videos','Zusätze','Dokumente'], dlcs:[]};
   const MIME = {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif',wav:'audio/wav',ogg:'audio/ogg',mp3:'audio/mpeg'};
   const assets = new Map(); let state = newState(); let sel = 0; let counter = 1; let touched = false;
@@ -6870,7 +6828,6 @@ else window.CORE = CORE;                    // auch für project.js und extras.j
   });
   const idbRunOn = async (name, store, mode, fn) => { const db = await idbOpenNamed(name, store); try { return await new Promise((res, rej) => { const tx = db.transaction(store, mode), q = fn(tx.objectStore(store)); tx.oncomplete = () => res(q && q.result); tx.onerror = () => rej(tx.error); }); } finally { db.close(); } };
   const idbRun = (mode, fn) => idbRunOn(IDB_NAME, IDB_STORE, mode, fn);
-  const dbExists = async (name) => { try { return indexedDB.databases ? (await indexedDB.databases()).some((d) => d.name === name) : true; } catch (e) { return true; } };
   const auto = $('#autoInfo');
   let browserReady = false, autoTimer = 0, lastAuto = '';
   const clock = () => new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -6885,31 +6842,13 @@ else window.CORE = CORE;                    // auch für project.js und extras.j
   }
   const scheduleAuto = () => { if (!browserReady) return; clearTimeout(autoTimer); autoTimer = setTimeout(saveToBrowser, 800); };
   const blobImages = async (imgs) => { const out = {}; for (const [k, v] of Object.entries(imgs || {})) out[k] = { data: await v.blob.arrayBuffer(), type: v.type, name: v.name }; return out; };
-  /* Beim Start: gemeinsames Projekt laden. Gibt es noch keins, die Stände der früheren getrennten Tools übernehmen (die alten Speicher bleiben unverändert). */
+  /* Beim Start: das zuletzt bearbeitete Projekt aus dem Browser-Speicher laden */
   async function loadFromBrowser() {
     const rec = await idbRun('readonly', (st) => st.get('current'));
     if (rec && rec.menu && rec.cover) {
       await applyProject({ kind: 'project', menu: { state: rec.menu.state, assets: new Map(rec.menu.assets || []), counter: rec.menu.counter }, cover: { state: rec.cover.state, images: await blobImages(rec.cover.images) }, link: rec.link });
       auto.textContent = 'Projekt aus dem Browser-Speicher geladen';
-      return;
     }
-    let menu = null, imgs = {};
-    if (await dbExists('discmenu-konfigurator')) {
-      try {
-        const id = await idbRunOn('discmenu-konfigurator', 'kv', 'readonly', (st) => st.get('current'));
-        const p = id && await idbRunOn('discmenu-konfigurator', 'kv', 'readonly', (st) => st.get('proj:' + id));
-        if (p && p.state) menu = { state: p.state, assets: new Map(p.assets || []), counter: p.counter };
-      } catch (e) { /* nichts übernehmen */ }
-    }
-    if (await dbExists('discmenu-cover')) {
-      try { const old = await idbRunOn('discmenu-cover', 'project', 'readonly', (st) => st.get('current')); if (old && old.images) imgs = await blobImages(old.images); } catch (e) { /* nichts übernehmen */ }
-    }
-    const coverState = App.state, hasCover = !!(coverState.title || Object.keys(imgs).length);
-    if (!menu && !hasCover) return;
-    const menuHasGame = !!(menu && menu.state.games.some((g) => g.name));
-    if (!menu) { const st = window.CORE.newState(); Object.assign(st.games[0], P.menuPatchFromCover(coverState)); st.title = st.games[0].name; menu = { state: st, assets: new Map(), counter: 1 }; }
-    await applyProject({ kind: menuHasGame ? 'recipe' : 'cover', menu, cover: { state: coverState, images: imgs }, link: P.defaultLink() });
-    auto.textContent = 'Stand der bisherigen Tools übernommen';
   }
 
   /* --- Speichern, Speichern unter, Öffnen ---

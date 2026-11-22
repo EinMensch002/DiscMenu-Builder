@@ -6,17 +6,10 @@
   const ours = (e) => !e.closest('#viewMenu');
   const $ = (s, r = document) => (r === document ? [...r.querySelectorAll(s)].find(ours) || null : r.querySelector(s));
   const $$ = (s, r = document) => [...r.querySelectorAll(s)].filter(ours);
-  const STORE = 'discmenu-cover:v1';
-
-  let state = load();
+  let state = C.defaultState();          // das Projekt (auch die Hülle) speichert extras.js im Browser (IndexedDB discmenu-projekte)
   const images = {};      // key -> { url, w, h, name, svg }
   let dirty = false;
 
-  /* ---------- Speichern (nur Einstellungen, keine Bilder) ---------- */
-  function load() {
-    try { return C.mergeState(JSON.parse(localStorage.getItem(STORE))); } catch (e) { return C.defaultState(); }
-  }
-  function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* Speicher gesperrt: egal */ } }
 
   /* ---------- Zugriff auf verschachtelte Werte ("cpu.intel.pre") ---------- */
   const walk = (path) => path.split('.');
@@ -201,7 +194,7 @@
     changes++; hooks.change.forEach((f) => f());
     if (dirty) return;
     dirty = true;
-    requestAnimationFrame(() => { dirty = false; render(); save(); });
+    requestAnimationFrame(() => { dirty = false; render(); });
   }
 
   /* ---------- Bilder: auf Druckgröße verkleinern, als Datei-Adresse statt als Base64-Text halten ---------- */
@@ -644,7 +637,7 @@
       state = C.defaultState();
       hooks.reset.forEach((f) => f());
       syncControls();
-      render(); save();
+      render();
     });
     window.addEventListener('resize', fitPreview);
     const start = () => { render(); };
