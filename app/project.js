@@ -174,14 +174,16 @@
      Ergebnis: Vorschläge [{ path, kind: 'installer'|'dlcs'|'patches'|'extras'|'skip', name, group, open }], die man vor dem Übernehmen ändern kann.
      Regeln nach dem Namen des obersten Ordners (Groß-/Kleinschreibung egal), sonst nach dem Dateityp. */
   const RULES = [
-    ['installer', /^(base[ _-]?game|game|hauptspiel|spiel|setup|install(er)?)$/i],
-    ['dlcs', /dlc|erweiterung|expansion|add[ _-]?on|story/i],
-    ['patches', /patch|fix|update|overhaul|mod|tweak|grafik|sprach/i],
-    ['extras', /extra|bonus|goodies|soundtrack|ost|music|musik|artbook|art|manual|handbuch|wallpaper|video/i],
+    // Ein Ordner gehört zu einer Art, wenn eines seiner Wörter (getrennt an _ - . und Leerzeichen) dazu passt; Mehrzahl und Wortende
+    // zählen mit (Patches, Grafikpatch, Erweiterungen). Nur allgemeine Begriffe, keine Namen bestimmter Spiele.
+    ['installer', /^(basegame|base|game|main|hauptspiel|spiel|setup|install|installer)$/],
+    ['dlcs', /(dlc|erweiterung|expansion|addon)(s|e|en)?$/],
+    ['patches', /^(patch|fix|hotfix|update|overhaul|mod|tweak)(s|es|e|en)?$|(patch|fix)(es|s|e|en)?$/],
+    ['extras', /^(extra|bonus|goodie|soundtrack|ost|music|musik|artbook|art|manual|handbuch|wallpaper|video)(s|es|e|en)?$/],
   ];
   const prettify = (s) => String(s || '').replace(/\.[^.]+$/, '').replace(/^setup_/i, '').replace(/[_]+/g, ' ').replace(/\s+/g, ' ').trim();
   /* Lesbarer Name aus einem Datei- oder Ordnernamen: ohne Endung, ohne Klammern, ohne "setup"/"installer", ohne Versionsnummern und Datum am Ende,
-     ohne den Spielnamen vorn (z. B. "deus_ex_soundtrack" bei "Deus Ex: …" -> "Soundtrack", "DXCU.3.4.1.2024-11-29.039" -> "DXCU"). */
+     ohne den Spielnamen vorn (z. B. "mein_spiel_soundtrack" bei "Mein Spiel: …" -> "Soundtrack", "FixPack.3.4.1.2024-11-29.039" -> "FixPack"). */
   function cleanName(raw, game) {
     let s = String(raw || '').replace(/\.[a-z0-9]{2,4}$/i, '').replace(/\([^)]*\)/g, ' ');
     let toks = s.split(/[\s._]+/).filter(Boolean).filter((t) => !/^(setup|installer|install)$/i.test(t));
@@ -215,7 +217,12 @@
   const groupOf = (folder) => prettify(folder).replace(/\b(und|and)\b/gi, '&');      // z. B. Patches_und_Fixes -> Patches & Fixes
   const words = (s) => String(s || '').toLowerCase().split(/[^a-z0-9äöüß]+/).filter(Boolean);
   const titleCase = (s) => cleanName(s, '').split(' ').map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(' ');
-  const kindOfTop = (t) => { for (const [k, re] of RULES) if (re.test(t)) return k; return null; };
+  const kindOfTop = (t) => {
+    const ws = String(t).toLowerCase().split(/[\s._-]+/).filter(Boolean), joined = ws.join('');
+    if (RULES[0][1].test(joined)) return 'installer';                       // Installer-Ordner: der ganze Name (base_game, Hauptspiel, Setup)
+    for (const [k, re] of RULES.slice(1)) if (ws.some((w) => re.test(w))) return k;
+    return null;
+  };
   const isExe = (p) => /\.exe$/i.test(p);
   const isSetup = (p) => /^(setup|install)/i.test(p.split('/').pop());
   /* Wie gut passen zwei Namen zusammen (Anteil gemeinsamer Wörter, 0 bis 1) */
@@ -265,7 +272,7 @@
   /* Vorschläge für einen gewählten Ordner. opts: { game: Name des gewählten Spiels, games: Namen aller Spiele im Menü }.
      Zwei Aufbauten werden erkannt:
      - Ein Spiel: der Ordner enthält Setups und/oder Ordner wie base_game, extras, Patches (Zeilen ohne "game").
-     - Mehrere Spiele: der Ordner enthält je Spiel einen Ordner (z. B. stronghold, stronghold_crusader) mit Programmen darin.
+     - Mehrere Spiele: der Ordner enthält je Spiel einen Ordner (z. B. spiel_eins, spiel_zwei) mit Programmen darin.
        Jede Zeile nennt dann ihren Spielordner (game), den Namen des Spiels (gameName) und das passende Spiel im Menü (gameIndex, -1 = neu).
        Programme direkt in der Wurzel (meist die Menü-EXE) und autorun.inf werden nicht übernommen. */
   function planFromFolder(entries, opts) {
@@ -277,8 +284,8 @@
     const rootSetup = list.some((e) => !e.dir && depth(e.path) === 1 && isExe(e.path) && isSetup(e.path));
     const multi = gameDirs.length > 0 && !tops.some((t) => kindOfTop(t)) && !rootSetup;
     if (!multi) return planGame(list, o.game || '', o.folder || '');
-    /* Ordner einem Spiel im Menü zuordnen: alle Wörter des Ordners kommen im Namen des Spiels vor (stronghold -> "Stronghold HD",
-       aber nicht stronghold_crusader -> "Stronghold HD"). Jedes Spiel nur einmal, das am besten passende Paar zuerst. */
+    /* Ordner einem Spiel im Menü zuordnen: alle Wörter des Ordners kommen im Namen des Spiels vor (mein_spiel -> "Mein Spiel HD",
+       aber nicht mein_spiel_zwei -> "Mein Spiel HD"). Jedes Spiel nur einmal, das am besten passende Paar zuerst. */
     const contained = (folder, name) => { const F = words(titleCase(folder)), N = words(name); return F.length && F.every((w) => N.includes(w)) ? F.length / N.length : 0; };
     const pairs = [];
     gameDirs.forEach((d) => names.forEach((n, i) => { const s = contained(d, n); if (s > 0) pairs.push([s, d, i]); }));

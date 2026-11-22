@@ -105,73 +105,73 @@ test('Verknüpfte Felder: Unterschiede in beide Richtungen', () => {
 
 test('Spielordner: Vorschläge nach den Ordnernamen, Teile eines Installers erscheinen nicht', () => {
   const plan = P.planFromFolder([
-    { path: 'base_game', dir: true }, { path: 'base_game/setup_deus_ex_goty.exe' }, { path: 'base_game/setup_deus_ex_goty-1.bin' },
+    { path: 'base_game', dir: true }, { path: 'base_game/setup_mein_spiel_gold.exe' }, { path: 'base_game/setup_mein_spiel_gold-1.bin' },
     { path: 'extras', dir: true }, { path: 'extras/Soundtrack', dir: true }, { path: 'extras/Soundtrack/01.mp3' }, { path: 'extras/manual.pdf' },
-    { path: 'Hauptspiel_Overhauls/GMDX/setup_gmdx.exe' }, { path: 'Patches_und_Fixes/Kentie/launcher_setup.exe' },
-    { path: 'Story_Erweiterungen/Nihilum/setup_nihilum.exe' }, { path: 'Sonstiges/tool.exe' },
+    { path: 'Hauptspiel_Overhauls/Retexture/setup_retexture.exe' }, { path: 'Patches_und_Fixes/Starthilfe/launcher_setup.exe' },
+    { path: 'Story_Erweiterungen/Kapitel2/setup_kapitel2.exe' }, { path: 'Sonstiges/tool.exe' },
   ]);
   const row = (p) => plan.find((x) => x.path === p);
-  assert.equal(row('base_game/setup_deus_ex_goty.exe').kind, 'installer');
+  assert.equal(row('base_game/setup_mein_spiel_gold.exe').kind, 'installer');
   assert.equal(plan.filter((x) => x.kind === 'installer').length, 1);
   assert.ok(!plan.some((x) => /\.bin$/.test(x.path)));
   assert.deepEqual([row('extras/Soundtrack').kind, row('extras/Soundtrack').open, row('extras/manual.pdf').name], ['extras', true, 'Manual']);
   assert.ok(!row('extras/Soundtrack/01.mp3'), 'Inhalt eines Extra-Ordners wird als Ordner geöffnet');
-  assert.deepEqual([row('Hauptspiel_Overhauls/GMDX/setup_gmdx.exe').kind, row('Hauptspiel_Overhauls/GMDX/setup_gmdx.exe').name, row('Hauptspiel_Overhauls/GMDX/setup_gmdx.exe').group], ['patches', 'GMDX', 'Hauptspiel Overhauls']);
-  assert.equal(row('Patches_und_Fixes/Kentie/launcher_setup.exe').group, 'Patches & Fixes');
-  assert.deepEqual([row('Story_Erweiterungen/Nihilum/setup_nihilum.exe').kind, row('Story_Erweiterungen/Nihilum/setup_nihilum.exe').name], ['dlcs', 'Nihilum']);
+  assert.deepEqual([row('Hauptspiel_Overhauls/Retexture/setup_retexture.exe').kind, row('Hauptspiel_Overhauls/Retexture/setup_retexture.exe').name, row('Hauptspiel_Overhauls/Retexture/setup_retexture.exe').group], ['patches', 'Retexture', 'Hauptspiel Overhauls']);
+  assert.equal(row('Patches_und_Fixes/Starthilfe/launcher_setup.exe').group, 'Patches & Fixes');
+  assert.deepEqual([row('Story_Erweiterungen/Kapitel2/setup_kapitel2.exe').kind, row('Story_Erweiterungen/Kapitel2/setup_kapitel2.exe').name], ['dlcs', 'Kapitel2']);
   assert.equal(row('Sonstiges/tool.exe').kind, 'skip', 'Unbekanntes wird nicht übernommen, lässt sich aber zuordnen');
 });
 
 test('Spielordner: lesbare Namen und Gruppen für Extras', () => {
   const plan = P.planFromFolder([
-    { path: 'extras/deus_ex_soundtrack', dir: true }, { path: 'extras/deus_ex_soundtrack/01.mp3' }, { path: 'extras/deus_ex_wallpapers', dir: true },
-    { path: 'extras/Deus Ex manual.pdf' }, { path: 'extras/deus ex reference card.pdf' }, { path: 'extras/Deus Ex newspaper handout.pdf' },
+    { path: 'extras/mein_spiel_soundtrack', dir: true }, { path: 'extras/mein_spiel_soundtrack/01.mp3' }, { path: 'extras/mein_spiel_wallpapers', dir: true },
+    { path: 'extras/Mein Spiel manual.pdf' }, { path: 'extras/mein spiel reference card.pdf' }, { path: 'extras/Mein Spiel newspaper handout.pdf' },
     { path: 'extras/Bilder', dir: true }, { path: 'extras/Bilder/a.jpg' }, { path: 'extras/Bilder/b.png' },
-    { path: 'Patches_und_Fixes/DXCU.3.4.1.2024-11-29.039.exe' }, { path: 'Story_Erweiterungen/The_Nameless_Mod_Installer_2025-11-5_1723.exe' },
-    { path: 'Story_Erweiterungen/2027_1.2.1.exe' },
-  ], { game: 'Deus Ex: Game of the Year Edition' });
+    { path: 'Patches_und_Fixes/FixPack.3.4.1.2024-11-29.039.exe' }, { path: 'Story_Erweiterungen/Die_Grosse_Mod_Installer_2025-11-5_1723.exe' },
+    { path: 'Story_Erweiterungen/2099_1.2.1.exe' },
+  ], { game: 'Mein Spiel: Gold Edition' });
   const by = (p) => plan.find((x) => x.path === p);
-  assert.deepEqual([by('extras/deus_ex_soundtrack').name, by('extras/deus_ex_soundtrack').group], ['Soundtrack', 'Musik']);
-  assert.deepEqual([by('extras/deus_ex_wallpapers').name, by('extras/deus_ex_wallpapers').group], ['Wallpapers', 'Artwork']);
-  assert.deepEqual([by('extras/Deus Ex manual.pdf').name, by('extras/Deus Ex manual.pdf').group], ['Manual', 'Anleitungen']);
-  assert.equal(by('extras/deus ex reference card.pdf').group, 'Anleitungen');
-  assert.equal(by('extras/Deus Ex newspaper handout.pdf').group, 'Zusätze');
+  assert.deepEqual([by('extras/mein_spiel_soundtrack').name, by('extras/mein_spiel_soundtrack').group], ['Soundtrack', 'Musik']);
+  assert.deepEqual([by('extras/mein_spiel_wallpapers').name, by('extras/mein_spiel_wallpapers').group], ['Wallpapers', 'Artwork']);
+  assert.deepEqual([by('extras/Mein Spiel manual.pdf').name, by('extras/Mein Spiel manual.pdf').group], ['Manual', 'Anleitungen']);
+  assert.equal(by('extras/mein spiel reference card.pdf').group, 'Anleitungen');
+  assert.equal(by('extras/Mein Spiel newspaper handout.pdf').group, 'Zusätze');
   assert.equal(by('extras/Bilder').group, 'Artwork', 'Ordner mit Bildern');
   assert.deepEqual(plan.filter((x) => x.kind === 'extras').map((x) => x.group), ['Anleitungen', 'Anleitungen', 'Musik', 'Artwork', 'Artwork', 'Zusätze'], 'nach Gruppen geordnet');
-  assert.equal(by('Patches_und_Fixes/DXCU.3.4.1.2024-11-29.039.exe').name, 'DXCU');
-  assert.equal(by('Story_Erweiterungen/The_Nameless_Mod_Installer_2025-11-5_1723.exe').name, 'The Nameless Mod');
-  assert.equal(by('Story_Erweiterungen/2027_1.2.1.exe').name, '2027');
+  assert.equal(by('Patches_und_Fixes/FixPack.3.4.1.2024-11-29.039.exe').name, 'FixPack');
+  assert.equal(by('Story_Erweiterungen/Die_Grosse_Mod_Installer_2025-11-5_1723.exe').name, 'Die Grosse Mod');
+  assert.equal(by('Story_Erweiterungen/2099_1.2.1.exe').name, '2099');
 });
 
 test('Spielordner: der Installer des Spiels trägt den Namen des Spiels', () => {
-  const exe = 'base_game/setup_deus_ex_goty_1.112fm(revision_1.6.3.0)_(51757).exe';
-  assert.equal(P.planFromFolder([{ path: exe }], { game: 'Deus Ex: Game of the Year Edition' })[0].name, 'Deus Ex: Game of the Year Edition');
-  assert.equal(P.planFromFolder([{ path: exe }])[0].name, 'Deus ex goty', 'ohne Spielnamen: der Dateiname ohne Version');
+  const exe = 'base_game/setup_mein_spiel_gold_1.112fm(revision_1.6.3.0)_(51757).exe';
+  assert.equal(P.planFromFolder([{ path: exe }], { game: 'Mein Spiel: Gold Edition' })[0].name, 'Mein Spiel: Gold Edition');
+  assert.equal(P.planFromFolder([{ path: exe }])[0].name, 'Mein spiel gold', 'ohne Spielnamen: der Dateiname ohne Version');
 });
 
 test('Spielordner: Disc mit mehreren Spielen in eigenen Ordnern', () => {
-  const L = [{ path: 'autorun.inf' }, { path: 'stronghold-launcher.exe' },
-    { path: 'stronghold/setup_stronghold_2.0.0.9.exe' }, { path: 'stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe' }, { path: 'stronghold/SuperCastleAttack.exe' },
-    { path: 'stronghold/Bonus/stronghold_manual.pdf' }, { path: 'stronghold/Bonus/stronghold_hd_soundtrack', dir: true },
-    { path: 'stronghold_crusader/setup_stronghold_crusader_2.0.0.2.exe' }, { path: 'stronghold_crusader/setup_stronghold_crusader_extreme_hd_1.41(a)_(german)_(45299).exe' }];
+  const L = [{ path: 'autorun.inf' }, { path: 'disc-menue.exe' },
+    { path: 'burgspiel/setup_burgspiel_2.0.0.9.exe' }, { path: 'burgspiel/setup_burgspiel_hd_1.41_(german)_(20341).exe' }, { path: 'burgspiel/Minispiel.exe' },
+    { path: 'burgspiel/Bonus/burgspiel_manual.pdf' }, { path: 'burgspiel/Bonus/burgspiel_hd_soundtrack', dir: true },
+    { path: 'burgspiel_kreuzzug/setup_burgspiel_kreuzzug_2.0.0.2.exe' }, { path: 'burgspiel_kreuzzug/setup_burgspiel_kreuzzug_extra_hd_1.41(a)_(german)_(45299).exe' }];
   let plan = P.planFromFolder(L);
   const by = (p) => plan.find((x) => x.path === p);
-  assert.deepEqual([...new Set(plan.map((x) => x.game))], ['stronghold', 'stronghold_crusader', ''], 'je Spielordner, dazu die Wurzel');
-  assert.deepEqual([by('stronghold/setup_stronghold_2.0.0.9.exe').kind, by('stronghold/setup_stronghold_2.0.0.9.exe').name], ['installer', 'Stronghold'], 'ohne Spiel im Menü: das Setup mit dem kürzesten Namen');
-  assert.equal(by('stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe').kind, 'dlcs', 'ein weiteres Setup wird DLC');
-  assert.deepEqual([by('stronghold/SuperCastleAttack.exe').kind, by('stronghold/SuperCastleAttack.exe').open], ['extras', true], 'andere Programme werden gestartet');
-  assert.deepEqual([by('stronghold/Bonus/stronghold_manual.pdf').name, by('stronghold/Bonus/stronghold_manual.pdf').group], ['Manual', 'Anleitungen'], 'Ordnername vorn entfernt');
-  assert.deepEqual([by('stronghold-launcher.exe').kind, by('stronghold-launcher.exe').game], ['skip', ''], 'die Menü-EXE in der Wurzel wird nicht übernommen');
+  assert.deepEqual([...new Set(plan.map((x) => x.game))], ['burgspiel', 'burgspiel_kreuzzug', ''], 'je Spielordner, dazu die Wurzel');
+  assert.deepEqual([by('burgspiel/setup_burgspiel_2.0.0.9.exe').kind, by('burgspiel/setup_burgspiel_2.0.0.9.exe').name], ['installer', 'Burgspiel'], 'ohne Spiel im Menü: das Setup mit dem kürzesten Namen');
+  assert.equal(by('burgspiel/setup_burgspiel_hd_1.41_(german)_(20341).exe').kind, 'dlcs', 'ein weiteres Setup wird DLC');
+  assert.deepEqual([by('burgspiel/Minispiel.exe').kind, by('burgspiel/Minispiel.exe').open], ['extras', true], 'andere Programme werden gestartet');
+  assert.deepEqual([by('burgspiel/Bonus/burgspiel_manual.pdf').name, by('burgspiel/Bonus/burgspiel_manual.pdf').group], ['Manual', 'Anleitungen'], 'Ordnername vorn entfernt');
+  assert.deepEqual([by('disc-menue.exe').kind, by('disc-menue.exe').game], ['skip', ''], 'die Menü-EXE in der Wurzel wird nicht übernommen');
   assert.ok(!by('autorun.inf'));
-  assert.equal(by('stronghold_crusader/setup_stronghold_crusader_2.0.0.2.exe').gameName, 'Stronghold Crusader');
+  assert.equal(by('burgspiel_kreuzzug/setup_burgspiel_kreuzzug_2.0.0.2.exe').gameName, 'Burgspiel Kreuzzug');
   // mit Spielen im Menü: passender Ordner zum passenden Spiel, der passende Installer
-  plan = P.planFromFolder(L, { games: ['Stronghold HD'] });
-  assert.equal(by('stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe').kind, 'installer', 'HD passt zu "Stronghold HD"');
-  assert.equal(by('stronghold/setup_stronghold_hd_1.41_(german)_(20341).exe').gameIndex, 0);
-  assert.equal(by('stronghold_crusader/setup_stronghold_crusader_2.0.0.2.exe').gameIndex, -1, 'Crusader gehört nicht zu "Stronghold HD"');
+  plan = P.planFromFolder(L, { games: ['Burgspiel HD'] });
+  assert.equal(by('burgspiel/setup_burgspiel_hd_1.41_(german)_(20341).exe').kind, 'installer', 'HD passt zu "Burgspiel HD"');
+  assert.equal(by('burgspiel/setup_burgspiel_hd_1.41_(german)_(20341).exe').gameIndex, 0);
+  assert.equal(by('burgspiel_kreuzzug/setup_burgspiel_kreuzzug_2.0.0.2.exe').gameIndex, -1, 'Kreuzzug gehört nicht zu "Burgspiel HD"');
   // ein einzelner Spielordner: wie bisher ein Spiel, der Ordnername wird vorn aus den Namen entfernt
-  plan = P.planFromFolder(L.filter((e) => e.path.startsWith('stronghold/')).map((e) => ({ path: e.path.slice(11) })), { game: 'Stronghold HD', folder: 'stronghold' });
+  plan = P.planFromFolder(L.filter((e) => e.path.startsWith('burgspiel/')).map((e) => ({ path: e.path.slice('burgspiel/'.length) })), { game: 'Burgspiel HD', folder: 'burgspiel' });
   assert.ok(plan.every((x) => !x.game));
-  assert.equal(by('setup_stronghold_hd_1.41_(german)_(20341).exe').kind, 'installer');
-  assert.equal(by('Bonus/stronghold_manual.pdf').name, 'Manual');
+  assert.equal(by('setup_burgspiel_hd_1.41_(german)_(20341).exe').kind, 'installer');
+  assert.equal(by('Bonus/burgspiel_manual.pdf').name, 'Manual');
 });
