@@ -1,0 +1,62 @@
+name: Fehler, Idee oder Frage
+description: Fehler melden, eine Idee vorschlagen oder etwas fragen
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke! Die Labels werden nach dem Absenden **automatisch** aus Deinen Angaben gesetzt (dauert etwa eine Minute). Änderst Du später die Auswahl, passen sich die Labels an.
+  - type: dropdown
+    id: art
+    attributes:
+      label: Art
+      description: Worum geht es? (Mehrfachauswahl möglich)
+      multiple: true
+      options:
+        - Fehler
+        - Idee oder Wunsch
+        - Frage
+        - Dokumentation
+        - Barrierefreiheit
+    validations:
+      required: true
+  - type: dropdown
+    id: bereich
+    attributes:
+      label: Bereich
+      description: Welcher Teil des Projekts ist betroffen? (Mehrfachauswahl möglich)
+      multiple: true
+      options:
+        - Konfigurator
+        - DiscSleeve
+        - Builder
+        - Player
+        - Proxy
+        - Tests und Veröffentlichung
+    validations:
+      required: true
+  - type: textarea
+    id: beschreibung
+    attributes:
+      label: Beschreibung
+      description: Bei Fehlern - was hast Du gemacht, was ist passiert, was hättest Du erwartet? Bei Ideen - was soll möglich sein und wofür?
+    validations:
+      required: true
+  - type: textarea
+    id: schritte
+    attributes:
+      label: Schritte zum Nachstellen oder Beispiel
+      description: Optional. Screenshots kannst Du hier hineinziehen.
+      placeholder: |
+        1. DiscSleeve öffnen
+        2. …
+  - type: input
+    id: umgebung
+    attributes:
+      label: Browser oder System
+      placeholder: z. B. Chrome 130 auf Windows 11, Samsung Internet auf dem Tablet
+  - type: checkboxes
+    id: stand
+    attributes:
+      label: Stand
+      options:
+        - label: Muss auf einem echten Gerät geprüft werden (Drucker, Disc, Windows, Wine)
