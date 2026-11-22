@@ -187,4 +187,6 @@
 #viewMenu .fplan th {position:sticky;top:0;background:var(--panel2);font-weight:600}
 #viewMenu .fplan td.path {font:12px ui-monospace,Consolas,monospace;word-break:break-all;color:var(--mut)}
 #viewMenu .fplan input, #viewMenu .fplan select {padding:5px 8px;font-size:13px}
+#viewMenu .fplan select {min-width:150px}
+#viewMenu .fplan td.path {min-width:260px}
 @media print { #viewMenu { display: none !important; } }

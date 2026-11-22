@@ -180,8 +180,37 @@
     ['extras', /extra|bonus|goodies|soundtrack|ost|music|musik|artbook|art|manual|handbuch|wallpaper|video/i],
   ];
   const prettify = (s) => String(s || '').replace(/\.[^.]+$/, '').replace(/^setup_/i, '').replace(/[_]+/g, ' ').replace(/\s+/g, ' ').trim();
+  /* Lesbarer Name aus einem Datei- oder Ordnernamen: ohne Endung, ohne Klammern, ohne "setup"/"installer", ohne Versionsnummern und Datum am Ende,
+     ohne den Spielnamen vorn (z. B. "deus_ex_soundtrack" bei "Deus Ex: …" -> "Soundtrack", "DXCU.3.4.1.2024-11-29.039" -> "DXCU"). */
+  function cleanName(raw, game) {
+    let s = String(raw || '').replace(/\.[a-z0-9]{2,4}$/i, '').replace(/\([^)]*\)/g, ' ');
+    let toks = s.split(/[\s._]+/).filter(Boolean).filter((t) => !/^(setup|installer|install)$/i.test(t));
+    const isVer = (t) => /^v?\d+([.-]\d+)*[a-z]{0,3}$/i.test(t) || /^\d{4}-\d{1,2}-\d{1,2}$/.test(t);
+    while (toks.length > 1 && isVer(toks[toks.length - 1])) toks.pop();
+    const gw = String(game || '').toLowerCase().split(/[^a-z0-9äöüß]+/).filter(Boolean);
+    let i = 0; while (i < gw.length && i < toks.length - 1 && toks[i].toLowerCase() === gw[i]) i++;
+    if (i >= 2 || (i === 1 && gw.length === 1)) toks = toks.slice(i);
+    const n = toks.join(' ').trim();
+    return n ? n[0].toUpperCase() + n.slice(1) : prettify(raw);
+  }
+  /* Gruppe eines Extras nach Name und Inhalt: Anleitungen, Musik, Artwork, Videos, sonst Zusätze (z. B. Zeitung, Erfolgsliste) */
+  const EXTRA_GROUPS = [
+    ['Anleitungen', /manual|handbuch|anleitung|reference|referenz|guide|quick.?start|readme|walkthrough|l(ö|oe)sung|keyboard|tastatur|card|karte/i, null],
+    ['Musik', /soundtrack|\bost\b|music|musik|audio|score/i, /\.(mp3|flac|ogg|wav|m4a|aac)$/i],
+    ['Artwork', /wallpaper|artbook|\bart\b|artwork|concept|poster|screenshot|avatar|icon/i, /\.(jpe?g|png|webp|gif|bmp)$/i],
+    ['Videos', /video|trailer|making.?of|intro|cinematic/i, /\.(mp4|mkv|avi|webm|mov|wmv)$/i],
+  ];
+  const EXTRA_ORDER = ['Anleitungen', 'Musik', 'Artwork', 'Videos', 'Zusätze'];
+  function extraGroup(path, list) {
+    const name = path.split('/').pop();
+    for (const [g, re] of EXTRA_GROUPS) if (re.test(name.replace(/[_.-]+/g, ' '))) return g;
+    const inner = list.filter((x) => !x.dir && x.path.startsWith(path + '/')).map((x) => x.path);
+    for (const [g, , ext] of EXTRA_GROUPS) if (ext && (ext.test(name) || (inner.length && inner.filter((f) => ext.test(f)).length * 2 >= inner.length))) return g;
+    return 'Zusätze';
+  }
   const groupOf = (folder) => prettify(folder).replace(/\b(und|and)\b/gi, '&');      // z. B. Patches_und_Fixes -> Patches & Fixes
-  function planFromFolder(entries) {
+  function planFromFolder(entries, opts) {
+    const game = (opts && opts.game) || '';
     const list = (entries || []).map((e) => ({ path: String(e.path).replace(/\\/g, '/').replace(/^\/+/, ''), dir: !!e.dir })).filter((e) => e.path);
     const top = (p) => p.split('/')[0], depth = (p) => p.split('/').length;
     const kindOfTop = (t) => { for (const [k, re] of RULES) if (re.test(t)) return k; return null; };
@@ -191,12 +220,14 @@
       const inside = list.filter((e) => top(e.path) === t && e.path !== t), kind = kindOfTop(t);
       if (!inside.length) {                                     // Datei direkt in der Wurzel
         const e = list.find((x) => x.path === t);
-        if (e && !e.dir && isExe(t)) out.push({ path: t, kind: seenInstaller.done ? 'skip' : 'installer', name: prettify(t), group: '', open: false });
+        if (e && !e.dir && isExe(t)) out.push({ path: t, kind: seenInstaller.done ? 'skip' : 'installer', name: cleanName(t, game), group: '', open: false });
         if (e && !e.dir && isExe(t)) seenInstaller.done = true;
         continue;
       }
       if (kind === 'extras') {                                   // Extras: jede Datei oder jeder Unterordner direkt darin wird geöffnet
-        for (const e of inside.filter((x) => depth(x.path) === 2)) out.push({ path: e.path, kind: 'extras', name: prettify(e.path.split('/')[1]), group: '', open: true });
+        const ex = inside.filter((x) => depth(x.path) === 2).map((e) => ({ path: e.path, kind: 'extras', name: cleanName(e.path.split('/')[1], game), group: extraGroup(e.path, list), open: true }));
+        ex.sort((a, b) => EXTRA_ORDER.indexOf(a.group) - EXTRA_ORDER.indexOf(b.group));          // nach Gruppen geordnet: Anleitungen zuerst, Zusätze zuletzt
+        out.push(...ex);
         continue;
       }
       // Installer-Ordner: Programme (.exe), die Teile eines Installers (.bin) gehören zur .exe und erscheinen nicht
@@ -205,14 +236,14 @@
         let k = kind || 'skip';
         if (k === 'installer') { k = seenInstaller.done ? 'patches' : 'installer'; seenInstaller.done = true; }
         const parts = e.path.split('/'), sub = parts.length > 2 ? parts[parts.length - 2] : '';
-        out.push({ path: e.path, kind: k, name: prettify(sub || parts[parts.length - 1]), group: k === 'patches' ? groupOf(t) : '', open: false });      // eigener Unterordner = Name, oberster Ordner = Gruppe
+        out.push({ path: e.path, kind: k, name: cleanName(sub || parts[parts.length - 1], game), group: k === 'patches' ? groupOf(t) : '', open: false });      // eigener Unterordner = Name, oberster Ordner = Gruppe
       });
     }
     return out;
   }
   const KINDS = ['installer', 'dlcs', 'patches', 'extras', 'skip'];
 
-  const api = { FORMAT, VERSION, pack, build, read, readJson, readRecipe, menuJsonFromRecipe, stripShared, coverPatchFromMenu, menuPatchFromCover, coverDiff, menuDiff, linkedGame, normLink, defaultLink, planFromFolder, KINDS };
+  const api = { FORMAT, VERSION, pack, build, read, readJson, readRecipe, menuJsonFromRecipe, stripShared, coverPatchFromMenu, menuPatchFromCover, coverDiff, menuDiff, linkedGame, normLink, defaultLink, planFromFolder, cleanName, KINDS };
   if (node) module.exports = api;
   else root.DiscProject = api;
 })(typeof window !== 'undefined' ? window : globalThis);
