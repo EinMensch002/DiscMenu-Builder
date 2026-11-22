@@ -22,7 +22,7 @@ async function run(body, labels = []) {
 const form = (art, bereich, device) => '### Art\n\n' + art + '\n\n### Bereich\n\n' + bereich + '\n\n### Beschreibung\n\nText\n\n### Stand\n\n- [' + (device ? 'x' : ' ') + '] Muss auf einem echten Gerät geprüft werden (Drucker, Disc, Windows, Wine)';
 
 test('Issue-Formular: Art, Bereiche und Stand werden zu Labels', async () => {
-  assert.deepEqual(await run(form('Idee oder Wunsch, Frage', 'DiscSleeve, Tests und Veröffentlichung', true)),
+  assert.deepEqual(await run(form('Idee oder Wunsch, Frage', 'Cover & Hülle (Web-App), Tests und Veröffentlichung', true)),
     { added: ['ci', 'discsleeve', 'enhancement', 'idee', 'manuell testen', 'question'], removed: [] });
 });
 

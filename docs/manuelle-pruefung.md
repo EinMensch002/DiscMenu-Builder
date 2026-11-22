@@ -1,4 +1,8 @@
-# Gemeinsame Seite (Menü und Hülle)
+# Manuelle Prüfung der Web-App
+
+Die Web-App ist mit nachgebauten Diensten und im Browser-Druck getestet. Diese Punkte brauchen echte Dienste, echte Ordner, einen echten Drucker oder ein Tablet.
+
+### Gemeinsame Seite und Projekt
 
 - [ ] **Umschalten:** Oben zwischen "Menü" und "Hülle" wechseln (PC und Tab S10): Die Seite lädt nicht neu, Eingaben im jeweils anderen Bereich bleiben erhalten, die Knöpfe der Leiste passen sich an.
 - [ ] **Alte Adressen:** `/disc-sleeve/` und `/cover/` öffnen direkt die Hülle, Neuladen bleibt im gewählten Bereich.
@@ -10,15 +14,14 @@
 - [ ] **recipe.json bearbeiten:** Sonstiges → recipe.json bearbeiten: Reiter Gemeinsam, Menü, Hülle; den Titel unter "Gemeinsam" ändern, übernehmen: Menü und Hülle zeigen ihn.
 - [ ] **Spielordner einlesen:** Daten übernehmen → Spielordner einlesen, einen echten Spielordner (z. B. DISK 1 mit base_game, extras, Patches …) wählen. Der Vorschlag stimmt im Wesentlichen, eine Zeile umstellen, übernehmen: Einträge stehen im Menü, "Disc-Ordner prüfen" findet alle Pfade.
 - [ ] **Rückenlogo:** Spiel-Logo auf dem Rücken, dann Anbieter und Hülle (Normal, Slim, Blu-ray) wechseln: Das Logo springt nicht und sitzt sofort richtig.
-- [ ] **Übernahme alter Stände:** Auf einem Gerät, das die alten Tools benutzt hat, zeigt die neue Seite beim ersten Start den früheren Stand (Konfigurator-Projekt und Hülle).
 - [ ] **Design:** Menü und Hülle sehen gleich hell aus (Farben, Knöpfe, Felder), auch auf dem Tablet.
 - [ ] **Drucken:** Aus dem Bereich "Hülle" erscheint nur das Blatt, nichts vom Menü.
 
-# Manuelle Prüfung des Konfigurators
+### Bereich Disc-Menü
 
 Diese Punkte lassen sich nicht automatisch testen, weil sie echte Dienste oder echte Browser brauchen. Abhaken, sobald geprüft, und Auffälligkeiten als Issue anlegen. Voraussetzung für die Dienste: ein eigener Proxy (siehe [steamgriddb.md](steamgriddb.md)) und ein SteamGridDB-Schlüssel.
 
-## Beschreibungssuche (mit Proxy)
+### Beschreibungssuche (mit Proxy)
 
 - [ ] **Steam:** "Beschreibung suchen" für ein bekanntes Spiel (z. B. Portal 2). Es erscheint ein deutscher Text.
 - [ ] **GOG:** Suche liefert einen Treffer mit Text. Falls nicht: Fehlermeldung notieren, Antwortformat von `https://catalog.gog.com/v1/catalog?query=like:<Name>` und `https://api.gog.com/products/<id>?expand=description` prüfen.
@@ -26,59 +29,24 @@ Diese Punkte lassen sich nicht automatisch testen, weil sie echte Dienste oder e
 - [ ] **Übersetzung:** Ein englischer Text wird über MyMemory ins Deutsche übersetzt, auch bei langen Texten (mehrere Teile).
 - [ ] **Nur eine Quelle fällt aus:** Die übrigen Quellen zeigen weiterhin Treffer, die Fehlermeldung erscheint nur einmal.
 
-## SteamGridDB
+### SteamGridDB
 
 - [ ] Spiel hinzufügen (Suche, Cover und Hintergrund wählen).
 - [ ] Bildsuche pro Feld (Cover, Hintergrund).
 - [ ] Einstellungen sichern und wieder einlesen, einmal ohne und einmal mit Passwort.
 
-## Browser
+### Browser
 
 - [ ] **Chrome am Computer:** ZIP mit "Speichern unter" und mit "Überschreiben". Import über den Dateidialog verknüpft die Datei.
 - [ ] **Chrome am Computer:** "Disc-Ordner prüfen" mit einem echten Disc-Ordner (oder einem Ordner, der so aufgebaut ist).
 - [ ] **Android-Chrome:** Bedienung per Touch, Bilder per Antippen, Export als Download, Vorschau und JSON-Ansicht lesbar.
 - [ ] **Firefox oder Safari:** Alles außer Dateiauswahl, Überschreiben und Disc-Prüfung funktioniert.
 
-# Manuelle Prüfung von Player und Builder
+### Bereich Cover & Hülle
 
-Der Player wurde bisher nur unter Linux (Xvfb) und als Windows-Build geprüft. Diese Punkte brauchen echte Systeme.
+Diese Punkte brauchen echte Dienste und einen echten Drucker. Voraussetzung für die Dienste: derselbe Proxy und SteamGridDB-Schlüssel wie im Disc-Menü (Einstellungen im Cover & Hülle prüfen, auf Pages sollten sie schon da sein).
 
-## Windows 10/11
-
-- [ ] `Builder.exe` mit einer ZIP aus dem Konfigurator: Menü-EXE entsteht. Drag-and-drop auf `Builder.exe` zeigt am Ende "Enter drücken".
-- [ ] Die Menü-EXE startet per Doppelklick (SmartScreen-Warnung ist erwartet). Auswahlseite und Spielseite sehen aus wie im Konfigurator-Vorschau.
-- [ ] Hover- und Klick-Sound sind zu hören.
-- [ ] **Normal installieren** mit einem echten GOG-Installer: Rechteabfrage erscheint, Installer läuft, das Menü zeigt danach "Fertig".
-- [ ] **Still installieren** (Zielordner wählen): kein Installerfenster, Balken bewegt sich, Ergebnis stimmt, Spiel liegt im Zielordner.
-- [ ] Installer abbrechen oder scheitern lassen: Meldung mit Exit-Code und Protokoll.
-- [ ] "Durchsuchen ..." öffnet den Ordnerdialog, Strg+V fügt im Zielordner-Feld ein.
-- [ ] Nach einer normalen Installation wird der Ordner in der Registry erkannt (siehe "Installiert nach") und für DLCs vorgeschlagen.
-- [ ] Extras öffnen: Datei, Ordner und Link.
-- [ ] Menü schließen, während ein Installer läuft: wird abgelehnt.
-- [ ] Der Player sieht der Vorschau im Konfigurator ähnlich (Layout, Farben, Abzeichen). Abweichungen als Issue melden, die Vorschau soll den Player abbilden.
-- [ ] Hohe Bildschirmauflösung (150 % Skalierung): Schrift und Bedienelemente sind scharf und passend groß.
-
-## Wine und Proton
-
-- [ ] `wine Menue.exe -selftest` und `wine Menue.exe -version` geben Text aus.
-- [ ] Das Fenster öffnet sich mit dem Standard (Direct3D 11). Sonst: `-graphics opengl`.
-- [ ] Ohne Audiogerät startet das Menü trotzdem.
-- [ ] Bedienung mit Maus, Mausrad und Tastatur.
-- [ ] Installer starten, normal und still. Zielordner liegt im Präfix.
-- [ ] Extras öffnen (Ordner und Link öffnen sich auf dem Linux-Desktop).
-- [ ] Proton: als Nicht-Steam-Spiel gestartet, Disc-Wurzel stimmt (sonst `-disc`).
-- [ ] CI-Job "Wine-Rauchtest" in GitHub Actions läuft grün.
-
-## Echte Disc
-
-- [ ] Menü-EXE und Inhalte brennen, finalisieren und von der Disc starten: Pfade stimmen, Installer sind erreichbar.
-- [ ] `Builder.exe -disc <Disc-Ordner>` meldet keine fehlenden Dateien.
-
-# Manuelle Prüfung des Cover-Tools
-
-Das [Cover-Tool](disc-sleeve.md) ist mit nachgebauten Diensten und im Browser-Druck getestet. Diese Punkte brauchen echte Dienste und einen echten Drucker. Voraussetzung für die Dienste: derselbe Proxy und SteamGridDB-Schlüssel wie im Konfigurator (Einstellungen im Cover-Tool prüfen, auf Pages sollten sie schon da sein).
-
-## Steam und SteamGridDB (mit Proxy)
+### Steam und SteamGridDB (mit Proxy)
 
 - [x] **Steam:** "Anforderungen von Steam" mit einem bekannten Spiel (z. B. Portal 2). Die Suche liefert Treffer, die Anforderungen erscheinen (Windows-Versionen, Prozessor, Grafik, Speicher, DirectX), und "Übernehmen" füllt die Felder. (Bestätigt: Suche und Übernahme funktionieren mit dem echten Dienst und Proxy.)
 - [ ] **Steam per Adresse:** Die Adresse einer Steam-Seite (oder die App-ID) in das Suchfeld einfügen führt direkt zu den Anforderungen.
@@ -88,15 +56,14 @@ Das [Cover-Tool](disc-sleeve.md) ist mit nachgebauten Diensten und im Browser-Dr
 - [ ] **SteamGridDB:** Suche über das 🔎 am Frontcover. Hochformat-Cover erscheinen, die Übernahme klappt (Bild wird über den Proxy geladen).
 - [ ] **Rückseite und Logo:** Hintergründe (Hero) und Logos lassen sich laden und übernehmen.
 - [ ] **Fehlerfälle:** Falscher Schlüssel, falsche Proxy-Adresse und ohne Proxy zeigen eine verständliche Meldung.
-- [ ] **Gemeinsame Einstellungen:** Schlüssel und Proxy aus dem Konfigurator sind im Cover-Tool schon eingetragen (und umgekehrt).
 
-## Einstellungen und Projekt
+### Einstellungen und Projekt
 
 - [ ] **Einstellungen sichern** (mit Dialog zur Dateiauswahl in Chrome oder Edge): Datei mit und ohne Passwort speichern, löschen, wieder einlesen.
-- [ ] Eine im **Konfigurator** gesicherte Einstellungsdatei lässt sich im Cover-Tool einlesen (und umgekehrt).
+- [ ] Eine im **Disc-Menü** gesicherte Einstellungsdatei lässt sich im Cover & Hülle einlesen (und umgekehrt).
 - [ ] **Projekt exportieren** und wieder **importieren**: Einstellungen und Bilder sind danach wie vorher.
 
-## Ausdruck
+### Ausdruck
 
 - [ ] **Naht:** Im Ausdruck ist zwischen Rücken und Vorderseite kein heller Strich zu sehen (besonders an der Kopfleiste).
 - [ ] **Minimum und Empfohlen:** Steam-Spiel mit beiden Listen übernehmen. Die Tabelle auf der Rückseite zeigt beide Spalten, nichts ist abgeschnitten. Ausdrucken und prüfen, ob die kleine Schrift gut lesbar ist.
@@ -134,9 +101,9 @@ Das [Cover-Tool](disc-sleeve.md) ist mit nachgebauten Diensten und im Browser-Dr
 - [x] **Daten von GOG (echter Dienst):** Mit eingerichtetem Proxy ein GOG-Spiel suchen und übernehmen. Titel, Publisher, USK, Funktionen und Anforderungen stimmen, der Proxy-Worker ist aktuell. Das GOG-Cover ist erwartungsgemäß klein. (Bestätigt für Suche, Titel, Publisher, USK, Funktionen und Anforderungen von Cyberpunk 2077. Hinweis: Bei GOG sind die Anforderungen vieler Spiele knapp oder uneinheitlich geführt, das liegt an GOG. Offen: Logo und Hintergrund wirklich laden, siehe nächster Punkt.)
 - [x] **dpi-Hinweis:** In der SteamGridDB-Auswahl steht zu jedem Bild die dpi auf der Hülle, die Werte passen zu den Bildmaßen. (Bestätigt: 600 × 900 zeigt rund 118 dpi.)
 - [ ] **GOG-Bilder laden (echter Dienst):** Im Dialog "Daten von GOG" das Spiel-Logo und den Hintergrund ankreuzen und übernehmen: Das Logo erscheint als Rückenlogo (transparent), der Hintergrund als Rückseite oben.
-- [ ] **Verbindung testen (neu):** In den Einstellungen stehen jetzt auch "GOG-Spieldaten" und "GOG-Bilder" mit Häkchen, im Konfigurator zusätzlich Steam-Shop, GOG-Katalog, GOG-Spieldaten, Epic Games Store und Übersetzung. Ein veralteter Proxy-Worker zeigt dabei "Der Proxy erlaubt ... nicht".
+- [ ] **Verbindung testen (neu):** In den Einstellungen stehen jetzt auch "GOG-Spieldaten" und "GOG-Bilder" mit Häkchen, im Disc-Menü zusätzlich Steam-Shop, GOG-Katalog, GOG-Spieldaten, Epic Games Store und Übersetzung. Ein veralteter Proxy-Worker zeigt dabei "Der Proxy erlaubt ... nicht".
 - [ ] **Mods bleiben beim Import:** "Mods" bei den Spielfunktionen einschalten, danach Daten von Steam oder GOG übernehmen: "Mods" bleibt gesetzt, die anderen Funktionen kommen vom Laden.
-- [ ] **Proxy-Worker-Version:** Mit dem alten (noch nicht aktualisierten) Worker zeigt "Verbindung testen" ein Kreuz bei "Proxy-Worker" mit dem Hinweis, den Code einzuspielen. Nach dem Einspielen von `worker.js` (Version 2) steht dort "Version 2 (aktuell)" mit Häkchen, auch im Konfigurator.
+- [ ] **Proxy-Worker-Version:** Mit dem alten (noch nicht aktualisierten) Worker zeigt "Verbindung testen" ein Kreuz bei "Proxy-Worker" mit dem Hinweis, den Code einzuspielen. Nach dem Einspielen von `worker.js` (Version 2) steht dort "Version 2 (aktuell)" mit Häkchen, auch im Disc-Menü.
 - [ ] **Rückseiten-Editor:** Vorlage "Beschreibung und Bildleiste" wählen, echte Screenshots von Steam oder GOG hinzufügen (Galerie), Rand "Ausgerissen" und "Weicher Rand" ausprobieren, ausdrucken: Die Ränder sehen im Druck wie in der Vorschau aus, Text ist lesbar, nichts rutscht an die Kante oder unter den Rücken. Auf einer Blu-ray-Hülle (148 mm) die Höhen unten anpassen.
 - [ ] **Schriften:** Die gewählten Schriftarten (Serif, Plakat, Schreibmaschine, Handschrift) erscheinen auf Windows, macOS und Linux; wo eine fehlt, fällt sie auf eine ähnliche zurück und der Text passt sich dem Platz an.
 - [ ] **Spiele-Schriften:** Im Editor jede der 18 Schriften wählen und ausdrucken: Alle sehen anders aus, Umlaute und ß sind da, nichts wird abgeschnitten (Schrift passt sich dem Platz an). Auch in Firefox prüfen, ob das Dropdown die Schriften zeigt.
@@ -152,3 +119,38 @@ Das [Cover-Tool](disc-sleeve.md) ist mit nachgebauten Diensten und im Browser-Dr
 - [ ] **Auswahlrechteck:** Im Editor auf leerer Fläche (mit Maus und mit dem Finger auf dem Tablet) ein Rechteck aufziehen: Berührte Elemente werden gewählt, die Seite scrollt dabei nicht. Mit Strg/Umschalt bleibt die Auswahl erhalten. Gedrehte Elemente werden erfasst.
 - [ ] **Mehrfachauswahl:** Mehrere Texte und Bilder mit Strg oder Umschalt wählen (auch auf dem Mac mit Cmd), gemeinsam verschieben und mit dem Griff drehen: Jedes Element dreht sich um die eigene Mitte, die Anordnung bleibt, nichts springt. Ausdrucken und prüfen.
 - [ ] **Formen:** Dreieck, Stern und freie Fläche anlegen, Punkte ziehen (Einrasten prüfen), ein Bild in eine Form legen und im Ausschnitt verschieben und zoomen. Vorlage "Zersplittert" mit vier echten Bildern füllen und ausdrucken: Die schrägen Kanten schließen sauber aneinander, die graue Hilfsebene erscheint weder auf dem Cover noch im Druck.
+# Manuelle Prüfung von Player und Builder
+
+Der Player wurde bisher nur unter Linux (Xvfb) und als Windows-Build geprüft. Diese Punkte brauchen echte Systeme.
+
+## Windows 10/11
+
+- [ ] `Builder.exe` mit einer Projektdatei aus der Web-App: Menü-EXE entsteht. Drag-and-drop auf `Builder.exe` zeigt am Ende "Enter drücken".
+- [ ] Die Menü-EXE startet per Doppelklick (SmartScreen-Warnung ist erwartet). Auswahlseite und Spielseite sehen aus wie im Disc-Menü-Vorschau.
+- [ ] Hover- und Klick-Sound sind zu hören.
+- [ ] **Normal installieren** mit einem echten GOG-Installer: Rechteabfrage erscheint, Installer läuft, das Menü zeigt danach "Fertig".
+- [ ] **Still installieren** (Zielordner wählen): kein Installerfenster, Balken bewegt sich, Ergebnis stimmt, Spiel liegt im Zielordner.
+- [ ] Installer abbrechen oder scheitern lassen: Meldung mit Exit-Code und Protokoll.
+- [ ] "Durchsuchen ..." öffnet den Ordnerdialog, Strg+V fügt im Zielordner-Feld ein.
+- [ ] Nach einer normalen Installation wird der Ordner in der Registry erkannt (siehe "Installiert nach") und für DLCs vorgeschlagen.
+- [ ] Extras öffnen: Datei, Ordner und Link.
+- [ ] Menü schließen, während ein Installer läuft: wird abgelehnt.
+- [ ] Der Player sieht der Vorschau im Disc-Menü ähnlich (Layout, Farben, Abzeichen). Abweichungen als Issue melden, die Vorschau soll den Player abbilden.
+- [ ] Hohe Bildschirmauflösung (150 % Skalierung): Schrift und Bedienelemente sind scharf und passend groß.
+
+## Wine und Proton
+
+- [ ] `wine Menue.exe -selftest` und `wine Menue.exe -version` geben Text aus.
+- [ ] Das Fenster öffnet sich mit dem Standard (Direct3D 11). Sonst: `-graphics opengl`.
+- [ ] Ohne Audiogerät startet das Menü trotzdem.
+- [ ] Bedienung mit Maus, Mausrad und Tastatur.
+- [ ] Installer starten, normal und still. Zielordner liegt im Präfix.
+- [ ] Extras öffnen (Ordner und Link öffnen sich auf dem Linux-Desktop).
+- [ ] Proton: als Nicht-Steam-Spiel gestartet, Disc-Wurzel stimmt (sonst `-disc`).
+- [ ] CI-Job "Wine-Rauchtest" in GitHub Actions läuft grün.
+
+## Echte Disc
+
+- [ ] Menü-EXE und Inhalte brennen, finalisieren und von der Disc starten: Pfade stimmen, Installer sind erreichbar.
+- [ ] `Builder.exe -disc <Disc-Ordner>` meldet keine fehlenden Dateien.
+

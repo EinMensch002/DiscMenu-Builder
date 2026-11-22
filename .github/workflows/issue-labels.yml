@@ -28,8 +28,8 @@ jobs:
                 'Barrierefreiheit': ['accessibility'],
               },
               'Bereich': {
-                'Konfigurator': ['konfigurator'],
-                'DiscSleeve': ['discsleeve'],
+                'Disc-Menü (Web-App)': ['konfigurator'],
+                'Cover & Hülle (Web-App)': ['discsleeve'],
                 'Builder': ['builder'],
                 'Player': ['player'],
                 'Proxy': ['proxy'],

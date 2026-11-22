@@ -1,6 +1,6 @@
 # SteamGridDB, Beschreibungen und Übersetzung
 
-Der Konfigurator kann Spiele und Bilder bei [SteamGridDB](https://www.steamgriddb.com/) suchen und Beschreibungstexte aus dem Steam-Shop, von GOG und aus dem Epic Games Store holen. Das spart das Heraussuchen von Covern und das Abtippen von Texten.
+Die Web-App kann Spiele und Bilder bei [SteamGridDB](https://www.steamgriddb.com/) suchen und Beschreibungstexte aus dem Steam-Shop, von GOG und aus dem Epic Games Store holen. Das spart das Heraussuchen von Covern und das Abtippen von Texten.
 
 ## Was möglich ist
 
@@ -22,7 +22,7 @@ Die Suche fragt drei Quellen gleichzeitig ab und zeigt deutsche Texte zuerst. Pr
 |---|---|---|
 | Steam-Shop | Kurzbeschreibung, auf Deutsch angefragt (gibt es keinen deutschen Text, kommt der englische) | Läuft die Suche über SteamGridDB, wird zuerst die dort hinterlegte Steam-Kennung des Spiels benutzt. |
 | GOG | Beschreibung aus dem GOG-Katalog, auf Deutsch angefragt, auf etwa 700 Zeichen gekürzt | Inoffizielle Schnittstellen, die auch der GOG-Shop selbst nutzt. Sie können sich ändern. Besonders sinnvoll für GOG-Klassiker. |
-| Epic Games Store | Beschreibung der Shop-Seite, auf Deutsch angefragt | Es gibt keine öffentliche Suche. Der Konfigurator rät die Adresse der Shop-Seite aus dem Titel (z. B. "Cyberpunk 2077" wird zu `cyberpunk-2077`). Das klappt nur bei Spielen, deren Adresse so heißt. Inoffiziell. |
+| Epic Games Store | Beschreibung der Shop-Seite, auf Deutsch angefragt | Es gibt keine öffentliche Suche. Die Web-App rät die Adresse der Shop-Seite aus dem Titel (z. B. "Cyberpunk 2077" wird zu `cyberpunk-2077`). Das klappt nur bei Spielen, deren Adresse so heißt. Inoffiziell. |
 
 Alle drei Quellen brauchen im Browser den Proxy (siehe unten). Die Antwortformate von GOG und Epic stammen aus öffentlichen Beschreibungen inoffizieller Programmbibliotheken und wurden nur mit nachgebauten Antworten getestet. Liefert eine Quelle nichts, steht der Grund unter dem Textfeld.
 
@@ -37,25 +37,25 @@ Nicht jedes Spiel steht in allen drei Shops. Findet keine Quelle etwas, bleibt d
 ## Einrichten (SteamGridDB)
 
 1. Kostenloses Konto bei [SteamGridDB](https://www.steamgriddb.com/) anlegen und auf der Seite [API-Schlüssel](https://www.steamgriddb.com/profile/preferences/api) im Profil einen Schlüssel erzeugen.
-2. Im [Konfigurator](https://einmensch002.github.io/DiscMenu-Builder/) oben auf **SteamGridDB** klicken, den Schlüssel eintragen und mit **Verbindung testen** prüfen.
+2. In der [Web-App](https://einmensch002.github.io/DiscMenu-Builder/) oben auf **Einstellungen** klicken, den Schlüssel eintragen und mit **Verbindung testen** prüfen.
 
-Der Schlüssel liegt nur im lokalen Speicher des Browsers und wird nie in die ZIP oder `menu.json` geschrieben. Hinweis: Der lokale Speicher gilt pro Adresse. Auf `einmensch002.github.io` können auch andere Seiten desselben GitHub-Kontos darauf zugreifen. Wer das nicht möchte, öffnet den Konfigurator als lokale Datei.
+Der Schlüssel liegt nur im lokalen Speicher des Browsers und wird nie in die ZIP oder `menu.json` geschrieben. Hinweis: Der lokale Speicher gilt pro Adresse. Auf `einmensch002.github.io` können auch andere Seiten desselben GitHub-Kontos darauf zugreifen. Wer das nicht möchte, öffnet die Web-App als lokale Datei.
 
 ## Einstellungen in einer Datei sichern
 
-> Dieselbe Datei lässt sich auch im [Cover-Tool](disc-sleeve.md) einlesen und dort sichern (gleiches Format, auch mit Passwort). Auf GitHub Pages teilen sich beide Web-Apps außerdem denselben Speicher, einmal eintragen genügt.
+> Disc-Menü und Cover & Hülle nutzen denselben Dialog **Einstellungen** und dieselben Werte, einmal eintragen genügt. Beschreibung des Dialogs: [web-app.md](web-app.md#einstellungen-und-dienste).
 
-Damit Schlüssel und Proxy-Adresse nicht jedes Mal neu eingetragen werden müssen (z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät), gibt es im Dialog **SteamGridDB** den Abschnitt "Einstellungen sichern":
+Damit Schlüssel und Proxy-Adresse nicht jedes Mal neu eingetragen werden müssen (z. B. nach dem Löschen der Browserdaten oder auf einem anderen Gerät), gibt es im Dialog **Einstellungen** den Abschnitt "Einstellungen sichern":
 
-- **In Datei sichern** öffnet beim Cover-Tool ein Auswahlfenster (Zugangsdaten, eigene Vorlagen, eigene Schriften) und schreibt dann `discmenu-einstellungen.json`. Bietet der Browser eine Dateiauswahl an, kann man Ziel und Name wählen, sonst wird die Datei heruntergeladen.
-- **Aus Datei einlesen** zeigt im Cover-Tool vorher eine Vorschau, bei schon gesetzten Werten wird gefragt. Im Konfigurator werden die Felder sofort gefüllt und gespeichert.
+- **In Datei sichern** öffnet ein Auswahlfenster (Zugangsdaten, eigene Vorlagen, eigene Schriften) und schreibt dann `discmenu-einstellungen.json`. Bietet der Browser eine Dateiauswahl an, kann man Ziel und Name wählen, sonst wird die Datei heruntergeladen.
+- **Aus Datei einlesen** zeigt vorher eine Vorschau, bei schon gesetzten Werten wird gefragt.
 - **Passwort (optional):** Ist ein Passwort eingetragen, wird die Datei verschlüsselt (AES-256 mit einem aus dem Passwort abgeleiteten Schlüssel, PBKDF2). Zum Einlesen wird dasselbe Passwort gebraucht, ein vergessenes Passwort lässt sich nicht wiederherstellen. Ohne Passwort steht der Schlüssel im Klartext in der Datei.
 
 Die Datei enthält deinen API-Schlüssel. Sie gehört nicht in ein Repo und nicht in eine Rezept-ZIP. Im Repo ist `discmenu-einstellungen*.json` deshalb in der `.gitignore` eingetragen.
 
 ## Proxy (CORS)
 
-Browser erlauben Anfragen an fremde Dienste nur, wenn diese es ausdrücklich erlauben. Bei SteamGridDB und dem Steam-Shop hat die direkte Anfrage aus dem Browser nicht funktioniert (Meldung im Konfigurator). GOG und Epic sind ähnlich. Mit einem kleinen eigenen Proxy läuft die Anbindung. Nur die Übersetzung über MyMemory braucht keinen Proxy.
+Browser erlauben Anfragen an fremde Dienste nur, wenn diese es ausdrücklich erlauben. Bei SteamGridDB und dem Steam-Shop hat die direkte Anfrage aus dem Browser nicht funktioniert (Meldung in der Web-App). GOG und Epic sind ähnlich. Mit einem kleinen eigenen Proxy läuft die Anbindung. Nur die Übersetzung über MyMemory braucht keinen Proxy.
 
 ### Proxy einrichten (Cloudflare Worker)
 
@@ -67,12 +67,12 @@ Browser erlauben Anfragen an fremde Dienste nur, wenn diese es ausdrücklich erl
 5. Danach auf **Edit code** (Code bearbeiten) klicken. Im Editor den gesamten Beispielcode löschen.
 6. Die Datei [tools/cors-proxy/worker.js](../tools/cors-proxy/worker.js) auf GitHub öffnen und den **ganzen** Inhalt kopieren (am einfachsten mit dem Kopieren-Knopf oben rechts über dem Code). Im Editor von Cloudflare einfügen und wieder auf **Deploy** klicken.
 7. Die Adresse des Workers notieren, z. B. `https://discmenu-proxy.dein-konto.workers.dev`.
-8. Im Konfigurator unter **SteamGridDB** als Proxy-Adresse eintragen: `https://discmenu-proxy.dein-konto.workers.dev/?url={url}`. Das `{url}` am Ende muss genau so mitgeschrieben werden.
+8. In der Web-App unter **SteamGridDB** als Proxy-Adresse eintragen: `https://discmenu-proxy.dein-konto.workers.dev/?url={url}`. Das `{url}` am Ende muss genau so mitgeschrieben werden.
 9. Mit **Verbindung testen** prüfen, ob es klappt.
 
 Die Oberfläche von Cloudflare ändert sich gelegentlich, die Bezeichnungen können daher leicht abweichen. Die Schritte bleiben aber gleich.
 
-**Wichtig bei einem schon eingerichteten Proxy:** Für GOG und Epic muss der Worker die erweiterte Host-Liste kennen. Dazu im Cloudflare-Dashboard den Worker öffnen, auf **Edit code** klicken, den alten Code durch den ganzen Inhalt von `worker.js` ersetzen (siehe Schritt 6) und **Deploy** klicken. Die Proxy-Adresse im Konfigurator bleibt gleich.
+**Wichtig bei einem schon eingerichteten Proxy:** Für GOG und Epic muss der Worker die erweiterte Host-Liste kennen. Dazu im Cloudflare-Dashboard den Worker öffnen, auf **Edit code** klicken, den alten Code durch den ganzen Inhalt von `worker.js` ersetzen (siehe Schritt 6) und **Deploy** klicken. Die Proxy-Adresse in der Web-App bleibt gleich.
 
 **Ist der Worker aktuell?** Der Worker meldet seine **Version** und die Liste der erlaubten Hosts (Abfrage `https://<dein-worker>/?info=1`). In den Einstellungen zeigt **"Verbindung testen"** dazu eine Zeile **"Proxy-Worker"**: **Version 2 (aktuell)** mit Häkchen, oder ein **Kreuz**, wenn der Worker zu alt ist (auch ein alter Worker ganz ohne Versionsangabe) oder einen Host nicht erlaubt, den die Tools brauchen, mit dem Hinweis, den aktuellen Code einzuspielen. Ein Worker mit einer **neueren** Version als das Tool kennt, steht **gelb** da (⚠, läuft, aber mit Hinweis). Häkchen sind **grün**, Kreuze **rot**. Zusätzlich steht jeder Dienst, der nicht erreichbar ist, einzeln mit Kreuz und Meldung da, und die Zeile oben nennt, wie viele und welche es sind. Beim Ändern von `worker.js` wird `VERSION` dort und `WORKER_VERSION` in `app/online.js` und `app/menu.js` erhöht (ein Test prüft, dass alle drei gleich sind und der Worker alle Hosts der Tools erlaubt).
 
@@ -80,7 +80,7 @@ Der Proxy leitet nur GET-Anfragen an `steamgriddb.com` (mit Unterdomains), `stor
 
 ### Proxy auf die eigene Seite beschränken (empfohlen)
 
-Ohne weitere Einstellung kann jede Webseite den Proxy benutzen und das Kontingent verbrauchen. Das lässt sich abstellen: Im Worker unter **Settings → Variables and Secrets** eine Variable `ALLOWED_ORIGIN` vom Typ Text anlegen, mit der Adresse der Seite, z. B. `https://einmensch002.github.io`. Mehrere Adressen werden mit Komma getrennt. Danach akzeptiert der Proxy nur noch Anfragen von dort. Wird der Konfigurator als lokale Datei geöffnet, geht das nicht mehr, dafür muss die Variable leer bleiben. Die Variable gibt es erst in der aktuellen Version von `worker.js`, ein älterer Worker muss dafür den neuen Code bekommen (einfügen und veröffentlichen).
+Ohne weitere Einstellung kann jede Webseite den Proxy benutzen und das Kontingent verbrauchen. Das lässt sich abstellen: Im Worker unter **Settings → Variables and Secrets** eine Variable `ALLOWED_ORIGIN` vom Typ Text anlegen, mit der Adresse der Seite, z. B. `https://einmensch002.github.io`. Mehrere Adressen werden mit Komma getrennt. Danach akzeptiert der Proxy nur noch Anfragen von dort. Wird die Web-App als lokale Datei geöffnet, geht das nicht mehr, dafür muss die Variable leer bleiben. Die Variable gibt es erst in der aktuellen Version von `worker.js`, ein älterer Worker muss dafür den neuen Code bekommen (einfügen und veröffentlichen).
 
 Bilder werden zuerst direkt geladen und nur bei einem Fehler über den Proxy. Scheitert auch das, lässt sich das Bild bei SteamGridDB herunterladen und wie gewohnt in das Bildfeld ziehen.
 

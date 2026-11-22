@@ -14,7 +14,7 @@ Das Ergebnis liegt in `dist/`: `Player.exe`, `Builder.exe`, das Schema und das B
 
 ## Menü-EXE erzeugen
 
-1. Im [Konfigurator](configurator.md) das Rezept zusammenstellen und als ZIP exportieren.
+1. In der [Web-App](web-app.md) das Projekt zusammenstellen und als Projektdatei (ZIP) speichern.
 2. Die ZIP auf `Builder.exe` ziehen. Oder in der Konsole:
 
 ```bash
@@ -34,7 +34,7 @@ Der Builder bricht bei Fehlern ab und erzeugt dann keine Datei. Hinweise (z. B. 
 
 ## Bedienung des Menüs
 
-> **Hinweis:** Das Layout wurde in der Web-Vorschau des Konfigurators überarbeitet (klassischer Installer: links Bild und Beschreibung, rechts Knöpfe, das Bild folgt dem Mauszeiger). Der Go-Player hat noch das frühere Layout mit Reitern und wird danach angeglichen (siehe Roadmap).
+> **Hinweis:** Das Layout wurde in der Vorschau des Disc-Menüs (Web-App) überarbeitet (klassischer Installer: links Bild und Beschreibung, rechts Knöpfe, das Bild folgt dem Mauszeiger). Der Go-Player hat noch das frühere Layout mit Reitern und wird danach angeglichen (siehe Roadmap).
 
 - **Auswahlseite** bei mehreren Spielen, sonst direkt die Spielseite. Mausrad scrollt, Esc geht zurück.
 - **Spielseite:** Reiter Spiel, DLCs, Patches und Extras (nur wenn es Einträge gibt), Gruppen als Überschriften.

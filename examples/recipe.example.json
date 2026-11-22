@@ -1,0 +1,182 @@
+{
+  "format": "discmenu-recipe",
+  "version": 1,
+  "gameIndex": 0,
+  "game": {
+    "title": "Beispiel-Spiel 1",
+    "provider": "gog",
+    "description": "Kurze Beschreibung des ersten Spiels.",
+    "publisher": "Beispiel-Studio",
+    "developer": "Beispiel-Studio",
+    "sizeMB": 1500,
+    "cover": "assets/beispiel-spiel-1.png"
+  },
+  "menu": {
+    "schemaVersion": 1,
+    "title": "Beispiel-Collection",
+    "output": "Setup-Menu.exe",
+    "background": "assets/background.png",
+    "sounds": {
+      "click": "assets/click.wav"
+    },
+    "games": [
+      {
+        "index": 0,
+        "installer": "Beispiel-Spiel-1/setup_beispiel_spiel_1.exe",
+        "dlcs": [
+          {
+            "name": "Beispiel-Erweiterung",
+            "description": "Kurze Beschreibung der Erweiterung.",
+            "cover": "assets/beispiel-erweiterung.png",
+            "installer": "Beispiel-Spiel-1/DLC/setup_beispiel_erweiterung.exe"
+          }
+        ],
+        "patches": [
+          {
+            "name": "Grafikpatch",
+            "group": "Grafik",
+            "description": "Verbessert die Auflösung.",
+            "installer": "Beispiel-Spiel-1/Patches/grafikpatch.exe"
+          },
+          {
+            "name": "Deutscher Sprachpatch",
+            "group": "Sprache",
+            "installer": "Beispiel-Spiel-1/Patches/sprachpatch_de.exe"
+          }
+        ],
+        "extras": [
+          {
+            "name": "Soundtrack",
+            "group": "Musik",
+            "open": "Beispiel-Spiel-1/Extras/Soundtrack"
+          },
+          {
+            "name": "Artbook",
+            "group": "Artwork",
+            "open": "Beispiel-Spiel-1/Extras/artbook.pdf"
+          },
+          {
+            "name": "Handbuch",
+            "group": "Dokumente",
+            "open": "Beispiel-Spiel-1/Extras/handbuch.pdf"
+          }
+        ],
+        "args": [
+          "/LANG=german"
+        ]
+      },
+      {
+        "index": 1,
+        "name": "Beispiel-Spiel 2",
+        "cover": "assets/beispiel-spiel-2.png",
+        "description": "Kurze Beschreibung des zweiten Spiels. Epic-Installer laufen normal, still nur mit eigenen Parametern.",
+        "installer": "Beispiel-Spiel-2/setup_beispiel_spiel_2.exe",
+        "provider": "epic",
+        "estimatedSizeMB": 800
+      },
+      {
+        "index": 2,
+        "name": "Beispiel-Spiel 3",
+        "cover": "assets/beispiel-spiel-3.png",
+        "provider": "steam",
+        "description": "Platzhalter für ein späteres Steam-Backup. Der Player zeigt den Eintrag schon an.",
+        "installer": "Beispiel-Spiel-3/steam-backup.exe",
+        "extras": [
+          {
+            "name": "Handbuch",
+            "group": "Dokumente",
+            "open": "Beispiel-Spiel-3/Extras/handbuch.pdf"
+          }
+        ]
+      }
+    ]
+  },
+  "cover": {
+    "state": {
+      "caseType": "normal",
+      "disc": "dvd",
+      "lang": "de",
+      "theme": "glass",
+      "gogText": true,
+      "gogSpine": "match",
+      "pcColor": "auto",
+      "copyright": "© 2026 Fanpresse. All rights reserved. Trademarks belong to their respective owners.",
+      "custom": {
+        "back": "130",
+        "spine": "14",
+        "front": "129",
+        "h": "183"
+      },
+      "usk": "12",
+      "uskOpacity": "100",
+      "frontFit": "stretch",
+      "frontZoom": "100",
+      "frontX": "50",
+      "frontY": "50",
+      "uskBack": true,
+      "spineLogo": "fixed",
+      "cropMarks": true,
+      "foldLines": true,
+      "breakHw": false,
+      "back": {
+        "featH": "15",
+        "reqH": "46",
+        "span": false,
+        "seq": 1,
+        "items": []
+      },
+      "features": [
+        "single_player",
+        "controller_support"
+      ],
+      "os": {
+        "win": [
+          "10",
+          "11"
+        ],
+        "mac": false,
+        "linux": false,
+        "x64": true
+      },
+      "cpu": {
+        "items": []
+      },
+      "gpu": {
+        "items": []
+      },
+      "ram": "4",
+      "dx": "",
+      "other": "",
+      "frontPubPlate": "none",
+      "spinePubPlate": "white",
+      "spinePC": true,
+      "spineTitle": "center",
+      "spineArt": "color",
+      "spineBgX": "50",
+      "spineBgDim": "25",
+      "spineUseLogo": true,
+      "spinePub": true,
+      "spineLogoRot": "auto",
+      "spineLogoSide": "1.5",
+      "spineLogoTop": "3",
+      "spineLogoBottom": "3",
+      "spinePubRot": "auto",
+      "spinePubSide": "1.2",
+      "spinePubWidth": "",
+      "rec": {
+        "on": false,
+        "cpu": {
+          "items": []
+        },
+        "gpu": {
+          "items": []
+        },
+        "ram": "8",
+        "space": "10",
+        "dx": "",
+        "other": ""
+      }
+    },
+    "images": {}
+  }
+}

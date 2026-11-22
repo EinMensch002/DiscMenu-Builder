@@ -136,6 +136,17 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html')
   assert.deepEqual([sc.name, sc.installer, sc.extras[0].path, sc.extras[0].kind], ['Burgspiel Kreuzzug', 'burgspiel_kreuzzug/setup_burgspiel_kreuzzug_2.0.0.2.exe', 'burgspiel_kreuzzug/Minispiel.exe', 'open']);
   assert.ok(!games.some((g) => /launcher/.test(g.installer)), 'die Menü-EXE in der Wurzel wird nicht übernommen');
 
+  // Englisch gilt auch für das Disc-Menü (die nachgebaute Player-Ansicht bleibt deutsch wie der Player)
+  await go('menu');
+  await page.evaluate(() => I18n.setLang('en'));
+  await page.waitForFunction(() => /Add game/.test(document.querySelector('#nav').textContent), null, { timeout: 5000 });
+  assert.match(await page.locator('.views [data-go=menu]').textContent(), /Disc menu/);
+  assert.match(await page.locator('#side').textContent(), /Check/);
+  assert.match(await page.locator('#editor').textContent(), /Installer path on the disc|Title of the menu/);
+  assert.doesNotMatch(await page.locator('#editor').textContent(), /Installer-Pfad auf der Disc|Titel des Menüs/);
+  await page.evaluate(() => I18n.setLang('de'));
+  await page.waitForFunction(() => /Spiel hinzufügen/.test(document.querySelector('#nav').textContent), null, { timeout: 5000 });
+
   // Stile bleiben getrennt, Drucken zeigt nur die Hülle
   const coverDrop = await page.evaluate(() => getComputedStyle(document.querySelector('#viewCover .drop')).minHeight);
   assert.notEqual(coverDrop, '72px', 'Regel ".drop" aus menu.css gilt nicht bei der Hülle');

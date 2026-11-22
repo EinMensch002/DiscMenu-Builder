@@ -10,7 +10,7 @@ Das Menü wird aus einem Rezept (`menu.json` mit Assets) erzeugt. Für eine neue
 
 | Baustein | Aufgabe | Beschreibung |
 |---|---|---|
-| **Konfigurator** | Rezept erstellen | Web-App, erzeugt eine ZIP mit `menu.json` und Assets. Siehe [configurator.md](configurator.md) |
+| **Web-App** | Rezept und Hülle erstellen | Bereiche Disc-Menü und Cover & Hülle, speichert eine Projektdatei (ZIP mit `recipe.json` und Assets). Siehe [web-app.md](web-app.md) |
 | **Builder** | Menü-EXE erzeugen | Liest das Rezept und setzt daraus die fertige EXE zusammen |
 | **Player** | Menü anzeigen | Der Teil der EXE, der auf der Disc läuft |
 
@@ -18,7 +18,7 @@ Das Menü wird aus einem Rezept (`menu.json` mit Assets) erzeugt. Für eine neue
 
 ### Beim Erstellen
 
-1. Rezept im Konfigurator zusammenstellen und als ZIP exportieren. (Von Hand geht es auch: Ordner mit `menu.json` und `assets/`, Aufbau siehe [menu-json-spec.md](menu-json-spec.md).)
+1. Projekt in der Web-App zusammenstellen (Disc-Menü, Cover & Hülle) und als Projektdatei speichern. (Von Hand geht es auch: Ordner mit `menu.json` und `assets/`, Aufbau siehe [menu-json-spec.md](menu-json-spec.md).)
 2. Den Builder mit dem Rezept (ZIP oder Ordner) starten. Er prüft es nach den Regeln der Spezifikation.
 3. Der Builder kopiert den fertigen Player, hängt das Rezept als Paket an und speichert das Ergebnis als neue EXE.
 4. Die Menü-EXE kommt zusammen mit Installern und Extras auf die Disc (siehe [disc-planung.md](disc-planung.md)).

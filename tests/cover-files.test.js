@@ -23,14 +23,6 @@ test('Einstellungsdatei: ohne und mit Passwort, falsches Passwort, fremde Datei'
   assert.deepEqual(await F.unpackSettings('{"type":"discmenu-settings","version":1}', ''), { key: '', proxy: '' });
 });
 
-test('Einstellungsdatei: Konfigurator und Cover-Tool lesen die Dateien des jeweils anderen', async () => {
-  const K = loadCore();                                   // Kern des Konfigurators
-  const vals = { key: 'KEY', proxy: 'https://p.example/?url={url}' };
-  for (const pw of ['', 'pw']) {
-    assert.deepEqual(await F.unpackSettings(await K.packSettings(vals, pw), pw), vals, 'Konfigurator -> Cover-Tool, Passwort "' + pw + '"');
-    assert.deepEqual(await K.unpackSettings(await F.packSettings(vals, pw), pw), vals, 'Cover-Tool -> Konfigurator, Passwort "' + pw + '"');
-  }
-});
 
 test('ZIP schreiben: CRC32 und Aufbau werden vom ZIP-Leser gelesen', async () => {
   assert.equal(F.crc32(new TextEncoder().encode('123456789')), 0xCBF43926);

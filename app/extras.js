@@ -287,7 +287,6 @@
   });
   const idbRunOn = async (name, store, mode, fn) => { const db = await idbOpenNamed(name, store); try { return await new Promise((res, rej) => { const tx = db.transaction(store, mode), q = fn(tx.objectStore(store)); tx.oncomplete = () => res(q && q.result); tx.onerror = () => rej(tx.error); }); } finally { db.close(); } };
   const idbRun = (mode, fn) => idbRunOn(IDB_NAME, IDB_STORE, mode, fn);
-  const dbExists = async (name) => { try { return indexedDB.databases ? (await indexedDB.databases()).some((d) => d.name === name) : true; } catch (e) { return true; } };
   const auto = $('#autoInfo');
   let browserReady = false, autoTimer = 0, lastAuto = '';
   const clock = () => new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -302,31 +301,13 @@
   }
   const scheduleAuto = () => { if (!browserReady) return; clearTimeout(autoTimer); autoTimer = setTimeout(saveToBrowser, 800); };
   const blobImages = async (imgs) => { const out = {}; for (const [k, v] of Object.entries(imgs || {})) out[k] = { data: await v.blob.arrayBuffer(), type: v.type, name: v.name }; return out; };
-  /* Beim Start: gemeinsames Projekt laden. Gibt es noch keins, die Stände der früheren getrennten Tools übernehmen (die alten Speicher bleiben unverändert). */
+  /* Beim Start: das zuletzt bearbeitete Projekt aus dem Browser-Speicher laden */
   async function loadFromBrowser() {
     const rec = await idbRun('readonly', (st) => st.get('current'));
     if (rec && rec.menu && rec.cover) {
       await applyProject({ kind: 'project', menu: { state: rec.menu.state, assets: new Map(rec.menu.assets || []), counter: rec.menu.counter }, cover: { state: rec.cover.state, images: await blobImages(rec.cover.images) }, link: rec.link });
       auto.textContent = 'Projekt aus dem Browser-Speicher geladen';
-      return;
     }
-    let menu = null, imgs = {};
-    if (await dbExists('discmenu-konfigurator')) {
-      try {
-        const id = await idbRunOn('discmenu-konfigurator', 'kv', 'readonly', (st) => st.get('current'));
-        const p = id && await idbRunOn('discmenu-konfigurator', 'kv', 'readonly', (st) => st.get('proj:' + id));
-        if (p && p.state) menu = { state: p.state, assets: new Map(p.assets || []), counter: p.counter };
-      } catch (e) { /* nichts übernehmen */ }
-    }
-    if (await dbExists('discmenu-cover')) {
-      try { const old = await idbRunOn('discmenu-cover', 'project', 'readonly', (st) => st.get('current')); if (old && old.images) imgs = await blobImages(old.images); } catch (e) { /* nichts übernehmen */ }
-    }
-    const coverState = App.state, hasCover = !!(coverState.title || Object.keys(imgs).length);
-    if (!menu && !hasCover) return;
-    const menuHasGame = !!(menu && menu.state.games.some((g) => g.name));
-    if (!menu) { const st = window.CORE.newState(); Object.assign(st.games[0], P.menuPatchFromCover(coverState)); st.title = st.games[0].name; menu = { state: st, assets: new Map(), counter: 1 }; }
-    await applyProject({ kind: menuHasGame ? 'recipe' : 'cover', menu, cover: { state: coverState, images: imgs }, link: P.defaultLink() });
-    auto.textContent = 'Stand der bisherigen Tools übernommen';
   }
 
   /* --- Speichern, Speichern unter, Öffnen ---

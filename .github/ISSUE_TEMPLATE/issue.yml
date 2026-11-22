@@ -26,8 +26,8 @@ body:
       description: Welcher Teil des Projekts ist betroffen? (Mehrfachauswahl möglich)
       multiple: true
       options:
-        - Konfigurator
-        - DiscSleeve
+        - Disc-Menü (Web-App)
+        - Cover & Hülle (Web-App)
         - Builder
         - Player
         - Proxy
@@ -47,7 +47,7 @@ body:
       label: Schritte zum Nachstellen oder Beispiel
       description: Optional. Screenshots kannst Du hier hineinziehen.
       placeholder: |
-        1. DiscSleeve öffnen
+        1. Web-App öffnen
         2. …
   - type: input
     id: umgebung

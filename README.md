@@ -3,13 +3,15 @@
 Werkzeuge für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung auf DVD oder Blu-ray. Das Projekt hat zwei Seiten:
 
 - **Das Menü auf der Disc:** Aus einer einzigen `menu.json` entsteht ein einheitliches Installer-Menü (EXE). Es wirkt wie ein klassischer Installer, ist aber ein Forwarder: Es startet die originalen Installer und öffnet Extras.
-- **Die Hülle drumherum:** Das **Cover-Tool** erzeugt druckfertige Hüllen (Vorderseite, Rücken, Rückseite mit Systemanforderungen) im GOG-Stil.
+- **Die Hülle drumherum:** Druckfertige Hüllen (Vorderseite, Rücken, Rückseite mit Systemanforderungen) im Stil von GOG, Epic Games oder Steam.
+
+Beides stellt man in **einer Web-App** zusammen (Bereiche **Disc-Menü** und **Cover & Hülle**), gespeichert wird es in einer Projektdatei (`recipe.json` mit Bildern), die der Builder direkt verarbeitet.
 
 > **Status und Links**
 >
 > | Werkzeug | Stand | Aufrufen |
 > |---|---|---|
-> | **Menü** (Konfigurator) und **Hülle** (DiscSleeve), eine gemeinsame Seite | fertig und nutzbar, Ausdruck mit echtem Drucker noch zu prüfen | https://einmensch002.github.io/DiscMenu-Builder/ (oben zwischen "Menü" und "Hülle" wechseln, direkt zur Hülle: `#huelle`) |
+> | **Web-App**: Disc-Menü und Cover & Hülle | fertig und nutzbar, Ausdruck mit echtem Drucker noch zu prüfen | https://einmensch002.github.io/DiscMenu-Builder/ (oben zwischen "Menü" und "Hülle" wechseln, direkt zur Hülle: `#huelle`) |
 > | **Builder** und **Player** (die Menü-EXE) | gebaut (Go, eine EXE ohne Installation), noch nicht auf echtem Windows und Wine/Proton geprüft | [Anleitung](docs/player-und-builder.md) |
 >
 > Die Seite läuft komplett im Browser, nichts wird hochgeladen. Die alten Adressen `/disc-sleeve/` und `/cover/` führen zur Hülle.
@@ -18,18 +20,17 @@ Werkzeuge für selbst gebrannte Spiele-Discs, z. B. für die eigene GOG-Sammlung
 
 | Werkzeug | Aufgabe | Dokumentation |
 |---|---|---|
-| **Menü** (Konfigurator, `app/menu*.js`) | Das Rezept (`menu.json` mit Bildern und Sounds) per Maske zusammenstellen, mit Vorschau und Installations-Simulation. Exportiert eine ZIP | [docs/configurator.md](docs/configurator.md) |
+| **Web-App, Bereich Disc-Menü** (`app/`) | Das Menü der Disc per Maske zusammenstellen (Spiele, Installer, DLCs, Patches, Extras, Bilder, Sounds), Spielordner einlesen, Vorschau mit Installations-Simulation | [docs/web-app.md](docs/web-app.md#bereich-disc-menü) |
 | **Builder** (`src/Builder`) | Aus dem Rezept und dem Player die fertige Menü-EXE zusammensetzen und das Rezept prüfen | [docs/player-und-builder.md](docs/player-und-builder.md) |
 | **Player** (`src/Player`) | Das Menü selbst, das auf der Disc liegt (Windows 10/11, Linux über Wine/Proton) | [docs/player-und-builder.md](docs/player-und-builder.md) |
-| **Hülle** (DiscSleeve, übrige Dateien in `app/`) | Druckfertige Hüllen: Cover, Rücken und Rückseite mit Systemanforderungen, Spielfunktionen und USK, A4 quer mit Schnittmarken | [docs/disc-sleeve.md](docs/disc-sleeve.md) |
+| **Web-App, Bereich Cover & Hülle** (`app/`) | Druckfertige Hüllen: Cover, Rücken und Rückseite mit Systemanforderungen, Spielfunktionen und USK, A4 quer mit Schnittmarken | [docs/web-app.md](docs/web-app.md#bereich-cover--hülle) |
 
-Der übliche Ablauf für eine Disc: Rezept im **Konfigurator** erstellen, mit dem **Builder** die Menü-EXE erzeugen, Disc brennen und mit dem **Cover-Tool** die Hülle drucken.
+Der übliche Ablauf für eine Disc: In der **Web-App** das Projekt anlegen (Disc-Menü, gern per "Spielordner einlesen", dann Cover & Hülle), als Projektdatei speichern, mit dem **Builder** die Menü-EXE erzeugen, Disc brennen und die Hülle drucken.
 
 ## Eckpunkte
 
-- **Ein Rezept:** Alles steht in der `menu.json` (mit Assets, als ZIP). Für eine neue Disc wird nichts neu programmiert.
-- **Konfigurator:** Eine Web-App ohne Backend, in der man das Rezept per Maske zusammenstellt, statt die JSON zu schreiben.
-- **DiscSleeve (früher Cover-Tool):** Eine zweite Web-App für die Hülle der Disc. Sie druckt Cover, Rücken und Rückseite mit Systemanforderungen im GOG-Stil (Leistenstil, Deutsch oder Englisch, USK-Kennzeichnung, ohne Barcode).
+- **Ein Rezept:** Alles steht in einer Projektdatei (ZIP mit `recipe.json` und Assets). Für eine neue Disc wird nichts neu programmiert.
+- **Eine Web-App ohne Backend** (Deutsch oder Englisch) mit zwei Bereichen: **Disc-Menü** (das Menü per Maske zusammenstellen statt JSON zu schreiben, Spielordner einlesen) und **Cover & Hülle** (Cover, Rücken und Rückseite mit Systemanforderungen im Stil des Anbieters, USK-Kennzeichnung, ohne Barcode). Gemeinsame Angaben wie Titel und Cover stehen nur einmal im Projekt.
 - **Einheitlicher Look, anpassbar:** Layout und Bedienung sind immer gleich, Texte, Cover, Hintergrund und Sounds kommen aus der Rezeptdatei.
 - **Eine oder mehrere Spiele pro Disc:** Bei mehreren Spielen gibt es eine Auswahlseite (Reihenfolge über `index`), bei nur einem Spiel öffnet sich direkt dessen Seite.
 - **Pro Spiel:** Installieren (wahlweise still mit Zielpfad), DLCs/Erweiterungen, Patches (z. B. Sprach- oder Grafikpatches), Extras (Soundtrack, Artbooks, Handbücher). Eigene Tabs (z. B. Mods) sind später geplant.
@@ -43,8 +44,7 @@ Der übliche Ablauf für eine Disc: Rezept im **Konfigurator** erstellen, mit de
 |---|---|
 | [docs/concept.md](docs/concept.md) | Konzept, Bausteine, Ablauf, Menüaufbau, EXE-Aufbau |
 | [docs/player-und-builder.md](docs/player-und-builder.md) | Builder und Player: Bauen, Benutzen, Windows 11, Wine/Proton, Anbieter-Look |
-| [docs/disc-sleeve.md](docs/disc-sleeve.md) | DiscSleeve (Cover-Tool): Bedienung, Maße, Stile, Drucken, Grenzen, Geplantes |
-| [docs/configurator.md](docs/configurator.md) | Konfigurator (Web-App): Bedienung, Grenzen |
+| [docs/web-app.md](docs/web-app.md) | Web-App (Disc-Menü und Cover & Hülle): Leiste, gemeinsames Projekt und Projektdatei, Spielordner einlesen, Hülle gestalten und drucken, Dateien, Tests, Grenzen |
 | [docs/steamgriddb.md](docs/steamgriddb.md) | Bilder, Beschreibungen und Übersetzung, Einrichtung, Proxy |
 | [docs/menu-json-spec.md](docs/menu-json-spec.md) | Alle Felder der `menu.json`, Aufbau der Rezept-ZIP |
 | [docs/installer-integration.md](docs/installer-integration.md) | Installer starten, still installieren, Ergebnis auslesen |
@@ -61,6 +61,7 @@ DiscMenu-Builder/
 ├─ LICENSE
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
 ├─ go.mod, scripts/build.sh Go-Projekt und Build-Skript für die Windows-EXEs
+├─ scripts/build-single.js  Ein-Datei-Build der Web-App (npm run build)
 ├─ app/                     Gemeinsame Web-App: index.html mit den Bereichen Menü (menu.js, menu-core.js, menu.css) und Hülle (DiscSleeve), shell.js schaltet um (Seite in der Wurzel, alt: /disc-sleeve/ und /cover/ leiten weiter)
 ├─ schema/                  JSON Schema der menu.json
 ├─ tests/                   Automatische Tests
@@ -69,7 +70,8 @@ DiscMenu-Builder/
 ├─ .github/ISSUE_TEMPLATE/  Formular für Fehler, Ideen und Fragen (Labels werden automatisch gesetzt)
 ├─ .github/workflows/       Tests der Web-Tools, Veröffentlichung auf GitHub Pages (`pages.yml`), Vorschau-Seiten für Pull Requests (`preview.yml`), Labels aus Issue-Formularen (`issue-labels.yml`) (Windows-Build und Wine-Test vorerst abgeschaltet)
 ├─ examples/
-│  ├─ menu.example.json     Beispiel-Rezept mit drei Spielen (GOG, Epic, Steam)
+│  ├─ recipe.example.json   Beispiel-Projekt im Format der Web-App (gemeinsame Angaben, Menü, Hülle)
+│  ├─ menu.example.json     dasselbe Menü als reine menu.json (Format des Builders, drei Spiele: GOG, Epic, Steam)
 │  └─ assets/               Beispiel-Cover, -Hintergrund und -Klick-Sound (erzeugt mit tools/mkdemo)
 └─ src/
    ├─ Builder/              Menüersteller (Kommandozeile, Drag-and-drop)
@@ -79,9 +81,11 @@ DiscMenu-Builder/
 
 ## Roadmap
 
+Auch als **GitHub Project** mit Zeitleiste und Meilensteinen: [DiscMenu-Builder Roadmap](https://github.com/users/EinMensch002/projects/1) (Issues #31 bis #52, die Daten sind Platzhalter).
+
 Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit Tests oder im Browser geprüft ist.
 
-### Konfigurator (Web-App, live)
+### Web-App: Bereich Disc-Menü (früher Konfigurator)
 
 - [x] Maske mit Spieleliste, Bereichen (DLCs, Patches, Extras) und Gruppen
 - [x] Bildverarbeitung (Verkleinern, Umwandeln), Sounds
@@ -101,11 +105,11 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 
 ### Entwicklung und Veröffentlichung
 
-- [x] **Vorschau-Seite für jeden Pull Request** (`/pr/<Nummer>/`, auch auf dem Tablet testbar), wird beim Schließen oder Mergen gelöscht ([Beschreibung](docs/disc-sleeve.md#vorschau-für-pull-requests))
+- [x] **Vorschau-Seite für jeden Pull Request** (`/pr/<Nummer>/`, auch auf dem Tablet testbar), wird beim Schließen oder Mergen gelöscht ([Beschreibung](docs/web-app.md#vorschau-für-pull-requests))
 - [x] Veröffentlichung auf GitHub Pages bricht laufende Läufe nicht mehr ab (keine roten Deployments mehr)
 - [x] **Issue-Formular** "Fehler, Idee oder Frage": Art, Bereich und Stand werden nach dem Absenden automatisch zu Labels, auch für Leute ohne Rechte am Repository; beim Bearbeiten passen sie sich an (`.github/ISSUE_TEMPLATE/issue.yml`, `.github/workflows/issue-labels.yml`)
 
-### DiscSleeve (Bereich "Hülle" der gemeinsamen Seite)
+### Web-App: Bereich Cover & Hülle (früher DiscSleeve)
 
 - [x] Aufgeräumt und neu aufgebaut: Live-Vorschau, USK statt PEGI/ESRB, ohne Barcode, Deutsch oder Englisch
 - [x] Druck geprüft: A4 quer, 100 %, Schnittmarken, Falzmarken (Test im Browser)
@@ -155,7 +159,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 - [x] **Rückseite frei gestalten:** Editor (Pop-up) mit Texten und Bildern zum Anordnen, Schriftarten, Rändern und Übergängen (abgerundet, Rahmen, weich, ausgerissen), Bildern direkt von Steam und GOG und drei Vorlagen; der untere Teil (Spielfunktionen, Anforderungen, Logos) bleibt fest, nur die Höhen sind einstellbar
 - [x] Rückseite: Drehen von Elementen, Vorlagen-Leiste mit Vorschau (nach Steam-Hüllen: Among Us, Age of Empires, Spider-Man, Half-Life, Alyx) und durchgehendes Bild über die ganze Rückseite
 - [x] Rückseite: Formen (Kreis, Dreieck, Viereck, Stern, freie Fläche) mit beweglichen, einrastenden Punkten; Bilder in Formen mit Verschieben und Zoom (außerhalb grau); Vorlage "Zersplittert" nach Half-Life: Alyx
-- [ ] **Rückseite, nächste Stufen** (Reihenfolge wie geplant, Details in [docs/disc-sleeve.md](docs/disc-sleeve.md#ideen-für-die-nächsten-schritte)):
+- [ ] **Rückseite, nächste Stufen** (Reihenfolge wie geplant, Details in [docs/web-app.md](docs/web-app.md#rückseite-gestalten-editor)):
   - [x] **Umriss im Editor:** gewählte Form mit orangem Umriss und Linien zwischen den Punkten, andere Formen mit feinem hellem Umriss (nur im Editor); dazu ein echter Rand (Breite in mm, Farbe) pro Form als Gestaltungsmittel
   - [x] **Eigene Vorlagen:** "+ Vorlage importieren" und "Layout als Vorlage speichern" unten in der Vorlagenleiste, Löschen und "Als Datei" je Vorlage; eine Vorlage speichert nur das Layout (Bilder bleiben Platzhalter)
   - [x] **Sichern und Einlesen der Einstellungen:** Auswahlfenster mit Häkchen (Zugangsdaten, eigene Vorlagen, eigene Schriften, auch einzeln), Vorschau mit Rückfragen beim Einlesen; Teildateien lassen sich nacheinander einlesen, ohne etwas zu überschreiben, was nicht in der Datei steht
@@ -163,24 +167,36 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
   - [x] **Eigene Schriften in der Projektdatei (ZIP):** Schriften, die Texte benutzen, werden mitgespeichert und beim Öffnen auf einem anderen Rechner automatisch hinzugefügt
   - [x] **Mehrfachauswahl im Editor:** Elemente mit Strg oder Umschalt wählen (Strg+A alle), gemeinsam verschieben und drehen (jedes um die eigene Mitte), duplizieren, löschen
   - [x] **Durchgehendes Bild:** Die Vorschau zeigt es jetzt auch (der Platzhalter "Rückseite oben" verdeckte es); Standard bleiben zwei getrennte Bilder
-  - [x] **Standardschriften:** 18 Spiele-Schriften mit freier Lizenz (OFL/Apache) mitgeliefert (Pixel-Retro, Sci-Fi, Fantasy, Horror, Comic u. a.), im Dropdown jeweils in der eigenen Schrift; eigene Schriften lassen sich im Editor und in den Einstellungen wieder löschen (für den noch offenen Ein-Datei-Build: Schriften als Base64 einbetten)
+  - [x] **Standardschriften:** 18 Spiele-Schriften mit freier Lizenz (OFL/Apache) mitgeliefert (Pixel-Retro, Sci-Fi, Fantasy, Horror, Comic u. a.), im Dropdown jeweils in der eigenen Schrift; eigene Schriften lassen sich im Editor und in den Einstellungen wieder löschen
   - [x] **Spielfunktionen mit vielen Symbolen:** Passt ein Wort nicht mehr in seinen Platz (z. B. "Achievements"), wird die Schrift aller Beschriftungen automatisch kleiner, nichts überlappt mehr (Issue #23)
   - [x] **Auswahlrechteck im Editor:** auf leerer Fläche aufziehen wählt alle berührten Elemente (mit Strg/Umschalt zur Auswahl hinzufügen)
   - [ ] Ausrichtungshilfen (Raster)
-- [ ] **Beide Web-Tools zusammenführen** (in Arbeit, drei Schritte):
+- [x] **Beide Web-Tools zusammengeführt:**
   - [x] **Eine Seite:** gemeinsamer Ordner `app/`, eine `index.html`, oben eine Leiste mit dem Wechsel "Disc-Menü | Cover & Hülle" ohne Neuladen; die Knöpfe der Leiste passen sich dem Bereich an
   - [x] **Ein Projekt:** ein Speicher und eine Projektdatei für Menü und Hülle (eine `recipe.json` mit den Bereichen Gemeinsam, Menü und Hülle, dazu `assets/` und `fonts/`; der Builder liest sie direkt), verknüpft und nichts doppelt (Spielname = Titel der Hülle, Anbieter, Beschreibung, Größe, Cover), ein Einstellungsdialog, eine Leiste für beide Bereiche, helles Design im Menü; alte Rezepte und Hüllen-Dateien lassen sich weiter öffnen
   - [x] **Spielordner einlesen:** Ordner wie die Disc wählen, Installer, DLCs, Patches und Extras werden vorgeschlagen und lassen sich vor dem Übernehmen ändern
   - [x] **recipe.json bearbeiten** mit den Reitern Alles, Gemeinsam, Menü und Hülle; Hinweis beim Speichern alter Dateien im neuen Format
-  - [ ] **Englisch** auch für den Bereich "Menü"
+  - [x] **Englisch** auch für den Bereich Disc-Menü (die nachgebaute Player-Ansicht bleibt deutsch wie der Player)
+  - [x] **Doku zusammengeführt:** eine Anleitung [docs/web-app.md](docs/web-app.md), Beispiel `examples/recipe.example.json`
   - Ziel: Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
-- [ ] **Ein-Datei-Build** (Vorarbeit erledigt: alle Grafiken sind SVG, nur die Schrift Lato ist noch eine Binärdatei): Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
+- [x] **Ein-Datei-Build:** `npm run build` (Skript `scripts/build-single.js`) macht aus dem Ordner `app/` eine einzige HTML-Datei (rund 1,7 MB, CSS, JavaScript, Bilder und Schriften eingebettet, läuft ohne Internet). Zum Herunterladen auch auf GitHub Pages: [DiscMenu-Builder.html](https://einmensch002.github.io/DiscMenu-Builder/DiscMenu-Builder.html)
+
+### Nächste große Stufe: Installer für eigene Discs (Windows und Linux)
+
+Ziel: eigene Spielkopien auf Blu-ray mit einem Installer, der Dateien selbst kopiert (nicht nur fremde Setups startet). Reihenfolge: erst wenn die Web-App fertig ist.
+
+- [ ] **Entscheidung Technik:** beim Go-Player bleiben und ihn um einen Linux-Build (AppImage) erweitern oder ein neues Werkzeug (in docs/platforms-and-tech.md waren Tauri und Godot verworfen)
+- [ ] **Neue Installationsart "kopieren"** im Rezept: Ordner von der Disc in einen Zielordner, mit Fortschritt je Datei, Prüfung des freien Speichers, Prüfsummen nach dem Kopieren, Ausschlussmuster
+- [ ] **Einstellungen vor der Installation** im Rezept beschreiben (Auswahlfelder, die Werte in INI- oder JSON-Dateien schreiben), damit nichts spielspezifisch programmiert wird
+- [ ] **Starter anlegen:** Startmenü-Eintrag (Windows) bzw. .desktop-Datei (Linux)
+- [ ] **Autostart-Dateien** vom Builder erzeugen (autorun.inf, autorun.sh)
+- [ ] **Deinstallieren und Überprüfen** gegen die Prüfsummen der Disc
 
 ### Später
 
 - [ ] Eigene Tabs (z. B. Mods)
 - [ ] Bessere Übersetzung (z. B. DeepL mit eigenem Schlüssel)
-- [ ] GOG-Katalog als Beschreibungsquelle mit deutschen Texten
+- [x] GOG-Katalog als Beschreibungsquelle mit deutschen Texten (Beschreibungssuche im Disc-Menü fragt GOG mit `locale=de-DE`)
 - [ ] Steam-Provider: Backups wiederherstellen (Machbarkeit zuerst prüfen)
 - [ ] **Soundtrack im Menü abspielen:** Erkennt der Spielordner einen Soundtrack (Gruppe "Musik"), listet das Menü die einzelnen Titel auf und spielt sie direkt ab, statt nur den Ordner zu öffnen (Player: Wiedergabe von MP3/OGG/FLAC, Web-Vorschau: Liste mit Wiedergabe). Idee für den Feinschliff
 
@@ -189,7 +205,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
 Jeder mit einem GitHub-Konto kann über **Issues → New issue → Fehler, Idee oder Frage** ein Issue anlegen. Im Formular wählt man:
 
 - **Art:** Fehler (`bug`), Idee oder Wunsch (`enhancement`, `idee`), Frage (`question`), Dokumentation (`documentation`), Barrierefreiheit (`accessibility`)
-- **Bereich:** Konfigurator, DiscSleeve, Builder, Player, Proxy, Tests und Veröffentlichung (Labels `konfigurator`, `discsleeve`, `builder`, `player`, `proxy`, `ci`)
+- **Bereich:** Disc-Menü, Cover & Hülle, Builder, Player, Proxy, Tests und Veröffentlichung (Labels `konfigurator`, `discsleeve`, `builder`, `player`, `proxy`, `ci`)
 - **Stand:** Haken "muss auf einem echten Gerät geprüft werden" (`manuell testen`)
 
 Nach dem Absenden setzt eine GitHub Action (`.github/workflows/issue-labels.yml`) die passenden Labels, dafür braucht man **keine Rechte** am Repository. Bearbeitet man das Issue und ändert die Auswahl, werden die Labels angepasst. Die Action verwaltet nur diese freigegebenen Labels: `wontfix`, `duplicate`, `invalid`, `in arbeit`, `blockiert`, `help wanted` und `good first issue` setzt nur der Besitzer, sie bleiben immer erhalten. Leere Issues ohne Formular sind weiter möglich, dort setzt die Action nichts. Neue Auswahl im Formular braucht einen Eintrag in `FORM` im Workflow, `tests/issue-labels.test.js` prüft das.

@@ -293,8 +293,8 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await confirmImport(false); await backToSettings();
   assert.equal(await page.evaluate(() => localStorage.getItem('sgdb-key')), 'KEY2');
   assert.equal(await page.inputValue(keyField), 'KEY2');
-  // Datei, die der Konfigurator gesichert hat (anderer Code, gleiches Format); der vorhandene Schlüssel wird nur nach Zustimmung überschrieben
-  const K = loadCore();
+  // Datei nur mit Zugangsdaten (so hat sie der frühere Konfigurator gesichert); der vorhandene Schlüssel wird nur nach Zustimmung überschrieben
+  const K = require('../../app/files.js');
   await page.fill(pwField, '');
   await load(Buffer.from(await K.packSettings({ key: 'FROMCONF', proxy: 'https://c.example/?url={url}' }, '')));
   await confirmImport(false);

@@ -41,6 +41,8 @@ jobs:
           # Versionsnummer in die Adressen der Dateien schreiben: Browser laden nach jeder Veröffentlichung die neuen Dateien
           # (sonst mischen sie bis zu 10 Minuten lang alte und neue Teile der Seite)
           sed -i "s/__VERSION__/${GITHUB_SHA::7}/g" site/index.html
+          # Ein-Datei-Build zum Herunterladen: die ganze Web-App in einer HTML-Datei (scripts/build-single.js)
+          node scripts/build-single.js site/DiscMenu-Builder.html --version=${GITHUB_SHA::7}
       # Vorschauen offener Pull Requests (liegen im Zweig gh-pages unter pr/<Nummer>/, siehe preview.yml) unter /pr/ mitveröffentlichen
       - name: Vorschauen einfügen
         run: |

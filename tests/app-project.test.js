@@ -175,3 +175,14 @@ test('Spielordner: Disc mit mehreren Spielen in eigenen Ordnern', () => {
   assert.equal(by('setup_burgspiel_hd_1.41_(german)_(20341).exe').kind, 'installer');
   assert.equal(by('Bonus/burgspiel_manual.pdf').name, 'Manual');
 });
+
+test('Beispiel recipe.example.json: gültige Projektbeschreibung, daraus entsteht das Menü-Beispiel', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const recipe = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'examples', 'recipe.example.json'), 'utf8'));
+  const menu = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'examples', 'menu.example.json'), 'utf8'));
+  const back = P.menuJsonFromRecipe(recipe);
+  assert.ok(loadSchemaValidator()(back), 'gültige menu.json');
+  assert.deepEqual(back, menu, 'recipe.example.json beschreibt dasselbe Menü wie menu.example.json');
+  const r = P.readJson(JSON.stringify(recipe));
+  assert.equal(r.kind, 'project'); assert.equal(r.cover.state.title, menu.games[0].name); assert.equal(r.cover.state.publisher, 'Beispiel-Studio');
+});

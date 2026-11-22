@@ -41,6 +41,8 @@ jobs:
             printf '%s\n' '<!doctype html><html lang="de"><meta charset="utf-8"><title>DiscMenu-Builder</title><meta http-equiv="refresh" content="0; url=../#huelle"><link rel="canonical" href="../#huelle"><p>Die Hülle ist jetzt Teil der gemeinsamen Seite: <a href="../#huelle">weiter</a>.</p></html>' > site/$old/index.html
           done
           sed -i "s/__VERSION__/pr${PR}-${GITHUB_SHA::7}/g" site/index.html
+          # Ein-Datei-Build zum Herunterladen: die ganze Web-App in einer HTML-Datei (scripts/build-single.js)
+          node scripts/build-single.js site/DiscMenu-Builder.html --version=pr${PR}-${GITHUB_SHA::7}
       - name: Ordner pr/${{ github.event.pull_request.number }} im Zweig gh-pages anlegen oder löschen
         run: |
           set -e

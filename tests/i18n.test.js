@@ -10,15 +10,15 @@ const en = require('../app/lang-en.js');
 const dir = path.join(__dirname, '..', 'app');
 const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
 const unesc = (s) => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&nbsp;/g, ' ');
-const sources = ['index.html', 'app.js', 'extras.js', 'online.js', 'files.js', 'core.js', 'back-editor.js', 'back-design.js', 'project.js', 'shell.js'].map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
+const sources = ['index.html', 'app.js', 'extras.js', 'online.js', 'files.js', 'core.js', 'back-editor.js', 'back-design.js', 'project.js', 'shell.js', 'menu.js', 'menu-core.js'].map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
 const flat = unesc(sources).replace(/\\(['"])/g, '$1');
 const norm = (s) => s.replace(/\s+/g, ' ').trim();
 
 /* sichtbare Texte der Oberfläche (außerhalb des Covers) aus dem HTML */
 function uiTexts() {
   const i = html.indexOf('id="sheet"'), j = html.indexOf('<script', i);
-  // ohne Skripte und ohne den Menü-Teil (#viewMenu, data-notr: wird noch nicht übersetzt)
-  const ui = (html.slice(0, i) + html.slice(j)).replace(/<script>[\s\S]*?<\/script>/g, '').replace(/<section id="viewMenu"[\s\S]*?(?=<section id="viewCover")/, '');
+  // ohne Skripte
+  const ui = (html.slice(0, i) + html.slice(j)).replace(/<script>[\s\S]*?<\/script>/g, '');
   const out = new Set();
   for (const m of ui.matchAll(/>([^<>]+)</g)) { const t = norm(unesc(m[1])); if (/[A-Za-zÄÖÜäöüß]{2}/.test(t)) out.add(t); }
   for (const m of ui.matchAll(/\b(?:placeholder|title|aria-label)="([^"]+)"/g)) out.add(norm(unesc(m[1])));

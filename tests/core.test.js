@@ -118,17 +118,6 @@ test('Hilfen für Beschreibungen: HTML, Sprache, Teilen, Namen', () => {
   assert.equal(C.normName('Half-Life 2!'), 'halflife2');
 });
 
-test('Einstellungen sichern: mit und ohne Passwort, falsches Passwort', async () => {
-  const v = { key: 'abc', proxy: 'https://p.example' };
-  const plain = await C.packSettings(v, '');
-  assert.deepEqual(await C.unpackSettings(plain, ''), v);
-  const enc = await C.packSettings(v, 'geheim');
-  assert.ok(!enc.includes('abc'));
-  assert.deepEqual(await C.unpackSettings(enc, 'geheim'), v);
-  await assert.rejects(C.unpackSettings(enc, 'falsch'), /Falsches Passwort/);
-  await assert.rejects(C.unpackSettings('{"type":"discmenu-settings","version":1,"templates":[]}', ''), /keine Zugangsdaten/, 'Datei nur mit Vorlagen leert die Zugangsdaten nicht');
-});
-
 test('Disc-Prüfung: gefunden, fehlt, Ordner statt Datei, Links ausgenommen', async () => {
   const s = sampleState();
   s.games[0].patches[0].path = 'Spiel1\\Patches\\de.exe';
