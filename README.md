@@ -61,6 +61,7 @@ DiscMenu-Builder/
 ├─ LICENSE
 ├─ docs/                    Dokumentation (siehe Tabelle oben)
 ├─ go.mod, scripts/build.sh Go-Projekt und Build-Skript für die Windows-EXEs
+├─ scripts/build-single.js  Ein-Datei-Build der Web-App (npm run build)
 ├─ app/                     Gemeinsame Web-App: index.html mit den Bereichen Menü (menu.js, menu-core.js, menu.css) und Hülle (DiscSleeve), shell.js schaltet um (Seite in der Wurzel, alt: /disc-sleeve/ und /cover/ leiten weiter)
 ├─ schema/                  JSON Schema der menu.json
 ├─ tests/                   Automatische Tests
@@ -164,7 +165,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
   - [x] **Eigene Schriften in der Projektdatei (ZIP):** Schriften, die Texte benutzen, werden mitgespeichert und beim Öffnen auf einem anderen Rechner automatisch hinzugefügt
   - [x] **Mehrfachauswahl im Editor:** Elemente mit Strg oder Umschalt wählen (Strg+A alle), gemeinsam verschieben und drehen (jedes um die eigene Mitte), duplizieren, löschen
   - [x] **Durchgehendes Bild:** Die Vorschau zeigt es jetzt auch (der Platzhalter "Rückseite oben" verdeckte es); Standard bleiben zwei getrennte Bilder
-  - [x] **Standardschriften:** 18 Spiele-Schriften mit freier Lizenz (OFL/Apache) mitgeliefert (Pixel-Retro, Sci-Fi, Fantasy, Horror, Comic u. a.), im Dropdown jeweils in der eigenen Schrift; eigene Schriften lassen sich im Editor und in den Einstellungen wieder löschen (für den noch offenen Ein-Datei-Build: Schriften als Base64 einbetten)
+  - [x] **Standardschriften:** 18 Spiele-Schriften mit freier Lizenz (OFL/Apache) mitgeliefert (Pixel-Retro, Sci-Fi, Fantasy, Horror, Comic u. a.), im Dropdown jeweils in der eigenen Schrift; eigene Schriften lassen sich im Editor und in den Einstellungen wieder löschen
   - [x] **Spielfunktionen mit vielen Symbolen:** Passt ein Wort nicht mehr in seinen Platz (z. B. "Achievements"), wird die Schrift aller Beschriftungen automatisch kleiner, nichts überlappt mehr (Issue #23)
   - [x] **Auswahlrechteck im Editor:** auf leerer Fläche aufziehen wählt alle berührten Elemente (mit Strg/Umschalt zur Auswahl hinzufügen)
   - [ ] Ausrichtungshilfen (Raster)
@@ -175,7 +176,7 @@ Stand: November 2026. Erledigt ist ein Punkt, wenn er im Repo umgesetzt und mit 
   - [x] **recipe.json bearbeiten** mit den Reitern Alles, Gemeinsam, Menü und Hülle; Hinweis beim Speichern alter Dateien im neuen Format
   - [ ] **Englisch** auch für den Bereich "Menü"
   - Ziel: Menü-Ersteller und Cover-Tool unter einem Dach, mit **einer gemeinsamen Projektdatei** (eine ZIP mit Rezept, Menü-Daten, Cover-Einstellungen und allen Bildern), die man speichern, überschreiben und wieder öffnen kann
-- [ ] **Ein-Datei-Build** (Vorarbeit erledigt: alle Grafiken sind SVG, nur die Schrift Lato ist noch eine Binärdatei): Der Code bleibt für die Arbeit auf mehrere Dateien aufgeteilt (HTML, CSS, JavaScript, Symbole). Ein Build-Schritt erzeugt daraus **eine einzige HTML-Datei**, in der CSS, JavaScript und alle Grafiken (SVG als Text, die Schrift als eingebettete Daten) stecken. Zum Veröffentlichen oder Weitergeben genügt dann diese eine Datei, ohne Ordner mit Zusatzdateien
+- [x] **Ein-Datei-Build:** `npm run build` (Skript `scripts/build-single.js`) macht aus dem Ordner `app/` eine einzige HTML-Datei (rund 1,7 MB, CSS, JavaScript, Bilder und Schriften eingebettet, läuft ohne Internet). Zum Herunterladen auch auf GitHub Pages: [DiscMenu-Builder.html](https://einmensch002.github.io/DiscMenu-Builder/DiscMenu-Builder.html)
 
 ### Später
 

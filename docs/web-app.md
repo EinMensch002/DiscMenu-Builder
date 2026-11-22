@@ -19,7 +19,7 @@ Die Web-App von DiscMenu-Builder ist **eine Seite mit zwei Bereichen**: Im **Dis
 ## Grundsätze
 
 - **Läuft komplett im Browser.** Kein Backend, nichts wird hochgeladen. Bilder, Sounds und Projektdateien werden lokal verarbeitet.
-- **Keine Abhängigkeiten.** Keine externen Bibliotheken, ZIP schreiben und lesen sind selbst eingebaut. Der Code ist auf mehrere Dateien verteilt (siehe [Aufbau der Dateien](#aufbau-der-dateien)). Ein [Ein-Datei-Build](#ein-datei-build) soll ihn später zu einer HTML-Datei zusammenfassen.
+- **Keine Abhängigkeiten.** Keine externen Bibliotheken, ZIP schreiben und lesen sind selbst eingebaut. Der Code ist auf mehrere Dateien verteilt (siehe [Aufbau der Dateien](#aufbau-der-dateien)), der [Ein-Datei-Build](#ein-datei-build) fasst ihn zu einer HTML-Datei zusammen.
 - Die Web-App erzeugt das Rezept und das Cover. Die Menü-EXE macht der Builder.
 
 ## Leiste und Bereiche
@@ -450,14 +450,25 @@ Der Link steht als Kommentar im Pull Request. Die Seite erscheint ein bis zwei M
 
 ### Ein-Datei-Build
 
-Geplant (siehe Roadmap in der [README](../README.md)): Ein Skript fasst den Ordner `app/` zu einer einzigen HTML-Datei zusammen (CSS, JavaScript, Bilder und Schriften eingebettet).
+Die ganze Web-App als **eine HTML-Datei** (rund 1,7 MB), die ohne weitere Dateien und ohne Internet läuft, z. B. zum Weitergeben oder direkt auf der Disc:
+
+```bash
+npm run build                                   # erzeugt dist/DiscMenu-Builder.html
+node scripts/build-single.js ziel.html --version=1.0
+```
+
+Zum Herunterladen liegt sie auch auf GitHub Pages: https://einmensch002.github.io/DiscMenu-Builder/DiscMenu-Builder.html (bei jeder Veröffentlichung neu gebaut, in PR-Vorschauen unter `/pr/<Nummer>/DiscMenu-Builder.html`).
+
+Das Skript (`scripts/build-single.js`, ohne Abhängigkeiten) setzt Stilvorlagen und Skripte in die Seite ein und macht aus allen Dateien in `assets/` (Bilder, Lato und die 18 Spiele-Schriften) `data:`-Adressen. Pfade, die erst zur Laufzeit entstehen (USK-Zeichen, Symbole der Spielfunktionen, Anbieter-Logos), findet die Seite über die eingebettete Tabelle `window.DISC_ASSETS` (Funktion `asset()` in `app.js`). Gearbeitet wird weiter im Ordner `app/`. Der Test `tests/ui/single.check.js` öffnet die erzeugte Datei in einem leeren Ordner und prüft, dass nichts nachgeladen wird.
+
+**Neue Bilder** im Code immer über `asset('assets/…')` oder `setImg()` setzen, dann klappt es auch im Ein-Datei-Build.
 
 ## Tests
 
 Automatische Tests: `npm install`, dann `npm test` (Logik, schnell, auch in der CI über `.github/workflows/tests.yml`) und `npm run test:ui` (Browser-Tests mit Playwright, nur lokal). Die CI prüft außerdem das Lesen der Projektdatei im Go-Teil des Builders (`go test ./src/Shared/`).
 
 - **Logik:** `tests/app-project.test.js` (Projektdatei, ältere Dateien, Verknüpfung, Spielordner), `tests/core.test.js` (Kern des Disc-Menüs: ZIP, Prüfung, Suche, Disc-Prüfung), `tests/schema.test.js` (Beispiel und Export gegen `schema/menu.schema.json`), `tests/cover.test.js` (Maße der Hülle), `tests/cover-online.test.js` (Steam, GOG, Proxy), `tests/cover-files.test.js` (Einstellungsdateien, Verbindungstest), `tests/i18n.test.js` (jeder deutsche Text der Seite übersetzt, keine toten Einträge), `tests/cover-site.test.js` (Versionsnummern, Pages-Workflow), `tests/worker.test.js` (Proxy).
-- **Browser:** `app.check.js` (gemeinsame Seite: Umschalten, Leiste, Verknüpfung, Speichern, Öffnen, ältere Dateien, Spielordner, Englisch, Druck), `ui.check.js` (Disc-Menü: recipe.json bearbeiten, Vorschau mit Simulation, Disc-Prüfung), `cover.check.js`, `cover-online.check.js`, `cover-spine.check.js`, `cover-gog.check.js`, `cover-back.check.js`, `cover-font-project.check.js`, `cover-i18n.check.js`, `cover-save.check.js` (Speichern mit Dateiauswahl, scheitert auf manchen Windows-Rechnern am Dialog "Speichern unter").
+- **Browser:** `app.check.js` (gemeinsame Seite: Umschalten, Leiste, Verknüpfung, Speichern, Öffnen, ältere Dateien, Spielordner, Englisch, Druck), `ui.check.js` (Disc-Menü: recipe.json bearbeiten, Vorschau mit Simulation, Disc-Prüfung), `cover.check.js`, `cover-online.check.js`, `cover-spine.check.js`, `cover-gog.check.js`, `cover-back.check.js`, `cover-font-project.check.js`, `cover-i18n.check.js`, `single.check.js` (Ein-Datei-Build in einem leeren Ordner), `cover-save.check.js` (Speichern mit Dateiauswahl, scheitert auf manchen Windows-Rechnern am Dialog "Speichern unter").
 
 Nicht automatisch geprüft sind ein echter Ausdruck, die echten Dienste und die Dateiauswahl mit Überschreiben. Dafür gibt es eine Prüfliste: [manuelle-pruefung.md](manuelle-pruefung.md).
 

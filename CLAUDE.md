@@ -38,6 +38,7 @@ Kurzer Überblick, damit eine neue Sitzung ohne den ganzen Verlauf weiterarbeite
 ```bash
 npm test          # Logik-Tests, schnell
 npm run test:ui   # Browser-Tests mit Playwright (Chromium ist vorinstalliert), dauert einige Minuten
+npm run build     # Ein-Datei-Build: dist/DiscMenu-Builder.html
 ```
 - Neue Funktion: Logik-Test in `tests/cover.test.js` oder `tests/cover-files.test.js`, Bedienung in `tests/ui/cover-back.check.js` (Dienste mit `page.route` nachbauen, keine echten Verbindungen).
 - Nach Änderungen warten Tests auf den nächsten Frame (`waitForFunction`), nicht sofort `textContent` prüfen.
@@ -45,5 +46,5 @@ npm run test:ui   # Browser-Tests mit Playwright (Chromium ist vorinstalliert), 
 
 ## Roadmap (kurz, Details in `README.md`)
 - Beide Web-Tools zusammenführen mit gemeinsamer Projektdatei (`assets/`, `cover.json`, `recipe.json`), eine einzige HTML-Datei als Ausgabe (Code bleibt getrennt, ein Build fügt zusammen), ein Repository bleibt.
-- Rückseite: Umriss, eigene Vorlagen, eigene Schriften, Sichern/Einlesen mit Auswahl und 18 mitgelieferte Spiele-Schriften sind fertig (Format und Regeln: `files.js` `packBundle`/`planImport`/`applyImport`, Schriftliste in `back-design.js` `FONTS`, Dateien und Lizenzen in `app/assets/fonts/games/`). Eigene Schriften reisen in der Projektdatei (ZIP, Ordner `fonts/`, `files.js` `packProject`/`unpackProject`) mit. Offen: Raster im Editor. Den Ein-Datei-Build gibt es noch nicht; dort sollen die Schriftdateien später als Base64 eingebettet werden.
+- Rückseite: Umriss, eigene Vorlagen, eigene Schriften, Sichern/Einlesen mit Auswahl und 18 mitgelieferte Spiele-Schriften sind fertig (Format und Regeln: `files.js` `packBundle`/`planImport`/`applyImport`, Schriftliste in `back-design.js` `FONTS`, Dateien und Lizenzen in `app/assets/fonts/games/`). Eigene Schriften reisen in der Projektdatei (ZIP, Ordner `fonts/`, `files.js` `packProject`/`unpackProject`) mit. Offen: Raster im Editor. Ein-Datei-Build: `npm run build` (`scripts/build-single.js`), Bilder im Code immer über `asset()`/`setImg()` setzen, sonst fehlen sie in der einen Datei.
 - Offene manuelle Prüfungen (echter Druck, Firefox/Safari, echter Proxy) stehen in `docs/manuelle-pruefung.md`.
