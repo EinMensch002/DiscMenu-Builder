@@ -1,22 +1,25 @@
-/* Gemeinsames Projekt (Menü und Hülle) ohne Oberfläche: Projektdatei packen und lesen, Felder verknüpfen.
+/* Gemeinsames Projekt (Menü und Hülle) ohne Oberfläche: Projektdatei packen und lesen, Felder verknüpfen, Spielordner auswerten.
    Ohne Zugriff auf die Seite, damit sich alles mit Node testen lässt.
 
-   Projektdatei (ZIP), Version 2:
-     menu.json            Rezept des Menüs (der Builder liest nur diese Datei und die Dateien, auf die sie verweist)
-     assets/…             Bilder und Sounds des Menüs
-     assets/huelle-….     Bilder der Hülle (Druckauflösung)
-     cover.json           Hülle: type "discmenu-cover", version 2, link (welches Spiel), state ohne die verknüpften Felder
-     fonts/…              eigene Schriften, die Texte der Hülle benutzen
-   Verknüpft (nur einmal gespeichert, im Spiel link.game des Menüs): Name = Titel der Hülle, Anbieter, Beschreibung,
-   geschätzte Größe = Speicherplatz.
-   Ältere Dateien werden erkannt: Rezept-ZIP (menu.json + assets), einzelne menu.json, Cover-ZIP (cover.json Version 1). */
+   Projektdatei (ZIP) mit EINER Beschreibung, recipe.json:
+     {
+       "format": "discmenu-recipe", "version": 1,
+       "gameIndex": 0,            welches Spiel des Menüs die Hülle zeigt
+       "game":  { … },            gemeinsame Angaben dieses Spiels (stehen nur hier): title, provider, description, publisher,
+                                  developer, sizeMB, cover (Bild für Menü und Frontcover)
+       "menu":  { … },            Menü wie in der menu.json (schemaVersion, title, games …), beim Spiel gameIndex ohne die gemeinsamen Angaben
+       "cover": { "state": { … }, "images": { key: { file, name } }, "fonts": { id: { file, name } } }   Hülle ohne die gemeinsamen Angaben
+     }
+     assets/…   alle Bilder und Sounds (jede Datei einmal), fonts/…   eigene Schriften der Hülle
+   Ältere Dateien werden erkannt: Projektdatei mit menu.json + cover.json (Vorschau-Version), Rezept-ZIP (menu.json + assets),
+   einzelne menu.json und Hüllen-ZIP (cover.json Version 1). Der Builder liest recipe.json (src/Shared/recipe.go, MenuFromRecipe). */
 (function (root) {
   'use strict';
   const node = typeof module !== 'undefined' && module.exports;
   const M = () => (node ? require('./menu-core.js') : root.CORE);
   const F = () => (node ? require('./files.js') : root.CoverFiles);
-  const C = () => (node ? require('./core.js') : root.CoverCore);
   const enc = (o) => new TextEncoder().encode(JSON.stringify(o, null, 2) + '\n');
+  const FORMAT = 'discmenu-recipe', VERSION = 1;
 
   const defaultLink = () => ({ game: 0 });
   function normLink(l) { const g = Number(l && l.game); return { game: Number.isInteger(g) && g >= 0 && g < 100 ? g : 0 }; }
@@ -53,21 +56,55 @@
     }
     return out;
   }
-  /* Hüllen-Zustand ohne die verknüpften Felder (stehen im Menü) */
-  function stripLinked(coverState) {
+
+  /* ---------- Gemeinsame Angaben ---------- */
+  const SHARED_GAME = { title: 'name', provider: 'provider', description: 'description', sizeMB: 'estimatedSizeMB', cover: 'cover' };   // recipe.game -> Spiel der menu.json
+  /* Hüllen-Zustand ohne die gemeinsamen Angaben */
+  function stripShared(coverState) {
     const s = JSON.parse(JSON.stringify(coverState || {}));
-    delete s.title; delete s.provider;
+    for (const k of ['title', 'provider', 'space', 'publisher', 'developer']) delete s[k];
     if (s.back) delete s.back.description;
     return s;
+  }
+  /* menu.json aus einer recipe.json (gemeinsame Angaben ins Spiel gameIndex). Gleiche Regel wie MenuFromRecipe im Builder. */
+  function menuJsonFromRecipe(r) {
+    if (!r || r.format !== FORMAT) throw new Error('Das ist keine recipe.json von DiscMenu.');
+    if (Number(r.version) > VERSION) throw new Error('Die recipe.json stammt aus einer neueren Version.');
+    const menu = JSON.parse(JSON.stringify(r.menu || {})), games = Array.isArray(menu.games) ? menu.games : [];
+    const g = games[normLink({ game: r.gameIndex }).game] || games[0], sh = r.game || {};
+    if (g) for (const [k, m] of Object.entries(SHARED_GAME)) if (sh[k] !== undefined && sh[k] !== '' && sh[k] !== null) g[m] = sh[k];
+    return menu;
   }
 
   /* Projektdatei schreiben.
      p: { menuState, menuAssets: Map(id -> {data, ext}), coverState, coverImages: {key: {data, type, name}}, fonts: [...], link } */
-  function pack(p) {
+  function build(p) {
+    const link = normLink(p.link), cs = p.coverState || {};
     const { menu, files } = M().buildMenu(p.menuState, p.menuAssets || new Map());
-    const cover = F().projectEntries(stripLinked(p.coverState), p.coverImages || {}, p.fonts || [], { dir: 'assets/', prefix: 'huelle-', version: 2, extra: { link: normLink(p.link) } });
-    return F().buildZip([{ name: 'menu.json', data: enc(menu) }, ...files, ...cover]);
+    const games = menu.games || [], g = games[link.game] || games[0];
+    const game = { title: cs.title || '', provider: cs.provider || 'gog', description: (cs.back && cs.back.description) || '', publisher: cs.publisher || '', developer: cs.developer || '' };
+    const out = files.slice(), imgs = Object.assign({}, p.coverImages || {});
+    if (g) {
+      game.title = g.name || game.title; game.provider = g.provider || game.provider; game.description = g.description || game.description;
+      if (g.estimatedSizeMB) game.sizeMB = g.estimatedSizeMB;
+      const own = g.cover;
+      for (const k of ['name', 'provider', 'description', 'estimatedSizeMB', 'cover']) delete g[k];
+      if (imgs.front) {
+        // Frontcover in Druckauflösung ist auch das Cover im Menü: eine Datei statt zwei
+        const ext = F().EXT_BY_TYPE[imgs.front.type] || 'png', path = 'assets/cover.' + ext;
+        game.cover = path; out.push({ name: path, data: imgs.front.data });
+        const stillUsed = own && JSON.stringify(menu).includes('"' + own + '"');
+        if (own && !stillUsed) { const i = out.findIndex((f) => f.name === own); if (i >= 0) out.splice(i, 1); }
+      } else if (own) game.cover = own;
+    }
+    delete imgs.front;
+    const coverFiles = F().projectEntries(stripShared(cs), imgs, p.fonts || [], { dir: 'assets/', prefix: 'huelle-' });
+    const cj = JSON.parse(new TextDecoder().decode(coverFiles[0].data));
+    const recipe = { format: FORMAT, version: VERSION, gameIndex: link.game, game, menu, cover: { state: cj.state, images: cj.images } };
+    if (cj.fonts) recipe.cover.fonts = cj.fonts;
+    return { recipe, files: out.concat(coverFiles.slice(1)) };
   }
+  function pack(p) { const b = build(p); return F().buildZip([{ name: 'recipe.json', data: enc(b.recipe) }, ...b.files]); }
 
   /* Menü aus einer menu.json und den Dateien der ZIP */
   function menuFrom(json, files) {
@@ -81,31 +118,101 @@
     return { state: r.state, assets, counter, notes: r.notes };
   }
   const parseJson = (data, what) => { try { return JSON.parse(typeof data === 'string' ? data : new TextDecoder().decode(data)); } catch (e) { throw new Error('Die ' + what + ' ist beschädigt.'); } };
+  const withShared = (state, sh) => {
+    const s = { ...(state || {}) };
+    if (sh.title !== undefined) s.title = String(sh.title || '');
+    if (sh.provider) s.provider = sh.provider;
+    if (sh.publisher !== undefined) s.publisher = String(sh.publisher || '');
+    if (sh.developer !== undefined) s.developer = String(sh.developer || '');
+    if (Number(sh.sizeMB) > 0) s.space = gb(sh.sizeMB);
+    s.back = { ...(s.back || {}), description: String(sh.description || '') };
+    return s;
+  };
 
-  /* Projektdatei, Rezept oder Cover-ZIP lesen. files: Ergebnis des ZIP-Lesers ([{name, data}]).
-     Ergebnis: { kind: 'project' | 'recipe' | 'cover', menu: {state, assets, counter, notes}, cover: {state, images, missing, fonts} | null, link } */
+  /* recipe.json mit den Dateien der ZIP lesen */
+  function readRecipe(r, files) {
+    const menuJson = menuJsonFromRecipe(r), sh = r.game || {}, link = normLink({ game: r.gameIndex });
+    const menu = menuFrom(menuJson, files);
+    const c = r.cover || {}, images = Object.assign({}, c.images || {});
+    if (sh.cover) images.front = { file: sh.cover, name: String(sh.cover).split('/').pop() };
+    const pseudo = { type: 'discmenu-cover', version: 2, state: withShared(c.state, sh), images };
+    if (c.fonts) pseudo.fonts = c.fonts;
+    const cover = F().unpackProject([{ name: 'cover.json', data: enc(pseudo) }, ...files.filter((f) => f.name !== 'cover.json')]);
+    return { kind: 'project', menu, cover, link };
+  }
+
+  /* Projektdatei oder ältere Datei lesen. files: Ergebnis des ZIP-Lesers ([{name, data}]).
+     Ergebnis: { kind, menu: {state, assets, counter, notes}, cover: {state, images, missing, fonts} | null, link }
+     kind: 'project' (recipe.json) · 'combined' (menu.json + cover.json, Vorschau-Version) · 'menu' (altes Rezept) · 'cover' (alte Hüllen-Datei) */
   function read(files) {
+    const rj = files.find((f) => f.name === 'recipe.json');
+    if (rj) return readRecipe(parseJson(rj.data, 'recipe.json'), files);
     const mj = files.find((f) => f.name === 'menu.json'), cj = files.find((f) => f.name === 'cover.json');
-    if (!mj && !cj) throw new Error('In der ZIP fehlen menu.json und cover.json. Das ist keine Projektdatei.');
+    if (!mj && !cj) throw new Error('In der ZIP fehlt die recipe.json. Das ist keine Projektdatei.');
     const menu = mj ? menuFrom(parseJson(mj.data, 'menu.json'), files) : null;
     let cover = null;
     if (cj) {
       cover = F().unpackProject(files);
       if (menu) { const lp = coverPatchFromMenu(menu.state, cover.link); cover.state = { ...cover.state, ...lp, back: { ...((cover.state && cover.state.back) || {}), ...(lp.back || {}) } }; }     // verknüpfte Felder aus dem Menü
     }
-    if (menu) return { kind: cover ? 'project' : 'recipe', menu, cover, link: normLink(cover && cover.link) };
-    // alte Cover-ZIP: ein Spiel aus Titel, Anbieter, Beschreibung und Speicherplatz
+    if (menu) return { kind: cover ? 'combined' : 'menu', menu, cover, link: normLink(cover && cover.link) };
+    // alte Hüllen-ZIP: ein Spiel aus Titel, Anbieter, Beschreibung und Speicherplatz
     const st = M().newState(), g = st.games[0];
     Object.assign(g, menuPatchFromCover(cover.state));
     st.title = g.name;
     return { kind: 'cover', menu: { state: st, assets: new Map(), counter: 1, notes: [] }, cover, link: defaultLink() };
   }
-  /* einzelne menu.json */
-  function readMenuJson(text) {
-    return { kind: 'recipe', menu: menuFrom(parseJson(text, 'menu.json'), []), cover: null, link: defaultLink() };
+  /* einzelne JSON-Datei: recipe.json (ohne Bilder) oder menu.json */
+  function readJson(text) {
+    const j = parseJson(text, 'JSON-Datei');
+    if (j && j.format === FORMAT) return readRecipe(j, []);
+    return { kind: 'menu', menu: menuFrom(j, []), cover: null, link: defaultLink() };
   }
 
-  const api = { pack, read, readMenuJson, coverPatchFromMenu, menuPatchFromCover, coverDiff, menuDiff, stripLinked, linkedGame, normLink, defaultLink };
+  /* ---------- Spielordner einlesen ----------
+     entries: [{ path: 'base_game/setup_x.exe', dir: false }, …] relativ zum gewählten Ordner (der Wurzel der Disc).
+     Ergebnis: Vorschläge [{ path, kind: 'installer'|'dlcs'|'patches'|'extras'|'skip', name, group, open }], die man vor dem Übernehmen ändern kann.
+     Regeln nach dem Namen des obersten Ordners (Groß-/Kleinschreibung egal), sonst nach dem Dateityp. */
+  const RULES = [
+    ['installer', /^(base[ _-]?game|game|hauptspiel|spiel|setup|install(er)?)$/i],
+    ['dlcs', /dlc|erweiterung|expansion|add[ _-]?on|story/i],
+    ['patches', /patch|fix|update|overhaul|mod|tweak|grafik|sprach/i],
+    ['extras', /extra|bonus|goodies|soundtrack|ost|music|musik|artbook|art|manual|handbuch|wallpaper|video/i],
+  ];
+  const prettify = (s) => String(s || '').replace(/\.[^.]+$/, '').replace(/^setup_/i, '').replace(/[_]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const groupOf = (folder) => prettify(folder).replace(/\b(und|and)\b/gi, '&');      // z. B. Patches_und_Fixes -> Patches & Fixes
+  function planFromFolder(entries) {
+    const list = (entries || []).map((e) => ({ path: String(e.path).replace(/\\/g, '/').replace(/^\/+/, ''), dir: !!e.dir })).filter((e) => e.path);
+    const top = (p) => p.split('/')[0], depth = (p) => p.split('/').length;
+    const kindOfTop = (t) => { for (const [k, re] of RULES) if (re.test(t)) return k; return null; };
+    const out = [], isExe = (p) => /\.exe$/i.test(p);
+    const seenInstaller = { done: false };
+    for (const t of [...new Set(list.map((e) => top(e.path)))]) {
+      const inside = list.filter((e) => top(e.path) === t && e.path !== t), kind = kindOfTop(t);
+      if (!inside.length) {                                     // Datei direkt in der Wurzel
+        const e = list.find((x) => x.path === t);
+        if (e && !e.dir && isExe(t)) out.push({ path: t, kind: seenInstaller.done ? 'skip' : 'installer', name: prettify(t), group: '', open: false });
+        if (e && !e.dir && isExe(t)) seenInstaller.done = true;
+        continue;
+      }
+      if (kind === 'extras') {                                   // Extras: jede Datei oder jeder Unterordner direkt darin wird geöffnet
+        for (const e of inside.filter((x) => depth(x.path) === 2)) out.push({ path: e.path, kind: 'extras', name: prettify(e.path.split('/')[1]), group: '', open: true });
+        continue;
+      }
+      // Installer-Ordner: Programme (.exe), die Teile eines Installers (.bin) gehören zur .exe und erscheinen nicht
+      const exes = inside.filter((x) => !x.dir && isExe(x.path)).sort((a, b) => depth(a.path) - depth(b.path) || a.path.localeCompare(b.path));
+      exes.forEach((e) => {
+        let k = kind || 'skip';
+        if (k === 'installer') { k = seenInstaller.done ? 'patches' : 'installer'; seenInstaller.done = true; }
+        const parts = e.path.split('/'), sub = parts.length > 2 ? parts[parts.length - 2] : '';
+        out.push({ path: e.path, kind: k, name: prettify(sub || parts[parts.length - 1]), group: k === 'patches' ? groupOf(t) : '', open: false });      // eigener Unterordner = Name, oberster Ordner = Gruppe
+      });
+    }
+    return out;
+  }
+  const KINDS = ['installer', 'dlcs', 'patches', 'extras', 'skip'];
+
+  const api = { FORMAT, VERSION, pack, build, read, readJson, readRecipe, menuJsonFromRecipe, stripShared, coverPatchFromMenu, menuPatchFromCover, coverDiff, menuDiff, linkedGame, normLink, defaultLink, planFromFolder, KINDS };
   if (node) module.exports = api;
   else root.DiscProject = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -41,9 +41,9 @@ Menü und [Hülle](disc-sleeve.md) sind **ein Projekt** mit einem Speicher und e
 
 | Leiste | Inhalt |
 |---|---|
-| **Projekt** | **Öffnen …** (Projektdatei, Rezept als ZIP oder `menu.json`, ältere Hüllen-Datei), **Speichern** (Strg+S, in beiden Bereichen), **Speichern unter …**, **Im Browser speichern**, **Neues Projekt** (leert Menü und Hülle) |
-| **Daten übernehmen** | Spiel über SteamGridDB hinzufügen, Anforderungen von Steam, Daten von GOG |
-| **Sonstiges** | `menu.json` bearbeiten, Disc-Ordner prüfen (Chrome, Edge) |
+| **Projekt** | **Öffnen …** (Projektdatei, auch ältere Dateien: Rezept als ZIP oder `menu.json`, Hüllen-Datei, einzelne `recipe.json`), **Speichern** (Strg+S, in beiden Bereichen), **Speichern unter …**, **Im Browser speichern**, **Neues Projekt** (leert Menü und Hülle) |
+| **Daten übernehmen** | Spiel über SteamGridDB hinzufügen, **Spielordner einlesen** (siehe unten), Anforderungen von Steam, Daten von GOG |
+| **Sonstiges** | **`recipe.json` bearbeiten** mit den Reitern **Alles**, **Gemeinsam**, **Menü** und **Hülle** (vorausgewählt ist der Bereich, in dem man gerade ist), Disc-Ordner prüfen (Chrome, Edge) |
 | **Einstellungen** | ein Dialog für beide Bereiche: SteamGridDB-Schlüssel, Proxy, Brandfetch, Verbindungstest (alle Dienste beider Bereiche), eigene Schriften, Sichern und Einlesen |
 | **Sprache** | Deutsch oder Englisch (der Bereich "Menü" ist noch nicht übersetzt) |
 
@@ -51,17 +51,46 @@ Menü und [Hülle](disc-sleeve.md) sind **ein Projekt** mit einem Speicher und e
 
 **Im Browser:** Das Projekt wird kurz nach jeder Änderung automatisch im Browser gesichert (IndexedDB `discmenu-projekte`) und ist nach dem Neuladen wieder da. Beim ersten Start übernimmt die Seite die Stände der früheren getrennten Tools (Konfigurator-Projekt und DiscSleeve), die alten Speicher bleiben unverändert. Die frühere Liste mehrerer Projekte im Browser gibt es nicht mehr: Jedes Projekt ist eine Datei.
 
-**Projektdatei (ZIP):**
+**Projektdatei (ZIP):** Eine einzige Beschreibung, die `recipe.json`, erklärt das ganze Projekt. Gemeinsame Angaben stehen darin nur einmal:
 
 ```
-menu.json          Rezept (der Builder liest nur diese Datei und die Dateien, auf die sie verweist)
-assets/…           Bilder und Sounds des Menüs
-assets/huelle-…    Bilder der Hülle (Druckauflösung)
-cover.json         Hülle (type "discmenu-cover", version 2, link = Spiel, ohne die verknüpften Felder)
+recipe.json        Beschreibung des Projekts (siehe unten)
+assets/…           alle Bilder und Sounds, jede Datei nur einmal (z. B. assets/cover.jpg = Frontcover und Cover im Menü, assets/huelle-… für die Hülle)
 fonts/…            eigene Schriften, die Texte der Hülle benutzen
 ```
 
-Der **Builder** kann die Projektdatei direkt verarbeiten. **Öffnen** erkennt auch ältere Dateien: ein Rezept (ZIP mit `menu.json`, die Hülle wird aus dem Spiel vorbereitet), eine einzelne `menu.json` und eine Hüllen-Datei der früheren DiscSleeve-Version (cover.json Version 1, das Menü wird aus der Hülle vorbereitet). Logik und Format: `app/project.js`, Tests: `tests/app-project.test.js`.
+```json
+{
+  "format": "discmenu-recipe", "version": 1,
+  "gameIndex": 0,
+  "game":  { "title": "…", "provider": "gog", "description": "…", "publisher": "…", "developer": "…", "sizeMB": 1500, "cover": "assets/cover.jpg" },
+  "menu":  { "schemaVersion": 1, "title": "…", "games": [ { "index": 0, "installer": "…", "patches": [ … ] } ] },
+  "cover": { "state": { … }, "images": { "spineLogo": { "file": "assets/huelle-spineLogo.png", "name": "…" } }, "fonts": { … } }
+}
+```
+
+- **game** (Gemeinsam): Titel, Anbieter, Beschreibung, Publisher, Entwickler, Größe und Cover des Spiels, das die Hülle zeigt (`gameIndex`). Sie gelten für Menü und Hülle und stehen nirgends sonst.
+- **menu**: das Menü im Format der [menu.json](menu-json-spec.md), beim Spiel `gameIndex` ohne die gemeinsamen Angaben. Weitere Spiele stehen vollständig darin.
+- **cover**: Einstellungen und Bilder der Hülle, ebenfalls ohne die gemeinsamen Angaben.
+
+Der **Builder** liest die `recipe.json` direkt: Er setzt die gemeinsamen Angaben in das Spiel ein und verarbeitet das Menü wie eine `menu.json` (`src/Shared/recipe.go`, `MenuFromRecipe`). Logik und Format in der Web-App: `app/project.js`, Tests: `tests/app-project.test.js` und `TestWebAppProjectLoads` (Go).
+
+**Ältere Dateien** lassen sich weiter öffnen: die Projektdatei der ersten Vorschau (`menu.json` und `cover.json` getrennt), ein Rezept (ZIP mit `menu.json`, die Hülle wird aus dem Spiel vorbereitet), eine einzelne `menu.json` und eine Hüllen-Datei der früheren DiscSleeve-Version (`cover.json` Version 1, das Menü wird aus der Hülle vorbereitet). **Beim Speichern** eines solchen Projekts (Strg+S oder "Speichern unter …") erscheint zuerst der Hinweis **Neues Dateiformat**: Gespeichert wird im neuen Format, ältere Versionen der Seite können die Datei danach nicht mehr öffnen. Erst mit "Im neuen Format speichern" wird geschrieben.
+
+### Spielordner einlesen
+
+**Daten übernehmen → Spielordner einlesen …** (oder der Knopf in der Prüfung rechts, nur Chrome und Edge am Computer): Man wählt den Ordner, der wie die Disc aufgebaut ist, z. B.:
+
+```
+DISK 1/
+├─ base_game/              Installer des Spiels (setup_….exe, die .bin-Teile gehören dazu)
+├─ Story_Erweiterungen/    DLCs, jeder Unterordner ein Eintrag
+├─ Patches_und_Fixes/      Patches, Gruppe "Patches & Fixes"
+├─ Hauptspiel_Overhauls/   Patches, Gruppe "Hauptspiel Overhauls"
+└─ extras/                 Extras (jede Datei und jeder Unterordner wird geöffnet)
+```
+
+Der Browser fragt, ob die Seite den Ordner lesen darf. Gelesen werden nur die Namen, nichts wird hochgeladen. Die Seite schlägt nach den Ordnernamen vor, was Installer, DLC, Patch oder Extra ist (die Namen müssen nicht genau so heißen: `dlc`, `erweiterung`, `expansion`, `patch`, `fix`, `mod`, `overhaul`, `extra`, `bonus`, `soundtrack`, `handbuch` … werden erkannt). Der Vorschlag erscheint als Tabelle: **Art, Name und Gruppe lassen sich je Zeile ändern**, "nicht übernehmen" lässt eine Zeile weg. Erst "Übernehmen" trägt die Einträge beim gewählten Spiel ein (Pfade ab dem gewählten Ordner = Wurzel der Disc). Vorhandene Einträge bleiben, gleiche Pfade werden nicht doppelt eingetragen. Regeln: `project.js` `planFromFolder`.
 
 Wie die Datei gespeichert wird, hängt vom Browser ab:
 

@@ -5,7 +5,11 @@
 - [ ] **Einstellungen und Sprache:** "Einstellungen" öffnet in beiden Bereichen denselben Dialog. Schlüssel löschen, dann im anderen Bereich öffnen: auch dort leer. Die Sprache wechselt die Leiste und die Hülle (das Menü bleibt vorerst deutsch).
 - [ ] **Verknüpfung:** Spielname im Menü ändern, zur Hülle wechseln: Titel geändert. Frontcover bei der Hülle setzen: im Menü als Cover des Spiels. Titel in der Hülle ändern: Spielname im Menü geändert.
 - [ ] **Neues Projekt:** Projekt → Neues Projekt leert Menü und Hülle.
-- [ ] **Projektdatei:** Speichern, Neues Projekt, Öffnen: Menü, Hülle und Bilder sind zurück. Eine alte Rezept-ZIP und eine alte Hüllen-ZIP lassen sich öffnen. Der Builder (`Builder.exe projekt.zip`) verarbeitet die neue Projektdatei.
+- [ ] **Projektdatei:** Speichern, Neues Projekt, Öffnen: Menü, Hülle und Bilder sind zurück. In der ZIP liegt nur eine `recipe.json` (keine menu.json, keine cover.json). Der Builder (`Builder.exe projekt.zip`) verarbeitet sie.
+- [ ] **Alte Dateien:** Eine alte Rezept-ZIP, eine alte Hüllen-ZIP und eine Projektdatei der ersten Vorschau öffnen. Strg+S und "Speichern unter" zeigen zuerst den Hinweis "Neues Dateiformat", "Abbrechen" speichert nichts.
+- [ ] **recipe.json bearbeiten:** Sonstiges → recipe.json bearbeiten: Reiter Gemeinsam, Menü, Hülle; den Titel unter "Gemeinsam" ändern, übernehmen: Menü und Hülle zeigen ihn.
+- [ ] **Spielordner einlesen:** Daten übernehmen → Spielordner einlesen, einen echten Spielordner (z. B. DISK 1 mit base_game, extras, Patches …) wählen. Der Vorschlag stimmt im Wesentlichen, eine Zeile umstellen, übernehmen: Einträge stehen im Menü, "Disc-Ordner prüfen" findet alle Pfade.
+- [ ] **Rückenlogo:** Spiel-Logo auf dem Rücken, dann Anbieter und Hülle (Normal, Slim, Blu-ray) wechseln: Das Logo springt nicht und sitzt sofort richtig.
 - [ ] **Übernahme alter Stände:** Auf einem Gerät, das die alten Tools benutzt hat, zeigt die neue Seite beim ersten Start den früheren Stand (Konfigurator-Projekt und Hülle).
 - [ ] **Design:** Menü und Hülle sehen gleich hell aus (Farben, Knöpfe, Felder), auch auf dem Tablet.
 - [ ] **Drucken:** Aus dem Bereich "Hülle" erscheint nur das Blatt, nichts vom Menü.

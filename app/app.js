@@ -628,6 +628,9 @@
     bindControls();
     bindHw();
     ['spineLogoImg', 'spinePubImg'].forEach((id) => $('#' + id).addEventListener('load', refitSpine));
+    /* Der Platz auf dem Rücken ändert sich auch ohne neues Bild (anderer Anbieter oder andere Hülle: Kopf- und Fußteil sind anders hoch,
+       die Bilder darin laden später). Dann das Logo sofort neu einpassen, nicht erst bei der nächsten Eingabe. */
+    if (window.ResizeObserver) { let lastH = -1; new ResizeObserver(() => { const hh = $('#spineBox').clientHeight; if (hh !== lastH) { lastH = hh; fitSpineLogo(); } }).observe($('#spineBox')); }
     bindDrops();
     $('#backTop').addEventListener('click', () => { if (window.BackEditor) BackEditor.open(); });
     syncControls();

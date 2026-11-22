@@ -485,3 +485,6 @@ body[data-view="menu"] [data-view="cover"], body[data-view="cover"] [data-view="
 .top .views button { border: 0; border-radius: 0; padding: 6px 16px; background: #f7f8fb; font-weight: 600; }
 .top .views button + button { border-left: 1px solid var(--line); }
 .top .views button[aria-selected="true"] { background: var(--acc); color: #fff; }
+/* recipe.json bearbeiten: Bereiche als Reiter, Textfeld für JSON */
+#dlg .seg button.on { background: var(--acc); border-color: var(--acc); color: #fff; }
+#dlg textarea.code { width: 100%; min-height: 50vh; font: 12px/1.45 ui-monospace, Consolas, monospace; padding: 10px; border: 1px solid var(--line); border-radius: 8px; resize: vertical; }

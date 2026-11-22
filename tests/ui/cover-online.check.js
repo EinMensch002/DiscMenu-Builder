@@ -424,7 +424,8 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
   await page.waitForFunction(() => document.querySelector('[data-img=publisher]').classList.contains('has'));
   await page.waitForTimeout(150);
   await openMenu('Projekt');
-  const proj = await download(() => page.click('#bProjExport'));
+  // das Projekt kam aus einem alten Rezept: vor dem Speichern kommt der Hinweis auf das neue Format
+  const proj = await download(async () => { await page.click('#bProjExport'); await page.click('#dlg button:has-text("Im neuen Format speichern")'); });
   assert.equal(proj.name, 'sammlung.zip', 'Name nach dem Titel der Disc');
   const CP = require('../../app/project.js'), CZ = require('../../app/zip.js');
   const inside = CP.read(await CZ.read(new Uint8Array(proj.buffer))).cover;

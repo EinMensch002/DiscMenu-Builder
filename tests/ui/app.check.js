@@ -59,8 +59,26 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html')
   const [dl] = await Promise.all([page.waitForEvent('download'), page.evaluate(() => document.getElementById('bSave').click())]);
   const file = path.join(require('node:os').tmpdir(), 'discmenu-app-test.zip'); await dl.saveAs(file);
   const names = (await M.readZip(new Uint8Array(fs.readFileSync(file)))).map((f) => f.name);
-  assert.ok(names.includes('menu.json') && names.includes('cover.json'), names.join());
-  assert.ok(names.some((n) => /^assets\/huelle-front\./.test(n)) && names.some((n) => /^assets\/.*\.png$/.test(n) && !/huelle/.test(n)), names.join());
+  assert.ok(names.includes('recipe.json') && !names.includes('menu.json') && !names.includes('cover.json'), 'eine Beschreibung: ' + names.join());
+  assert.ok(names.some((n) => /^assets\/cover\.(png|jpg)$/.test(n)), 'Frontcover ist auch das Cover des Menüs: ' + names.join());
+
+  // Alte Datei öffnen und speichern: vorher kommt der Hinweis auf das neue Format (auch bei Strg+S)
+  const oldZip = M.buildZip([{ name: 'menu.json', data: new TextEncoder().encode(JSON.stringify({ schemaVersion: 1, title: 'Alt', games: [{ index: 0, name: 'Altes Spiel', installer: 'a.exe' }] })) }]);
+  const oldFile = path.join(require('node:os').tmpdir(), 'discmenu-alt.zip'); fs.writeFileSync(oldFile, oldZip);
+  await page.setInputFiles('#projectFile', oldFile);
+  await page.waitForFunction(() => /Das Menü wurde geladen/.test(document.querySelector('#dlg').textContent));
+  await page.click('#dlgX');
+  await page.keyboard.press('Control+s');
+  await page.waitForFunction(() => /Neues Dateiformat/.test(document.querySelector('#dlg').textContent));
+  assert.match(await page.locator('#dlg').textContent(), /Rezept nur mit dem Menü/);
+  const [dl2] = await Promise.all([page.waitForEvent('download'), page.click('#dlg button:has-text("Im neuen Format speichern")')]);
+  const names2 = (await M.readZip(new Uint8Array(fs.readFileSync(await dl2.path())))).map((f) => f.name);
+  assert.ok(names2.includes('recipe.json'), names2.join());
+  const [dl3] = await Promise.all([page.waitForEvent('download'), page.evaluate(() => document.getElementById('bSave').click())]);
+  assert.ok(dl3, 'Danach speichert es ohne erneute Frage');
+  await page.setInputFiles('#projectFile', file);
+  await page.waitForFunction(() => /Menü, Hülle und alle Bilder wurden geladen/.test(document.querySelector('#dlg').textContent));
+  await page.click('#dlgX');
 
   // Neues Projekt leert beide Bereiche
   await page.evaluate(() => document.getElementById('bReset').click());
@@ -77,6 +95,21 @@ const url = 'file://' + path.resolve(__dirname, '..', '..', 'app', 'index.html')
   await page.goto(url + '#huelle'); await page.reload();
   assert.equal(await view(), 'cover');
   await page.waitForFunction(() => MenuApp.state.games[0].name === 'Neuer Titel' && !!CoverApp.images.front, null, { timeout: 5000 });
+
+  // Spielordner einlesen: Vorschlag als Tabelle, Zeilen lassen sich ändern, dann übernehmen (die Ordnerauswahl selbst lässt sich nicht automatisch bedienen)
+  await go('menu');
+  await page.evaluate(() => MenuApp.showFolderPlan('DISK 1', DiscProject.planFromFolder([
+    { path: 'base_game/setup_spiel.exe' }, { path: 'base_game/setup_spiel-1.bin' }, { path: 'Story_Erweiterungen/Kapitel2/setup_k2.exe' },
+    { path: 'Patches_und_Fixes/Fix/fix.exe' }, { path: 'extras/handbuch.pdf' }, { path: 'Sonstiges/tool.exe' }])));
+  const rowsCount = await page.locator('#mDlg .fplan tr').count();
+  assert.equal(rowsCount, 6, 'Kopfzeile und fünf Vorschläge');
+  await page.locator('#mDlg .fplan tr', { hasText: 'Sonstiges/tool.exe' }).locator('select').selectOption('extras');      // Zuordnung ändern
+  await page.click('#mDlg button:has-text("Übernehmen")');
+  const g0 = await page.evaluate(() => MenuApp.state.games[0]);
+  assert.equal(g0.installer, 'base_game/setup_spiel.exe');
+  assert.deepEqual(g0.dlcs.map((i) => [i.name, i.path]), [['Kapitel2', 'Story_Erweiterungen/Kapitel2/setup_k2.exe']]);
+  assert.deepEqual(g0.patches.map((i) => [i.name, i.group]), [['Fix', 'Patches & Fixes']]);
+  assert.deepEqual(g0.extras.map((i) => [i.path, i.kind]).sort(), [['Sonstiges/tool.exe', 'open'], ['extras/handbuch.pdf', 'open']]);
 
   // Stile bleiben getrennt, Drucken zeigt nur die Hülle
   const coverDrop = await page.evaluate(() => getComputedStyle(document.querySelector('#viewCover .drop')).minHeight);

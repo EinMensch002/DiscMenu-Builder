@@ -25,26 +25,29 @@ const { chromium } = require('playwright');
   await page.locator('#editor select').first().selectOption('epic');
   assert.match(await page.locator('#nav').textContent(), /Epic Games/);
 
-  // JSON bearbeiten
+  // recipe.json bearbeiten (Bereich Menü, im Menü vorausgewählt; Gemeinsam steht unter "game")
   await page.click('.top summary:has-text("Sonstiges")'); await page.click('#bJson');          // JSON steht unter "Sonstiges" in der Leiste
-  const ta = page.locator('textarea.code');
+  const ta = page.locator('#dlg textarea.code');
+  assert.equal(await page.locator('#dlg .seg button.on').textContent(), 'Menü');
   const json = JSON.parse(await ta.inputValue());
   assert.equal(json.games.length, 2);
   json.title = 'Per JSON geändert';
   json.games[0].patches = [{ name: 'Patch A', group: 'Sprache', installer: 'Eins/patch.exe' }];
   await ta.fill(JSON.stringify(json));
-  await page.click('text=Änderungen übernehmen');
-  await page.waitForSelector('dialog:not([open])', { state: 'attached' });
+  await page.click('#dlg button:has-text("Änderungen übernehmen")');
+  await page.waitForFunction(() => !document.querySelector('#dlg').open);
   assert.equal(await page.evaluate(() => MenuApp.state.title), 'Per JSON geändert');
   await page.locator('.nv').nth(1).click();
   assert.match(await page.locator('#editor').textContent(), /Patch A/);
 
   // Ungültiges JSON bleibt im Dialog
   await page.click('.top summary:has-text("Sonstiges")'); await page.click('#bJson');          // JSON steht unter "Sonstiges" in der Leiste
-  await page.locator('textarea.code').fill('{ kaputt');
-  await page.click('text=Änderungen übernehmen');
-  assert.match(await page.locator('#mDlgBody .issue.error').textContent(), /Kein gültiges JSON/);
-  await page.click('text=Abbrechen');
+  await page.click('#dlg .seg button:has-text("Gemeinsam")');
+  assert.equal(JSON.parse(await page.locator('#dlg textarea.code').inputValue()).title, 'Spiel Eins', 'gemeinsame Angaben des Spiels');
+  await page.locator('#dlg textarea.code').fill('{ kaputt');
+  await page.click('#dlg button:has-text("Änderungen übernehmen")');
+  assert.match(await page.locator('#dlg .dmsg.err').textContent(), /Kein gültiges JSON/);
+  await page.click('#dlg button:has-text("Abbrechen")');
 
   // Vorschau mit Simulation (klassisches Installer-Fenster: links Bild und Beschreibung, rechts Knöpfe)
   await page.click('#bPrev');

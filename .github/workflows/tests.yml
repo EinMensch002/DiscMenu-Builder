@@ -1,9 +1,8 @@
 name: Tests
 
-# Vorerst werden nur die beiden Web-Tools (Konfigurator und Cover-Tool) automatisch geprüft.
-# Builder und Player (Go, Windows-Build, Wine-Rauchtest) sind noch nicht in Arbeit und laufen deshalb nicht mit.
-# Der Code liegt weiter im Repo (src/, scripts/build.sh) und lässt sich von Hand prüfen: go test ./... und scripts/build.sh.
-# Zum Wiederaktivieren die Jobs go, windows und wine aus dem Verlauf dieser Datei zurückholen (Commit vor dieser Änderung).
+# Geprüft werden die Web-App (Node) und der gemeinsame Go-Teil von Builder und Player (src/Shared: Rezept lesen, auch die
+# recipe.json der Web-App). Player, Windows-Build und Wine-Rauchtest laufen vorerst nicht mit, von Hand: go test ./... und scripts/build.sh.
+# Zum Wiederaktivieren der übrigen Prüfungen (go test ./..., windows, wine) die Jobs aus dem Verlauf dieser Datei zurückholen (Commit vor dieser Änderung).
 
 on:
   push:
@@ -24,3 +23,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+
+  go:
+    name: Rezept lesen (Go, src/Shared)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: go vet ./src/Shared/
+      - run: go test ./src/Shared/
